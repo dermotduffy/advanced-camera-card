@@ -3,16 +3,17 @@ import type { ReactiveController, ReactiveControllerHost } from 'lit';
 import type { Camera } from '../../../camera-manager/camera';
 import type { StateWatcherSubscriptionInterface } from '../../../card-controller/hass/state-watcher';
 import type { MediaUnavailableIssueReason } from '../../../card-controller/issues/issues/media-unavailable';
-import type {
-  IssueResolveEventData,
-  IssueTriggerEventData,
-} from '../../../card-controller/issues/types';
 import type { CameraConfig } from '../../../config/schema/cameras';
 import type { HomeAssistant } from '../../../ha/types';
-import { fireAdvancedCameraCardEvent } from '../../../utils/fire-advanced-camera-card-event';
+import {
+  resolveMediaUnavailableIssue,
+  triggerMediaUnavailableIssue,
+} from '../../media-unavailable-issue';
 import { EntityAvailabilityDetector } from './detectors/entity-availability';
 import { MediaPlayerLivenessDetector } from './detectors/media-player-liveness';
 import { ProviderErrorDetector } from './detectors/provider-error';
+
+const MEDIA_LOADED_EVENT = 'advanced-camera-card:media:loaded';
 
 // How far a verdict's evidence is trusted, so direct observation of the media
 // outweighs an indirect signal:
@@ -66,17 +67,26 @@ interface StreamFailure {
   renderPlaceholder: boolean;
 }
 
+// A prior detection can be invalidated for one of two reasons:
+// - `stream-changed`: the media underneath was replaced (e.g. a different camera or
+//   provider, or a retry rebuilding it), so nothing observed about the old one
+//   still applies.
+// - `media-loaded`: media has loaded, which can disprove a failure to deliver
+//   it. Whether it does is each detector's own call, since the media that
+//   loaded is not always the media it was watching.
+export type LivenessInvalidationCause = 'stream-changed' | 'media-loaded';
+
 export interface LivenessDetector {
   // Start observing the signal.
   subscribe(): void;
 
   // Stop observing (e.g. on disconnect). Accumulated state is retained so a
-  // later reconnect resumes where it left off; use reset() to discard it.
+  // later reconnect resumes where it left off; use invalidate() to discard it.
   unsubscribe(): void;
 
-  // Discard accumulated state because the underlying stream changed (e.g. a
-  // substream switch), so detection restarts from scratch.
-  reset?(): void;
+  // Notify the detector that `cause` occurred; the detector decides whether
+  // its verdict still holds.
+  invalidate(cause: LivenessInvalidationCause): void;
 
   // Reports the stream's current liveness, calling `onChange` (passed at
   // construction) whenever that verdict changes.
@@ -99,7 +109,7 @@ export class StreamLivenessController implements ReactiveController {
   private _host: ReactiveControllerHost & HTMLElement;
   private _config: StreamLivenessControllerConfig;
   private _detectors: LivenessDetector[];
-  private _resetting = false;
+  private _invalidating = false;
 
   constructor(
     host: ReactiveControllerHost & HTMLElement,
@@ -128,10 +138,12 @@ export class StreamLivenessController implements ReactiveController {
   }
 
   public hostConnected(): void {
+    this._host.addEventListener(MEDIA_LOADED_EVENT, this._onMediaLoaded);
     this._detectors.forEach((detector) => detector.subscribe());
   }
 
   public hostDisconnected(): void {
+    this._host.removeEventListener(MEDIA_LOADED_EVENT, this._onMediaLoaded);
     this._detectors.forEach((detector) => detector.unsubscribe());
   }
 
@@ -154,17 +166,23 @@ export class StreamLivenessController implements ReactiveController {
 
   // Discard detector state on a stream change (e.g. a stream switch).
   public reset(): void {
-    // The detectors are cleared one at a time, and clearing one could cause it
-    // report a change (e.g. an entity might be marked as having an unknown
-    // state). Part-way through, some are cleared and some are not, so what they
-    // add up to is meaningless and this controller needs to not take action
-    // during this time. Ignore anything detectors say until the reset is
-    // complete.
-    this._resetting = true;
+    this._invalidate('stream-changed');
+  }
+
+  private _onMediaLoaded = (): void => this._invalidate('media-loaded');
+
+  private _invalidate(cause: LivenessInvalidationCause): void {
+    // The detectors are invalidated one at a time, and invalidating one can
+    // make it call back with a changed verdict (e.g. an entity dropping back to
+    // an unknown state). Part way through, some have been invalidated and some
+    // have not, so what they add up to is meaningless and this controller needs
+    // to not take action during this time. Ignore anything detectors say until
+    // the invalidation is complete.
+    this._invalidating = true;
     try {
-      this._detectors.forEach((detector) => detector.reset?.());
+      this._detectors.forEach((detector) => detector.invalidate(cause));
     } finally {
-      this._resetting = false;
+      this._invalidating = false;
     }
 
     this._onDetectorChange();
@@ -196,7 +214,7 @@ export class StreamLivenessController implements ReactiveController {
   }
 
   private _onDetectorChange(): void {
-    if (this._resetting) {
+    if (this._invalidating) {
       return;
     }
 
@@ -219,12 +237,7 @@ export class StreamLivenessController implements ReactiveController {
     if (!targetID) {
       return;
     }
-    fireAdvancedCameraCardEvent<IssueTriggerEventData>(this._host, 'issue:trigger', {
-      key: 'media_unavailable',
-      targetID,
-      reason,
-      description,
-    });
+    triggerMediaUnavailableIssue(this._host, { targetID, reason, description });
   }
 
   private _resolveMediaUnavailableIssue(): void {
@@ -232,9 +245,6 @@ export class StreamLivenessController implements ReactiveController {
     if (!targetID) {
       return;
     }
-    fireAdvancedCameraCardEvent<IssueResolveEventData>(this._host, 'issue:resolve', {
-      key: 'media_unavailable',
-      targetID,
-    });
+    resolveMediaUnavailableIssue(this._host, { targetID });
   }
 }

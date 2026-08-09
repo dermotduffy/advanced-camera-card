@@ -76,6 +76,15 @@ export const createStallingMediaURL = (filename?: string): string =>
   createTestMediaURL([HTTP_OK], false, filename);
 
 /**
+ * How many requests a media URL has been asked for, so a test can count what
+ * the card actually fetched rather than only what it displayed.
+ */
+export const getTestMediaRequestCount = (url: string): number => {
+  const token = new URL(url, window.location.href).searchParams.get('token');
+  return (token ? requestCounts.get(token) : null) ?? 0;
+};
+
+/**
  * Serves a fixture at `/test-media/<file>`, behaving as the query asks:
  *
  *   token      Which counter the request belongs to, so that a test's

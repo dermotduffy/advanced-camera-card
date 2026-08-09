@@ -3,7 +3,11 @@ import { isEqual } from 'lodash-es';
 import type { StateWatcherSubscriptionInterface } from '../../../../card-controller/hass/state-watcher';
 import type { HassStateDifference, HomeAssistant } from '../../../../ha/types';
 import { Timer } from '../../../../utils/timer';
-import type { LivenessDetector, LivenessVerdict } from '../stream-liveness-controller';
+import type {
+  LivenessDetector,
+  LivenessInvalidationCause,
+  LivenessVerdict,
+} from '../stream-liveness-controller';
 
 // A camera entity must stay `unavailable` this long before the stream is
 // treated as lost. Shorter blips (e.g. during PTZ, see issue #2124) are
@@ -56,13 +60,17 @@ export class EntityAvailabilityDetector implements LivenessDetector {
     this._timer.stop();
   }
 
-  public reset(): void {
+  public invalidate(cause: LivenessInvalidationCause): void {
+    if (cause !== 'stream-changed') {
+      // Only changing the entity under detection can invalidate the verdict.
+      return;
+    }
+
     this._verdict = { state: 'unknown' };
     this._timer.stop();
 
-    // A reset is not a stop: watching continues, only what was learned is
-    // forgotten. `getCameraEntity` may now name a different entity, so re-point
-    // the subscription and read that entity now.
+    // `getCameraEntity` may now name a different entity, so re-point the
+    // subscription and read that entity now.
     this._subscribeOrUnsubscribeFromCameraEntity();
     this._check();
   }

@@ -1,5 +1,9 @@
 import type { LiveError } from '../../utils/dispatch-live-error';
-import type { LivenessDetector, LivenessVerdict } from '../stream-liveness-controller';
+import type {
+  LivenessDetector,
+  LivenessInvalidationCause,
+  LivenessVerdict,
+} from '../stream-liveness-controller';
 
 const LIVE_ERROR_EVENT = 'advanced-camera-card:live:error';
 
@@ -31,7 +35,10 @@ export class ProviderErrorDetector implements LivenessDetector {
     this._host.removeEventListener(LIVE_ERROR_EVENT, this._handler);
   }
 
-  public reset(): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public invalidate(_cause: LivenessInvalidationCause): void {
+    // No matter the cause the provider error is disproven: the stream the error
+    // was about has been replaced, or media is demonstrably being delivered.
     this._verdict = { state: 'unknown' };
   }
 

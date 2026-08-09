@@ -372,6 +372,28 @@ describe('StreamLivenessController', () => {
       ]);
     });
 
+    it('should stop reporting a provider error once media loads', () => {
+      const { host, controller, issueResolves, failViaProviderError } = setup();
+      controller.hostConnected();
+      failViaProviderError({ reason: 'not_loading' });
+
+      host.dispatchEvent(createMediaLoadedInfoEvent({ info: createMediaLoadedInfo() }));
+
+      // The detector holding the failure goes quiet rather than claiming the
+      // stream is live, so this controller has nothing to state either way.
+      expect(controller.isLive()).toBe(true);
+      expect(issueResolves).toEqual([]);
+    });
+
+    it('should not resolve when media arrives with no failure to disprove', () => {
+      const { host, controller, issueResolves } = setup();
+      controller.hostConnected();
+
+      host.dispatchEvent(createMediaLoadedInfoEvent({ info: createMediaLoadedInfo() }));
+
+      expect(issueResolves).toEqual([]);
+    });
+
     it('should not resolve while a hard failure exists', async () => {
       const { issueResolves, failViaProviderError, fireMediaPlayerLiveness } =
         await setupWithLiveStream();

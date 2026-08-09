@@ -179,6 +179,40 @@ describe('AdvancedCameraCardViewerCarousel', () => {
     );
   });
 
+  it('should build a new player for a failed clip when the retry control is used', async () => {
+    vi.useFakeTimers();
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+
+    const { card, frigate } = await mountCardWithFrigate(EVENTS, {
+      // Automatic retries switched off, so the control below is the only one.
+      view: { default: 'clips', issues: { retry_seconds: 0 } },
+      status_bar: { style: 'outside' },
+    });
+    frigate.setMediaURL('newer', 'clips', createFailingMediaURL());
+
+    await waitForThumbnails(card, EVENTS.length);
+    await clickThumbnail(card.card, 0);
+    const failedPlayer = await card.waitForSelector('video');
+    await card.advanceSeconds(MEDIA_LOADING_TIMEOUT_SECONDS);
+    await card.waitForRender(
+      () => getStatusBarItem(card.card, MEDIA_ISSUE_TITLE),
+      `the ${MEDIA_ISSUE_TITLE} issue being reported`,
+    );
+
+    await card.clickControl(MEDIA_ISSUE_TITLE);
+    await card.clickControl('Retry');
+
+    // A second player, not the one that failed: the retry throws the old one
+    // away, and the replacement has to render and ask for the clip again rather
+    // than sit there empty.
+    await card.waitForRender(() => {
+      const player = deepQuery(card.card, 'video');
+      return player && player !== failedPlayer ? player : null;
+    }, 'the clip player being rebuilt');
+  });
+
   it('should return to the gallery from the viewer', async () => {
     const card = await mountViewer(EVENTS, {
       config: {

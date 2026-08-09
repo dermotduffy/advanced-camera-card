@@ -230,6 +230,32 @@ describe('MediaUnavailableIssue', () => {
 
       expect(issue.hasIssue()).toBe(false);
     });
+
+    it('should do nothing for a load on a target that never failed', () => {
+      const issue = new MediaUnavailableIssue(createAPIDisplaying('camera-1'));
+
+      issue.resolve({ targetID: 'camera-1', cause: 'media-loaded' });
+
+      expect(issue.hasIssue()).toBe(false);
+    });
+
+    describe('when the media loads', () => {
+      it.each([
+        ['entity_unavailable' as const, false],
+        ['not_loading' as const, true],
+        ['playback_error' as const, false],
+        ['server_error' as const, true],
+        ['stalled' as const, false],
+        ['unsupported' as const, true],
+      ])('should reset a %s failure: %s', (reason, cleared) => {
+        const issue = new MediaUnavailableIssue(createAPIDisplaying('camera-1'));
+
+        issue.trigger({ targetID: 'camera-1', reason });
+        issue.resolve({ targetID: 'camera-1', cause: 'media-loaded' });
+
+        expect(issue.hasIssue()).toBe(!cleared);
+      });
+    });
   });
 
   describe('trigger', () => {
