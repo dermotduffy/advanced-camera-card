@@ -7,6 +7,25 @@ import type { ActionConfig } from '../../config/schema/actions/types';
 import type { CameraConfig } from '../../config/schema/cameras';
 import { PTZMovementType, type PTZCapabilities } from '../../types';
 
+/**
+ * Get the action configured for a named PTZ preset.
+ * @param ptzConfig The camera's PTZ config.
+ * @param preset The preset name.
+ * @returns The configured action, or `null` if the preset is not configured.
+ */
+export const getConfiguredPTZPresetAction = (
+  ptzConfig: CameraConfig['ptz'],
+  preset: string,
+): ActionConfig | null => {
+  const presets = ptzConfig.presets;
+  if (!presets) {
+    return null;
+  }
+
+  const action = Object.entries(presets).find(([name]) => name === preset)?.[1];
+  return typeof action === 'object' ? action : null;
+};
+
 export const getConfiguredPTZAction = (
   cameraConfig: CameraConfig,
   action: PTZAction,
@@ -16,7 +35,9 @@ export const getConfiguredPTZAction = (
   },
 ): ActionConfig | ActionConfig[] | null => {
   if (action === 'preset') {
-    return (options?.preset ? cameraConfig.ptz.presets?.[options.preset] : null) ?? null;
+    return options?.preset
+      ? getConfiguredPTZPresetAction(cameraConfig.ptz, options.preset)
+      : null;
   }
 
   if (options?.phase) {

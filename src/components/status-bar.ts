@@ -16,6 +16,7 @@ import { StatusBarController } from '../components-lib/status-bar-controller';
 import type { StatusBarItem } from '../config/schema/actions/types.js';
 import type { StatusBarConfig } from '../config/schema/status-bar.js';
 import statusStyle from '../scss/status.scss?inline';
+import type { Interaction } from '../types.js';
 import { hasAction } from '../utils/action';
 import { contentsChanged } from '../utils/basic.js';
 
@@ -114,7 +115,8 @@ export class AdvancedCameraCardStatusBar extends LitElement {
               class="${classes}"
               title=${item.title ?? nothing}
               data-severity=${item.severity ?? ''}
-              @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
+              @action=${(ev: CustomEvent<Interaction>) =>
+                this._controller.actionHandler(ev, item.actions)}
             >
               ${item.string}
             </div>`;
@@ -125,7 +127,8 @@ export class AdvancedCameraCardStatusBar extends LitElement {
               class="${classes}"
               title=${item.title ?? nothing}
               data-severity=${item.severity ?? ''}
-              @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
+              @action=${(ev: CustomEvent<Interaction>) =>
+                this._controller.actionHandler(ev, item.actions)}
             ></advanced-camera-card-icon>`;
           } else if (item.type === 'custom:advanced-camera-card-status-bar-image') {
             return html`<img
@@ -134,7 +137,8 @@ export class AdvancedCameraCardStatusBar extends LitElement {
               title=${item.title ?? nothing}
               src="${item.image}"
               data-severity=${item.severity ?? ''}
-              @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
+              @action=${(ev: CustomEvent<Interaction>) =>
+                this._controller.actionHandler(ev, item.actions)}
             />`;
           }
         })}

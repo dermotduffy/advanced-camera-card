@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   actionHandler,
   type ActionHandlerInterface,
+  type AdvancedCameraCardActionHandlerOptions,
 } from '../src/action-handler-directive';
 import { fireHASSEvent } from '../src/ha/fire-hass-event';
 import type { ActionHandlerDetail } from '../src/ha/types';
@@ -23,7 +24,9 @@ const getActionHandler = (): ActionHandlerInterface => {
   return el as ActionHandlerInterface;
 };
 
-const createBoundElement = (options?: Record<string, unknown>): HTMLElement => {
+const createBoundElement = (
+  options?: AdvancedCameraCardActionHandlerOptions,
+): HTMLElement => {
   const handler = getActionHandler();
   const element = document.createElement('div');
   handler.bind(element, options);

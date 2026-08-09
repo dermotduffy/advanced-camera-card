@@ -18,8 +18,10 @@ import { getEntityTitle } from '../ha/get-entity-title.js';
 import type { EntityRegistryManager } from '../ha/registry/entity/types.js';
 import type { HomeAssistant } from '../ha/types.js';
 import menuStyle from '../scss/menu.scss?inline';
+import type { Interaction } from '../types.js';
 import { hasAction } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
+import type { SubmenuInteraction } from './submenu/types.js';
 
 import './icon.js';
 import './submenu/select-button.js';
@@ -76,7 +78,8 @@ export class AdvancedCameraCardMenu extends LitElement {
         .hass=${this.hass}
         .submenu=${button}
         .lockManagerEpoch=${this.lockManagerEpoch}
-        @action=${(ev) => this._controller.handleAction(ev, button)}
+        @action=${(ev: CustomEvent<SubmenuInteraction>) =>
+          this._controller.handleAction(ev, button)}
       >
       </advanced-camera-card-submenu-button>`;
     } else if (button.type === 'custom:advanced-camera-card-menu-submenu-select') {
@@ -85,7 +88,8 @@ export class AdvancedCameraCardMenu extends LitElement {
         .submenuSelect=${button}
         .entityRegistryManager=${this.entityRegistryManager}
         .lockManagerEpoch=${this.lockManagerEpoch}
-        @action=${(ev) => this._controller.handleAction(ev, button)}
+        @action=${(ev: CustomEvent<SubmenuInteraction>) =>
+          this._controller.handleAction(ev, button)}
       >
       </advanced-camera-card-submenu-select-button>`;
     }
@@ -104,7 +108,8 @@ export class AdvancedCameraCardMenu extends LitElement {
       })}
       .label=${title ?? ''}
       ?disabled=${this._controller.shouldButtonBeInert(button)}
-      @action=${(ev) => this._controller.handleAction(ev, button)}
+      @action=${(ev: CustomEvent<Interaction>) =>
+        this._controller.handleAction(ev, button)}
     >
       <advanced-camera-card-icon
         ?allow-override-non-active-styles=${true}

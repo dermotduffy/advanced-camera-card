@@ -15,13 +15,13 @@ import { Timer } from './utils/timer.js';
 export interface ActionHandlerInterface extends HTMLElement {
   holdTime: number;
   connectedCallback(): void;
-  bind(element: Element, options): void;
+  bind(element: Element, options?: AdvancedCameraCardActionHandlerOptions): void;
 }
 interface ActionHandlerElement extends HTMLElement {
   actionHandlerOptions?: AdvancedCameraCardActionHandlerOptions;
 }
 
-interface AdvancedCameraCardActionHandlerOptions extends ActionHandlerOptions {
+export interface AdvancedCameraCardActionHandlerOptions extends ActionHandlerOptions {
   allowPropagation?: boolean;
 }
 

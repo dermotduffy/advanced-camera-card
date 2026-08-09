@@ -24,7 +24,6 @@ import {
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from './const';
-import type { Condition } from './schema/condition-trigger/conditions/types';
 import type {
   RawAdvancedCameraCardConfig,
   RawAdvancedCameraCardConfigArray,
@@ -430,17 +429,15 @@ export const deleteTransform = function (_value: unknown): number | null | undef
  * @returns `true` if the configuration was modified.
  */
 const conditionToConditionsTransform = (data: unknown): boolean => {
-  if (
-    typeof data !== 'object' ||
-    !data ||
-    typeof data['conditions'] !== 'object' ||
-    !data['conditions']
-  ) {
+  if (!isRecord(data) || !isRecord(data['conditions'])) {
     return false;
   }
 
   const oldConditions = data['conditions'];
-  const newConditions: Condition[] = [];
+
+  // The legacy values are copied across unvalidated; the schema rejects
+  // anything malformed when the migrated configuration is later parsed.
+  const newConditions: RawAdvancedCameraCardConfig[] = [];
 
   if (oldConditions['view'] !== undefined) {
     newConditions.push({
@@ -475,23 +472,18 @@ const conditionToConditionsTransform = (data: unknown): boolean => {
   if (oldConditions['state'] !== undefined && Array.isArray(oldConditions['state'])) {
     for (const stateCondition of oldConditions['state']) {
       if (
-        typeof stateCondition === 'object' &&
-        stateCondition &&
+        isRecord(stateCondition) &&
         (stateCondition['state'] !== undefined ||
           stateCondition['state_not'] !== undefined ||
           stateCondition['entity'] !== undefined)
       ) {
         newConditions.push({
           condition: 'state' as const,
-          ...(stateCondition['state'] && {
-            state: stateCondition['state'],
-          }),
-          ...(stateCondition['state_not'] && {
+          ...(!!stateCondition['state'] && { state: stateCondition['state'] }),
+          ...(!!stateCondition['state_not'] && {
             state_not: stateCondition['state_not'],
           }),
-          ...(stateCondition['entity'] && {
-            entity_id: stateCondition['entity'],
-          }),
+          ...(!!stateCondition['entity'] && { entity_id: stateCondition['entity'] }),
         });
       }
     }
@@ -570,8 +562,7 @@ const dropTriggerOnlyConditions = (conditions: unknown[]): unknown[] => {
   for (const condition of conditions) {
     if (
       isCompositeCondition(condition) &&
-      typeof condition === 'object' &&
-      condition &&
+      isRecord(condition) &&
       Array.isArray(condition['conditions'])
     ) {
       const inner = dropTriggerOnlyConditions(condition['conditions']);
@@ -594,7 +585,7 @@ const rewriteConditionAsTrigger = (condition: unknown): unknown => {
   // Only the renamed fields are consumed; anything else the condition carries
   // (`enabled`, and the fields it already shares with its trigger) is preserved,
   // so promoting never silently discards user configuration.
-  const withoutKeys = (...keys: string[]): Record<string, unknown> => {
+  const withoutKeys = (...keys: string[]): RawAdvancedCameraCardConfig => {
     const rest = { ...condition };
     for (const key of keys) {
       delete rest[key];
@@ -1100,8 +1091,7 @@ const callServiceToPerformActionTransform = (data: unknown): boolean => {
  */
 const serviceDataToDataTransform = (data: unknown): boolean => {
   if (
-    typeof data === 'object' &&
-    data &&
+    isRecord(data) &&
     data['action'] === 'call-service' &&
     data['service'] !== undefined &&
     data['service_data'] !== undefined &&
@@ -1205,7 +1195,7 @@ const ptzIncorrectDataToWebRTCDataTransform = (data: unknown): unknown => {
 };
 
 const ptzActionsToCamerasGlobalTransform = (data: unknown): unknown => {
-  if (typeof data !== 'object' || !data) {
+  if (!isRecord(data)) {
     return undefined;
   }
 
@@ -1242,7 +1232,7 @@ const ptzActionsToCamerasGlobalTransform = (data: unknown): unknown => {
     return undefined;
   }
 
-  const output = {};
+  const output: RawAdvancedCameraCardConfig = {};
 
   NON_PRESET_DATA_KEYS.filter((key) => key in data).reduce((obj, key) => {
     obj[key] = data[key];
@@ -1250,36 +1240,31 @@ const ptzActionsToCamerasGlobalTransform = (data: unknown): unknown => {
   }, output);
 
   NON_PRESET_ACTION_KEYS.filter((key) => key in data).reduce((obj, key) => {
-    if (typeof data[key] === 'object' && 'tap_action' in data[key]) {
-      obj[key] = data[key]['tap_action'];
+    const action = data[key];
+    if (isRecord(action) && 'tap_action' in action) {
+      obj[key] = action['tap_action'];
     }
     return obj;
   }, output);
 
-  const createPresets = () => {
-    output['presets'] =
-      'presets' in data && typeof data['presets'] === 'object' && !!data['presets']
-        ? data['presets']
-        : {};
+  // Returns the preset collection so callers can add to it after it is
+  // attached to the output.
+  const createPresets = (): RawAdvancedCameraCardConfig => {
+    const existing = data['presets'];
+    const presets = isRecord(existing) ? existing : {};
+    output['presets'] = presets;
+    return presets;
   };
 
-  if (
-    'actions_home' in data &&
-    typeof data['actions_home'] === 'object' &&
-    data['actions_home'] &&
-    'tap_action' in data['actions_home']
-  ) {
-    createPresets();
-    output['presets']['home'] = data['actions_home']['tap_action'];
-  } else if (
-    'data_home' in data &&
-    typeof data['data_home'] === 'object' &&
-    data['data_home'] &&
-    typeof data['service'] === 'string'
-  ) {
-    createPresets();
-    output['presets']['service'] = data['service'];
-    output['presets']['data_home'] = data['data_home'];
+  const actionsHome = data['actions_home'];
+  const dataHome = data['data_home'];
+
+  if (isRecord(actionsHome) && 'tap_action' in actionsHome) {
+    createPresets()['home'] = actionsHome['tap_action'];
+  } else if (isRecord(dataHome) && typeof data['service'] === 'string') {
+    const presets = createPresets();
+    presets['service'] = data['service'];
+    presets['data_home'] = dataHome;
   }
 
   return output;
@@ -1310,7 +1295,7 @@ const ptzControlSettingsTransform = (data: unknown): unknown => {
 
   return keys
     .filter((key) => TRANSFORM_KEYS.includes(key))
-    .reduce((obj, key) => {
+    .reduce<RawAdvancedCameraCardConfig>((obj, key) => {
       obj[key] = data[key];
       return obj;
     }, {});
@@ -1593,13 +1578,15 @@ const UPGRADES = [
   deleteWithOverrides('image.layout'),
   upgradeArrayOfObjects(CONF_OVERRIDES, conditionToConditionsTransform),
   (data: unknown): boolean => {
+    const elements = isRecord(data) ? data[CONF_ELEMENTS] : null;
     return upgradeObjectRecursively(conditionToConditionsTransform)(
-      typeof data === 'object' && data ? data[CONF_ELEMENTS] : {},
+      isRecord(elements) ? elements : {},
     );
   },
   (data: unknown): boolean => {
+    const automations = isRecord(data) ? data[CONF_AUTOMATIONS] : null;
     return upgradeObjectRecursively(conditionToConditionsTransform)(
-      typeof data === 'object' && data ? data[CONF_AUTOMATIONS] : {},
+      isRecord(automations) ? automations : {},
     );
   },
   upgradeArrayOfObjects(

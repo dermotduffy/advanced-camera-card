@@ -67,7 +67,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
     const entity =
       (await this.entityRegistryManager?.getEntity(this.hass, entityID)) ?? null;
 
-    const optionTitles = {};
+    const optionTitles: Record<string, string> = {};
     for (const option of options) {
       const title = getEntityStateTranslation(this.hass, entityID, {
         ...(entity && { entity: entity }),

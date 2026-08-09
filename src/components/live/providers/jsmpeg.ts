@@ -90,7 +90,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     }
   }
 
-  private async _createJSMPEGPlayer(url: string): Promise<JSMpeg.VideoElement> {
+  private async _createJSMPEGPlayer(url: string): Promise<void> {
     this._jsmpegVideoPlayer = await new Promise<JSMpeg.VideoElement>((resolve) => {
       let videoDecoded = false;
       const player = new JSMpeg.VideoElement(

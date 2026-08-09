@@ -42,13 +42,18 @@ const getActionSpy = (
 };
 
 const createPlayerElement = (controller?: MediaPlayerController): MediaPlayerElement => {
-  const player = document.createElement('video');
-  player['getMediaPlayerController'] = vi
-    .fn()
-    .mockResolvedValue(
-      controller ?? mock<MediaPlayerController>({ playback: mock<PlaybackControl>() }),
-    );
-  return player as unknown as MediaPlayerElement;
+  const player: MediaPlayerElement<HTMLVideoElement> = Object.assign(
+    document.createElement('video'),
+    {
+      getMediaPlayerController: vi
+        .fn()
+        .mockResolvedValue(
+          controller ??
+            mock<MediaPlayerController>({ playback: mock<PlaybackControl>() }),
+        ),
+    },
+  );
+  return player;
 };
 
 const createPlayerSlideNodes = (n = 10): HTMLElement[] => {
@@ -914,13 +919,17 @@ describe('MediaActionsController', () => {
 
       // A player whose media player controller is not ready on first request.
       const mediaPlayerController = mock<MediaPlayerController>();
-      const player = document.createElement('video');
-      player['getMediaPlayerController'] = vi
-        .fn()
-        .mockResolvedValueOnce(null)
-        .mockResolvedValue(mediaPlayerController);
+      const player: MediaPlayerElement<HTMLVideoElement> = Object.assign(
+        document.createElement('video'),
+        {
+          getMediaPlayerController: vi
+            .fn()
+            .mockResolvedValueOnce(null)
+            .mockResolvedValue(mediaPlayerController),
+        },
+      );
       const child = createTestSlideNodes({ n: 1 })[0];
-      child.appendChild(player as unknown as MediaPlayerElement);
+      child.appendChild(player);
 
       controller.setRoot(createParent({ children: [child] }));
       await controller.setTarget(0, true);

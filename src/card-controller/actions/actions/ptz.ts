@@ -1,3 +1,4 @@
+import { getConfiguredPTZPresetAction } from '../../../camera-manager/utils/ptz';
 import type { PTZActionConfig } from '../../../config/schema/actions/custom/ptz';
 import { PTZMovementType } from '../../../types';
 import { getPTZTarget, ptzActionToCapabilityKey } from '../../../utils/ptz';
@@ -62,7 +63,7 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
       // and the home button always targets `presets[0]`, ignoring the
       // configured action. See:
       // https://github.com/dermotduffy/advanced-camera-card/issues/2525
-      if (ptzConfiguration.presets?.['home']) {
+      if (getConfiguredPTZPresetAction(ptzConfiguration, 'home')) {
         await api.getCameraManager().executePTZAction(ptzCameraID, 'preset', {
           phase: action.ptz_phase,
           preset: 'home',

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { isRecord } from '../../../utils/basic';
+import type { RawAdvancedCameraCardConfig } from '../../types';
 import { performActionActionSchema } from '../actions/stock/perform-action';
 
 export const ptzCameraConfigDefaults = {
@@ -14,12 +16,12 @@ export const ptzCameraConfigDefaults = {
 const dataPTZFormatToFullFormat =
   (suffix: string) =>
   (data: unknown): unknown => {
-    if (!data || typeof data !== 'object' || !data['service']) {
+    if (!isRecord(data) || !data['service']) {
       return data;
     }
 
     const service = data['service'];
-    const out = { ...data };
+    const out: RawAdvancedCameraCardConfig = { ...data };
 
     for (const key of Object.keys(data)) {
       const webrtc = key.match(/^data_(start|end)_(.+)$/);
@@ -34,8 +36,7 @@ const dataPTZFormatToFullFormat =
       // Route `data_home` into a `home` preset listed first so the PTZ
       // home button (which activates the first preset) uses it.
       if (suffix && name === 'home') {
-        const presets =
-          out['presets'] && typeof out['presets'] === 'object' ? out['presets'] : {};
+        const presets = isRecord(out['presets']) ? out['presets'] : {};
         if (!('home' in presets)) {
           out['presets'] = {
             home: {

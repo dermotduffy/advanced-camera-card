@@ -153,7 +153,7 @@ export class TemplateManager implements TemplateRenderer {
         this._renderTemplateRecursively(hass, item, templateContext),
       );
     } else if (isRecord(data)) {
-      const result = {};
+      const result: Record<string, unknown> = {};
       for (const key in data) {
         result[key] = this._renderTemplateRecursively(hass, data[key], templateContext);
       }

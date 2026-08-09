@@ -1,6 +1,17 @@
 import type { MediaLayoutConfig } from '../config/schema/camera/media-layout';
 import { setOrRemoveStyleProperty } from './basic';
 
+const POSITION_DIMENSIONS: (keyof NonNullable<MediaLayoutConfig['position']>)[] = [
+  'x',
+  'y',
+];
+const VIEW_BOX_EDGES: (keyof NonNullable<MediaLayoutConfig['view_box']>)[] = [
+  'top',
+  'bottom',
+  'left',
+  'right',
+];
+
 /**
  * Update element style from a media configuration.
  * @param element The element to update the style for.
@@ -17,7 +28,7 @@ export const updateElementStyleFromMediaLayoutConfig = (
     mediaLayoutConfig?.fit,
   );
 
-  for (const dimension of ['x', 'y']) {
+  for (const dimension of POSITION_DIMENSIONS) {
     setOrRemoveStyleProperty(
       element,
       !!mediaLayoutConfig?.position?.[dimension],
@@ -26,7 +37,7 @@ export const updateElementStyleFromMediaLayoutConfig = (
     );
   }
 
-  for (const dimension of ['top', 'bottom', 'left', 'right']) {
+  for (const dimension of VIEW_BOX_EDGES) {
     setOrRemoveStyleProperty(
       element,
       !!mediaLayoutConfig?.view_box?.[dimension],
