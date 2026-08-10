@@ -283,12 +283,17 @@ export const recursivelyMergeObjectsConcatenatingArraysUniquely = <T>(
   );
 };
 
+export const isValidAspectRatio = (ratio?: number[] | null): ratio is number[] =>
+  ratio?.length === 2 &&
+  ratio.every((dimension) => Number.isFinite(dimension) && dimension > 0);
+
 export const aspectRatioToString = (options?: {
   ratio?: number[] | null;
   defaultStatic?: boolean;
 }): string => {
-  if (options?.ratio && options.ratio.length === 2) {
-    return `${options.ratio[0]} / ${options.ratio[1]}`;
+  const ratio = options?.ratio;
+  if (isValidAspectRatio(ratio)) {
+    return `${ratio[0]} / ${ratio[1]}`;
   } else if (options?.defaultStatic) {
     return '16 / 9';
   } else {

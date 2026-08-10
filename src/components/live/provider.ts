@@ -16,7 +16,10 @@ import type { StateWatcherSubscriptionInterface } from '../../card-controller/ha
 import { MEDIA_UNAVAILABLE_REASONS } from '../../card-controller/issues/issues/media-unavailable.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { isAudioIntendedOnLoad } from '../../components-lib/live/audio-intent.js';
-import { StreamLivenessController } from '../../components-lib/live/liveness/stream-liveness-controller.js';
+import {
+  StreamLivenessController,
+  type StreamFailure,
+} from '../../components-lib/live/liveness/stream-liveness-controller.js';
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import type { PartialZoomSettings } from '../../components-lib/zoom/types.js';
@@ -26,10 +29,13 @@ import type { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss?inline';
 import type {
+  MediaLoadedInfoEventDetail,
   MediaPlayer,
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../types.js';
+import { onAbort } from '../../utils/abort-signal.js';
+import { isValidAspectRatio } from '../../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event.js';
 import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 
@@ -107,6 +113,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @state()
   private _zoomed = false;
 
+  @state()
+  private _loadingImageLoaded = false;
+
   private _refProvider: Ref<MediaPlayerElement> = createRef();
 
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
@@ -182,6 +191,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
     if (changedProps.has('camera')) {
       this._streamLivenessController.reset();
+      this._loadingImageLoaded = false;
 
       const provider = getResolvedLiveProvider(this.camera?.getConfig());
       if (provider === 'jsmpeg') {
@@ -277,36 +287,19 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       : intermediateTemplate}`;
   }
 
-  protected render(): TemplateResult | void {
-    const cameraConfig = this.camera?.getConfig();
-    if (
-      !this._shouldLoad() ||
-      !this.hass ||
-      !this.liveConfig ||
-      !this.camera ||
-      !cameraConfig
-    ) {
-      return;
-    }
-
+  private _getNotification(failure: StreamFailure | null): TemplateResult | null {
     // If a card *re*-initializes (e.g. was already initialized and then there's
     // a use of the editor to change the config), cameras will re-initialize in
     // place, which means they might be asked to render (here) whilst not yet
     // being initialized. This can cause spurious errors (e.g. lack of resolved
     // endpoints). Instead, simply never render uninitialized cameras.
-    if (!this.camera.isInitialized()) {
+    if (!this.camera?.isInitialized()) {
       return renderMediaNotification({
         icon: 'mdi:progress-helper',
         title: localize('error.awaiting_live'),
         targetTitle: this.cameraTitle,
       });
     }
-
-    // Set title and ariaLabel from the provided label property.
-    this.title = this.cameraTitle ?? '';
-    this.ariaLabel = this.cameraTitle ?? '';
-
-    const provider = getResolvedLiveProvider(this.camera?.getConfig());
 
     const configurationError = this._getConfigurationError();
     if (configurationError) {
@@ -317,8 +310,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         targetTitle: this.cameraTitle,
       });
     }
-
-    const failure = this._streamLivenessController.getFailure();
 
     // A detector reports the stream is silently lost (the camera entity is
     // unavailable, or the stream stalled): render a reconnecting placeholder,
@@ -334,21 +325,60 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       });
     }
 
-    const showImageDuringLoading = this._shouldShowImageDuringLoading();
-    const mediaLoaded = this._mediaLoadedInfoSinkController.has();
+    return null;
+  }
 
-    // Loaded media or a snapshot gives the frame a size; mark the host `sized`
-    // when one is present. In its absence CSS reserves an aspect ratio so the
-    // frame (whose loading/error fill is absolutely positioned) doesn't
-    // collapse.
-    this.toggleAttribute('sized', mediaLoaded || showImageDuringLoading);
+  protected render(): TemplateResult | void {
+    const cameraConfig = this.camera?.getConfig();
+    if (
+      !this._shouldLoad() ||
+      !this.hass ||
+      !this.liveConfig ||
+      !this.camera ||
+      !cameraConfig
+    ) {
+      // Nothing is drawn at all, so nothing is filling the frame.
+      this.toggleAttribute('sized', false);
+      return;
+    }
+
+    // Set title and ariaLabel from the provided label property.
+    this.title = this.cameraTitle ?? '';
+    this.ariaLabel = this.cameraTitle ?? '';
+
+    const failure = this._streamLivenessController.getFailure();
+    const notification = this._getNotification(failure);
+
+    const shouldShowImageDuringLoading = this._shouldShowImageDuringLoading();
+    const mediaLoaded = this._mediaLoadedInfoSinkController.has();
+    const loadingImageLoaded = shouldShowImageDuringLoading && this._loadingImageLoaded;
+
+    // Mark the host `sized` when something gives the frame a size: loaded
+    // media, a loaded snapshot ("loading image"), or a camera aspect ratio that
+    // the media dimensions container applies to the media itself. A
+    // notification takes the place of the media, so it supplies no size at all.
+    // Absent a size CSS reserves a default aspect ratio so the frame (whose
+    // loading/error fill is absolutely positioned) doesn't collapse.
+    this.toggleAttribute(
+      'sized',
+      !notification &&
+        (mediaLoaded ||
+          loadingImageLoaded ||
+          isValidAspectRatio(cameraConfig.dimensions?.aspect_ratio)),
+    );
+
+    if (notification) {
+      return notification;
+    }
+
+    const provider = getResolvedLiveProvider(cameraConfig);
 
     const classes = {
-      hidden: showImageDuringLoading,
+      hidden: shouldShowImageDuringLoading,
     };
 
     return html`${this._renderContainer(html`
-      ${showImageDuringLoading || provider === 'image'
+      ${shouldShowImageDuringLoading || provider === 'image'
         ? html` <advanced-camera-card-live-image
             ${ref(this._refProvider)}
             .hass=${this.hass}
@@ -361,13 +391,19 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               // so it should not be hidden.
               hidden: false,
             })}
-            @advanced-camera-card:media:loaded=${(ev: Event) => {
+            @advanced-camera-card:media:loaded=${(
+              ev: CustomEvent<MediaLoadedInfoEventDetail>,
+            ) => {
               // When the image is rendered as a placeholder behind another
               // provider, suppress its load event so it doesn't reach the
               // card-root listener and clobber the real provider's
               // registration. The real provider's load event will arrive
               // afterwards.
               if (provider !== 'image') {
+                this._loadingImageLoaded = true;
+
+                // Should the image unload, the provider returns to unsized.
+                onAbort(ev.detail.signal, () => (this._loadingImageLoaded = false));
                 ev.stopPropagation();
               }
             }}
@@ -438,7 +474,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                   </advanced-camera-card-live-jsmpeg>`
                 : html``}
     `)}
-    ${failure || mediaLoaded ? '' : this._renderLoadingOverlay(showImageDuringLoading)}`;
+    ${failure || mediaLoaded
+      ? ''
+      : this._renderLoadingOverlay(shouldShowImageDuringLoading)}`;
   }
 
   // The loading status drawn on top of the mounted provider while its media has

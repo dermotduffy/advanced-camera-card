@@ -55,7 +55,7 @@ export type LivenessVerdict =
 // nothing. Modeled as the failure rather than a `live` flag because a stream
 // that is merely still connecting is not a failure yet is not playing either, so
 // a positive `live` boolean would misleadingly read as "media is playing".
-interface StreamFailure {
+export interface StreamFailure {
   reason: MediaUnavailableIssueReason;
 
   // Free text naming the specific failure, when known.

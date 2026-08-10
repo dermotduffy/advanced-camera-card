@@ -4,10 +4,9 @@
   position: relative;
 }
 
-// Until loaded media or a snapshot sizes the frame (the `sized` attribute),
-// nothing gives it a size, so reserve a default ratio to stop it collapsing.
-// Real media is never letterboxed into this ratio: the attribute is set the
-// moment it sizes the frame.
+// Until something sizes the frame (the `sized` attribute), reserve a default
+// ratio to stop it collapsing. Media is never letterboxed into this ratio: the
+// attribute is set the moment anything else sizes the frame.
 :host(:not([sized])) {
   aspect-ratio: 16 / 9;
 }

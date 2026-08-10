@@ -1,3 +1,4 @@
+import type { LitElement } from 'lit';
 import { describe, expect, it } from 'vitest';
 
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
@@ -19,10 +20,6 @@ const IMAGE_ERROR_EVENT = 'advanced-camera-card:image-updating-player:error';
 const FIXTURE_WIDTH = 320;
 const FIXTURE_HEIGHT = 180;
 
-interface RenderedElement extends Element {
-  updateComplete: Promise<boolean>;
-}
-
 const mount = async (): Promise<MountedCard> => {
   const hass = createGenericCameraHASS({ entities: { [UNRELATED_ENTITY]: 'off' } });
   return await MountedCardFactory.createFromSource(createStillImageCardConfig(), hass);
@@ -38,7 +35,7 @@ describe('AdvancedCameraCardImageUpdatingPlayer', () => {
   it('should announce the media load once even when the card re-renders', async () => {
     const card = await mount();
 
-    const player = await card.waitForSelector<RenderedElement>(
+    const player = await card.waitForSelector<LitElement>(
       'advanced-camera-card-image-updating-player',
     );
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
