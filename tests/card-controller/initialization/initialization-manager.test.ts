@@ -214,6 +214,42 @@ describe('InitializationManager', () => {
       expect(manager.getSessionManager().wasEverInitialized()).toBeFalsy();
     });
 
+    it('should start the card after a run that initialized every aspect declined to report an outcome', async () => {
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2672
+      const api = createReadyAPI();
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+      const manager = new InitializationManager(api);
+
+      // Home Assistant stops being ready midway through, which ends the session
+      // without invalidating any aspect. The run carries on to initialize
+      // everything, then declines because its session is gone.
+      vi.mocked(api.getViewManager().initialize).mockImplementation(async () => {
+        manager.getSessionManager().end();
+        return true;
+      });
+
+      await manager.initializeMandatory();
+
+      expect(manager.areMandatoryAspectsInitialized()).toBeTruthy();
+      expect(manager.getSessionManager().wasEverInitialized()).toBeFalsy();
+
+      // A render or a hass change reaches the card afterwards.
+      manager.triggerInitialization();
+
+      await vi.waitFor(() =>
+        expect(manager.getSessionManager().wasEverInitialized()).toBeTruthy(),
+      );
+      expect(stateManager.getState().initialized).toBe(true);
+      expect(api.getAutomationsManager().subscribe).toHaveBeenCalled();
+
+      // The later run found every aspect already initialized.
+      expect(api.getCameraManager().initializeCamerasFromConfig).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
     it('should stop when a full-card issue appears during initialization', async () => {
       const api = createReadyAPI();
 
@@ -682,10 +718,15 @@ describe('InitializationManager', () => {
       expect(initializer.initializeMultipleIfNecessary).not.toHaveBeenCalled();
     });
 
-    it('should not initialize when already initialized', () => {
+    it('should not initialize when already initialized and the session is running', () => {
       const initializer = mock<Initializer>();
       initializer.isInitializedMultiple.mockReturnValue(true);
       const manager = new InitializationManager(createReadyAPI(), initializer);
+      const sessionManager = manager.getSessionManager();
+      sessionManager.reportInitializationSucceeded(
+        sessionManager.startInitialization(),
+        createConfig(),
+      );
 
       manager.triggerInitialization();
 

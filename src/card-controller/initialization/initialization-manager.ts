@@ -6,7 +6,7 @@ import { loadLanguages } from '../../localize/localize';
 import { errorToConsole } from '../../utils/basic';
 import { Initializer } from '../../utils/initializer/initializer';
 import type { CardInitializerAPI } from '../types';
-import { SessionManager } from './session-manager';
+import { SessionManager, SessionState } from './session-manager';
 
 export enum InitializationAspect {
   LANGUAGES = 'languages',
@@ -90,11 +90,9 @@ export class InitializationManager {
   // HASSManager); a reconnect or a cleared issue reaches it by causing a
   // render.
   //
-  // The check here is only to keep cost down: a card that has finished
-  // initializing re-renders often, and without it each of those renders would
-  // queue an attempt that does nothing. `_initializeMandatory()` checks the
-  // same conditions again when it actually runs, and that is the one that
-  // matters for correctness.
+  // The check here is a filter rather than the decision: a card that has
+  // finished initializing re-renders often, and without it each of those
+  // renders would queue an attempt that does nothing.
   public triggerInitialization(): void {
     if (!this._shouldInitializeMandatory()) {
       return;
@@ -107,7 +105,15 @@ export class InitializationManager {
       this._api.getConfigManager().hasConfig() &&
       this._api.getCardElementManager().isConnected() &&
       isHassReady(this._api.getHASSManager().getHASS()) &&
-      !this.areMandatoryAspectsInitialized() &&
+      // Start when aspects remain to be initialized, or when the session is
+      // idle even though aspects are otherwise initialized. A run that
+      // initialized every aspect and then declined (e.g. because something
+      // ended its session), reports no outcome at all, so only a later run can
+      // report the card as actually started, and that run will find nothing
+      // left to initialize.
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2672
+      (!this.areMandatoryAspectsInitialized() ||
+        this._sessionManager.getState() === SessionState.IDLE) &&
       // Don't start while a full-card issue (e.g. the "Home Assistant is
       // starting" notice) is shown: each initialization step aborts as soon as
       // it sees one, so an attempt now would be wasted. The card tries again
