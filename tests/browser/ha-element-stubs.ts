@@ -153,6 +153,22 @@ const isConfigurable = (element: HTMLElement): element is ConfigurableElement =>
 const CUSTOM_ELEMENT_PREFIX = 'custom:';
 const CARD_ELEMENT_PREFIX = `${CUSTOM_ELEMENT_PREFIX}advanced-camera-card-`;
 
+// The element types Home Assistant marks as not listening for taps themselves.
+const ACTION_DELEGATING_TYPES = ['icon', 'state-badge', 'state-icon', 'state-label'];
+
+/**
+ * Create one of Home Assistant's own picture elements, which it names after the
+ * configured type and marks with the class it positions elements by.
+ */
+const createHAElement = (type: string): HTMLElement => {
+  const element = Object.assign(document.createElement(`hui-${type}-element`), {
+    delegatedActions: ACTION_DELEGATING_TYPES.includes(type),
+    requestUpdate: () => {},
+  });
+  element.classList.add('element');
+  return element;
+};
+
 /**
  * Home Assistant's conditional picture element, which the card builds one of on
  * every mount to host whatever picture elements are configured.
@@ -161,9 +177,8 @@ const CARD_ELEMENT_PREFIX = `${CUSTOM_ELEMENT_PREFIX}advanced-camera-card-`;
  * bar items are elements that ask to be added when they are connected, so
  * without that a configured menu button never reaches the menu.
  *
- * Only the card's own elements are created here. Other elements (e.g. Home
- * Assistant's `icon` or `image`) are skipped, so a test that needs one must add
- * it to this stub first.
+ * Home Assistant's own elements are created as empty stand-ins: they carry what
+ * Home Assistant puts on them, but render nothing.
  */
 class HuiConditionalElementStub extends HTMLElement {
   public hass?: unknown;
@@ -172,14 +187,13 @@ class HuiConditionalElementStub extends HTMLElement {
     this.replaceChildren();
 
     for (const element of config.elements ?? []) {
-      if (!element.type.startsWith(CARD_ELEMENT_PREFIX)) {
-        continue;
-      }
+      const child = element.type.startsWith(CARD_ELEMENT_PREFIX)
+        ? document.createElement(
+            // Example: custom:advanced-camera-card-menu-icon -> advanced-camera-card-menu-icon
+            element.type.slice(CUSTOM_ELEMENT_PREFIX.length),
+          )
+        : createHAElement(element.type);
 
-      const child = document.createElement(
-        // Example: custom:advanced-camera-card-menu-icon -> advanced-camera-card-menu-icon
-        element.type.slice(CUSTOM_ELEMENT_PREFIX.length),
-      );
       if (isConfigurable(child)) {
         child.setConfig(element);
       }
