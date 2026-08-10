@@ -4,21 +4,16 @@ import { PTZMovementType } from '../../../types';
 import { getPTZTarget, ptzActionToCapabilityKey } from '../../../utils/ptz';
 import { Timer } from '../../../utils/timer';
 import type { CardActionsAPI } from '../../types';
+import type { TargetedActionContext } from '../types';
 import {
-  setInProgressForThisTarget,
-  stopInProgressForThisTarget,
+  clearInProgressForThisTarget,
+  replaceInProgressForThisTarget,
 } from '../utils/action-state';
 import { AdvancedCameraCardAction } from './base';
 
-interface PTZContext {
-  [cameraID: string]: {
-    inProgressAction?: PTZAction;
-  };
-}
-
 declare module 'action' {
   interface ActionContext {
-    ptz?: PTZContext;
+    ptz?: TargetedActionContext;
   }
 }
 
@@ -96,8 +91,8 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
 
     if (action.ptz_phase === 'start') {
       // Scenario: Asked to start a continuous move, camera only supports relative moves natively.
-      await stopInProgressForThisTarget(ptzCameraID, this._context.ptz);
-      setInProgressForThisTarget(ptzCameraID, this._context, 'ptz', this);
+      this._stopped = false;
+      await replaceInProgressForThisTarget(ptzCameraID, this._context, 'ptz', this);
 
       const singleStep = async (): Promise<void> => {
         /* v8 ignore else: the else path cannot be reached as ptz_action
@@ -108,10 +103,10 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
           });
         }
 
+        // The next step is scheduled only once this step returns, and only if
+        // this action has not been stopped.
+        // See: https://github.com/dermotduffy/advanced-camera-card/issues/1967
         if (!this._stopped) {
-          // Only start the timer for the next step after this step returns, and
-          // only if this action has not been stopped.
-          // See: https://github.com/dermotduffy/advanced-camera-card/issues/1967
           this._timer.start(
             ptzConfiguration.r2c_delay_between_calls_seconds,
             singleStep,
@@ -119,11 +114,10 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
         }
       };
 
-      this._stopped = false;
       await singleStep();
     } else if (action.ptz_phase === 'stop') {
       // Scenario: Asked to stop continuous move, camera only supports relative moves natively.
-      await stopInProgressForThisTarget(ptzCameraID, this._context.ptz);
+      await clearInProgressForThisTarget(ptzCameraID, this._context, 'ptz');
     } else {
       this._stopped = false;
 

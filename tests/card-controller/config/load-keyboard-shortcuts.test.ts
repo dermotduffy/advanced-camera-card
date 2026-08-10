@@ -114,6 +114,55 @@ describe('setKeyboardShortcutsFromConfig', () => {
         ]);
       });
 
+      it('should give the start and stop of a shortcut the same modifiers', () => {
+        const api = createCardAPI();
+        vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+          createConfig({
+            view: {
+              keyboard_shortcuts: {
+                enabled: true,
+                ptz_home: null,
+                ptz_right: null,
+                ptz_up: null,
+                ptz_down: null,
+                ptz_zoom_in: null,
+                ptz_zoom_out: null,
+                ptz_left: { key: 'z', ctrl: false, alt: false, meta: false },
+              },
+            },
+          }),
+        );
+
+        setKeyboardShortcutsFromConfig(api);
+
+        const automations = vi.mocked(api.getAutomationsManager().addAutomations).mock
+          .calls[0][0];
+        expect(automations.map((automation) => automation.triggers)).toEqual([
+          [
+            {
+              trigger: 'key',
+              key: 'z',
+              state: 'down',
+              ctrl: false,
+              alt: false,
+              meta: false,
+              shift: undefined,
+            },
+          ],
+          [
+            {
+              trigger: 'key',
+              key: 'z',
+              state: 'up',
+              ctrl: false,
+              alt: false,
+              meta: false,
+              shift: undefined,
+            },
+          ],
+        ]);
+      });
+
       it('ptz_home', () => {
         const api = createCardAPI();
         vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
@@ -134,11 +183,11 @@ describe('setKeyboardShortcutsFromConfig', () => {
               ],
               triggers: [
                 {
-                  alt: undefined,
+                  alt: false,
                   trigger: 'key',
-                  ctrl: undefined,
+                  ctrl: false,
                   key: 'h',
-                  meta: undefined,
+                  meta: false,
                   shift: undefined,
                   state: 'down',
                 },

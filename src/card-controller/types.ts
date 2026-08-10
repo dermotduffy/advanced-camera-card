@@ -251,6 +251,7 @@ export interface CardInteractionAPI {
 }
 
 export interface CardKeyboardStateAPI {
+  getAutomationsManager(): AutomationsManager;
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;

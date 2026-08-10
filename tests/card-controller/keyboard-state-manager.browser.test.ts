@@ -1,7 +1,10 @@
-import { assert, describe, expect, it } from 'vitest';
+import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { STEP_PAN } from '../../src/card-controller/actions/actions/ptz-digital';
+import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
 import type { LogActionConfig } from '../../src/config/schema/actions/custom/log';
 import { createLogAction } from '../../src/utils/action';
+import { isRecord } from '../../src/utils/basic';
 import {
   clickElement,
   dispatchPointerDown,
@@ -117,6 +120,9 @@ const mountCard = async (options?: MountCardOptions): Promise<MountedCard> => {
   return card;
 };
 
+const isZoomSettingsObserved = (detail: unknown): detail is ZoomSettingsObserved =>
+  isRecord(detail) && isRecord(detail.pan) && typeof detail.pan.x === 'number';
+
 // What the live view draws the camera into, which is the part of the card a
 // user looks at and the largest part of it that is not a control.
 const LIVE_MEDIA_SELECTOR = 'advanced-camera-card-live-provider';
@@ -125,6 +131,10 @@ const clickMedia = async (card: MountedCard): Promise<void> =>
   await clickElement(await card.waitForSelector(LIVE_MEDIA_SELECTOR));
 
 describe('KeyboardStateManager', () => {
+  beforeEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should not act on a key until the card has been used', async () => {
     const card = await mountCard();
 
@@ -305,6 +315,51 @@ describe('KeyboardStateManager', () => {
     await clickMedia(card);
     await pressKey('z');
     await card.console.waitForMessage(KEY_MESSAGE, { count: 2 });
+  });
+
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2623
+  it('should keep panning while an arrow key is held after previous press', async () => {
+    const card = await mountCard();
+
+    card.setEntityState(ZOOM_ENTITY, 'on');
+    await card.events.waitForFirst('advanced-camera-card:zoom:zoomed');
+    await clickMedia(card);
+
+    // Press a key to ensure holds after initial press are functional.
+    await pressKey('ArrowUp');
+
+    // How far across the camera the picture sits, as a percentage, from the
+    // last change the card reported. It starts halfway across.
+    const panX = (): number | null => {
+      const detail = card.events
+        .getEntries('advanced-camera-card:zoom:change')
+        .at(-1)?.detail;
+      return isZoomSettingsObserved(detail) ? detail.pan.x : null;
+    };
+
+    //`shouldAdvanceTime` lets the clock run at its own pace until "controlled",
+    // necessary for the panning while a key is being "held" to work.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    await holdKey('ArrowLeft');
+    await card.waitForRender(() => {
+      const x = panX();
+
+      // Stop well short of the left edge, to allow detection of continuous pan
+      // that never stopped.
+      return x !== null && x < 40 ? x : null;
+    }, 'the picture to pan left');
+    await releaseKey('ArrowLeft');
+
+    const atRelease = panX();
+    assert(atRelease !== null);
+
+    await card.advanceSeconds(5);
+
+    const afterWaiting = panX();
+    assert(afterWaiting !== null);
+
+    expect(Math.abs(atRelease - afterWaiting)).toBeLessThanOrEqual(STEP_PAN);
   });
 
   it('should not act on a key aimed at another card', async () => {

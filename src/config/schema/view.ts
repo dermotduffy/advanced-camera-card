@@ -12,15 +12,19 @@ const keyboardShortcut = z.object({
 });
 export type KeyboardShortcut = z.infer<typeof keyboardShortcut>;
 
+// Only claim the keys if there are NO modifiers pressed, otherwise they are
+// allowed to fall through to browser handling.
+const UNMODIFIED = { ctrl: false, alt: false, meta: false };
+
 const keyboardShortcutsDefault = {
   enabled: true,
-  ptz_left: { key: 'ArrowLeft' },
-  ptz_right: { key: 'ArrowRight' },
-  ptz_up: { key: 'ArrowUp' },
-  ptz_down: { key: 'ArrowDown' },
-  ptz_zoom_in: { key: '+' },
-  ptz_zoom_out: { key: '-' },
-  ptz_home: { key: 'h' },
+  ptz_left: { key: 'ArrowLeft', ...UNMODIFIED },
+  ptz_right: { key: 'ArrowRight', ...UNMODIFIED },
+  ptz_up: { key: 'ArrowUp', ...UNMODIFIED },
+  ptz_down: { key: 'ArrowDown', ...UNMODIFIED },
+  ptz_zoom_in: { key: '+', ...UNMODIFIED },
+  ptz_zoom_out: { key: '-', ...UNMODIFIED },
+  ptz_home: { key: 'h', ...UNMODIFIED },
 };
 
 const keyboardShortcutsSchema = z.object({

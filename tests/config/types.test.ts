@@ -523,25 +523,46 @@ describe('config defaults', () => {
         keyboard_shortcuts: {
           enabled: true,
           ptz_down: {
+            alt: false,
+            ctrl: false,
             key: 'ArrowDown',
+            meta: false,
           },
           ptz_home: {
+            alt: false,
+            ctrl: false,
             key: 'h',
+            meta: false,
           },
           ptz_left: {
+            alt: false,
+            ctrl: false,
             key: 'ArrowLeft',
+            meta: false,
           },
           ptz_right: {
+            alt: false,
+            ctrl: false,
             key: 'ArrowRight',
+            meta: false,
           },
           ptz_up: {
+            alt: false,
+            ctrl: false,
             key: 'ArrowUp',
+            meta: false,
           },
           ptz_zoom_in: {
+            alt: false,
+            ctrl: false,
             key: '+',
+            meta: false,
           },
           ptz_zoom_out: {
+            alt: false,
+            ctrl: false,
             key: '-',
+            meta: false,
           },
         },
         theme: {

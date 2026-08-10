@@ -1,7 +1,11 @@
 import { isEqual } from 'lodash-es';
 
+import { KeyConditionEvaluator } from '../condition-trigger/conditions/conditions/key';
+import type { Trigger } from '../config/schema/condition-trigger/triggers/types';
 import { isFocusWithin } from '../utils/focus';
 import type { CardKeyboardStateAPI, KeysState } from './types';
+
+const KEY_STATES = ['down', 'up'] as const;
 
 export class KeyboardStateManager {
   private _api: CardKeyboardStateAPI;
@@ -33,16 +37,20 @@ export class KeyboardStateManager {
       capture: true,
     });
 
-    // Clear state on disconnect. Without listeners the card cannot know
-    // whether a key was released while detached, and stale "down" state
-    // would suppress the next real keydown (e.g. PTZ stop shortcuts).
-    if (Object.keys(this._state).length) {
-      this._state = {};
-      this._processStateChange();
-    }
+    this._releaseHeldKeys();
   }
 
   private _handleKeydown = (ev: KeyboardEvent): void => {
+    if (this._isKeyEventOwnedElsewhere(ev)) {
+      return;
+    }
+
+    // If the card acts on this key, the browser must NOT act on it also (e.g.
+    // 'down' should pan the camera without also scrolling the dashboard).
+    if (this._isKeyEventClaimedByAnyTrigger(ev)) {
+      ev.preventDefault();
+    }
+
     const keyObj = {
       state: 'down' as const,
       ctrl: ev.ctrlKey,
@@ -56,6 +64,64 @@ export class KeyboardStateManager {
       this._processStateChange();
     }
   };
+
+  private _isKeyEventOwnedElsewhere(ev: KeyboardEvent): boolean {
+    // A key press belongs to something other than the card when:
+    return (
+      // ... something within the card has already answered it ...
+      ev.defaultPrevented ||
+      // ... a character is mid-composition, e.g. choosing a Japanese character
+      // from an input method's candidate list with the arrows ...
+      ev.isComposing ||
+      // ... or it landed on an element with keys of its own.
+      this._isKeyHandlingElement(ev)
+    );
+  }
+
+  private _isKeyEventClaimedByAnyTrigger(ev: KeyboardEvent): boolean {
+    return this._api
+      .getAutomationsManager()
+      .getTriggers()
+      .some((trigger) => this._isKeyEventClaimedByTrigger(ev, trigger));
+  }
+
+  private _isKeyHandlingElement(ev: KeyboardEvent): boolean {
+    const target = ev.composedPath()[0];
+
+    return (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLSelectElement ||
+      target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLElement && target.isContentEditable)
+    );
+  }
+
+  private _isKeyEventClaimedByTrigger(ev: KeyboardEvent, trigger: Trigger): boolean {
+    // A trigger with no key of its own (i.e. undefined `trigger.key` field)
+    // watches *every* key without "claiming" any, as the card would otherwise
+    // swallow every press.
+    if (trigger.trigger !== 'key' || trigger.enabled === false) {
+      return false;
+    }
+    const evaluator = new KeyConditionEvaluator(trigger);
+
+    // Must count both directions, since the browser acts on a key as it goes
+    // down and so a trigger that acts on the way up must claim it then too.
+    return KEY_STATES.some(
+      (state) =>
+        evaluator.evaluate({
+          keys: {
+            [ev.key]: {
+              state: state,
+              ctrl: ev.ctrlKey,
+              alt: ev.altKey,
+              meta: ev.metaKey,
+              shift: ev.shiftKey,
+            },
+          },
+        }).result,
+    );
+  }
 
   private _handleKeyup = (ev: KeyboardEvent): void => {
     if (ev.key in this._state && this._state[ev.key].state === 'down') {
@@ -88,12 +154,27 @@ export class KeyboardStateManager {
       return;
     }
 
-    if (Object.keys(this._state).length) {
-      // State is emptied if the element loses focus.
-      this._state = {};
+    this._releaseHeldKeys();
+  };
+
+  // Report every held key as newly released. The card receives key events only
+  // while it has focus, so it may never see the key release itself without
+  // this, and a condition that matches a released key would thus never
+  // evaluate.
+  private _releaseHeldKeys(): void {
+    let released = false;
+
+    for (const [key, keyObj] of Object.entries(this._state)) {
+      if (keyObj.state === 'down') {
+        this._state[key] = { ...keyObj, state: 'up' as const };
+        released = true;
+      }
+    }
+
+    if (released) {
       this._processStateChange();
     }
-  };
+  }
 
   // Clone before passing to ConditionStateManager so that subsequent
   // in-place mutations to this._state don't affect the stored reference,

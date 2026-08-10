@@ -73,13 +73,13 @@ Configure the key-bindings for the builtin keyboard shortcuts. See [usage](../us
 
 ### Keyboard Shortcut Configuration
 
-| Option | Default | Description                                                                                                                      |
-| ------ | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| key    |         | Any [keyboard key value](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values), e.g. `ArrowLeft` |
-| ctrl   | `false` | If `true` requires the `ctrl` key to be held.                                                                                    |
-| shift  | `false` | If `true` requires the `shift` key to be held.                                                                                   |
-| alt    | `false` | If `true` requires the `alt` key to be held.                                                                                     |
-| meta   | `false` | If `true` requires the `meta` key to be held.                                                                                    |
+| Option | Default | Description                                                                                                                                                         |
+| ------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| key    |         | Any [keyboard key value](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values), e.g. `ArrowLeft`                                    |
+| ctrl   |         | If `true` requires the `ctrl` key to be held, if `false` requires it not to be. When unset the `ctrl` key is not considered, and the shortcut matches either way.   |
+| shift  |         | If `true` requires the `shift` key to be held, if `false` requires it not to be. When unset the `shift` key is not considered, and the shortcut matches either way. |
+| alt    |         | If `true` requires the `alt` key to be held, if `false` requires it not to be. When unset the `alt` key is not considered, and the shortcut matches either way.     |
+| meta   |         | If `true` requires the `meta` key to be held, if `false` requires it not to be. When unset the `meta` key is not considered, and the shortcut matches either way.   |
 
 ## `theme` 🎨
 

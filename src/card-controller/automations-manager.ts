@@ -3,6 +3,7 @@ import { createConditionEvaluator } from '../condition-trigger/conditions/factor
 import { TriggersManager } from '../condition-trigger/triggers/manager.js';
 import type { TriggerData } from '../condition-trigger/triggers/types.js';
 import type { Automation, AutomationActions } from '../config/schema/automations.js';
+import type { Trigger } from '../config/schema/condition-trigger/triggers/types.js';
 import { localize } from '../localize/localize.js';
 import type { CardAutomationsAPI, TaggedAutomation } from './types.js';
 
@@ -19,6 +20,10 @@ export class AutomationsManager {
 
   constructor(api: CardAutomationsAPI) {
     this._api = api;
+  }
+
+  public getTriggers(): Trigger[] {
+    return [...this._automations.keys()].flatMap((automation) => automation.triggers);
   }
 
   public deleteAutomations(tag?: unknown) {
