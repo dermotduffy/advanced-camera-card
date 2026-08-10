@@ -3,7 +3,11 @@ import { debounce } from 'lodash-es';
 
 import type { CameraDimensionsConfig } from '../config/schema/cameras';
 import type { MediaLoadedInfoEventDetail } from '../types';
-import { aspectRatioToString, setOrRemoveStyleProperty } from '../utils/basic';
+import {
+  aspectRatioToString,
+  isValidAspectRatio,
+  setOrRemoveStyleProperty,
+} from '../utils/basic';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout';
 
 const ROTATED_ATTRIBUTE = 'rotated';
@@ -130,7 +134,7 @@ export class MediaDimensionsContainerController implements ReactiveController {
   }
 
   private _hasFixedAspectRatio(): boolean {
-    return this._dimensionsConfig?.aspect_ratio?.length === 2;
+    return isValidAspectRatio(this._dimensionsConfig?.aspect_ratio);
   }
 
   private _requiresRotation(): boolean {

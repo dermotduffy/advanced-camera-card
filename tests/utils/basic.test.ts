@@ -440,6 +440,12 @@ describe('aspectRatioToStyle', () => {
   it('invalid ratio', () => {
     expect(aspectRatioToStyle({ ratio: [4] })).toEqual({ 'aspect-ratio': 'auto' });
   });
+  it.each([[[0, 0]], [[-4, 3]], [[Infinity, 3]]])(
+    'should ignore a ratio with a side that describes no shape: %s',
+    (ratio: number[]) => {
+      expect(aspectRatioToStyle({ ratio })).toEqual({ 'aspect-ratio': 'auto' });
+    },
+  );
 });
 
 describe('desparsifyArrays', () => {
