@@ -474,5 +474,93 @@ describe('should handle ptz digital action', () => {
 
       expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(1);
     });
+
+    it('should stop without anything in progress', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+
+      const stopAction = new PTZDigitalAction(
+        {},
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'ptz_digital',
+          ptz_phase: 'stop',
+        },
+      );
+      await stopAction.execute(api);
+
+      vi.runOnlyPendingTimers();
+
+      expect(api.getViewManager().setViewWithModifiers).not.toHaveBeenCalled();
+    });
+
+    it('should stop movement started by two concurrent starts', async () => {
+      const api = createCardAPI();
+      const context = {};
+      vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+
+      const createStartAction = (ptzAction: PTZAction): PTZDigitalAction =>
+        new PTZDigitalAction(context, {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'ptz_digital',
+          ptz_action: ptzAction,
+          ptz_phase: 'start',
+        });
+
+      await Promise.all([
+        createStartAction('left').execute(api),
+        createStartAction('up').execute(api),
+      ]);
+
+      const stopAction = new PTZDigitalAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        ptz_phase: 'stop',
+      });
+      await stopAction.execute(api);
+
+      // One step per start, and none after the stop.
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(2);
+
+      vi.runOnlyPendingTimers();
+
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(2);
+    });
+
+    it('should continue movement when a start is concurrent with a stop', async () => {
+      const api = createCardAPI();
+      const context = {};
+      vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+
+      const leftAction = new PTZDigitalAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        ptz_action: 'left',
+        ptz_phase: 'start',
+      });
+      await leftAction.execute(api);
+
+      const stopAction = new PTZDigitalAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        ptz_phase: 'stop',
+      });
+      const upAction = new PTZDigitalAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        ptz_action: 'up',
+        ptz_phase: 'start',
+      });
+
+      // The left key is released as the up key is pressed.
+      await Promise.all([stopAction.execute(api), upAction.execute(api)]);
+
+      // One step for the left start, one for the up start.
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(2);
+
+      vi.runOnlyPendingTimers();
+
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(3);
+    });
   });
 });

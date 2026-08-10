@@ -5,6 +5,7 @@ import type { ActionsExecutionRequest } from '../../src/card-controller/actions/
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
 import type { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
 import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager.js';
+import type { Trigger } from '../../src/config/schema/condition-trigger/triggers/types.js';
 import {
   createCardAPI,
   createHASS,
@@ -374,5 +375,28 @@ describe('AutomationsManager', () => {
     stateManager.setState({ expand: false });
     stateManager.setState({ expand: true });
     expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(2);
+  });
+
+  describe('should report the triggers it subscribes to', () => {
+    it('with no automations', () => {
+      expect(new AutomationsManager(createCardAPI()).getTriggers()).toEqual([]);
+    });
+
+    it('with automations', () => {
+      const keyTrigger: Trigger = { trigger: 'key', key: 'ArrowLeft' };
+      const expandTrigger: Trigger = { trigger: 'expand', expand: true };
+
+      const automationsManager = new AutomationsManager(createCardAPI());
+      automationsManager.addAutomations([
+        { triggers: [keyTrigger, expandTrigger], actions },
+        { triggers: triggers, actions },
+      ]);
+
+      expect(automationsManager.getTriggers()).toEqual([
+        keyTrigger,
+        expandTrigger,
+        ...triggers,
+      ]);
+    });
   });
 });

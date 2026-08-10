@@ -88,6 +88,15 @@ const convertKeyboardShortcutsToAutomations = (
           trigger: 'key' as const,
           key: shortcut.key,
           state: 'up',
+
+          // The same modifiers as the start above, so that the pair claims the
+          // same presses. A key is recorded with the modifiers it was pressed
+          // with, so a release still matches when a modifier is taken up while
+          // the key is held.
+          shift: shortcut.shift,
+          ctrl: shortcut.ctrl,
+          alt: shortcut.alt,
+          meta: shortcut.meta,
         },
       ],
       actions: [

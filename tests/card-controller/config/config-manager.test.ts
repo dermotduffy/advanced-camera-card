@@ -538,7 +538,7 @@ describe('ConfigManager', () => {
           view: {
             keyboard_shortcuts: {
               enabled: true,
-              ptz_home: { key: 'h' },
+              ptz_home: { key: 'q' },
             },
           },
           overrides: [
@@ -552,39 +552,28 @@ describe('ConfigManager', () => {
         manager.setConfig(config);
         await flushPromises();
 
-        // Verify keyboard shortcuts automations were added initially with ptz_home
-        expect(addAutomationsSpy).toHaveBeenCalledWith(
-          expect.arrayContaining([
-            expect.objectContaining({
-              triggers: expect.arrayContaining([
-                expect.objectContaining({ trigger: 'key', key: 'h' }),
-              ]),
-              actions: expect.arrayContaining([
-                expect.objectContaining({
-                  advanced_camera_card_action: 'ptz_multi',
-                }),
-              ]),
-            }),
-          ]),
-        );
+        const hasKeyTrigger = (key: string): boolean =>
+          addAutomationsSpy.mock.calls.some((call) =>
+            call[0].some((automation: Automation) =>
+              automation.triggers.some(
+                (trig: Trigger) => trig.trigger === 'key' && trig.key === key,
+              ),
+            ),
+          );
+
+        // The configured binding, rather than the default one.
+        expect(hasKeyTrigger('q')).toBe(true);
 
         addAutomationsSpy.mockClear();
 
-        // Trigger the override - keyboard_shortcuts should be deleted
+        // Trigger the override, which deletes the shortcut configuration.
         stateManager.setState({ fullscreen: true });
         await flushPromises();
 
-        // Verify newly added automations don't contain keyboard shortcuts (key: 'h')
-        // This confirms the override removed them (directly verified through add calls)
-        const addCalls = addAutomationsSpy.mock.calls;
-        const hasKeyboardShortcut = addCalls.some((call) =>
-          call[0].some((automation: Automation) =>
-            automation.triggers.some(
-              (trig: Trigger) => trig.trigger === 'key' && trig.key === 'h',
-            ),
-          ),
-        );
-        expect(hasKeyboardShortcut).toBe(false);
+        // Deleting the configuration restores the defaults rather than removing
+        // the shortcuts, so the loader re-runs and binds the default key.
+        expect(hasKeyTrigger('q')).toBe(false);
+        expect(hasKeyTrigger('h')).toBe(true);
       });
 
       it('should re-run folders loader when overrides change', async () => {

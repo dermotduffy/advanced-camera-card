@@ -611,5 +611,108 @@ describe('should handle ptz action', () => {
       // There should be no additional calls.
       expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(3);
     });
+
+    it('should stop movement started by two concurrent starts', async () => {
+      const api = createCardAPI();
+      const store = createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: new Capabilities({
+            ptz: {
+              left: [PTZMovementType.Relative],
+              up: [PTZMovementType.Relative],
+            },
+          }),
+        },
+      ]);
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({ camera: 'camera.office' }),
+      );
+
+      const context = {};
+      const createStartAction = (ptzAction: 'left' | 'up'): PTZAction =>
+        new PTZAction(context, {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'ptz',
+          ptz_action: ptzAction,
+          ptz_phase: 'start',
+        });
+
+      await Promise.all([
+        createStartAction('left').execute(api),
+        createStartAction('up').execute(api),
+      ]);
+
+      const stopAction = new PTZAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'left',
+        ptz_phase: 'stop',
+      });
+      await stopAction.execute(api);
+
+      // One move per start, and none after the stop.
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
+
+      await vi.runOnlyPendingTimersAsync();
+
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
+    });
+
+    it('should continue movement when a start is concurrent with a stop', async () => {
+      const api = createCardAPI();
+      const store = createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: new Capabilities({
+            ptz: {
+              left: [PTZMovementType.Relative],
+              up: [PTZMovementType.Relative],
+            },
+          }),
+        },
+      ]);
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({ camera: 'camera.office' }),
+      );
+
+      const context = {};
+      await new PTZAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'left',
+        ptz_phase: 'start',
+      }).execute(api);
+
+      const stopAction = new PTZAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'left',
+        ptz_phase: 'stop',
+      });
+      const upAction = new PTZAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'up',
+        ptz_phase: 'start',
+      });
+
+      // The left key is released as the up key is pressed.
+      await Promise.all([stopAction.execute(api), upAction.execute(api)]);
+
+      // One move for the left start, one for the up start.
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
+
+      await vi.runOnlyPendingTimersAsync();
+
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(3);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenLastCalledWith(
+        'camera.office',
+        'up',
+        { preset: undefined },
+      );
+    });
   });
 });

@@ -14,14 +14,14 @@ import type { CardActionsAPI } from '../../types';
 import { ZoomRequestViewModifier } from '../../view/modifiers/zoom-request';
 import type { TargetedActionContext } from '../types';
 import {
-  setInProgressForThisTarget,
-  stopInProgressForThisTarget,
+  clearInProgressForThisTarget,
+  replaceInProgressForThisTarget,
 } from '../utils/action-state';
 import { AdvancedCameraCardAction } from './base';
 
 const STEP_DELAY_SECONDS = 0.1;
 const STEP_ZOOM = 0.1;
-const STEP_PAN = 5;
+export const STEP_PAN = 5;
 
 declare module 'action' {
   interface ActionContext {
@@ -31,6 +31,7 @@ declare module 'action' {
 
 export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialActionConfig> {
   private _timer = new Timer();
+  private _stopped = false;
 
   private async _stepChange(api: CardActionsAPI, targetID: string): Promise<void> {
     api
@@ -46,6 +47,7 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
   }
 
   public async stop(): Promise<void> {
+    this._stopped = true;
     this._timer.stop();
   }
 
@@ -72,16 +74,20 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
 
     /* v8 ignore else: the else path cannot be reached -- @preserve */
     if (action.ptz_phase === 'start') {
-      await stopInProgressForThisTarget(targetID, this._context.ptzDigital);
-      setInProgressForThisTarget(targetID, this._context, 'ptzDigital', this);
+      this._stopped = false;
+      await replaceInProgressForThisTarget(targetID, this._context, 'ptzDigital', this);
 
       await this._stepChange(api, targetID);
-      this._timer.startRepeated(STEP_DELAY_SECONDS, () =>
-        this._stepChange(api, targetID),
-      );
+
+      // The steps are repeated only once the first step returns, and only if
+      // this action has not been stopped.
+      if (!this._stopped) {
+        this._timer.startRepeated(STEP_DELAY_SECONDS, () =>
+          this._stepChange(api, targetID),
+        );
+      }
     } else if (action.ptz_phase === 'stop') {
-      await stopInProgressForThisTarget(targetID, this._context.ptzDigital);
-      delete this._context.ptzDigital?.[targetID];
+      await clearInProgressForThisTarget(targetID, this._context, 'ptzDigital');
     }
   }
 
