@@ -12,6 +12,7 @@ import { isEqual } from 'lodash-es';
 import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import type { TemplateRenderer } from '../card-controller/templates/index.js';
 import { getTemplateRendererViaEvent } from '../card-controller/templates/renderer-via-event.js';
+import { ElementActionsController } from '../components-lib/element-actions-controller.js';
 import { ConditionsManager } from '../condition-trigger/conditions/conditions-manager.js';
 import { getConditionStateManagerViaEvent } from '../condition-trigger/conditions/state-manager-via-event.js';
 import type { ConditionStateManager } from '../condition-trigger/conditions/state-manager.js';
@@ -102,6 +103,8 @@ export class AdvancedCameraCardElementsCore extends LitElement {
 
   private _renderedElements?: PictureElements;
 
+  private _actionsController = new ElementActionsController();
+
   /**
    * Create a transparent render root.
    */
@@ -156,6 +159,7 @@ export class AdvancedCameraCardElementsCore extends LitElement {
     try {
       this._renderedElements = elements;
       this._root = this._createRoot();
+      this._actionsController.setRoot(this._root);
     } catch (e) {
       errorToConsole(e);
       fireAdvancedCameraCardEvent<IssueTriggerEventData>(this, 'issue:trigger', {
