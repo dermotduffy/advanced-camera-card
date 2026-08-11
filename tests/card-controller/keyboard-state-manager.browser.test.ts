@@ -1,6 +1,9 @@
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { STEP_PAN } from '../../src/card-controller/actions/actions/ptz-digital';
+import {
+  STEP_DELAY_SECONDS,
+  STEP_PAN,
+} from '../../src/card-controller/actions/actions/ptz-digital';
 import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
 import type { LogActionConfig } from '../../src/config/schema/actions/custom/log';
 import { createLogAction } from '../../src/utils/action';
@@ -122,6 +125,38 @@ const mountCard = async (options?: MountCardOptions): Promise<MountedCard> => {
 
 const isZoomSettingsObserved = (detail: unknown): detail is ZoomSettingsObserved =>
   isRecord(detail) && isRecord(detail.pan) && typeof detail.pan.x === 'number';
+
+// How far across and down the camera the picture sits, as percentages, from the
+// last change the card reported. It starts halfway on both.
+const getPan = (card: MountedCard): { x: number; y: number } | null => {
+  const detail = card.events
+    .getEntries('advanced-camera-card:zoom:change')
+    .at(-1)?.detail;
+  return isZoomSettingsObserved(detail) ? detail.pan : null;
+};
+
+// A count of step-timer periods (STEP_DELAY_SECONDS each) to run the clock
+// forward. A movement still running takes one step per period, so any count
+// above the single late step the assertion tolerates would do; three is a
+// comfortable margin.
+const STEPS_TO_PROVE_STOPPED = 3;
+
+// The card reports a change per step taken, so counting the changes says
+// whether a movement is still going, rather than where it has got to.
+const countPanSteps = (card: MountedCard): number =>
+  card.events.getEntries('advanced-camera-card:zoom:change').length;
+
+// Assert a movement has stopped by running the step timer several periods
+// forward and checking no further steps are taken.
+const expectPanStopped = async (card: MountedCard): Promise<void> => {
+  const steps = countPanSteps(card);
+
+  await card.advanceSeconds(STEP_DELAY_SECONDS * STEPS_TO_PROVE_STOPPED);
+
+  // The one step already scheduled when the movement stopped is allowed; a
+  // movement still going would take several more.
+  expect(countPanSteps(card)).toBeLessThanOrEqual(steps + 1);
+};
 
 // What the live view draws the camera into, which is the part of the card a
 // user looks at and the largest part of it that is not a control.
@@ -328,22 +363,13 @@ describe('KeyboardStateManager', () => {
     // Press a key to ensure holds after initial press are functional.
     await pressKey('ArrowUp');
 
-    // How far across the camera the picture sits, as a percentage, from the
-    // last change the card reported. It starts halfway across.
-    const panX = (): number | null => {
-      const detail = card.events
-        .getEntries('advanced-camera-card:zoom:change')
-        .at(-1)?.detail;
-      return isZoomSettingsObserved(detail) ? detail.pan.x : null;
-    };
-
     //`shouldAdvanceTime` lets the clock run at its own pace until "controlled",
     // necessary for the panning while a key is being "held" to work.
     vi.useFakeTimers({ shouldAdvanceTime: true });
 
     await holdKey('ArrowLeft');
     await card.waitForRender(() => {
-      const x = panX();
+      const x = getPan(card)?.x ?? null;
 
       // Stop well short of the left edge, to allow detection of continuous pan
       // that never stopped.
@@ -351,15 +377,58 @@ describe('KeyboardStateManager', () => {
     }, 'the picture to pan left');
     await releaseKey('ArrowLeft');
 
-    const atRelease = panX();
+    await expectPanStopped(card);
+  });
+
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2668
+  it('should keep panning for a held key when another key is released', async () => {
+    const card = await mountCard();
+
+    card.setEntityState(ZOOM_ENTITY, 'on');
+    await card.events.waitForFirst('advanced-camera-card:zoom:zoomed');
+    await clickMedia(card);
+
+    //`shouldAdvanceTime` lets the clock run at its own pace until "controlled",
+    // necessary for the panning while a key is being "held" to work.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    await holdKey('ArrowUp');
+    await card.waitForRender(() => {
+      const y = getPan(card)?.y ?? null;
+      return y !== null && y < 50 ? y : null;
+    }, 'the picture to pan up');
+
+    // The left key is pressed while the up key is still held, which takes the
+    // movement over from it.
+    await holdKey('ArrowLeft');
+    await card.waitForRender(() => {
+      const x = getPan(card)?.x ?? null;
+      return x !== null && x < 50 ? x : null;
+    }, 'the picture to pan left');
+
+    const atRelease = getPan(card);
     assert(atRelease !== null);
 
-    await card.advanceSeconds(5);
+    await releaseKey('ArrowUp');
 
-    const afterWaiting = panX();
-    assert(afterWaiting !== null);
+    // The left key is still held, so the picture keeps moving left. A user who
+    // lets go of one arrow key while holding another expects the camera to
+    // carry on in the direction they are still requesting.
+    await card.waitForRender(() => {
+      const x = getPan(card)?.x ?? null;
+      return x !== null && x < atRelease.x - STEP_PAN ? x : null;
+    }, 'the picture to keep panning left');
 
-    expect(Math.abs(atRelease - afterWaiting)).toBeLessThanOrEqual(STEP_PAN);
+    await releaseKey('ArrowLeft');
+
+    const atStop = getPan(card);
+    assert(atStop !== null);
+
+    // The pan must stop with room to spare before the left edge, so
+    // expectPanStopped below can tell a stopped pan from a moving one.
+    expect(atStop.x).toBeGreaterThan(STEPS_TO_PROVE_STOPPED * STEP_PAN);
+
+    await expectPanStopped(card);
   });
 
   it('should not act on a key aimed at another card', async () => {

@@ -19,7 +19,7 @@ import {
 } from '../utils/action-state';
 import { AdvancedCameraCardAction } from './base';
 
-const STEP_DELAY_SECONDS = 0.1;
+export const STEP_DELAY_SECONDS = 0.1;
 const STEP_ZOOM = 0.1;
 export const STEP_PAN = 5;
 
@@ -77,6 +77,10 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
       this._stopped = false;
       await replaceInProgressForThisTarget(targetID, this._context, 'ptzDigital', this);
 
+      if (this._stopped) {
+        return;
+      }
+
       await this._stepChange(api, targetID);
 
       // The steps are repeated only once the first step returns, and only if
@@ -87,7 +91,19 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
         );
       }
     } else if (action.ptz_phase === 'stop') {
-      await clearInProgressForThisTarget(targetID, this._context, 'ptzDigital');
+      // A stop only stops the movement it names, as another movement may have
+      // replaced the one this stop was issued for. An undefined ptz_action
+      // stops any movement.
+      await clearInProgressForThisTarget(
+        targetID,
+        this._context,
+        'ptzDigital',
+        action.ptz_action
+          ? (incumbent) =>
+              incumbent instanceof PTZDigitalAction &&
+              incumbent._getAction().ptz_action === action.ptz_action
+          : undefined,
+      );
     }
   }
 
