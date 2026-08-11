@@ -38,3 +38,25 @@
 - name: waiting
   description: Waiting for something
   color: daa036
+
+# Priority labels
+- name: P0
+  description: 'Priority: Blocker'
+  color: b60205
+- name: P1
+  description: 'Priority: High'
+  color: d93f0b
+- name: P2
+  description: 'Priority: Medium'
+  color: fbca04
+- name: P3
+  description: 'Priority: Low'
+  color: 0e8a16
+
+# Triage labels
+- name: regression
+  description: Worked in a previous version
+  color: e11d21
+- name: fixed-pending-release
+  description: Awaiting Release
+  color: 1d76db
