@@ -1,7 +1,9 @@
 import type { ViewContext } from 'view';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 
 import { PTZDigitalAction } from '../../../../src/card-controller/actions/actions/ptz-digital';
+import type { Action } from '../../../../src/card-controller/actions/types';
 import type { CardController } from '../../../../src/card-controller/controller';
 import type {
   PartialZoomSettings,
@@ -494,7 +496,7 @@ describe('should handle ptz digital action', () => {
       expect(api.getViewManager().setViewWithModifiers).not.toHaveBeenCalled();
     });
 
-    it('should stop movement started by two concurrent starts', async () => {
+    it('should only move for the latest of two concurrent starts', async () => {
       const api = createCardAPI();
       const context = {};
       vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
@@ -512,6 +514,17 @@ describe('should handle ptz digital action', () => {
         createStartAction('up').execute(api),
       ]);
 
+      // The 'up' start replaces the 'left' start before the 'left' start has
+      // taken its first step, so only the 'up' start moves.
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(1);
+      expect(getRequestedZoom(api)).toEqual({
+        ...defaultSettings,
+        pan: {
+          x: 50,
+          y: 45,
+        },
+      });
+
       const stopAction = new PTZDigitalAction(context, {
         action: 'fire-dom-event',
         advanced_camera_card_action: 'ptz_digital',
@@ -519,12 +532,104 @@ describe('should handle ptz digital action', () => {
       });
       await stopAction.execute(api);
 
-      // One step per start, and none after the stop.
-      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(2);
+      vi.runOnlyPendingTimers();
+
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(1);
+    });
+
+    it('should continue movement when a stop for a different movement arrives', async () => {
+      const api = createCardAPI();
+      const context = {};
+      vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+
+      const leftAction = new PTZDigitalAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        ptz_action: 'left',
+        ptz_phase: 'start',
+      });
+      await leftAction.execute(api);
+
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(1);
+      expect(getRequestedZoom(api)).toEqual({
+        ...defaultSettings,
+        pan: {
+          x: 45,
+          y: 50,
+        },
+      });
+
+      // A stop for a movement that is not in progress leaves the 'left'
+      // movement running.
+      const stopUpAction = new PTZDigitalAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        ptz_action: 'up',
+        ptz_phase: 'stop',
+      });
+      await stopUpAction.execute(api);
 
       vi.runOnlyPendingTimers();
 
       expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(2);
+
+      const stopLeftAction = new PTZDigitalAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        ptz_action: 'left',
+        ptz_phase: 'stop',
+      });
+      await stopLeftAction.execute(api);
+
+      vi.runOnlyPendingTimers();
+
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not stop an in-progress action that is not a digital PTZ action', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+
+      const incumbent = mock<Action>();
+      const context = { ptzDigital: { camera: { inProgressAction: incumbent } } };
+
+      const stopAction = new PTZDigitalAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        ptz_action: 'left',
+        ptz_phase: 'stop',
+      });
+      await stopAction.execute(api);
+
+      expect(incumbent.stop).not.toHaveBeenCalled();
+    });
+
+    it('should not repeat steps when stopped during the first step', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+
+      const action = new PTZDigitalAction(
+        {},
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'ptz_digital',
+          ptz_action: 'left',
+          ptz_phase: 'start',
+        },
+      );
+
+      // The stop arrives while the first step is being taken.
+      vi.mocked(api.getViewManager().setViewWithModifiers).mockImplementationOnce(() => {
+        action.stop();
+      });
+
+      await action.execute(api);
+
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(1);
+
+      vi.runOnlyPendingTimers();
+
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(1);
     });
 
     it('should continue movement when a start is concurrent with a stop', async () => {

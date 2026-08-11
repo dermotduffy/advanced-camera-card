@@ -114,10 +114,21 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
         }
       };
 
-      await singleStep();
+      if (!this._stopped) {
+        await singleStep();
+      }
     } else if (action.ptz_phase === 'stop') {
       // Scenario: Asked to stop continuous move, camera only supports relative moves natively.
-      await clearInProgressForThisTarget(ptzCameraID, this._context, 'ptz');
+      // A stop only stops the movement it names, as another movement may have
+      // replaced the one this stop was issued for.
+      await clearInProgressForThisTarget(
+        ptzCameraID,
+        this._context,
+        'ptz',
+        (incumbent) =>
+          incumbent instanceof PTZAction &&
+          incumbent._getAction().ptz_action === action.ptz_action,
+      );
     } else {
       this._stopped = false;
 

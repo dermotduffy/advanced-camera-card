@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 
 import { Capabilities } from '../../../../src/camera-manager/capabilities';
 import { PTZAction } from '../../../../src/card-controller/actions/actions/ptz';
+import type { Action } from '../../../../src/card-controller/actions/types';
 import { PTZMovementType } from '../../../../src/types';
 import { createCameraManager, createStore } from '../../../camera-manager/test-utils';
 import { createCameraConfig } from '../../../config/test-utils';
@@ -612,7 +614,7 @@ describe('should handle ptz action', () => {
       expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(3);
     });
 
-    it('should stop movement started by two concurrent starts', async () => {
+    it('should only move for the latest of two concurrent starts', async () => {
       const api = createCardAPI();
       const store = createStore([
         {
@@ -644,6 +646,106 @@ describe('should handle ptz action', () => {
         createStartAction('up').execute(api),
       ]);
 
+      // The 'up' start replaces the 'left' start before the 'left' start has
+      // made its first move, so only the 'up' start moves.
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(1);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
+        'camera.office',
+        'up',
+        { preset: undefined },
+      );
+
+      const stopAction = new PTZAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'up',
+        ptz_phase: 'stop',
+      });
+      await stopAction.execute(api);
+
+      await vi.runOnlyPendingTimersAsync();
+
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(1);
+    });
+
+    it('should continue movement when a stop for a different movement arrives', async () => {
+      const api = createCardAPI();
+      const store = createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: new Capabilities({
+            ptz: {
+              left: [PTZMovementType.Relative],
+              up: [PTZMovementType.Relative],
+            },
+          }),
+        },
+      ]);
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({ camera: 'camera.office' }),
+      );
+
+      const context = {};
+      await new PTZAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'left',
+        ptz_phase: 'start',
+      }).execute(api);
+
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(1);
+
+      // A stop for a movement that is not in progress leaves the 'left'
+      // movement running.
+      await new PTZAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'up',
+        ptz_phase: 'stop',
+      }).execute(api);
+
+      await vi.runOnlyPendingTimersAsync();
+
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenLastCalledWith(
+        'camera.office',
+        'left',
+        { preset: undefined },
+      );
+
+      await new PTZAction(context, {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'left',
+        ptz_phase: 'stop',
+      }).execute(api);
+
+      await vi.runOnlyPendingTimersAsync();
+
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not stop an in-progress action that is not a PTZ action', async () => {
+      const api = createCardAPI();
+      const store = createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: new Capabilities({
+            ptz: {
+              left: [PTZMovementType.Relative],
+            },
+          }),
+        },
+      ]);
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({ camera: 'camera.office' }),
+      );
+
+      const incumbent = mock<Action>();
+      const context = { ptz: { 'camera.office': { inProgressAction: incumbent } } };
+
       const stopAction = new PTZAction(context, {
         action: 'fire-dom-event',
         advanced_camera_card_action: 'ptz',
@@ -652,12 +754,7 @@ describe('should handle ptz action', () => {
       });
       await stopAction.execute(api);
 
-      // One move per start, and none after the stop.
-      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
-
-      await vi.runOnlyPendingTimersAsync();
-
-      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
+      expect(incumbent.stop).not.toHaveBeenCalled();
     });
 
     it('should continue movement when a start is concurrent with a stop', async () => {
