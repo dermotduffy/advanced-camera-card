@@ -527,7 +527,7 @@ describe('start', () => {
       view: createView({ camera: 'camera.office' }),
       microphoneConnected: false,
     });
-    vi.mocked(api.getMicrophoneManager().connect).mockResolvedValue();
+    vi.mocked(api.getMicrophoneManager().connect).mockResolvedValue(true);
 
     expect(await new CallManager(api).start()).toBe(true);
 
@@ -1426,7 +1426,7 @@ describe('answer', () => {
       microphoneConnected: false,
       config: inboundConfig,
     });
-    vi.mocked(api.getMicrophoneManager().connect).mockResolvedValue();
+    vi.mocked(api.getMicrophoneManager().connect).mockResolvedValue(true);
     const manager = new CallManager(api);
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
@@ -1442,9 +1442,9 @@ describe('answer', () => {
       microphoneConnected: false,
       config: inboundConfig,
     });
-    let resolveConnect: () => void = () => {};
+    let resolveConnect: (connected: boolean) => void = () => {};
     vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
-      new Promise<void>((resolve) => {
+      new Promise<boolean>((resolve) => {
         resolveConnect = resolve;
       }),
     );
@@ -1459,7 +1459,7 @@ describe('answer', () => {
     // microphone permission prompt to be dealt with.
     expect(getRingtone().stop).toHaveBeenCalled();
 
-    resolveConnect();
+    resolveConnect(true);
     expect(await answerPromise).toBe(true);
   });
 
@@ -1540,22 +1540,26 @@ describe('answer', () => {
   });
 });
 
-describe('microphone usage', () => {
-  it('should mark the microphone in use for the duration of the call', async () => {
+describe('microphone transmission', () => {
+  it('should transmit for the duration of the call', async () => {
     const api = createAPI({ view: createView({ camera: 'camera.office' }) });
     const manager = new CallManager(api);
 
     expect(await manager.start()).toBe(true);
 
-    expect(api.getMicrophoneManager().startUsing).toHaveBeenCalledTimes(1);
-    expect(api.getMicrophoneManager().stopUsing).not.toHaveBeenCalled();
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenCalledWith(true);
+    expect(api.getMicrophoneManager().setTransmissionActive).not.toHaveBeenCalledWith(
+      false,
+    );
 
     manager.end();
 
-    expect(api.getMicrophoneManager().stopUsing).toHaveBeenCalledTimes(1);
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
   });
 
-  it('should not mark the microphone in use when the start is aborted', async () => {
+  it('should stop transmitting when the call fails to start', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       microphoneConnected: false,
@@ -1564,10 +1568,18 @@ describe('microphone usage', () => {
 
     expect(await new CallManager(api).start()).toBe(false);
 
-    expect(api.getMicrophoneManager().startUsing).not.toHaveBeenCalled();
+    // Transmission is granted ahead of the microphone connect, so the failed
+    // start must withdraw it again.
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenNthCalledWith(
+      1,
+      true,
+    );
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
   });
 
-  it('should keep the microphone in use when a call supersedes another', async () => {
+  it('should keep transmitting when one call replaces another', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       store: createStore([
@@ -1586,26 +1598,331 @@ describe('microphone usage', () => {
     expect(await manager.start()).toBe(true);
     expect(await manager.start({ cameraID: 'camera.garage' })).toBe(true);
 
-    expect(api.getMicrophoneManager().startUsing).toHaveBeenCalledTimes(2);
-    expect(api.getMicrophoneManager().stopUsing).toHaveBeenCalledTimes(1);
+    expect(api.getMicrophoneManager().setTransmissionActive).not.toHaveBeenCalledWith(
+      false,
+    );
   });
 
-  it('should mark the microphone unused on uninitialization', async () => {
+  it('should stop transmitting when uninitialized during a call', async () => {
     const api = createAPI({ view: createView({ camera: 'camera.office' }) });
     const manager = new CallManager(api);
 
     expect(await manager.start()).toBe(true);
     manager.uninitialize();
 
-    expect(api.getMicrophoneManager().stopUsing).toHaveBeenCalledTimes(1);
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
   });
 
-  it('should not mark the microphone unused when uninitializing without a call', () => {
+  it('should stop transmitting when uninitialized without a call', () => {
     const api = createAPI({ view: createView({ camera: 'camera.office' }) });
 
     new CallManager(api).uninitialize();
 
-    expect(api.getMicrophoneManager().stopUsing).not.toHaveBeenCalled();
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenCalledWith(false);
+  });
+
+  it('should leave transmission alone when an unanswered inbound call ends', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+    expect(manager.end()).toBe(true);
+
+    expect(api.getMicrophoneManager().setTransmissionActive).not.toHaveBeenCalled();
+  });
+
+  it('should stop transmitting when uninitialized while a call connects the microphone', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+    });
+    let resolveConnect: (connected: boolean) => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const startPromise = manager.start();
+    manager.uninitialize();
+
+    // The grant must not outlive the manager while the connect is still
+    // pending.
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+
+    resolveConnect(true);
+    expect(await startPromise).toBe(false);
+  });
+
+  it('should let a later call stop transmitting after an abandoned call is uninitialized', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+    });
+    let resolveConnect: (connected: boolean) => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    // A start from the first lifecycle never gets its microphone.
+    const stalledStart = manager.start();
+    manager.uninitialize();
+    manager.initialize();
+
+    // A call in the new lifecycle must end normally: the stalled request from
+    // the old lifecycle no longer holds transmission.
+    vi.mocked(api.getMicrophoneManager().isConnected).mockReturnValue(true);
+    expect(await manager.start()).toBe(true);
+    expect(manager.end()).toBe(true);
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+
+    resolveConnect(true);
+    expect(await stalledStart).toBe(false);
+  });
+
+  it('should transmit for a call that starts while another call is ending', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    expect(await manager.start()).toBe(true);
+
+    // The superseding start is suspended on the microphone while the answered
+    // call ends and reports transmission inactive.
+    const second = manager.start({ cameraID: 'camera.garage' });
+    expect(manager.end()).toBe(true);
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+
+    expect(await second).toBe(true);
+
+    // The installed session restated its need so the user can be heard on unmute.
+    expect(manager.getCall()?.cameraID).toBe('camera.garage');
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      true,
+    );
+  });
+
+  it('should not transmit for an inbound call that rings after another call ends', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    expect(await manager.start()).toBe(true);
+    expect(manager.end()).toBe(true);
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    // A ring transmits nothing, so it must not restate a need for
+    // transmission.
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+  });
+
+  it('should stop transmitting when a call ends and the next cannot get the microphone', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    expect(await manager.start()).toBe(true);
+
+    vi.mocked(api.getMicrophoneManager().isConnected).mockReturnValue(false);
+    let rejectConnect: (reason: unknown) => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<boolean>((_, reject) => {
+        rejectConnect = reject;
+      }),
+    );
+    const second = manager.start({ cameraID: 'camera.garage' });
+
+    expect(manager.end()).toBe(true);
+
+    rejectConnect(new Error());
+    expect(await second).toBe(false);
+
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+  });
+
+  it('should abort a call when the microphone does not stay connected', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+    });
+    let resolveConnect: (connected: boolean) => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const start = manager.start();
+
+    // The microphone manager releases a stream it connected while nothing was
+    // transmitting, and reports that the microphone is not connected.
+    resolveConnect(false);
+
+    expect(await start).toBe(false);
+    expect(manager.isActive()).toBe(false);
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+  });
+
+  it('should not transmit while an inbound call rings', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(api.getMicrophoneManager().setTransmissionActive).not.toHaveBeenCalled();
+  });
+
+  it('should allow transmission before connecting the microphone on answer', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+    });
+    vi.mocked(api.getMicrophoneManager().connect).mockResolvedValue(true);
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(await manager.answer()).toBe(true);
+
+    // If transmission is not yet active when a connect completes, the
+    // microphone manager immediately releases the new stream -- so the answer
+    // must activate transmission before it connects. The ringing start touches
+    // neither method, so index 0 is each method's first and only invocation,
+    // made by the answer.
+    const transmitOrder = vi.mocked(api.getMicrophoneManager().setTransmissionActive)
+      .mock.invocationCallOrder[0];
+    const connectOrder = vi.mocked(api.getMicrophoneManager().connect).mock
+      .invocationCallOrder[0];
+    expect(transmitOrder).toBeLessThan(connectOrder);
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      true,
+    );
+  });
+
+  it('should stop transmitting when the microphone connect fails on answer', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+    });
+    vi.mocked(api.getMicrophoneManager().connect).mockRejectedValue(new Error());
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(await manager.answer()).toBe(false);
+
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+    expect(manager.getCall()?.answered).toBe(false);
+  });
+
+  it('should keep transmitting when a failed start leaves an earlier call in progress', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+
+    expect(await manager.start()).toBe(true);
+
+    // The second start fails its microphone connect, but the first call is
+    // still answered and holds the transmission grant.
+    vi.mocked(api.getMicrophoneManager().isConnected).mockReturnValue(false);
+    vi.mocked(api.getMicrophoneManager().connect).mockRejectedValue(new Error());
+
+    expect(await manager.start({ cameraID: 'camera.garage' })).toBe(false);
+
+    expect(api.getMicrophoneManager().setTransmissionActive).not.toHaveBeenCalledWith(
+      false,
+    );
+    expect(manager.getCall()?.cameraID).toBe('camera.office');
+  });
+
+  it('should stop transmitting when the call ends while answering connects the microphone', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+    });
+    let resolveConnect: (connected: boolean) => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    const answerPromise = manager.answer();
+    manager.end();
+    resolveConnect(true);
+
+    expect(await answerPromise).toBe(false);
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
   });
 });
 
@@ -1839,9 +2156,9 @@ describe('state changes during in-flight start', () => {
       view: createView({ camera: 'camera.office' }),
       microphoneConnected: false,
     });
-    let resolveConnect: () => void = () => {};
+    let resolveConnect: (connected: boolean) => void = () => {};
     vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
-      new Promise<void>((resolve) => {
+      new Promise<boolean>((resolve) => {
         resolveConnect = resolve;
       }),
     );
@@ -1850,7 +2167,7 @@ describe('state changes during in-flight start', () => {
 
     const startPromise = manager.start();
     manager.uninitialize();
-    resolveConnect();
+    resolveConnect(true);
 
     expect(await startPromise).toBe(false);
     expect(manager.isActive()).toBe(false);
@@ -1862,9 +2179,9 @@ describe('state changes during in-flight start', () => {
       view: createView({ camera: 'camera.office' }),
       microphoneConnected: false,
     });
-    let resolveConnect: () => void = () => {};
+    let resolveConnect: (connected: boolean) => void = () => {};
     vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
-      new Promise<void>((resolve) => {
+      new Promise<boolean>((resolve) => {
         resolveConnect = resolve;
       }),
     );
@@ -1874,7 +2191,7 @@ describe('state changes during in-flight start', () => {
     const startPromise = manager.start();
     manager.uninitialize();
     manager.initialize();
-    resolveConnect();
+    resolveConnect(true);
 
     expect(await startPromise).toBe(false);
     expect(manager.isActive()).toBe(false);
@@ -1896,9 +2213,9 @@ describe('state changes during in-flight start', () => {
         },
       ]),
     });
-    let resolveConnect: () => void = () => {};
+    let resolveConnect: (connected: boolean) => void = () => {};
     vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
-      new Promise<void>((resolve) => {
+      new Promise<boolean>((resolve) => {
         resolveConnect = resolve;
       }),
     );
@@ -1908,17 +2225,18 @@ describe('state changes during in-flight start', () => {
     // Both requests read the (absent) session before either can install one.
     const first = manager.start();
     const second = manager.start({ cameraID: 'camera.garage' });
-    resolveConnect();
+    resolveConnect(true);
 
     expect(await first).toBe(true);
     expect(await second).toBe(true);
 
     // The second request must end the first request's session rather than
-    // overwrite it, leaving exactly one live session and no stranded microphone
-    // marking.
+    // overwrite it, leaving exactly one live session with transmission still
+    // granted.
     expect(manager.getCall()?.cameraID).toBe('camera.garage');
-    expect(api.getMicrophoneManager().startUsing).toHaveBeenCalledTimes(2);
-    expect(api.getMicrophoneManager().stopUsing).toHaveBeenCalledTimes(1);
+    expect(api.getMicrophoneManager().setTransmissionActive).not.toHaveBeenCalledWith(
+      false,
+    );
   });
 
   it('should suppress the microphone-failure notification when uninitialized mid-await', async () => {
@@ -1928,7 +2246,7 @@ describe('state changes during in-flight start', () => {
     });
     let rejectConnect: (reason: unknown) => void = () => {};
     vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
-      new Promise<void>((_, reject) => {
+      new Promise<boolean>((_, reject) => {
         rejectConnect = reject;
       }),
     );
@@ -1957,7 +2275,7 @@ describe('state changes during in-flight answer', () => {
     api: CardController,
   ): Promise<{
     manager: CallManager;
-    resolveConnect: () => void;
+    resolveConnect: (connected: boolean) => void;
     rejectConnect: (reason: unknown) => void;
   }> => {
     const manager = new CallManager(api);
@@ -1965,10 +2283,10 @@ describe('state changes during in-flight answer', () => {
     expect(await manager.start({ inbound: true })).toBe(true);
 
     vi.mocked(api.getMicrophoneManager().isConnected).mockReturnValue(false);
-    let resolveConnect: () => void = () => {};
+    let resolveConnect: (connected: boolean) => void = () => {};
     let rejectConnect: (reason: unknown) => void = () => {};
     vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
-      new Promise<void>((resolve, reject) => {
+      new Promise<boolean>((resolve, reject) => {
         resolveConnect = resolve;
         rejectConnect = reject;
       }),
@@ -1985,7 +2303,7 @@ describe('state changes during in-flight answer', () => {
 
     const answerPromise = manager.answer();
     manager.uninitialize();
-    resolveConnect();
+    resolveConnect(true);
 
     expect(await answerPromise).toBe(false);
     expect(manager.isActive()).toBe(false);
@@ -2015,7 +2333,7 @@ describe('state changes during in-flight answer', () => {
 
     const answerPromise = manager.answer();
     expect(manager.end()).toBe(true);
-    resolveConnect();
+    resolveConnect(true);
 
     expect(await answerPromise).toBe(false);
     expect(manager.isActive()).toBe(false);

@@ -3749,6 +3749,452 @@ describe('should handle version specific upgrades', () => {
   });
 
   describe('v8.0.0+', () => {
+    describe('should remove the retired microphone options', () => {
+      it('should delete disconnect_seconds', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { disconnect_seconds: 120, always_connected: true } },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { microphone: { always_connected: true } },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should delete disconnect_seconds in overrides', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          overrides: [
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+              merge: { live: { microphone: { disconnect_seconds: 120 } } },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config.overrides[0].merge).toEqual({ live: { microphone: {} } });
+        postUpgradeChecks(config);
+      });
+
+      it('should strip call from the microphone auto_mute', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { auto_mute: ['hidden', 'call'] } },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { microphone: { auto_mute: ['hidden'] } },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should empty the microphone auto_mute when only call is listed', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { auto_mute: ['call'], always_connected: true } },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { microphone: { auto_mute: [], always_connected: true } },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should empty an overridden microphone auto_mute rather than delete it', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { auto_mute: ['hidden' as const] } },
+          overrides: [
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+              set: { 'live.microphone.auto_mute': ['call'] },
+            },
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: false }],
+              merge: { live: { microphone: { auto_mute: ['call'] } } },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        // Deleting the key would restore the base `['hidden']` for anyone the
+        // override applies to, rather than leaving them with nothing.
+        expect(config.overrides[0].set).toEqual({
+          live: { microphone: { auto_mute: [] } },
+        });
+        expect(config.overrides[1].merge).toEqual({
+          live: { microphone: { auto_mute: [] } },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should leave a microphone auto_mute without call alone', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { auto_mute: ['hidden'] } },
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { microphone: { auto_mute: ['hidden'] } },
+        });
+      });
+
+      it('should not strip call from the live auto_mute', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { auto_mute: ['hidden', 'call'] },
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { auto_mute: ['hidden', 'call'] },
+        });
+      });
+    });
+
+    describe('should remove the retired microphone actions', () => {
+      it('should delete a singular tap_action', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon' as const,
+              icon: 'mdi:microphone',
+              tap_action: {
+                action: 'custom:advanced-camera-card-action' as const,
+                advanced_camera_card_action: 'microphone_connect' as const,
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config.elements[0]).toEqual({
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'mdi:microphone',
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should splice an action array and keep the order of the rest', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon' as const,
+              icon: 'mdi:microphone',
+              tap_action: [
+                {
+                  action: 'custom:advanced-camera-card-action' as const,
+                  advanced_camera_card_action: 'microphone_connect' as const,
+                },
+                {
+                  action: 'custom:advanced-camera-card-action' as const,
+                  advanced_camera_card_action: 'microphone_unmute' as const,
+                },
+                {
+                  action: 'custom:advanced-camera-card-action' as const,
+                  advanced_camera_card_action: 'microphone_disconnect' as const,
+                },
+                {
+                  action: 'custom:advanced-camera-card-action' as const,
+                  advanced_camera_card_action: 'microphone_mute' as const,
+                },
+              ],
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config.elements[0]['tap_action']).toEqual([
+          {
+            action: 'custom:advanced-camera-card-action',
+            advanced_camera_card_action: 'microphone_unmute',
+          },
+          {
+            action: 'custom:advanced-camera-card-action',
+            advanced_camera_card_action: 'microphone_mute',
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should delete the start and end tap actions of a momentary button', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon' as const,
+              icon: 'mdi:microphone',
+              start_tap_action: {
+                action: 'fire-dom-event' as const,
+                advanced_camera_card_action: 'microphone_connect' as const,
+              },
+              end_tap_action: {
+                action: 'fire-dom-event' as const,
+                advanced_camera_card_action: 'microphone_disconnect' as const,
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config.elements[0]).toEqual({
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'mdi:microphone',
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should remove the actions from an override', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          overrides: [
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+              merge: {
+                'menu.buttons.microphone': {
+                  tap_action: {
+                    action: 'custom:advanced-camera-card-action' as const,
+                    advanced_camera_card_action: 'microphone_connect' as const,
+                  },
+                },
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config.overrides[0].merge).toEqual({
+          'menu.buttons.microphone': {},
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should keep an automation that retains other actions', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          automations: [
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+              actions: [
+                {
+                  action: 'custom:advanced-camera-card-action' as const,
+                  advanced_camera_card_action: 'microphone_connect' as const,
+                },
+                {
+                  action: 'custom:advanced-camera-card-action' as const,
+                  advanced_camera_card_action: 'microphone_unmute' as const,
+                },
+              ],
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config.automations[0]['actions']).toEqual([
+          {
+            action: 'custom:advanced-camera-card-action',
+            advanced_camera_card_action: 'microphone_unmute',
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should empty the actions of an automation left with none', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          automations: [
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+              actions: [
+                {
+                  action: 'custom:advanced-camera-card-action' as const,
+                  advanced_camera_card_action: 'microphone_connect' as const,
+                },
+              ],
+            },
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: false }],
+              actions: [
+                {
+                  action: 'custom:advanced-camera-card-action' as const,
+                  advanced_camera_card_action: 'microphone_mute' as const,
+                },
+              ],
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config.automations).toHaveLength(2);
+        expect(config.automations[0]['actions']).toEqual([]);
+        expect(config.automations[1]['actions']).toEqual([
+          {
+            action: 'custom:advanced-camera-card-action',
+            advanced_camera_card_action: 'microphone_mute',
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should keep the required then of an if action that empties', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          automations: [
+            {
+              triggers: [{ trigger: 'camera' as const }],
+              actions: [
+                {
+                  if: [{ condition: 'fullscreen' as const, fullscreen: true }],
+                  then: [
+                    {
+                      action: 'custom:advanced-camera-card-action' as const,
+                      advanced_camera_card_action: 'microphone_disconnect' as const,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        // `then` is required by the schema, so it must survive as an empty
+        // array rather than be deleted.
+        expect(config.automations[0]['actions']).toEqual([
+          { if: [{ condition: 'fullscreen', fullscreen: true }], then: [] },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should leave an unrelated action payload alone', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon' as const,
+              icon: 'mdi:microphone',
+              tap_action: {
+                action: 'perform-action' as const,
+                perform_action: 'input_boolean.turn_on',
+                data: {
+                  advanced_camera_card_action: 'microphone_connect',
+                },
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+
+        expect(config.elements[0]['tap_action']).toEqual({
+          action: 'perform-action',
+          perform_action: 'input_boolean.turn_on',
+          data: {
+            advanced_camera_card_action: 'microphone_connect',
+          },
+        });
+      });
+
+      it('should leave an action-shaped service data payload alone', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon' as const,
+              icon: 'mdi:microphone',
+              tap_action: {
+                action: 'perform-action' as const,
+                perform_action: 'script.relay',
+                data: {
+                  payload: {
+                    action: 'fire-dom-event',
+                    advanced_camera_card_action: 'microphone_connect',
+                  },
+                },
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+
+        // `data` is opaque to the card: whatever it holds is the user's to
+        // send on, even when it looks like an action.
+        expect(config.elements[0]['tap_action']['data']).toEqual({
+          payload: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'microphone_connect',
+          },
+        });
+      });
+
+      it('should leave the surviving microphone actions alone', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon' as const,
+              icon: 'mdi:microphone',
+              tap_action: {
+                action: 'custom:advanced-camera-card-action' as const,
+                advanced_camera_card_action: 'microphone_mute' as const,
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+      });
+    });
     describe('live.controls.thumbnails.media_type -> cameras_global.media.type', () => {
       it.each([['events' as const], ['recordings' as const]])(
         'should handle %s',

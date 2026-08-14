@@ -25,9 +25,8 @@ import { transitionEffectConfigSchema } from './common/transition-effect';
 
 const microphoneConfigDefault = {
   always_connected: false,
-  auto_mute: ['call' as const],
+  auto_mute: [],
   auto_unmute: [],
-  disconnect_seconds: 90,
   mute_after_microphone_mute_seconds: 60,
 };
 
@@ -80,10 +79,6 @@ const microphoneConfigSchema = z
       .enum(MICROPHONE_UNMUTE_CONDITIONS)
       .array()
       .default(microphoneConfigDefault.auto_unmute),
-    disconnect_seconds: z
-      .number()
-      .min(0)
-      .default(microphoneConfigDefault.disconnect_seconds),
     mute_after_microphone_mute_seconds: z
       .number()
       .min(0)

@@ -493,7 +493,6 @@
         "always_connected": "Always keep the microphone connected",
         "auto_mute": "Automatically mute the microphone",
         "auto_unmute": "Automatically unmute the microphone",
-        "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
         "mute_after_microphone_mute_seconds": "Seconds after microphone mute before muting inbound audio"
       },

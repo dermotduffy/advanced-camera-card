@@ -20,8 +20,6 @@ import { InternalCallbackAction } from '../../../src/card-controller/actions/act
 import { LogAction } from '../../../src/card-controller/actions/actions/log';
 import { MediaPlayerAction } from '../../../src/card-controller/actions/actions/media-player';
 import { MenuToggleAction } from '../../../src/card-controller/actions/actions/menu-toggle';
-import { MicrophoneConnectAction } from '../../../src/card-controller/actions/actions/microphone-connect';
-import { MicrophoneDisconnectAction } from '../../../src/card-controller/actions/actions/microphone-disconnect';
 import { MicrophoneMuteAction } from '../../../src/card-controller/actions/actions/microphone-mute';
 import { MicrophoneUnmuteAction } from '../../../src/card-controller/actions/actions/microphone-unmute';
 import { MoreInfoAction } from '../../../src/card-controller/actions/actions/more-info';
@@ -146,14 +144,6 @@ describe('ActionFactory', () => {
         MediaPlayerAction,
       ],
       [{ advanced_camera_card_action: 'menu_toggle' as const }, MenuToggleAction],
-      [
-        { advanced_camera_card_action: 'microphone_connect' as const },
-        MicrophoneConnectAction,
-      ],
-      [
-        { advanced_camera_card_action: 'microphone_disconnect' as const },
-        MicrophoneDisconnectAction,
-      ],
       [
         { advanced_camera_card_action: 'microphone_mute' as const },
         MicrophoneMuteAction,

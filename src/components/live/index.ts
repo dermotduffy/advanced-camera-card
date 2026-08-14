@@ -98,7 +98,9 @@ export class AdvancedCameraCardLive extends LitElement {
       // ['call']` doesn't transmit audio during the pre-answer ringing state.
       // Outbound calls are answered at construction; inbound calls only after
       // the user accepts.
-      this._microphoneActionsController.setCallAnswered(!!this.call?.answered);
+      this._microphoneActionsController
+        .setCallAnswered(!!this.call?.answered)
+        .catch(() => {});
     }
   }
 

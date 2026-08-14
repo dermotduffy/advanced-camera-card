@@ -1494,6 +1494,87 @@ const triggersEventsToMediaEventsTransform = (triggers: unknown): unknown => {
   return result;
 };
 
+const REMOVED_MICROPHONE_ACTIONS = ['microphone_connect', 'microphone_disconnect'];
+
+// The properties that hold actions: the tap handlers of elements, menu buttons,
+// notification controls and views (`actionsBaseSchema`), the actions of an
+// automation, and the branches of an `if` action. Each holds either a single
+// action or a list of them.
+const ACTION_PROPERTIES = [
+  'actions',
+  'double_tap_action',
+  'else',
+  'end_tap_action',
+  'hold_action',
+  'start_tap_action',
+  'tap_action',
+  'then',
+];
+
+const isRemovedMicrophoneAction = (data: unknown): boolean =>
+  isRecord(data) &&
+  (data['action'] === 'fire-dom-event' ||
+    data['action'] === 'custom:advanced-camera-card-action') &&
+  typeof data['advanced_camera_card_action'] === 'string' &&
+  REMOVED_MICROPHONE_ACTIONS.includes(data['advanced_camera_card_action']);
+
+/**
+ * Remove the `microphone_connect` / `microphone_disconnect` actions wherever
+ * they appear. The whole tree is walked because card actions can appear
+ * anywhere (menu buttons, elements, automations, view-action handlers, etc.),
+ * but only the properties that hold actions are touched, so an object that
+ * merely resembles an action -- the `data` of a `perform-action`, for
+ * instance -- is left as the user wrote it.
+ *
+ * A property holding a single such action is deleted, since every one of those
+ * is optional. A list keeps its property even when it empties: some are
+ * required (`automations[].actions`, an `if` action's `then`) and an empty one
+ * is valid everywhere.
+ */
+const removeMicrophoneActionsTransform = (data: unknown): boolean => {
+  // Arrays are records too, so their entries are walked by the loop below.
+  if (!isRecord(data)) {
+    return false;
+  }
+
+  let modified = false;
+  for (const key of Object.keys(data)) {
+    if (ACTION_PROPERTIES.includes(key)) {
+      const value = data[key];
+      if (isRemovedMicrophoneAction(value)) {
+        delete data[key];
+        modified = true;
+        continue;
+      }
+      if (Array.isArray(value)) {
+        const kept = value.filter((item) => !isRemovedMicrophoneAction(item));
+        if (kept.length !== value.length) {
+          data[key] = kept;
+          modified = true;
+        }
+      }
+    }
+
+    modified = removeMicrophoneActionsTransform(data[key]) || modified;
+  }
+  return modified;
+};
+
+/**
+ * Remove a value from an array. The array is kept even when it empties: inside
+ * an override, deleting it would restore whatever the base configuration says
+ * rather than leaving nothing. An array that does not hold the value is left
+ * alone.
+ */
+const removeFromArrayTransform = (removed: unknown): ((value: unknown) => unknown) => {
+  return (value: unknown): unknown => {
+    if (!Array.isArray(value) || !value.includes(removed)) {
+      return undefined;
+    }
+    return value.filter((item) => item !== removed);
+  };
+};
+
 const UPGRADES = [
   // v5.2.0 -> v6.0.0
   (data: unknown): boolean => {
@@ -1729,4 +1810,10 @@ const UPGRADES = [
       isRecord(data) ? data : {},
     );
   },
+
+  // Retire microphone parameters/actions not needed with 'call'.
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2681
+  deleteWithOverrides('live.microphone.disconnect_seconds'),
+  upgradeWithOverrides('live.microphone.auto_mute', removeFromArrayTransform('call')),
+  removeMicrophoneActionsTransform,
 ];

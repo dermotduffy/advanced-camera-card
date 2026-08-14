@@ -28,8 +28,6 @@ import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
 import { MediaPlayerAction } from './actions/media-player';
 import { MenuToggleAction } from './actions/menu-toggle';
-import { MicrophoneConnectAction } from './actions/microphone-connect';
-import { MicrophoneDisconnectAction } from './actions/microphone-disconnect';
 import { MicrophoneMuteAction } from './actions/microphone-mute';
 import { MicrophoneUnmuteAction } from './actions/microphone-unmute';
 import { MoreInfoAction } from './actions/more-info';
@@ -159,10 +157,6 @@ export class ActionFactory {
         return new SubstreamOnAction(context, action, options?.config);
       case 'media_player':
         return new MediaPlayerAction(context, action, options?.config);
-      case 'microphone_connect':
-        return new MicrophoneConnectAction(context, action, options?.config);
-      case 'microphone_disconnect':
-        return new MicrophoneDisconnectAction(context, action, options?.config);
       case 'microphone_mute':
         return new MicrophoneMuteAction(context, action, options?.config);
       case 'microphone_unmute':

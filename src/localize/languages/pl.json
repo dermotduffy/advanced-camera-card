@@ -378,7 +378,6 @@
       "lazy_unload": "Kamery wyładowywane leniwie",
       "microphone": {
         "always_connected": "Zawsze utrzymuj połączenie mikrofonu",
-        "disconnect_seconds": "Sekundy do rozłączenia mikrofonu (0=nigdy)",
         "editor_label": "Mikrofon",
         "mute_after_microphone_mute_seconds": "Sekundy po wyciszeniu mikrofonu do wyciszenia dźwięku przychodzącego"
       },

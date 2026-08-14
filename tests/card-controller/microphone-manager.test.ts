@@ -28,7 +28,6 @@ const medialessNavigatorMock: Navigator = {
 describe('MicrophoneManager', () => {
   beforeEach(() => {
     vi.stubGlobal('navigator', navigatorMock);
-    vi.useRealTimers();
   });
 
   afterEach(() => {
@@ -44,20 +43,85 @@ describe('MicrophoneManager', () => {
     return stream;
   };
 
+  // Streams from `createMockStream` carry exactly one track.
+  const getTrack = (stream: MediaStream): MediaStreamTrack => stream.getTracks()[0];
+
+  const createDeferredStream = (): {
+    promise: Promise<MediaStream>;
+    resolve: (stream: MediaStream) => void;
+    reject: (error: Error) => void;
+  } => {
+    let resolveStream: ((stream: MediaStream) => void) | null = null;
+    let rejectStream: ((error: Error) => void) | null = null;
+    const promise = new Promise<MediaStream>((resolve, reject) => {
+      resolveStream = resolve;
+      rejectStream = reject;
+    });
+    return {
+      promise,
+      resolve: (stream: MediaStream) => resolveStream?.(stream),
+      reject: (error: Error) => rejectStream?.(error),
+    };
+  };
+
   it('should be muted on creation', () => {
     const manager = new MicrophoneManager(createCardAPI());
     expect(manager).toBeTruthy();
     expect(manager.isMuted()).toBeTruthy();
   });
 
-  it('should be undefined without creation', () => {
+  it('should have no stream before connecting', () => {
     const manager = new MicrophoneManager(createCardAPI());
-    expect(manager.getStream()).toBeUndefined();
+    expect(manager.getStream()).toBeNull();
   });
 
-  it('should connect', async () => {
+  it('should connect while transmission is active', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
+
+    const stream = createMockStream();
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+
+    manager.setTransmissionActive(true);
+    expect(await manager.connect()).toBe(true);
+
+    expect(manager.isConnected()).toBeTruthy();
+    expect(manager.getStream()).toBe(stream);
+    expect(manager.isMuted()).toBeTruthy();
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
+  });
+
+  it('should release a stream that connects without active transmission', async () => {
+    const api = createCardAPI();
+    const manager = new MicrophoneManager(api);
+
+    const stream = createMockStream();
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+
+    expect(await manager.connect()).toBe(false);
+
+    expect(manager.isConnected()).toBeFalsy();
+    expect(manager.isForbidden()).toBeFalsy();
+    expect(getTrack(stream).stop).toHaveBeenCalled();
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        microphone: expect.objectContaining({ connected: false, muted: true }),
+      }),
+    );
+  });
+
+  it('should hold a muted stream without transmission when always connected', async () => {
+    const api = createCardAPI();
+    const manager = new MicrophoneManager(api);
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            always_connected: true,
+          },
+        },
+      }),
+    );
 
     const stream = createMockStream();
     vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
@@ -65,9 +129,14 @@ describe('MicrophoneManager', () => {
     await manager.connect();
 
     expect(manager.isConnected()).toBeTruthy();
-    expect(manager.getStream()).toBe(stream);
     expect(manager.isMuted()).toBeTruthy();
-    expect(api.getCardElementManager().update).toHaveBeenCalled();
+    expect(getTrack(stream).stop).not.toHaveBeenCalled();
+
+    manager.mute();
+
+    expect(manager.isConnected()).toBeTruthy();
+    expect(manager.isMuted()).toBeTruthy();
+    expect(getTrack(stream).stop).not.toHaveBeenCalled();
   });
 
   it('should be unsupported without browser support', () => {
@@ -104,24 +173,74 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
-  it('should mute and unmute', async () => {
+  it('should mute and unmute while transmission is active', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
     vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
       createMockStream(),
     );
 
-    await manager.connect();
-    expect(manager.isMuted()).toBeTruthy();
+    manager.setTransmissionActive(true);
     expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
 
-    manager.mute();
+    await manager.connect();
     expect(manager.isMuted()).toBeTruthy();
     expect(api.getCardElementManager().update).toHaveBeenCalledTimes(2);
 
     await manager.unmute();
     expect(manager.isMuted()).toBeFalsy();
     expect(api.getCardElementManager().update).toHaveBeenCalledTimes(3);
+
+    manager.mute();
+    expect(manager.isMuted()).toBeTruthy();
+    expect(manager.isConnected()).toBeTruthy();
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(4);
+
+    // Unmuting again reuses the held stream rather than re-requesting the
+    // device.
+    await manager.unmute();
+    expect(manager.isMuted()).toBeFalsy();
+    expect(navigatorMock.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not unmute without active transmission', async () => {
+    const api = createCardAPI();
+    const manager = new MicrophoneManager(api);
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
+
+    await manager.unmute();
+
+    expect(navigatorMock.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+    expect(manager.isConnected()).toBeFalsy();
+    expect(manager.isMuted()).toBeTruthy();
+    expect(api.getCardElementManager().update).not.toHaveBeenCalled();
+  });
+
+  it('should not unmute without active transmission when always connected', async () => {
+    const api = createCardAPI();
+    const manager = new MicrophoneManager(api);
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            always_connected: true,
+          },
+        },
+      }),
+    );
+
+    const stream = createMockStream();
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+
+    await manager.connect();
+    expect(manager.isMuted()).toBeTruthy();
+
+    await manager.unmute();
+
+    expect(manager.isConnected()).toBeTruthy();
+    expect(manager.isMuted()).toBeTruthy();
   });
 
   it('should not unmute when microphone forbidden', async () => {
@@ -129,14 +248,15 @@ describe('MicrophoneManager', () => {
     const manager = new MicrophoneManager(api);
     vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockRejectedValue(new Error());
 
+    manager.setTransmissionActive(true);
     await expect(manager.connect()).rejects.toThrow(Error);
 
     expect(manager.isMuted()).toBeTruthy();
-    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
 
     await manager.unmute();
+
+    expect(manager.isForbidden()).toBeTruthy();
     expect(manager.isMuted()).toBeTruthy();
-    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
   });
 
   it('should not unmute when not supported', async () => {
@@ -150,13 +270,14 @@ describe('MicrophoneManager', () => {
     expect(manager.isMuted()).toBeTruthy();
   });
 
-  it('should connect on unmute', async () => {
+  it('should connect on unmute while transmission is active', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
     vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
       createMockStream(),
     );
 
+    manager.setTransmissionActive(true);
     expect(manager.isConnected()).toBeFalsy();
 
     await manager.unmute();
@@ -167,236 +288,234 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
-  it('should disconnect', async () => {
-    const api = createCardAPI();
-    const manager = new MicrophoneManager(api);
-
-    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
-      createMockStream(),
-    );
-
-    await manager.connect();
-    expect(manager.isConnected()).toBeTruthy();
-    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
-
-    manager.disconnect();
-    expect(manager.isConnected()).toBeFalsy();
-    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(2);
-  });
-
-  it('should automatically disconnect', async () => {
-    vi.useFakeTimers();
-
-    const disconnectSeconds = 10;
-    const api = createCardAPI();
-    const manager = new MicrophoneManager(api);
-    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
-      createMockStream(),
-    );
-
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-      createConfig({
-        live: {
-          microphone: {
-            always_connected: false,
-            disconnect_seconds: disconnectSeconds,
-          },
-        },
-      }),
-    );
-
-    await manager.connect();
-    expect(manager.isConnected()).toBeTruthy();
-    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
-
-    vi.advanceTimersByTime(disconnectSeconds * 1000);
-
-    expect(manager.isConnected()).toBeFalsy();
-    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(2);
-  });
-
-  it('should not automatically disconnect when always connected', async () => {
-    vi.useFakeTimers();
-
-    const disconnectSeconds = 10;
-    const api = createCardAPI();
-    const manager = new MicrophoneManager(api);
-    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
-      createMockStream(),
-    );
-
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-      createConfig({
-        live: {
-          microphone: {
-            always_connected: true,
-            disconnect_seconds: disconnectSeconds,
-          },
-        },
-      }),
-    );
-
-    await manager.connect();
-    expect(manager.isConnected()).toBeTruthy();
-    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
-
-    vi.advanceTimersByTime(disconnectSeconds * 1000);
-
-    expect(manager.isConnected()).toBeTruthy();
-    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
-  });
-
-  describe('should stay connected while in use', () => {
-    const disconnectSeconds = 10;
-
-    const createManagerWithDisconnectSeconds = (): MicrophoneManager => {
+  describe('should follow transmission state', () => {
+    it('should release the stream and reset mute when transmission ends', async () => {
       const api = createCardAPI();
-      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
-        createMockStream(),
+      const manager = new MicrophoneManager(api);
+      const stream = createMockStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+
+      manager.setTransmissionActive(true);
+      await manager.connect();
+      await manager.unmute();
+      expect(manager.isMuted()).toBeFalsy();
+
+      manager.setTransmissionActive(false);
+
+      expect(manager.isConnected()).toBeFalsy();
+      expect(getTrack(stream).stop).toHaveBeenCalled();
+      expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          microphone: expect.objectContaining({ connected: false, muted: true }),
+        }),
       );
+
+      // The next transmission must not start with a hot microphone: the desired mute
+      // was reset when the previous transmission ended.
+      const newStream = createMockStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(newStream);
+      manager.setTransmissionActive(true);
+      await manager.connect();
+      expect(manager.isConnected()).toBeTruthy();
+      expect(manager.isMuted()).toBeTruthy();
+    });
+
+    it('should keep the stream muted when transmission ends and always connected', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           live: {
             microphone: {
-              always_connected: false,
-              disconnect_seconds: disconnectSeconds,
+              always_connected: true,
             },
           },
         }),
       );
-      return new MicrophoneManager(api);
-    };
+      const stream = createMockStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
 
-    it('should not automatically disconnect while a user is registered', async () => {
-      vi.useFakeTimers();
-
-      const manager = createManagerWithDisconnectSeconds();
+      manager.setTransmissionActive(true);
       await manager.connect();
-      manager.startUsing();
-
-      vi.advanceTimersByTime(disconnectSeconds * 1000);
-
-      expect(manager.isConnected()).toBeTruthy();
-    });
-
-    it('should not automatically disconnect when a user is registered before connection', async () => {
-      vi.useFakeTimers();
-
-      const manager = createManagerWithDisconnectSeconds();
-      manager.startUsing();
-      await manager.connect();
-
-      vi.advanceTimersByTime(disconnectSeconds * 1000);
-
-      expect(manager.isConnected()).toBeTruthy();
-    });
-
-    it('should not automatically disconnect on mute or unmute while in use', async () => {
-      vi.useFakeTimers();
-
-      const manager = createManagerWithDisconnectSeconds();
-      await manager.connect();
-      manager.startUsing();
-
       await manager.unmute();
-      manager.mute();
-      vi.advanceTimersByTime(disconnectSeconds * 1000);
+      expect(manager.isMuted()).toBeFalsy();
+
+      manager.setTransmissionActive(false);
 
       expect(manager.isConnected()).toBeTruthy();
+      expect(manager.isMuted()).toBeTruthy();
+      expect(getTrack(stream).stop).not.toHaveBeenCalled();
     });
 
-    it('should restart the countdown in full when use stops', async () => {
-      vi.useFakeTimers();
+    it('should ignore the end of a transmission that never started', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              always_connected: true,
+            },
+          },
+        }),
+      );
+      const stream = createMockStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
 
-      const manager = createManagerWithDisconnectSeconds();
       await manager.connect();
-      manager.startUsing();
-
-      vi.advanceTimersByTime(disconnectSeconds * 1000);
-      manager.stopUsing();
-
-      vi.advanceTimersByTime(disconnectSeconds * 1000 - 1);
       expect(manager.isConnected()).toBeTruthy();
+      expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
 
-      vi.advanceTimersByTime(1);
-      expect(manager.isConnected()).toBeFalsy();
-    });
+      manager.setTransmissionActive(false);
 
-    it('should become idle on a single stop no matter how often use was started', async () => {
-      vi.useFakeTimers();
-
-      const manager = createManagerWithDisconnectSeconds();
-      await manager.connect();
-      manager.startUsing();
-      manager.startUsing();
-
-      manager.stopUsing();
-      vi.advanceTimersByTime(disconnectSeconds * 1000);
-
-      expect(manager.isConnected()).toBeFalsy();
-    });
-
-    it('should restart the countdown when stopped without having been in use', async () => {
-      vi.useFakeTimers();
-
-      const manager = createManagerWithDisconnectSeconds();
-      await manager.connect();
-
-      vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
-      manager.stopUsing();
-
-      vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
       expect(manager.isConnected()).toBeTruthy();
-
-      vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
-      expect(manager.isConnected()).toBeFalsy();
+      expect(getTrack(stream).stop).not.toHaveBeenCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
     });
 
-    it('should not reconnect after an explicit disconnect while in use', async () => {
-      vi.useFakeTimers();
+    it('should ignore a transmission report that changes nothing', () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
 
-      const manager = createManagerWithDisconnectSeconds();
-      await manager.connect();
-      manager.startUsing();
-      manager.disconnect();
+      manager.setTransmissionActive(true);
+      manager.setTransmissionActive(true);
 
-      vi.advanceTimersByTime(disconnectSeconds * 1000);
-
-      expect(manager.isConnected()).toBeFalsy();
+      expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('should not disconnect after being explicitly disconnected and reconnected', async () => {
-    vi.useFakeTimers();
+  describe('should guard in-flight connections', () => {
+    it('should release a stream whose connect completes after a mute', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      const stream = createMockStream();
+      const deferred = createDeferredStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockReturnValue(
+        deferred.promise,
+      );
 
-    const disconnectSeconds = 10;
-    const api = createCardAPI();
-    const manager = new MicrophoneManager(api);
-    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
-      createMockStream(),
-    );
+      const connectPromise = manager.connect();
+      manager.mute();
+      deferred.resolve(stream);
+      await connectPromise;
 
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-      createConfig({
-        live: {
-          microphone: {
-            always_connected: false,
-            disconnect_seconds: disconnectSeconds,
-          },
-        },
-      }),
-    );
+      expect(manager.isConnected()).toBeFalsy();
+      expect(getTrack(stream).stop).toHaveBeenCalled();
+    });
 
-    await manager.connect();
+    it('should release a stream whose connect completes after transmission ends', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      const stream = createMockStream();
+      const deferred = createDeferredStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockReturnValue(
+        deferred.promise,
+      );
 
-    vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
-    manager.disconnect();
-    await manager.connect();
+      manager.setTransmissionActive(true);
+      const connectPromise = manager.connect();
+      manager.setTransmissionActive(false);
+      deferred.resolve(stream);
+      await connectPromise;
 
-    // The countdown from the first connection must not survive the disconnect
-    // and cut the second one short.
-    vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
-    expect(manager.isConnected()).toBeTruthy();
+      expect(manager.isConnected()).toBeFalsy();
+      expect(getTrack(stream).stop).toHaveBeenCalled();
+    });
+
+    it('should not install a stream whose connect completes after the held stream is released', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      const held = createMockStream();
+      const late = createMockStream();
+      const deferred = createDeferredStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia)
+        .mockResolvedValueOnce(held)
+        .mockReturnValueOnce(deferred.promise);
+
+      manager.setTransmissionActive(true);
+      await manager.connect();
+      const connectPromise = manager.connect();
+
+      // Releasing the held stream also invalidates the connect still in
+      // flight.
+      manager.setTransmissionActive(false);
+      deferred.resolve(late);
+      await connectPromise;
+
+      expect(manager.isConnected()).toBeFalsy();
+      expect(getTrack(held).stop).toHaveBeenCalled();
+      expect(getTrack(late).stop).toHaveBeenCalled();
+    });
+
+    it('should keep only the newest of overlapping connects', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      const streamA = createMockStream();
+      const streamB = createMockStream();
+      const deferredA = createDeferredStream();
+      const deferredB = createDeferredStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia)
+        .mockReturnValueOnce(deferredA.promise)
+        .mockReturnValueOnce(deferredB.promise);
+
+      manager.setTransmissionActive(true);
+      const connectA = manager.connect();
+      const connectB = manager.connect();
+
+      deferredA.resolve(streamA);
+      deferredB.resolve(streamB);
+      expect(await connectA).toBe(false);
+      expect(await connectB).toBe(true);
+
+      expect(manager.isConnected()).toBeTruthy();
+      expect(manager.getStream()).toBe(streamB);
+      expect(getTrack(streamA).stop).toHaveBeenCalled();
+      expect(getTrack(streamB).stop).not.toHaveBeenCalled();
+    });
+
+    it('should not mark forbidden on a stale connect rejection', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      const streamB = createMockStream();
+      const deferredA = createDeferredStream();
+      const deferredB = createDeferredStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia)
+        .mockReturnValueOnce(deferredA.promise)
+        .mockReturnValueOnce(deferredB.promise);
+
+      manager.setTransmissionActive(true);
+      const connectA = manager.connect();
+      const connectB = manager.connect();
+
+      deferredA.reject(new Error());
+      deferredB.resolve(streamB);
+      await expect(connectA).rejects.toThrow(Error);
+      await connectB;
+
+      expect(manager.isForbidden()).toBeFalsy();
+      expect(manager.isConnected()).toBeTruthy();
+      expect(manager.getStream()).toBe(streamB);
+    });
+
+    it('should stop the replaced stream when connecting over an existing stream', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      const streamA = createMockStream();
+      const streamB = createMockStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia)
+        .mockResolvedValueOnce(streamA)
+        .mockResolvedValueOnce(streamB);
+
+      manager.setTransmissionActive(true);
+      await manager.connect();
+      expect(manager.getStream()).toBe(streamA);
+
+      await manager.connect();
+
+      expect(manager.getStream()).toBe(streamB);
+      expect(getTrack(streamA).stop).toHaveBeenCalled();
+      expect(getTrack(streamB).stop).not.toHaveBeenCalled();
+    });
   });
 
   describe('should require initialization', async () => {
@@ -457,7 +576,7 @@ describe('MicrophoneManager', () => {
 
     manager.initialize();
     expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
-      microphone: { connected: false, muted: true, forbidden: false, stream: undefined },
+      microphone: { connected: false, muted: true, forbidden: false, stream: null },
     });
   });
 
@@ -469,6 +588,7 @@ describe('MicrophoneManager', () => {
 
     expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
 
+    manager.setTransmissionActive(true);
     await manager.connect();
 
     let expectedState: MicrophoneState = {
@@ -515,11 +635,11 @@ describe('MicrophoneManager', () => {
       }),
     );
 
-    manager.disconnect();
+    manager.setTransmissionActive(false);
 
     expectedState = {
       forbidden: false,
-      stream: undefined,
+      stream: null,
       connected: false,
       muted: true,
     };

@@ -109,7 +109,7 @@ export class CallManager {
     // granting microphone access -- so connecting here would let a refusal stop
     // the call from ever ringing. The connect is deferred to `answer()`. An
     // outbound call is answered by construction and needs it immediately.
-    if (!inbound && !(await this._connectMicrophone())) {
+    if (!inbound && !(await this._grantTransmissionAndConnect())) {
       return false;
     }
 
@@ -137,7 +137,8 @@ export class CallManager {
       if (inbound && (existingCall.answered || !existingCall.inbound)) {
         return false;
       }
-      this._end(false);
+      // The replacement call inherits the microphone.
+      this._end(false, { retainMicrophone: true });
     }
 
     // Outbound calls are answered by construction (the user initiated them);
@@ -152,9 +153,16 @@ export class CallManager {
       answered,
     };
 
-    // The microphone's own idle timeout knows nothing about calls, so without
-    // this the tracks would be stopped mid-conversation.
-    this._api.getMicrophoneManager().startUsing();
+    // `_grantTransmissionAndConnect` above reported the need for transmission
+    // before awaiting the microphone connect; a call ending during that await
+    // may have withdrawn it since, so an answered session reports it again --
+    // ahead of the view and condition state below, whose listeners may replace
+    // the session. A ringing session reports nothing: it transmits nothing,
+    // and reporting inactive could end a transmission another request is
+    // using.
+    if (answered) {
+      this._api.getMicrophoneManager().setTransmissionActive(true);
+    }
 
     this._api.getViewManager().setViewByParameters({
       ...(needsNavigation && {
@@ -219,13 +227,14 @@ export class CallManager {
     // An inbound call rings without the microphone, so this is where it is
     // connected -- under the user gesture that answering provides. The call is
     // left ringing on failure so it can be answered again.
-    if (!(await this._connectMicrophone())) {
+    if (!(await this._grantTransmissionAndConnect())) {
       return false;
     }
 
     // The call may have ended, or been superseded by another, while the
     // microphone connect was in flight -- there is then nothing left to answer.
     if (this._call !== call) {
+      this._revokeTransmissionIfNoAnsweredCall();
       return false;
     }
 
@@ -287,9 +296,9 @@ export class CallManager {
     this._initGeneration.invalidate();
     this._ringtone.stop();
     this._unansweredTimer.stop();
+    this._api.getMicrophoneManager().setTransmissionActive(false);
     if (this._call) {
       this._call = null;
-      this._api.getMicrophoneManager().stopUsing();
       this._api.getConditionStateManager().setState({ call: 'idle' });
     }
     this._api
@@ -302,8 +311,9 @@ export class CallManager {
   // is `false` for auto-ends (navigating away, camera/substream change), where
   // the user has already chosen a destination and the pre-call view is
   // deliberately not reinstated; only the manager's own auto-end paths pass it.
+  // `retainMicrophone` does not relinquish the microphone.
   // Returns true iff a call was actually ended.
-  private _end(restoreView: boolean): boolean {
+  private _end(restoreView: boolean, options?: { retainMicrophone?: boolean }): boolean {
     if (!this._call) {
       return false;
     }
@@ -319,9 +329,9 @@ export class CallManager {
     // and recurse.
     this._call = null;
 
-    // The call no longer needs the microphone, so the normal
-    // `disconnect_seconds` countdown restarts from here.
-    this._api.getMicrophoneManager().stopUsing();
+    if (!options?.retainMicrophone && call.answered) {
+      this._api.getMicrophoneManager().setTransmissionActive(false);
+    }
 
     const viewManager = this._api.getViewManager();
 
@@ -424,9 +434,29 @@ export class CallManager {
     return true;
   }
 
+  private _revokeTransmissionIfNoAnsweredCall(): void {
+    if (!this._call?.answered) {
+      this._api.getMicrophoneManager().setTransmissionActive(false);
+    }
+  }
+
+  // The microphone manager releases a stream that connects while transmission
+  // is inactive, so transmission is activated first and revoked on failure.
+  // Returns true iff the microphone is connected and this request is still
+  // current.
+  private async _grantTransmissionAndConnect(): Promise<boolean> {
+    this._api.getMicrophoneManager().setTransmissionActive(true);
+    if (!(await this._connectMicrophone())) {
+      this._revokeTransmissionIfNoAnsweredCall();
+      return false;
+    }
+    return true;
+  }
+
   // Connects the microphone for a call. Returns true iff it is connected and
-  // this request still belongs to the current init/uninit lifecycle. A connect
-  // failure is surfaced as a notification.
+  // this request still belongs to the current init/uninit lifecycle. A denied
+  // connect is surfaced as a notification; a connect superseded by a newer
+  // request fails silently (the newer request owns the outcome).
   private async _connectMicrophone(): Promise<boolean> {
     const microphoneManager = this._api.getMicrophoneManager();
     if (microphoneManager.isConnected()) {
@@ -435,11 +465,12 @@ export class CallManager {
 
     const initGeneration = this._initGeneration.current();
     let connected = false;
+    let forbidden = false;
     try {
-      await microphoneManager.connect();
-      connected = true;
+      connected = await microphoneManager.connect();
     } catch {
       // Reported below, once this request is known to still be the current one.
+      forbidden = true;
     }
 
     // If the init/uninit lifecycle advanced while the connect was in flight,
@@ -450,11 +481,10 @@ export class CallManager {
       return false;
     }
 
-    if (!connected) {
+    if (forbidden) {
       this._notifyError('error.call_microphone_forbidden');
-      return false;
     }
-    return true;
+    return connected;
   }
 
   private _hasCallCapability(cameraID: string): boolean {

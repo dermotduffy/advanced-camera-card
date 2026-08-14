@@ -215,7 +215,6 @@
     "live": {
       "microphone": {
         "always_connected": "Mikrofon immer verbunden lassen",
-        "disconnect_seconds": "Sekunden nach denen das Mikrofon getrennt wird (0=niemals)",
         "editor_label": "Mikrofon",
         "mute_after_microphone_mute_seconds": "Sekunden nach denen das Mikrofon stumm geschalten wird, um eingehendes Audio stumm zu schalten"
       },

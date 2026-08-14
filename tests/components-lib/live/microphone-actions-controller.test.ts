@@ -309,7 +309,7 @@ describe('MicrophoneActionsController', () => {
   });
 
   describe('on call answered state change', () => {
-    it('should unmute on call answer when call is a configured unmute condition', () => {
+    it('should unmute on call answer when call is a configured unmute condition', async () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();
       controller.setOptions({
@@ -317,13 +317,13 @@ describe('MicrophoneActionsController', () => {
         autoUnmuteConditions: ['call' as const],
       });
 
-      controller.setCallAnswered(false);
-      controller.setCallAnswered(true);
+      await controller.setCallAnswered(false);
+      await controller.setCallAnswered(true);
 
       expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
-    it('should unmute when the call is already answered on first notification', () => {
+    it('should unmute when the call is already answered on first notification', async () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();
       controller.setOptions({
@@ -334,41 +334,42 @@ describe('MicrophoneActionsController', () => {
       // `setCallAnswered(true)` is the first call-state signal, with no
       // preceding `false` -- as for a live view that mounts while a call is
       // already answered. The initial state must not be swallowed as a baseline.
-      controller.setCallAnswered(true);
+      await controller.setCallAnswered(true);
 
       expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
-    it('should mute on call end when call is a configured mute condition', () => {
+    it('should not mute on call end', async () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();
       controller.setOptions({
         microphoneManager,
-        autoMuteConditions: ['call' as const],
-      });
-
-      controller.setCallAnswered(true);
-      controller.setCallAnswered(false);
-
-      expect(microphoneManager.mute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not act on the initial call state', () => {
-      const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        microphoneManager,
-        autoMuteConditions: ['call' as const],
         autoUnmuteConditions: ['call' as const],
       });
 
-      controller.setCallAnswered(false);
+      await controller.setCallAnswered(true);
+      await controller.setCallAnswered(false);
+
+      // The microphone manager mutes and releases the microphone itself when
+      // the call ends.
+      expect(microphoneManager.mute).not.toHaveBeenCalled();
+    });
+
+    it('should not act on the initial call state', async () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: ['call' as const],
+      });
+
+      await controller.setCallAnswered(false);
 
       expect(microphoneManager.mute).not.toHaveBeenCalled();
       expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
 
-    it('should not act on call answer when call is not a configured condition', () => {
+    it('should not act on call answer when call is not a configured condition', async () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();
       controller.setOptions({
@@ -376,8 +377,8 @@ describe('MicrophoneActionsController', () => {
         autoUnmuteConditions: [],
       });
 
-      controller.setCallAnswered(false);
-      controller.setCallAnswered(true);
+      await controller.setCallAnswered(false);
+      await controller.setCallAnswered(true);
 
       expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
