@@ -47,18 +47,17 @@ export class MicrophoneActionsController {
    * when the live view first appears during an answered call.
    *
    * Call answer unmutes the microphone only if the user opted into
-   * `microphone.auto_unmute: ['call']`; the symmetric mute fires on the
-   * answered-to-unanswered transition (call end after answer).
+   * `microphone.auto_unmute: ['call']`. There is no symmetric mute: the
+   * microphone manager mutes and releases the microphone itself when the call
+   * ends.
    */
-  public setCallAnswered(answered: boolean): void {
+  public async setCallAnswered(answered: boolean): Promise<void> {
     if (answered === this._callAnswered) {
       return;
     }
     this._callAnswered = answered;
     if (answered) {
-      void this._unmuteIfConfigured('call');
-    } else {
-      this._muteIfConfigured('call');
+      await this._unmuteIfConfigured('call');
     }
   }
 

@@ -147,9 +147,8 @@ describe('config defaults', () => {
         lazy_unload: [],
         microphone: {
           always_connected: false,
-          auto_mute: ['call'],
+          auto_mute: [],
           auto_unmute: [],
-          disconnect_seconds: 90,
           mute_after_microphone_mute_seconds: 60,
         },
         preload: false,
@@ -1110,14 +1109,6 @@ describe('config defaults', () => {
       {
         action: 'custom:advanced-camera-card-action',
         advanced_camera_card_action: 'menu_toggle',
-      },
-      {
-        action: 'custom:advanced-camera-card-action',
-        advanced_camera_card_action: 'microphone_connect',
-      },
-      {
-        action: 'custom:advanced-camera-card-action',
-        advanced_camera_card_action: 'microphone_disconnect',
       },
       {
         action: 'custom:advanced-camera-card-action',

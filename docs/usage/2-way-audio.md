@@ -69,16 +69,22 @@ enabled by default and appears in the `live` view whenever the selected camera
   [`always_connected`](../configuration/live.md?id=microphone) microphone option
   is set to `true`. On the first call there may be a brief `webrtc` connection
   reset to include 2-way audio.
+- The browser asks for microphone permission when a call needs it. How often it
+  asks depends on the browser: Chrome remembers the choice for the site, Safari
+  asks once per page load, and Firefox asks for every call unless _Remember this
+  decision_ is ticked. Set
+  [`always_connected`](../configuration/live.md?id=microphone) to `true` to be
+  asked once at card load instead.
 - While a call is in progress the card locks disruptive actions (camera and
   substream changes, casting, reload, etc.) so an accidental tap, swipe, or
   button press doesn't cut the call off. Set
   [`live.controls.call.lock`](../configuration/live.md?id=call) to `false` to
   disable this.
 - End the call with the overlay's end-call button. When the call ends the
-  microphone and inbound audio are muted again.
-- The video automatically resets to remove the microphone after the number of
-  seconds specified by [`disconnect_seconds`](../configuration/live.md?id=microphone)
-  have elapsed since the call ended.
+  microphone and inbound audio are muted again, and the microphone is
+  disconnected. The exception is
+  [`always_connected`](../configuration/live.md?id=microphone), which holds the
+  microphone connected for as long as the card is running.
 
 Calls can also be controlled programmatically with the
 [`call_start`](../configuration/actions/custom/README.md?id=call_start),

@@ -1,6 +1,6 @@
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError } from '../types';
-import { Timer } from '../utils/timer';
+import { Generation } from '../utils/concurrency/generation';
 import type { CardMicrophoneAPI, MicrophoneState } from './types';
 
 export class MicrophoneNotSupportedError extends AdvancedCameraCardError {
@@ -11,8 +11,11 @@ export class MicrophoneNotSupportedError extends AdvancedCameraCardError {
 
 export class MicrophoneManager {
   private _api: CardMicrophoneAPI;
-  private _stream?: MediaStream | null;
-  private _timer = new Timer();
+  private _stream: MediaStream | null = null;
+
+  // Whether the browser denied the most recent microphone request. Cleared by
+  // a later successful connect.
+  private _forbidden = false;
 
   private _state: MicrophoneState = {
     connected: false,
@@ -25,9 +28,14 @@ export class MicrophoneManager {
   // it's created it will have the right mute status.
   private _desireMute = true;
 
-  // Whether something is actively using the microphone, and so when the
-  // connection can safely be closed.
-  private _inUse = false;
+  // Whether an outgoing audio path is active, i.e. something is consuming the
+  // microphone stream. While active, mute only disables the tracks so unmute is
+  // instant; while inactive, a muted microphone is released outright.
+  private _transmissionActive = false;
+
+  // Guards in-flight getUserMedia requests: a result that resolves after a
+  // newer connect or a release must not be installed.
+  private _connectGeneration = new Generation();
 
   constructor(api: CardMicrophoneAPI) {
     this._api = api;
@@ -57,72 +65,92 @@ export class MicrophoneManager {
     return !!navigator.mediaDevices?.getUserMedia;
   }
 
-  public async connect(): Promise<void> {
+  // Returns true iff the microphone is connected when this request completes:
+  // a request superseded by a newer connect or a release resolves false, as
+  // does one whose stream is immediately released for want of an active
+  // transmission. A denied request throws.
+  public async connect(): Promise<boolean> {
     if (!this.isSupported()) {
       throw new MicrophoneNotSupportedError();
     }
 
+    const generation = this._connectGeneration.next();
+
+    let stream: MediaStream;
     try {
-      this._stream = await navigator.mediaDevices.getUserMedia({
+      stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: false,
       });
     } catch (e: unknown) {
-      this._stream = null;
-      this._setState();
+      // A stale rejection must not mark the microphone forbidden.
+      if (this._connectGeneration.isCurrent(generation)) {
+        this._releaseStream();
+        this._forbidden = true;
+        this._setState();
+      }
       throw e;
     }
-    this._setDesiredMuteOnStream();
+
+    if (!this._connectGeneration.isCurrent(generation)) {
+      // Superseded while the permission prompt was up: this stream must not
+      // survive as an open capture nothing is tracking.
+      this._stopTracks(stream);
+      return false;
+    }
+
+    // A connect over an existing stream must not leak the tracks of the
+    // stream it replaces.
+    this._stopTracks(this._stream);
+    this._stream = stream;
+    this._forbidden = false;
+    this._reconcile();
+    this._setState();
+    return this.isConnected();
+  }
+
+  // Reports whether an outgoing audio path is active. When transmission ends,
+  // the microphone returns to muted and -- unless `always_connected` -- the
+  // device is released.
+  public setTransmissionActive(transmissionActive: boolean): void {
+    if (this._transmissionActive === transmissionActive) {
+      return;
+    }
+    this._transmissionActive = transmissionActive;
+    if (!transmissionActive) {
+      this._desireMute = true;
+    }
+    this._reconcile();
     this._setState();
   }
 
-  public disconnect(): void {
-    this._timer.stop();
-    this._stream?.getTracks().forEach((track) => track.stop());
-
-    this._stream = undefined;
-    this._setState();
-  }
-
-  // Marks the microphone as in use (e.g. by an in-progress call). It stays
-  // connected regardless of `disconnect_seconds` until `stopUsing`, since
-  // stopping the tracks under a user would silently cut their audio.
-  public startUsing(): void {
-    this._inUse = true;
-    this._timer.stop();
-  }
-
-  // Marks the microphone as no longer in use. It is idle again, so the
-  // disconnect countdown restarts from the full `disconnect_seconds`.
-  public stopUsing(): void {
-    this._inUse = false;
-    this._startDisconnectTimer();
-  }
-
-  public getStream(): MediaStream | undefined {
-    return this._stream ?? undefined;
+  public getStream(): MediaStream | null {
+    return this._stream;
   }
 
   public mute(): void {
     this._desireMute = true;
-    this._setDesiredMuteOnStream();
+    this._reconcile();
     this._setState();
   }
 
   public async unmute(): Promise<void> {
-    if (!this.isSupported()) {
+    // An unmute without an active outgoing audio path is meaningless: nothing
+    // consumes the stream, so enabling (or creating) a capture would only light
+    // the browser recording indicator.
+    if (!this.isSupported() || !this._transmissionActive) {
       return;
     }
 
     this._desireMute = false;
 
     if (!this.isConnected() && !this.isForbidden()) {
-      // Connecting will automatically set the desired mute.
+      // Connecting applies the desired mute to the new stream.
       await this.connect();
-    } else if (this.isConnected()) {
-      this._setDesiredMuteOnStream();
-      this._setState();
+      return;
     }
+    this._reconcile();
+    this._setState();
   }
 
   public isConnected(): boolean {
@@ -130,7 +158,7 @@ export class MicrophoneManager {
   }
 
   public isForbidden(): boolean {
-    return this._stream === null;
+    return this._forbidden;
   }
 
   public isMuted(): boolean {
@@ -139,28 +167,35 @@ export class MicrophoneManager {
     return !this._stream || this._stream.getTracks().every((track) => !track.enabled);
   }
 
-  private _setDesiredMuteOnStream(): void {
-    this._stream?.getTracks().forEach((track) => {
-      track.enabled = !this._desireMute;
-    });
-
-    this._startDisconnectTimer();
+  private _stopTracks(stream: MediaStream | null): void {
+    stream?.getTracks().forEach((track) => track.stop());
   }
 
-  private _startDisconnectTimer(): void {
-    const microphoneConfig = this._api.getConfigManager().getConfig()?.live.microphone;
+  private _releaseStream(): void {
+    this._connectGeneration.invalidate();
+    this._stopTracks(this._stream);
+    this._stream = null;
+  }
 
-    if (microphoneConfig?.always_connected || this._inUse) {
+  // The single place that applies microphone policy to the device: whether
+  // the device is held or released, and whether its tracks are live. A muted
+  // microphone with no active transmission is released entirely (turning the
+  // browser recording indicator off) unless `always_connected`; while
+  // transmission is active, mute only disables the tracks so unmute needs no
+  // new permission request or renegotiation.
+  private _reconcile(): void {
+    if (!this._stream) {
       return;
     }
-
-    const disconnectSeconds = microphoneConfig?.disconnect_seconds ?? 0;
-
-    if (disconnectSeconds) {
-      this._timer.start(disconnectSeconds, () => {
-        this.disconnect();
-      });
+    const alwaysConnected = !!this._api.getConfigManager().getConfig()?.live.microphone
+      ?.always_connected;
+    if (this._desireMute && !this._transmissionActive && !alwaysConnected) {
+      this._releaseStream();
+      return;
     }
+    this._stream.getTracks().forEach((track) => {
+      track.enabled = !this._desireMute;
+    });
   }
 
   private _setState(): void {

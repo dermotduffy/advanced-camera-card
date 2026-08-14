@@ -421,28 +421,28 @@ triggers:
     muted: true
 ```
 
-| Parameter               | Description                                                                                                                       |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `condition` / `trigger` | Must be `microphone`.                                                                                                             |
-| `connected`             | If `true` or `false`, matches when the card does or does not hold an open microphone stream from the browser. See the note below. |
-| `muted`                 | If `true` or `false`, matches when the microphone is muted or unmuted respectively.                                               |
+| Parameter               | Description                                                                                                                                        |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` / `trigger` | Must be `microphone`.                                                                                                                              |
+| `connected`             | If `true` or `false`, matches when the card does or does not hold an open microphone stream from the browser. See the note below.                  |
+| `muted`                 | If `true` or `false`, matches when the microphone is muted or unmuted respectively. A disconnected microphone counts as muted. See the note below. |
 
 > [!NOTE]
-> The `connected` parameter is about **browser microphone access**, not about
-> calls. It is `true` while the card holds an open microphone stream from the
-> browser -- the same state that lights your browser's "microphone in use"
-> indicator (e.g. useful for showing privacy indicators).
+> The `connected` parameter is about **browser microphone access**. It is `true`
+> while the card holds an open microphone stream from the browser -- the same
+> state that lights your browser's "microphone in use" indicator (e.g. useful for
+> showing privacy indicators).
 >
-> A [two-way audio](../usage/2-way-audio.md) call opens the microphone, but so do
-> several things that involve no call at all: setting
-> [`live.microphone.always_connected`](live.md?id=microphone), or a
-> [`microphone_connect`](actions/custom/README.md?id=microphone_connect) or
-> [`microphone_unmute`](actions/custom/README.md?id=microphone_unmute) action. It
-> closes again after
-> [`live.microphone.disconnect_seconds`](live.md?id=microphone) of disuse, or on
-> a `microphone_disconnect` action.
+> The microphone is connected while a [two-way audio](../usage/2-way-audio.md)
+> call is in progress, and closes when that call ends. It is also open for as
+> long as the card runs when
+> [`live.microphone.always_connected`](live.md?id=microphone) is set.
 >
-> To match a call in progress, use [`call`](#call) instead.
+> `muted` is `true` whenever the microphone is disconnected, so outside a call
+> it is always `true`. It is `false` only during a call with the microphone
+> unmuted. `muted: false` is therefore the way to match "the user can be heard
+> right now"; to match the absence of a call, use [`call`](#call) rather than
+> `muted: true`.
 
 ## `not`
 

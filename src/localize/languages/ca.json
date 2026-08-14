@@ -255,7 +255,6 @@
       "lazy_unload": "Les càmeres en directe es descarreguen amb mandra",
       "microphone": {
         "always_connected": "Mantingueu sempre el micròfon connectat",
-        "disconnect_seconds": "Segons després dels quals desconnectar el micròfon (0=mai)",
         "editor_label": "Micròfon",
         "mute_after_microphone_mute_seconds": "Segons després de silenciar el micròfon per silenciar l'àudio entrant"
       },

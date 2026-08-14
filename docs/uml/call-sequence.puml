@@ -62,9 +62,9 @@ note over User, Card
 end note
 
 Card --> User : Inbound audio mutes (<color:#43a047>**""live.auto_mute""**</color>)
-Card -> Mic : Microphone mutes (<color:#43a047>**""live.microphone.auto_mute""**</color>)
+Card -> Mic : Microphone mutes and disconnects
 note over Mic
-  Disconnects after <color:#43a047>**""live.microphone.disconnect_seconds""**</color>
-  unless <color:#43a047>**""live.microphone.always_connected""**</color>
+  The browser stops reporting the microphone as in use, unless
+  <color:#43a047>**""live.microphone.always_connected""**</color> holds it open
 end note
 @enduml

@@ -10,8 +10,6 @@ const GENERAL_ACTIONS = [
   'fullscreen',
   'info',
   'menu_toggle',
-  'microphone_connect',
-  'microphone_disconnect',
   'microphone_mute',
   'microphone_unmute',
   'mute',

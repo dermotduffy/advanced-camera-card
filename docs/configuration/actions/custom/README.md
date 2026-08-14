@@ -289,24 +289,6 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: menu_toggle
 ```
 
-## `microphone_connect`
-
-Connect the microphone for [2-way audio](../../../usage/2-way-audio.md).
-
-```yaml
-action: custom:advanced-camera-card-action
-advanced_camera_card_action: microphone_connect
-```
-
-## `microphone_disconnect`
-
-Disconnect the microphone during [2-way audio](../../../usage/2-way-audio.md).
-
-```yaml
-action: custom:advanced-camera-card-action
-advanced_camera_card_action: microphone_disconnect
-```
-
 ## `microphone_mute`
 
 Mute the microphone during [2-way audio](../../../usage/2-way-audio.md).
@@ -913,48 +895,36 @@ elements:
       advanced_camera_card_action: menu_toggle
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-p-circle
-    title: Microphone connect
-    tap_action:
-      action: custom:advanced-camera-card-action
-      advanced_camera_card_action: microphone_connect
-  - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-q-circle
-    title: Microphone disconnect
-    tap_action:
-      action: custom:advanced-camera-card-action
-      advanced_camera_card_action: microphone_disconnect
-  - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-r-circle
     title: Microphone mute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: microphone_mute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-s-circle
+    icon: mdi:alpha-q-circle
     title: Microphone unmute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: microphone_unmute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-t-circle
+    icon: mdi:alpha-r-circle
     title: Mute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: mute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-u-circle
+    icon: mdi:alpha-s-circle
     title: Pause
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: pause
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-v-circle
+    icon: mdi:alpha-t-circle
     title: Play
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: play
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-x-circle
+    icon: mdi:alpha-u-circle
     title: Real PTZ Preset
     tap_action:
       action: custom:advanced-camera-card-action
@@ -962,14 +932,14 @@ elements:
       ptz_action: preset
       ptz_preset: doorway
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-y-circle
+    icon: mdi:alpha-v-circle
     title: Show PTZ Controls
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: ptz_controls
       enabled: true
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-z-circle
+    icon: mdi:alpha-x-circle
     title: Go to precise digital location
     tap_action:
       action: custom:advanced-camera-card-action

@@ -31,10 +31,8 @@ export const getLiveAutoUnmuteOptions = (): HASelectSelectorOption[] => [
   condition('call', 'call_unmute'),
 ];
 
-export const getMicrophoneMuteOptions = (): HASelectSelectorOption[] => [
-  ...getMediaActionNegativeOptions(),
-  condition('call', 'call_mute'),
-];
+export const getMicrophoneMuteOptions = (): HASelectSelectorOption[] =>
+  getMediaActionNegativeOptions();
 
 export const getMicrophoneUnmuteOptions = (): HASelectSelectorOption[] => [
   ...getMediaActionPositiveOptions(),

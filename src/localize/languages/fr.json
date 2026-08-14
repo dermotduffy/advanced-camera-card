@@ -336,7 +336,6 @@
       "lazy_unload": "Les caméras en direct sont déchargées en différé",
       "microphone": {
         "always_connected": "Toujours garder le microphone connecté",
-        "disconnect_seconds": "Secondes après quoi déconnecter le microphone (0=jamais)",
         "editor_label": "Microphone",
         "mute_after_microphone_mute_seconds": "Secondes après la mise en sourdine du microphone pour couper l'audio entrant"
       },

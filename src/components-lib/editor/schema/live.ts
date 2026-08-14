@@ -103,7 +103,6 @@ const getMicrophoneSchema = (): HAFormExpandableSchema => ({
   title: localize('config.live.microphone.editor_label'),
   icon: 'mdi:microphone',
   schema: [
-    { name: 'disconnect_seconds', selector: createNumberSelector({ min: 0 }) },
     { name: 'always_connected', selector: { boolean: {} } },
     {
       name: 'auto_mute',
