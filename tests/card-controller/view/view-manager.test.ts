@@ -203,6 +203,26 @@ describe('should not set view without cameras being initialized', () => {
 
     expect(manager.getView()).toBeNull();
   });
+
+  it('should report whether a default view can be set', () => {
+    expect(new ViewManager(createInitializedCardAPI()).canSetViewDefault()).toBe(true);
+    expect(new ViewManager(createInitializedCardAPI(false)).canSetViewDefault()).toBe(
+      false,
+    );
+  });
+
+  it('should set the diagnostics view without cameras being initialized', () => {
+    const view = createView({ view: 'diagnostics' });
+    const factory = mock<ViewFactory>();
+    factory.getViewByParameters.mockReturnValue(view);
+
+    const manager = new ViewManager(createInitializedCardAPI(false), {
+      viewFactory: factory,
+    });
+    manager.setViewByParameters({ params: { view: 'diagnostics' } });
+
+    expect(manager.getView()).toBe(view);
+  });
 });
 
 describe('should respect microphone navigation lock', () => {
@@ -492,6 +512,19 @@ describe('should handle exceptions', () => {
     manager.setViewDefault();
 
     expect(api.getIssueManager().reset).toHaveBeenCalledWith('view_incompatible');
+  });
+
+  it('should retain issues when the diagnostics view is requested', () => {
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewByParameters.mockReturnValue(createView({ view: 'diagnostics' }));
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, { viewFactory });
+    manager.setViewByParameters({ params: { view: 'diagnostics' } });
+
+    expect(manager.getView()?.is('diagnostics')).toBeTruthy();
+    expect(api.getIssueManager().reset).not.toHaveBeenCalledWith('view_incompatible');
+    expect(api.getIssueManager().reset).not.toHaveBeenCalledWith('media_query');
   });
 
   it('should return null when failSafe view factory also throws', () => {

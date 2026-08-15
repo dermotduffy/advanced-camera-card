@@ -74,6 +74,7 @@ export interface ViewManagerInterface {
   hasView(): boolean;
   reset(): void;
 
+  canSetViewDefault(): boolean;
   setViewDefault(options?: ViewFactoryOptions): void;
   setViewByParameters(options?: ViewFactoryOptions): void;
 

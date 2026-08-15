@@ -62,6 +62,12 @@ export class ViewManager implements ViewManagerInterface {
     }
   }
 
+  // Whether a default view will be built at all. A view-creation request made
+  // while this is false is silently ignored.
+  public canSetViewDefault(): boolean {
+    return this._isAllowedToProposeView();
+  }
+
   setViewDefault = (options?: ViewFactoryOptions): void =>
     this._setViewGeneric(
       this._viewFactory.getViewDefault.bind(this._viewFactory),
@@ -116,7 +122,11 @@ export class ViewManager implements ViewManagerInterface {
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
     options?: ViewFactoryOptions,
   ): void {
-    if (!this._isAllowedToProposeView()) {
+    const isDiagnosticsRequest = options?.params?.view === 'diagnostics';
+
+    // Diagnostics requires no camera, and is what the user is asked to open
+    // when the card is broken.
+    if (!isDiagnosticsRequest && !this._isAllowedToProposeView()) {
       return;
     }
 
@@ -131,8 +141,13 @@ export class ViewManager implements ViewManagerInterface {
       // does not linger invisibly and re-pop on the next evaluation cycle,
       // and that a stale media_query failure from an abandoned gallery /
       // viewer doesn't follow the user into an unrelated view.
-      this._api.getIssueManager().reset('view_incompatible');
-      this._api.getIssueManager().reset('media_query');
+      //
+      // Diagnostics is the exception: those issues are part of what its report
+      // shows, so opening it must not erase them.
+      if (!isDiagnosticsRequest) {
+        this._api.getIssueManager().reset('view_incompatible');
+        this._api.getIssueManager().reset('media_query');
+      }
     } catch (e) {
       if (!this._view) {
         view = this._getFailSafeView(viewFactoryFunc);

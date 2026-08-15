@@ -370,6 +370,11 @@ export interface MountOptions {
   width?: string;
   height?: string;
 
+  // The element the container is created as, for a test about behavior the card
+  // offers only *within* a particular Home Assistant element (e.g. its card
+  // edit dialog, which the card looks for among its ancestors).
+  containerTagName?: string;
+
   // Where that container is placed, as CSS lengths from the page's top left
   // corner. The page grows to reach it, so a card put beyond the window can
   // only be brought into view by scrolling.
@@ -424,7 +429,7 @@ export class MountedCard {
   ) {
     this._hass = hass;
 
-    this._container = document.createElement('div');
+    this._container = document.createElement(options?.containerTagName ?? 'div');
     this._container.style.width = options?.width ?? DEFAULT_CONTAINER_WIDTH;
     if (options?.height) {
       this._container.style.height = options.height;

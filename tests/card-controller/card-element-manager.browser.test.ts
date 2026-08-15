@@ -1,13 +1,23 @@
 import { describe, expect, it, onTestFinished } from 'vitest';
 
+import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import { createLogAction } from '../../src/utils/action';
-import { deepQueryAll, getFocusedElement, pressKey, pressTab } from '../browser/dom';
+import {
+  deepQuery,
+  deepQueryAll,
+  getFocusedElement,
+  pressKey,
+  pressTab,
+} from '../browser/dom';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
   createGenericCameraHASS,
   createInitializedAutomation,
+  createStillImageCameraConfig,
   createStillImageCardConfig,
+  getBlockNotificationText,
+  isLiveMediaShowing,
 } from '../browser/test-utils';
 
 // What the automation writes when it runs, written as the pattern the console
@@ -68,7 +78,100 @@ const addTrailingControl = (): HTMLElement => {
   return control;
 };
 
+// The Home Assistant dialog the card is previewed in while its configuration is
+// edited, which is what the card looks for before answering the editor's
+// diagnostics button.
+const EDIT_DIALOG_TAG_NAME = 'hui-dialog-edit-card';
+
+const INIT_FAILED_ISSUE_HEADING = 'Initialization failed';
+
+const DIAGNOSTICS_SELECTOR = 'advanced-camera-card-diagnostics';
+
+const mountCardInEditDialog = async (
+  config: RawAdvancedCameraCardConfig,
+): Promise<MountedCard> =>
+  await MountedCardFactory.createFromSource(config, createGenericCameraHASS(), {
+    containerTagName: EDIT_DIALOG_TAG_NAME,
+  });
+
+/**
+ * Press the editor's diagnostics button. The editor is elsewhere in the dialog
+ * rather than within the card, so the event is fired from a sibling of it.
+ */
+const toggleDiagnostics = (card: MountedCard): void => {
+  const editor = document.createElement('div');
+  card.card.parentElement?.append(editor);
+
+  editor.dispatchEvent(
+    new CustomEvent('advanced-camera-card:editor:diagnostics', {
+      bubbles: true,
+      composed: true,
+    }),
+  );
+
+  editor.remove();
+};
+
+const isDiagnosticsShowing = (card: MountedCard): boolean =>
+  !!deepQuery(card.card, DIAGNOSTICS_SELECTOR);
+
 describe('CardElementManager', () => {
+  describe('should toggle diagnostics from the editor', () => {
+    it('should show diagnostics over a card that could not be started', async () => {
+      // A camera Home Assistant has never heard of, so the card cannot start
+      // and shows an issue in place of its views.
+      const card = await mountCardInEditDialog(
+        createStillImageCardConfig({
+          cameras: [createStillImageCameraConfig('camera.missing')],
+          view: { issues: { retry_seconds: 0 } },
+        }),
+      );
+      await card.waitForRender(
+        () =>
+          getBlockNotificationText(card.card).includes(INIT_FAILED_ISSUE_HEADING) ||
+          null,
+        'the initialization issue',
+      );
+
+      toggleDiagnostics(card);
+
+      // Diagnostics is what the user is asked for when the card is broken, so
+      // it must be reachable in the state the issue describes.
+      await card.waitForSelector(DIAGNOSTICS_SELECTOR);
+      expect(getBlockNotificationText(card.card)).not.toContain(
+        INIT_FAILED_ISSUE_HEADING,
+      );
+
+      toggleDiagnostics(card);
+
+      // Toggling diagnostics again just puts the issue back in front of the
+      // user.
+      await card.waitForRender(
+        () =>
+          getBlockNotificationText(card.card).includes(INIT_FAILED_ISSUE_HEADING) ||
+          null,
+        'the initialization issue',
+      );
+      expect(isDiagnosticsShowing(card)).toBe(false);
+    });
+
+    it('should return a started card to its default view', async () => {
+      const card = await mountCardInEditDialog(createStillImageCardConfig());
+      await card.events.waitForFirst('advanced-camera-card:media:loaded');
+
+      toggleDiagnostics(card);
+      await card.waitForSelector(DIAGNOSTICS_SELECTOR);
+
+      toggleDiagnostics(card);
+
+      await card.waitForRender(
+        () => isLiveMediaShowing(card.card) || null,
+        'the live view',
+      );
+      expect(isDiagnosticsShowing(card)).toBe(false);
+    });
+  });
+
   it('should be reachable by tabbing', async () => {
     const card = await mountCard();
 
