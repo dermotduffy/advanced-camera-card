@@ -3849,7 +3849,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should leave a microphone auto_mute without call alone', () => {
+      it('should not touch a microphone auto_mute without call or unselected', () => {
         const config = {
           type: 'custom:advanced-camera-card' as const,
           cameras: [{}],
@@ -3862,6 +3862,102 @@ describe('should handle version specific upgrades', () => {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
           live: { microphone: { auto_mute: ['hidden'] } },
+        });
+      });
+
+      it('should strip unselected from the microphone auto_mute', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { auto_mute: ['unselected', 'hidden', 'call'] } },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { microphone: { auto_mute: ['hidden'] } },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should strip selected from the microphone auto_unmute', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { auto_unmute: ['selected', 'visible', 'call'] } },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { microphone: { auto_unmute: ['visible', 'call'] } },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should empty an overridden microphone auto_unmute rather than delete it', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { auto_unmute: ['call' as const] } },
+          overrides: [
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+              set: { 'live.microphone.auto_unmute': ['selected'] },
+            },
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: false }],
+              merge: { live: { microphone: { auto_unmute: ['selected'] } } },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        // Deleting the key would restore the base `['call']` for anyone the
+        // override applies to, rather than leaving them with nothing.
+        expect(config.overrides[0].set).toEqual({
+          live: { microphone: { auto_unmute: [] } },
+        });
+        expect(config.overrides[1].merge).toEqual({
+          live: { microphone: { auto_unmute: [] } },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should not touch a microphone auto_unmute without selected', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { microphone: { auto_unmute: ['visible', 'call'] } },
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { microphone: { auto_unmute: ['visible', 'call'] } },
+        });
+      });
+
+      it('should not strip selected from the live auto_unmute', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          live: { auto_unmute: ['selected', 'visible'] },
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { auto_unmute: ['selected', 'visible'] },
         });
       });
 

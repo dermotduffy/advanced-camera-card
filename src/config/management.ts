@@ -1561,17 +1561,19 @@ const removeMicrophoneActionsTransform = (data: unknown): boolean => {
 };
 
 /**
- * Remove a value from an array. The array is kept even when it empties: inside
+ * Remove values from an array. The array is kept even when it empties: inside
  * an override, deleting it would restore whatever the base configuration says
- * rather than leaving nothing. An array that does not hold the value is left
+ * rather than leaving nothing. An array that holds none of the values is left
  * alone.
  */
-const removeFromArrayTransform = (removed: unknown): ((value: unknown) => unknown) => {
+const removeFromArrayTransform = (
+  ...removed: unknown[]
+): ((value: unknown) => unknown) => {
   return (value: unknown): unknown => {
-    if (!Array.isArray(value) || !value.includes(removed)) {
+    if (!Array.isArray(value) || !value.some((item) => removed.includes(item))) {
       return undefined;
     }
-    return value.filter((item) => item !== removed);
+    return value.filter((item) => !removed.includes(item));
   };
 };
 
@@ -1811,9 +1813,19 @@ const UPGRADES = [
     );
   },
 
-  // Retire microphone parameters/actions not needed with 'call'.
+  // Retire microphone parameters/actions not needed with 'call'. The selection
+  // conditions go with them: the card ends any call when the selected camera
+  // changes, and the microphone only carries audio during a call.
   // See: https://github.com/dermotduffy/advanced-camera-card/issues/2681
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2679
   deleteWithOverrides('live.microphone.disconnect_seconds'),
-  upgradeWithOverrides('live.microphone.auto_mute', removeFromArrayTransform('call')),
+  upgradeWithOverrides(
+    'live.microphone.auto_mute',
+    removeFromArrayTransform('call', 'unselected'),
+  ),
+  upgradeWithOverrides(
+    'live.microphone.auto_unmute',
+    removeFromArrayTransform('selected'),
+  ),
   removeMicrophoneActionsTransform,
 ];
