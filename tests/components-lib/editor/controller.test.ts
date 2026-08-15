@@ -10,7 +10,10 @@ import {
   type Mock,
 } from 'vitest';
 
-import { EditorController } from '../../../src/components-lib/editor/controller';
+import {
+  EditorController,
+  type EditorNotice,
+} from '../../../src/components-lib/editor/controller';
 import { getConfigValue } from '../../../src/config/management';
 import { configDefaults } from '../../../src/config/schema/types';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
@@ -61,6 +64,11 @@ const createUpgradeableConfig = (): RawAdvancedCameraCardConfig => ({
     },
   ],
 });
+
+const getUpgradeNotice = (controller: EditorController): EditorNotice | null =>
+  controller
+    .getNotices()
+    .find((notice) => notice.message === localize('editor.upgrade_available')) ?? null;
 
 // @vitest-environment jsdom
 describe('EditorController', () => {
@@ -118,13 +126,24 @@ describe('EditorController', () => {
 
     it('should detect an upgradeable configuration', () => {
       const { controller } = createController();
-      expect(controller.isConfigUpgradeable()).toBeFalsy();
+      expect(getUpgradeNotice(controller)).toBeNull();
 
       controller.setConfig(createUpgradeableConfig());
-      expect(controller.isConfigUpgradeable()).toBeTruthy();
+      expect(getUpgradeNotice(controller)).toBeTruthy();
 
       controller.setConfig({ cameras: [] });
-      expect(controller.isConfigUpgradeable()).toBeFalsy();
+      expect(getUpgradeNotice(controller)).toBeNull();
+    });
+
+    it('should detect an invalid configuration', () => {
+      const { controller } = createController();
+      expect(controller.isConfigValid()).toBeFalsy();
+
+      controller.setConfig({ type: 'custom:advanced-camera-card', cameras: [] });
+      expect(controller.isConfigValid()).toBeTruthy();
+
+      controller.setConfig({ type: 'custom:advanced-camera-card', cameras: 'nope' });
+      expect(controller.isConfigValid()).toBeFalsy();
     });
 
     it('should apply profile defaults', () => {
@@ -278,13 +297,15 @@ describe('EditorController', () => {
       const { controller, configListener } = createController();
       controller.setConfig(createUpgradeableConfig());
 
-      controller.upgrade();
+      const notice = getUpgradeNotice(controller);
+      assert(notice?.button);
+      notice.button.callback();
 
       const config = getLastConfig(configListener);
       expect(getConfigValue(config, 'elements.0.tap_action.data')).toEqual({
         message: 'Hello',
       });
-      expect(controller.isConfigUpgradeable()).toBeFalsy();
+      expect(getUpgradeNotice(controller)).toBeNull();
     });
 
     it('should do nothing without a configuration', () => {

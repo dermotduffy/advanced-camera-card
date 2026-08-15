@@ -7,6 +7,7 @@ import {
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 
 import './components/editor/cameras.js';
 import './components/editor/doc-link.js';
@@ -248,7 +249,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._controller.getEditorMode() === 'simple'
           ? this._renderSimple(hass, input)
           : this._renderFull(hass, input)}
-        ${this._renderActionButtons()}
+        ${this._renderDiagnosticsButton()}
       </div>
     `;
   }
@@ -318,39 +319,39 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
   // Card-state notices rendered as banners above the sections (matching how
   // native Home Assistant editors surface such notes).
   private _renderNotices(): TemplateResult {
-    return html`${this._controller
-      .getNotices()
-      .map(
-        (notice) =>
-          html`<ha-alert alert-type=${notice.type}>${notice.message}</ha-alert>`,
-      )}`;
-  }
-
-  private _renderActionButtons(): TemplateResult {
-    return html`
-      <div class="action-buttons">
-        ${this._controller.isConfigUpgradeable()
+    return html`${this._controller.getNotices().map((notice) => {
+      const button = notice.button;
+      return html`<ha-alert alert-type=${notice.type}>
+        ${notice.message}
+        ${button
           ? html`<ha-button
-              appearance="filled"
-              variant="warning"
-              title=${localize('editor.upgrade_available')}
-              aria-label=${localize('editor.upgrade_available')}
-              @click=${() => this._controller.upgrade()}
+              slot="action"
+              appearance="outlined"
+              variant=${ifDefined(notice.type === 'warning' ? 'warning' : undefined)}
+              @click=${() => button.callback()}
             >
-              ${localize('editor.upgrade')}
+              ${button.label}
             </ha-button>`
           : ''}
-        <ha-button
-          title=${localize('editor.toggle_diagnostics')}
-          aria-label=${localize('editor.toggle_diagnostics')}
-          @click=${() => {
-            fireAdvancedCameraCardEvent(this, 'editor:diagnostics');
-          }}
-        >
-          ${localize('editor.toggle_diagnostics')}
-        </ha-button>
-      </div>
-    `;
+      </ha-alert>`;
+    })}`;
+  }
+
+  private _renderDiagnosticsButton(): TemplateResult {
+    return html`${
+      // Diagnostics won't render on a card with a broken config.
+      this._controller.isConfigValid()
+        ? html`<ha-button
+            title=${localize('editor.toggle_diagnostics')}
+            aria-label=${localize('editor.toggle_diagnostics')}
+            @click=${() => {
+              fireAdvancedCameraCardEvent(this, 'editor:diagnostics');
+            }}
+          >
+            ${localize('editor.toggle_diagnostics')}
+          </ha-button>`
+        : ''
+    }`;
   }
 
   // `ha-form` and `ha-selector` lazily `import()` their per-type sub-elements

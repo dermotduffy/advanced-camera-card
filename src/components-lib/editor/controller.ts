@@ -13,7 +13,10 @@ import {
 import { setProfiles } from '../../config/profiles/set-profiles';
 import type { EditorMode } from '../../config/schema/editor';
 import { profilesSchema, type ProfileType } from '../../config/schema/profiles';
-import { configDefaults } from '../../config/schema/types';
+import {
+  advancedCameraCardConfigSchema,
+  configDefaults,
+} from '../../config/schema/types';
 import type {
   RawAdvancedCameraCardConfig,
   RawAdvancedCameraCardConfigArray,
@@ -35,9 +38,14 @@ import { getEditorCameraTitle, getEditorFolderTitle } from './titles';
 type EditorControllerHost = ReactiveControllerHost & EventTarget;
 
 // A card-state notice the editor shows as a banner above the sections.
-interface EditorNotice {
+export interface EditorNotice {
   type: 'info' | 'warning';
   message: string;
+
+  button?: {
+    label: string;
+    callback: () => void;
+  };
 }
 
 // Interpret a raw configuration value as an array of configuration objects.
@@ -65,6 +73,7 @@ export class EditorController implements ReactiveController {
   private _defaults = copyConfig(configDefaults);
 
   private _configUpgradeable = false;
+  private _configValid = false;
   private _initialized = false;
   private _hass?: HomeAssistant;
 
@@ -108,6 +117,7 @@ export class EditorController implements ReactiveController {
   private _applyConfig(config: RawAdvancedCameraCardConfig): void {
     this._config = config;
     this._configUpgradeable = isConfigUpgradeable(config);
+    this._configValid = advancedCameraCardConfigSchema.safeParse(config).success;
     this._editorMode = getEditorMode(config);
 
     // The defaults are rebuilt from scratch so that removing (or breaking) a
@@ -123,6 +133,17 @@ export class EditorController implements ReactiveController {
 
   public getNotices(): EditorNotice[] {
     const notices: EditorNotice[] = [];
+
+    if (this._configUpgradeable) {
+      notices.push({
+        type: 'warning',
+        message: localize('editor.upgrade_available'),
+        button: {
+          label: localize('editor.upgrade'),
+          callback: () => this.upgrade(),
+        },
+      });
+    }
 
     if (this._profiles.includes('low-performance')) {
       notices.push({
@@ -196,8 +217,8 @@ export class EditorController implements ReactiveController {
     return this._hass;
   }
 
-  public isConfigUpgradeable(): boolean {
-    return this._configUpgradeable;
+  public isConfigValid(): boolean {
+    return this._configValid;
   }
 
   public upgrade(): void {

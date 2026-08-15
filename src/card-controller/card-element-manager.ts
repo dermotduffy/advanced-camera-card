@@ -277,7 +277,15 @@ export class CardElementManager {
     const toggleDiagnostics = (): void => {
       const viewManager = this._api.getViewManager();
       if (viewManager.getView()?.view === 'diagnostics') {
-        viewManager.setViewDefault();
+        if (viewManager.canSetViewDefault()) {
+          // Clear the view when no default one can be built, to return the card
+          // to what it showed before diagnostics (e.g. an initialization error).
+          viewManager.setViewDefault();
+        } else {
+          // Won't be a blank card: will show the issue that stopped camera
+          // initialization, or the loading indicator if that is still running.
+          viewManager.reset();
+        }
       } else {
         viewManager.setViewByParameters({
           params: { view: 'diagnostics' },

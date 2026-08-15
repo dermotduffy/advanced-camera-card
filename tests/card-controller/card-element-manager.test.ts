@@ -439,6 +439,7 @@ describe('CardElementManager', () => {
       vi.mocked(api.getViewManager().getView).mockReturnValue(
         new View({ view: 'diagnostics' }),
       );
+      vi.mocked(api.getViewManager().canSetViewDefault).mockReturnValue(true);
 
       const dialog = createDialogWithCard(element);
       document.body.append(dialog);
@@ -447,6 +448,31 @@ describe('CardElementManager', () => {
       fireFromDialog(dialog);
 
       expect(api.getViewManager().setViewDefault).toHaveBeenCalled();
+    });
+
+    it('should reset the view when leaving diagnostics with no default view available', () => {
+      const api = createCardAPI();
+      const element = createCardHTMLElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        new View({ view: 'diagnostics' }),
+      );
+      vi.mocked(api.getViewManager().canSetViewDefault).mockReturnValue(false);
+
+      const dialog = createDialogWithCard(element);
+      document.body.append(dialog);
+      manager.elementConnected();
+
+      fireFromDialog(dialog);
+
+      expect(api.getViewManager().reset).toHaveBeenCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
     });
 
     it('does not set view to diagnostics if card is not in editor', () => {

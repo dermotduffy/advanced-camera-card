@@ -413,6 +413,12 @@ export class AdvancedCameraCard extends LitElement {
       this._config?.performance?.features.card_loading_indicator !== false &&
       !fullCardIssue;
 
+    // Always render diagnostics. The issue itself remains and will be rendered
+    // outside of the diagostics view.
+    const issueToRender = this._controller.getViewManager().getView()?.is('diagnostics')
+      ? null
+      : fullCardIssue;
+
     // Caution: Keep the main div and the menu next to one another in order to
     // ensure the hover menu styling continues to work.
     return this._renderInDialogIfNecessary(
@@ -485,7 +491,7 @@ export class AdvancedCameraCard extends LitElement {
               .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
               .rawConfig=${this._controller.getConfigManager().getRawConfig()}
               .configManager=${this._controller.getConfigManager()}
-              .hide=${!!fullCardIssue}
+              .hide=${!!issueToRender}
               .microphoneManager=${this._controller.getMicrophoneManager()}
               .microphoneState=${this._controller.getMicrophoneManager().getState()}
               .call=${this._controller.getCallManager().getCall() ?? undefined}
@@ -500,7 +506,7 @@ export class AdvancedCameraCard extends LitElement {
                 .getStateManager()
                 .getIssuePresence()}
             ></advanced-camera-card-views>
-            ${fullCardIssue ? renderNotificationBlock(fullCardIssue.notification) : ''}
+            ${issueToRender ? renderNotificationBlock(issueToRender.notification) : ''}
           </div>
           ${this._renderMenuStatusContainer('bottom')}
           ${this._config?.elements &&
