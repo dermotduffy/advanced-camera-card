@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
+import type { CallSession } from '../../../src/card-controller/call/types';
 import type { MicrophoneManager } from '../../../src/card-controller/microphone-manager';
 import { MicrophoneActionsController } from '../../../src/components-lib/live/microphone-actions-controller';
 import {
@@ -10,12 +11,21 @@ import {
   getMockIntersectionObserver,
   IntersectionObserverMock,
 } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 
 const createMicrophoneManager = (): MicrophoneManager => {
   const microphoneManager = mock<MicrophoneManager>();
   vi.mocked(microphoneManager.unmute).mockResolvedValue(undefined);
   return microphoneManager;
 };
+
+const createCallSession = (session?: Partial<CallSession>): CallSession => ({
+  cameraID: 'camera-1',
+  previousView: createView(),
+  inbound: false,
+  answered: true,
+  ...session,
+});
 
 // @vitest-environment jsdom
 describe('MicrophoneActionsController', () => {
@@ -39,161 +49,6 @@ describe('MicrophoneActionsController', () => {
       value: 'visible',
       writable: true,
       configurable: true,
-    });
-  });
-
-  describe('on selected camera change', () => {
-    it('should unmute on selected when a camera becomes selected', async () => {
-      const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        microphoneManager,
-        autoUnmuteConditions: ['selected' as const],
-      });
-
-      await controller.setSelectedCamera('camera-1');
-
-      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
-      expect(microphoneManager.mute).not.toHaveBeenCalled();
-    });
-
-    it('should swallow a rejected auto-unmute so a denied microphone does not surface', async () => {
-      const microphoneManager = createMicrophoneManager();
-      vi.mocked(microphoneManager.unmute).mockRejectedValue(new Error('denied'));
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        microphoneManager,
-        autoUnmuteConditions: ['selected' as const],
-      });
-
-      await expect(controller.setSelectedCamera('camera-1')).resolves.toBeUndefined();
-      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should mute on unselected when transitioning to a new camera', async () => {
-      const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        microphoneManager,
-        autoMuteConditions: ['unselected' as const],
-      });
-
-      await controller.setSelectedCamera('camera-1');
-      await controller.setSelectedCamera('camera-2');
-
-      expect(microphoneManager.mute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should sequence mute-then-unmute deterministically on transition', async () => {
-      // Why this ordering matters: in grid mode, each camera cell owns its own
-      // MediaActionsController, but every cell shares the global
-      // MicrophoneManager. Without a single coordinator, a B->A selection
-      // change would have cell B fire 'unselected' (mute) and cell A fire
-      // 'selected' (unmute) independently, with order decided by Lit's sibling
-      // update sequence -- leaving the final mic state nondeterministic, and
-      // sometimes ending up muted despite `auto_unmute: ['selected']` being
-      // configured. This controller is that single coordinator: it always emits
-      // unselected then selected so the arriver wins.
-      const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
-      const callOrder: string[] = [];
-      vi.mocked(microphoneManager.mute).mockImplementation(() => {
-        callOrder.push('mute');
-      });
-      vi.mocked(microphoneManager.unmute).mockImplementation(async () => {
-        callOrder.push('unmute');
-      });
-      controller.setOptions({
-        microphoneManager,
-        autoMuteConditions: ['unselected' as const],
-        autoUnmuteConditions: ['selected' as const],
-      });
-
-      await controller.setSelectedCamera('camera-A');
-      callOrder.length = 0;
-
-      await controller.setSelectedCamera('camera-B');
-
-      expect(callOrder).toEqual(['mute', 'unmute']);
-    });
-
-    it('should not refire when the same camera is set again', async () => {
-      const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        microphoneManager,
-        autoUnmuteConditions: ['selected' as const],
-      });
-
-      await controller.setSelectedCamera('camera-1');
-      await controller.setSelectedCamera('camera-1');
-
-      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should fire unselected only when transitioning from a camera to none', async () => {
-      // camera=null path: previous exists, new is null. Only mute fires.
-      const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        microphoneManager,
-        autoMuteConditions: ['unselected' as const],
-        autoUnmuteConditions: ['selected' as const],
-      });
-
-      await controller.setSelectedCamera('camera-1');
-      vi.mocked(microphoneManager.unmute).mockClear();
-      vi.mocked(microphoneManager.mute).mockClear();
-
-      await controller.setSelectedCamera(null);
-
-      expect(microphoneManager.mute).toHaveBeenCalledTimes(1);
-      expect(microphoneManager.unmute).not.toHaveBeenCalled();
-    });
-
-    it('should not fire unselected on the very first selection (no previous)', async () => {
-      const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        microphoneManager,
-        autoMuteConditions: ['unselected' as const],
-        autoUnmuteConditions: ['selected' as const],
-      });
-
-      await controller.setSelectedCamera('camera-1');
-
-      expect(microphoneManager.mute).not.toHaveBeenCalled();
-      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not fire when condition arrays are empty', async () => {
-      const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        microphoneManager,
-        autoMuteConditions: [],
-        autoUnmuteConditions: [],
-      });
-
-      await controller.setSelectedCamera('camera-1');
-      await controller.setSelectedCamera('camera-2');
-
-      expect(microphoneManager.mute).not.toHaveBeenCalled();
-      expect(microphoneManager.unmute).not.toHaveBeenCalled();
-    });
-
-    it('should not crash when conditions configured but no microphone manager is passed', async () => {
-      // Guards the short-circuit on the helpers: with conditions configured
-      // but no microphoneManager, .mute()/.unmute() must not be invoked on
-      // undefined.
-      const controller = new MicrophoneActionsController();
-      controller.setOptions({
-        autoMuteConditions: ['unselected' as const],
-        autoUnmuteConditions: ['selected' as const],
-      });
-
-      await expect(controller.setSelectedCamera('camera-1')).resolves.toBeUndefined();
-      await expect(controller.setSelectedCamera('camera-2')).resolves.toBeUndefined();
     });
   });
 
@@ -306,9 +161,66 @@ describe('MicrophoneActionsController', () => {
       expect(microphoneManager.mute).not.toHaveBeenCalled();
       expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
+
+    it('should swallow a rejected auto-unmute so a denied microphone does not surface', async () => {
+      const microphoneManager = createMicrophoneManager();
+      vi.mocked(microphoneManager.unmute).mockRejectedValue(new Error('denied'));
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: ['visible' as const],
+      });
+      controller.setRoot(createParent());
+
+      await callIntersectionHandler(false);
+
+      await expect(callIntersectionHandler(true)).resolves.toBeUndefined();
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not act when no condition is configured', async () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({ microphoneManager });
+      controller.setRoot(createParent());
+
+      await callIntersectionHandler(true);
+      await callIntersectionHandler(false);
+      await callIntersectionHandler(true);
+
+      expect(microphoneManager.mute).not.toHaveBeenCalled();
+      expect(microphoneManager.unmute).not.toHaveBeenCalled();
+    });
+
+    it('should not act when conditions are configured but no microphone manager is', async () => {
+      // Guards the short-circuit on the helpers: with conditions configured but
+      // no microphoneManager, .mute()/.unmute() must not be invoked on
+      // undefined.
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        autoMuteConditions: ['hidden' as const],
+        autoUnmuteConditions: ['visible' as const],
+      });
+      controller.setRoot(createParent());
+
+      await callIntersectionHandler(true);
+
+      await expect(callIntersectionHandler(false)).resolves.toBeUndefined();
+      await expect(callIntersectionHandler(true)).resolves.toBeUndefined();
+    });
+
+    it('should not act before options are set', async () => {
+      const controller = new MicrophoneActionsController();
+      controller.setRoot(createParent());
+
+      await callIntersectionHandler(true);
+
+      await expect(callIntersectionHandler(false)).resolves.toBeUndefined();
+      await expect(callIntersectionHandler(true)).resolves.toBeUndefined();
+    });
   });
 
-  describe('on call answered state change', () => {
+  describe('on call session change', () => {
     it('should unmute on call answer when call is a configured unmute condition', async () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();
@@ -317,13 +229,13 @@ describe('MicrophoneActionsController', () => {
         autoUnmuteConditions: ['call' as const],
       });
 
-      await controller.setCallAnswered(false);
-      await controller.setCallAnswered(true);
+      await controller.setCall(createCallSession({ inbound: true, answered: false }));
+      await controller.setCall(createCallSession({ inbound: true }));
 
       expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
-    it('should unmute when the call is already answered on first notification', async () => {
+    it('should unmute when the first call session is already answered', async () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();
       controller.setOptions({
@@ -331,10 +243,42 @@ describe('MicrophoneActionsController', () => {
         autoUnmuteConditions: ['call' as const],
       });
 
-      // `setCallAnswered(true)` is the first call-state signal, with no
-      // preceding `false` -- as for a live view that mounts while a call is
-      // already answered. The initial state must not be swallowed as a baseline.
-      await controller.setCallAnswered(true);
+      // Scenario: An outbound call started from the gallery, installs the
+      // answered session and then navigates to live, so the live view's first
+      // sight of the call is already answered.
+      await controller.setCall(createCallSession());
+
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should unmute again for a call that replaces an answered call', async () => {
+      // A replacement call keeps the microphone connected, but the user may
+      // have muted themselves during the call it replaced, so the new call
+      // applies its own unmute rules rather than inheriting that mute.
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: ['call' as const],
+      });
+
+      await controller.setCall(createCallSession({ cameraID: 'camera-1' }));
+      await controller.setCall(createCallSession({ cameraID: 'camera-2' }));
+
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not unmute again when the same call session is set again', async () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: ['call' as const],
+      });
+      const call = createCallSession();
+
+      await controller.setCall(call);
+      await controller.setCall(call);
 
       expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
@@ -347,15 +291,15 @@ describe('MicrophoneActionsController', () => {
         autoUnmuteConditions: ['call' as const],
       });
 
-      await controller.setCallAnswered(true);
-      await controller.setCallAnswered(false);
+      await controller.setCall(createCallSession());
+      await controller.setCall();
 
       // The microphone manager mutes and releases the microphone itself when
       // the call ends.
       expect(microphoneManager.mute).not.toHaveBeenCalled();
     });
 
-    it('should not act on the initial call state', async () => {
+    it('should not act on a ringing call', async () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();
       controller.setOptions({
@@ -363,7 +307,7 @@ describe('MicrophoneActionsController', () => {
         autoUnmuteConditions: ['call' as const],
       });
 
-      await controller.setCallAnswered(false);
+      await controller.setCall(createCallSession({ inbound: true, answered: false }));
 
       expect(microphoneManager.mute).not.toHaveBeenCalled();
       expect(microphoneManager.unmute).not.toHaveBeenCalled();
@@ -377,8 +321,8 @@ describe('MicrophoneActionsController', () => {
         autoUnmuteConditions: [],
       });
 
-      await controller.setCallAnswered(false);
-      await controller.setCallAnswered(true);
+      await controller.setCall(createCallSession({ inbound: true, answered: false }));
+      await controller.setCall(createCallSession({ inbound: true }));
 
       expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });

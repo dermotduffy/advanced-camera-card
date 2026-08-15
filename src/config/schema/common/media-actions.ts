@@ -13,12 +13,12 @@ export const MEDIA_UNMUTE_CONDITIONS = [
   'call',
 ] as const;
 
-export const MICROPHONE_MUTE_CONDITIONS = [...MEDIA_ACTION_NEGATIVE_CONDITIONS] as const;
+// The microphone conditions have no 'selection' counterparts: the card ends any
+// call when the selected camera changes, and the microphone only carries audio
+// during a call.
+export const MICROPHONE_MUTE_CONDITIONS = ['hidden'] as const;
 
-export const MICROPHONE_UNMUTE_CONDITIONS = [
-  ...MEDIA_ACTION_POSITIVE_CONDITIONS,
-  'call',
-] as const;
+export const MICROPHONE_UNMUTE_CONDITIONS = ['visible', 'call'] as const;
 
 export type AutoPlayCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
 export type AutoPauseCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];

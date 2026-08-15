@@ -1,3 +1,4 @@
+import type { CallSession } from '../../card-controller/call/types.js';
 import type { MicrophoneManager } from '../../card-controller/microphone-manager.js';
 import type {
   MicrophoneAutoMuteCondition,
@@ -17,16 +18,13 @@ interface MicrophoneActionsControllerOptions {
  * The microphone is a global singleton so cannot be controlled by
  * MediaActionsController without clashes between different controllers for
  * different cameras. This gives:
- *  - deterministic ordering on selection change (this single owner sequences
- *    'unselected' for the leaver and 'selected' for the arriver),
  *  - a single intersection observer scoped to the live root (correct
  *    'visible'/'hidden' semantics for the whole live view, not per-cell), and
  *  - a single document.visibilitychange listener.
  */
 export class MicrophoneActionsController {
   private _options: MicrophoneActionsControllerOptions | null = null;
-  private _selectedCamera: string | null = null;
-  private _callAnswered = false;
+  private _answeredCall: CallSession | null = null;
   private _visibilityObserver: VisibilityObserver;
 
   constructor() {
@@ -40,23 +38,28 @@ export class MicrophoneActionsController {
   }
 
   /**
-   * Notifies the controller of the call-answered state (outbound calls are
+   * Notifies the controller of the active call session (outbound calls are
    * answered at start; inbound calls only become answered when the user
-   * accepts). Acts only on a genuine transition. The initial state is treated
-   * as unanswered, so a first-ever `true` counts -- the call rules apply even
-   * when the live view first appears during an answered call.
+   * accepts). A session that is still ringing unmutes nothing, so the user is
+   * never heard before accepting.
    *
-   * Call answer unmutes the microphone only if the user opted into
+   * Each session is a distinct object, so a call that replaces another is
+   * acted on in its own right: the microphone connection carries over, but the
+   * user is muted or unmuted by the new call's own rules rather than
+   * inheriting where the previous call left them.
+   *
+   * An answered session unmutes the microphone only if the user opted into
    * `microphone.auto_unmute: ['call']`. There is no symmetric mute: the
    * microphone manager mutes and releases the microphone itself when the call
    * ends.
    */
-  public async setCallAnswered(answered: boolean): Promise<void> {
-    if (answered === this._callAnswered) {
+  public async setCall(call?: CallSession): Promise<void> {
+    const answeredCall = call?.answered ? call : null;
+    if (answeredCall === this._answeredCall) {
       return;
     }
-    this._callAnswered = answered;
-    if (answered) {
+    this._answeredCall = answeredCall;
+    if (answeredCall) {
       await this._unmuteIfConfigured('call');
     }
   }
@@ -66,28 +69,7 @@ export class MicrophoneActionsController {
   }
 
   public destroy(): void {
-    this._selectedCamera = null;
     this._visibilityObserver.destroy();
-  }
-
-  /**
-   * Notifies the controller of the currently selected camera. Called from the
-   * live root whenever view.camera changes. Fires 'unselected' for the previous
-   * camera (if any) and 'selected' for the new camera (if any), in that order.
-   */
-  public async setSelectedCamera(camera: string | null): Promise<void> {
-    if (this._selectedCamera === camera) {
-      return;
-    }
-    const previous = this._selectedCamera;
-    this._selectedCamera = camera;
-
-    if (previous !== null) {
-      this._muteIfConfigured('unselected');
-    }
-    if (camera !== null) {
-      await this._unmuteIfConfigured('selected');
-    }
   }
 
   private _changeVisibility = async (visible: boolean): Promise<void> => {

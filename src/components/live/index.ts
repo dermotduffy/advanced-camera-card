@@ -81,26 +81,8 @@ export class AdvancedCameraCardLive extends LitElement {
         autoUnmuteConditions: this.liveConfig?.microphone.auto_unmute,
       });
     }
-    if (changedProps.has('viewManagerEpoch')) {
-      // The live element is also rendered (and this willUpdate runs) when
-      // `live.preload` is true even while the user is on gallery/viewer/
-      // timeline. `view.camera` is set across all views, so without this gate
-      // `auto_unmute: ['selected']` would prompt for / open the microphone
-      // from a hidden live view. Treat the live view as having no selected
-      // camera unless it is the active view.
-      const view = this.viewManagerEpoch?.manager.getView();
-      void this._microphoneActionsController.setSelectedCamera(
-        view?.is('live') ? view.camera ?? null : null,
-      );
-    }
     if (changedProps.has('call')) {
-      // Gate on `answered`, not mere presence, so `microphone.auto_unmute:
-      // ['call']` doesn't transmit audio during the pre-answer ringing state.
-      // Outbound calls are answered at construction; inbound calls only after
-      // the user accepts.
-      this._microphoneActionsController
-        .setCallAnswered(!!this.call?.answered)
-        .catch(() => {});
+      this._microphoneActionsController.setCall(this.call).catch(() => {});
     }
   }
 
