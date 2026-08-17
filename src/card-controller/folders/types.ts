@@ -39,7 +39,6 @@ export interface FolderQuery extends BaseQuery, QueryFilters {
   // A trail of paths to navigate back to the "root", with the last path being
   // the path that this query directly refers to.
   path: NonEmptyTuple<FolderPathComponent>;
-  limit?: number;
 }
 
 // ===============

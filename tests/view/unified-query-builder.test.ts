@@ -499,22 +499,7 @@ describe('UnifiedQueryBuilder', () => {
       });
     });
 
-    it('should apply limit option', () => {
-      const { cameraManager, foldersManager } = createMocks();
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const folder = createFolder({ id: 'folder1', title: 'Test' });
-      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
-      const query = builder.buildFolderQueryWithPath(folder, path, {
-        limit: 10,
-      });
-
-      expect(query.getNodes()[0]).toMatchObject({
-        source: QuerySource.Folder,
-        limit: 10,
-      });
-    });
-
-    it('should not include limit when not provided', () => {
+    it('should not limit the number of items', () => {
       const { cameraManager, foldersManager } = createMocks();
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
       const folder = createFolder({ id: 'folder1', title: 'Test' });
@@ -566,26 +551,6 @@ describe('UnifiedQueryBuilder', () => {
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
       const query = builder.buildDefaultFolderQuery('folder1');
       expect(query).toBeNull();
-    });
-
-    it('should apply limit option', () => {
-      const { cameraManager, foldersManager } = createMocks();
-      const folder = createFolder({ id: 'folder1', title: 'Test' });
-      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
-
-      foldersManager.getFolder.mockReturnValue(folder);
-      foldersManager.getDefaultQueryParameters.mockReturnValue(
-        createFolderQueryParams(folder, path),
-      );
-
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultFolderQuery('folder1', { limit: 20 });
-
-      assert(query);
-      expect(query.getNodes()[0]).toMatchObject({
-        source: QuerySource.Folder,
-        limit: 20,
-      });
     });
 
     it('should use default folder when no ID provided', () => {
@@ -1008,6 +973,30 @@ describe('UnifiedQueryBuilder', () => {
         source: QuerySource.Folder,
         folder: expect.objectContaining({ id: 'folder1' }),
       });
+    });
+
+    it('should not limit a folder query built for folder media type', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({ media: { type: 'folder', folders: ['folder1'] } }),
+      );
+
+      cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
+
+      const folder = createFolder({ id: 'folder1', title: 'Test Folder' });
+      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
+
+      foldersManager.getFolder.mockReturnValue(folder);
+      foldersManager.getDefaultQueryParameters.mockReturnValue(
+        createFolderQueryParams(folder, path),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery(undefined, { limit: 50 });
+
+      assert(query);
+      expect(query.getNodes()[0]).not.toHaveProperty('limit');
     });
 
     it('should build default folder query for folder media type without specific folders', () => {

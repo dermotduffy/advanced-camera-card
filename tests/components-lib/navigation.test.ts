@@ -157,35 +157,6 @@ describe('navigateUp', () => {
       path: [{ ha: { id: 'one' } }, { ha: { id: 'two' } }],
     });
   });
-
-  it('should go up in the folder hierarchy with limit', () => {
-    const api = createCardAPI();
-    const folder = createFolder();
-    const view = createView({
-      query: createFolderQuery(folder, [{ ha: { id: 'one' } }, { ha: { id: 'two' } }]),
-    });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
-
-    const epoch: ViewManagerEpoch = {
-      manager: api.getViewManager(),
-    };
-
-    const builder = new UnifiedQueryBuilder(
-      mock<CameraManager>(),
-      mock<FoldersManager>(),
-    );
-    const options: FolderNavigationParamaters = {
-      builder,
-      viewManagerEpoch: epoch,
-      limit: 50,
-    };
-
-    navigateUp(options);
-
-    const query = vi.mocked(api.getViewManager().setViewByParametersWithExistingQuery)
-      .mock.calls[0][0]?.params?.query as UnifiedQuery;
-    expect(query.getNodes()[0].limit).toBe(50);
-  });
 });
 
 describe('navigateToFolder', () => {
@@ -240,31 +211,6 @@ describe('navigateToFolder', () => {
     });
     expect(nodes?.[0]).toHaveProperty('path');
     expect((nodes?.[0] as { path: readonly unknown[] }).path).toHaveLength(2);
-  });
-
-  it('should navigate into folder with limit', () => {
-    const api = createCardAPI();
-    const folder = createFolder();
-    const epoch: ViewManagerEpoch = {
-      manager: api.getViewManager(),
-    };
-
-    const builder = new UnifiedQueryBuilder(
-      mock<CameraManager>(),
-      mock<FoldersManager>(),
-    );
-    const options: FolderNavigationParamaters = {
-      builder,
-      viewManagerEpoch: epoch,
-      limit: 100,
-    };
-
-    const item = new ViewFolder(folder, [{ ha: { id: 'root' } }]);
-    navigateToFolder(item, options);
-
-    const query = vi.mocked(api.getViewManager().setViewByParametersWithExistingQuery)
-      .mock.calls[0][0]?.params?.query;
-    expect(query?.getNodes()[0].limit).toBe(100);
   });
 });
 

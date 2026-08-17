@@ -238,12 +238,11 @@ describe('HAFoldersEngine', () => {
       expect(await engine.expandFolder(createHASS(), query)).toBeNull();
     });
 
-    it('should early exit when limit is reached', async () => {
+    it('should return every matching media item without a cap', async () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
         folder: { type: 'ha', id: 'test' },
         path: [{ ha: { id: 'media-source://id' } }],
-        limit: 1,
       };
 
       vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(
@@ -266,8 +265,7 @@ describe('HAFoldersEngine', () => {
       const engine = new HAFoldersEngine(templateManager);
       const results = await engine.expandFolder(createHASS(), query);
 
-      // Even though there are 2 children, the limit of 1 should trigger earlyExit.
-      expect(results?.length).toBe(1);
+      expect(results?.length).toBe(2);
     });
 
     // See additional matcher testing in media-matcher.test.ts .

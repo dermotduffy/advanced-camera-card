@@ -205,9 +205,7 @@ export class ViewQueryExecutor {
       case 'folders':
         viewModifiers.push(
           ...(await executeQuery(
-            builder.buildDefaultFolderQuery(queryExecutorOptions?.folder, {
-              limit: this._getLimit(),
-            }),
+            builder.buildDefaultFolderQuery(queryExecutorOptions?.folder),
           )),
         );
         break;

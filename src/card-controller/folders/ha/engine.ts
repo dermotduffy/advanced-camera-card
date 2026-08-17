@@ -166,18 +166,12 @@ export class HAFoldersEngine implements FoldersEngine {
       targets: BrowseMediaTarget<BrowseMediaMetadata>[],
     ): BrowseMediaStep<BrowseMediaMetadata>[] => {
       const nextComponent = pathComponents.shift();
-      const limit = query.limit ?? null;
 
       return [
         {
           targets,
           metadataGenerator: (media, parent) =>
             this._metadataGenerator.generate(media, parent, nextComponent?.ha?.parsers),
-
-          // At the final step (no nextComponent), apply limit via earlyExit.
-          ...(limit && {
-            earlyExit: (media) => media.length >= limit,
-          }),
 
           ...(nextComponent && {
             matcher: (media) =>
@@ -202,11 +196,10 @@ export class HAFoldersEngine implements FoldersEngine {
       },
     );
 
-    const results = getViewItemsFromBrowseMediaArray(browseMedia, {
+    return getViewItemsFromBrowseMediaArray(browseMedia, {
       folder: query.folder,
       path: query.path,
     });
-    return query.limit ? results.slice(0, query.limit) : results;
   }
 
   public generateChildFolderQuery(

@@ -313,7 +313,7 @@ folders:
     id: my-folder
     ha:
       url: >-
-        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
+        /media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
       path:
         # Match everything, parse nothing.
         - {}
@@ -331,7 +331,7 @@ folders:
     id: my-folder
     ha:
       url: >-
-        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
+        /media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
       path:
         - {}
         # At the final level, match everything, parse the date and time.
@@ -350,7 +350,7 @@ folders:
     id: my-folder
     ha:
       url: >-
-        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
+        /media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
       path:
         - {}
         # At the final level, match everything, parse the date and time.
