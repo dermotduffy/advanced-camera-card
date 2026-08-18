@@ -267,14 +267,12 @@ export class UnifiedQueryBuilder {
   public buildFolderQueryWithPath(
     folder: FolderConfig,
     path: NonEmptyTuple<FolderPathComponent>,
-    options?: QueryFiltersOptions,
   ): UnifiedQuery {
     const query = new UnifiedQuery();
     const folderQuery: FolderQuery = {
       source: QuerySource.Folder,
       folder,
       path,
-      ...(options?.limit !== undefined && { limit: options.limit }),
     };
     query.addNode(folderQuery);
     return query;
@@ -282,7 +280,7 @@ export class UnifiedQueryBuilder {
 
   public buildDefaultFolderQuery(
     folderID?: string,
-    options?: QueryFiltersOptions,
+    options?: QueryFilters,
   ): UnifiedQuery | null {
     const query = new UnifiedQuery();
     this._addNode(query, this._buildFolderQueryNode(folderID, options));
@@ -317,7 +315,7 @@ export class UnifiedQueryBuilder {
     return params
       ? {
           ...params,
-          ...options,
+          ...this._extractFilterOptions(options),
         }
       : null;
   }

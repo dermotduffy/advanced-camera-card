@@ -23,7 +23,6 @@ import {
 } from '../components-lib/navigation.js';
 import type { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import type { CardWideConfig } from '../config/schema/types.js';
-import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import type { HomeAssistant } from '../ha/types.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
@@ -73,19 +72,11 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   private _thumbnails: TemplateResult[] = [];
   private _builder: UnifiedQueryBuilder | null = null;
 
-  private _getLimit(): number {
-    return (
-      this.cardWideConfig?.performance?.features?.media_chunk_size ??
-      MEDIA_CHUNK_SIZE_DEFAULT
-    );
-  }
-
   private _getFolderNavOptions(): FolderNavigationParamaters | undefined {
     return this._builder && this.viewManagerEpoch
       ? {
           builder: this._builder,
           viewManagerEpoch: this.viewManagerEpoch,
-          limit: this._getLimit(),
         }
       : undefined;
   }

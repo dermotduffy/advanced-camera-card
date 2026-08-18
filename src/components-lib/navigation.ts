@@ -10,8 +10,6 @@ import type { UnifiedQueryBuilder } from '../view/unified-query-builder';
 export interface FolderNavigationParamaters {
   viewManagerEpoch: ViewManagerEpoch;
   builder: UnifiedQueryBuilder;
-
-  limit?: number;
 }
 
 export interface MediaNavigationParamaters {
@@ -51,9 +49,6 @@ export const navigateUp = (options?: FolderNavigationParamaters | null): void =>
   const query = options?.builder.buildFolderQueryWithPath(
     folderQuery.folder,
     nonEmptyPath,
-    {
-      limit: options?.limit,
-    },
   );
 
   void options?.viewManagerEpoch.manager.setViewByParametersWithExistingQuery({
@@ -73,9 +68,6 @@ export const navigateToFolder = (
   const query = options?.builder.buildFolderQueryWithPath(
     item.getFolder(),
     nonEmptyPath,
-    {
-      limit: options?.limit,
-    },
   );
 
   void options?.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({

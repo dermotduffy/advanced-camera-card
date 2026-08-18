@@ -26,7 +26,6 @@ import {
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types.js';
 import type { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
-import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import galleryStyle from '../../scss/gallery.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
@@ -101,19 +100,11 @@ export class AdvancedCameraCardGallery extends LitElement {
     }
   }
 
-  private _getLimit(): number {
-    return (
-      this.cardWideConfig?.performance?.features?.media_chunk_size ??
-      MEDIA_CHUNK_SIZE_DEFAULT
-    );
-  }
-
   private _getFolderNavigationParameters(): FolderNavigationParamaters | null {
     return this._builder && this.viewManagerEpoch
       ? {
           builder: this._builder,
           viewManagerEpoch: this.viewManagerEpoch,
-          limit: this._getLimit(),
         }
       : null;
   }
