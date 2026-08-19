@@ -1935,6 +1935,20 @@ describe('automations should accept Home Assistant input shorthands', () => {
     ]);
   });
 
+  it('should accept a conditions key written with no value', () => {
+    const result = automationsSchema.parse([
+      {
+        triggers: [{ trigger: 'initialized' }],
+        conditions: null,
+        actions: [
+          { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_on' },
+        ],
+      },
+    ]);
+
+    expect(result).toMatchObject([{ conditions: [] }]);
+  });
+
   it('should keep the plural key when both singular and plural are given', () => {
     const result = automationsSchema.parse([
       {
