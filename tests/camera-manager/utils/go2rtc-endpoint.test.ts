@@ -39,6 +39,22 @@ describe('getGo2RTCStreamEndpoint', () => {
     });
   });
 
+  it('should encode the stream name', () => {
+    expect(
+      getGo2RTCStreamEndpoint(
+        createCameraConfig({
+          go2rtc: {
+            stream: 'front door&microphone',
+            url: '/local/path',
+          },
+        }),
+      ),
+    ).toEqual({
+      endpoint: '/local/path/api/ws?src=front%20door%26microphone',
+      sign: true,
+    });
+  });
+
   it('without configuration', () => {
     expect(getGo2RTCStreamEndpoint(createCameraConfig())).toBeNull();
   });
@@ -56,7 +72,7 @@ describe('getGo2RTCMetadataEndpoint', () => {
         }),
       ),
     ).toEqual({
-      endpoint: '/local/path/api/streams?src=stream&video=all&audio=all&microphone',
+      endpoint: '/local/path/api/streams?src=stream&video=all&audio=all',
       sign: true,
     });
   });
@@ -72,9 +88,25 @@ describe('getGo2RTCMetadataEndpoint', () => {
         }),
       ),
     ).toEqual({
-      endpoint:
-        'https://my-custom-go2rtc/api/streams?src=stream&video=all&audio=all&microphone',
+      endpoint: 'https://my-custom-go2rtc/api/streams?src=stream&video=all&audio=all',
       sign: false,
+    });
+  });
+
+  it('should encode the stream name so it cannot add probe parameters', () => {
+    expect(
+      getGo2RTCMetadataEndpoint(
+        createCameraConfig({
+          go2rtc: {
+            stream: 'front door&microphone',
+            url: '/local/path',
+          },
+        }),
+      ),
+    ).toEqual({
+      endpoint:
+        '/local/path/api/streams?src=front%20door%26microphone&video=all&audio=all',
+      sign: true,
     });
   });
 

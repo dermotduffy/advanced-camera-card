@@ -42,7 +42,10 @@ cameras:
 > microphone button is intermittently missing on load, try increasing
 > `metadata_fetch_timeout_seconds` or use
 > [`capabilities.force`](./README.md?id=capabilities) to skip metadata
-> detection entirely.
+> detection entirely. If it is _never_ present, check the `go2rtc` stream
+> itself: Frigate [recommends](https://docs.frigate.video/configuration/live/)
+> adding `#backchannel=0` to the stream it restreams, which stops that stream
+> offering 2-way audio at all. Point `stream` at a talk-capable stream instead.
 
 ## `go2rtc (experimental)`
 

@@ -24,6 +24,10 @@ If your setup supports 2-way audio but detection is intermittent on load:
 - Increase `cameras[].go2rtc.metadata_fetch_timeout_seconds`.
 - Or force the capability with `cameras[].capabilities.force: ['2-way-audio']`.
 
+If detection never succeeds for a camera, the `go2rtc` stream itself may not
+offer 2-way audio -- see
+[`go2rtc` live provider configuration](../configuration/cameras/live-provider.md?id=go2rtc).
+
 ## Example configuration
 
 ```yaml
