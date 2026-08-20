@@ -4004,6 +4004,30 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
+      it('should empty a required actions property rather than delete it', () => {
+        const config = {
+          type: 'custom:advanced-camera-card' as const,
+          cameras: [{}],
+          automations: [
+            {
+              triggers: [{ trigger: 'initialized' as const }],
+              actions: {
+                action: 'custom:advanced-camera-card-action' as const,
+                advanced_camera_card_action: 'microphone_connect' as const,
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'initialized' }],
+          actions: [],
+        });
+        postUpgradeChecks(config);
+      });
+
       it('should splice an action array and keep the order of the rest', () => {
         const config = {
           type: 'custom:advanced-camera-card' as const,
@@ -4899,6 +4923,245 @@ describe('should handle version specific upgrades', () => {
         });
         postUpgradeChecks(config);
       });
+
+      it('should retain a state condition holding both state and state_not', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                {
+                  condition: 'state',
+                  entity: 'binary_sensor.door',
+                  state: 'on',
+                  state_not: 'unavailable',
+                },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            {
+              condition: 'state',
+              entity: 'binary_sensor.door',
+              state: 'on',
+              state_not: 'unavailable',
+            },
+          ],
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should retain a user condition rather than promote it to a trigger', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'user', users: ['abc'] },
+                { condition: 'fullscreen', fullscreen: true },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'user', users: ['abc'] },
+            { condition: 'fullscreen', fullscreen: true },
+          ],
+          triggers: [{ trigger: 'fullscreen', fullscreen: true }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should retain a lone user condition and trigger on initialization', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'user', users: ['abc'] }],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [{ condition: 'user', users: ['abc'] }],
+          triggers: [{ trigger: 'initialized' }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should promote a malformed lone condition for the schema to reject', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: ['nonsense'],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: ['nonsense'],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+      });
+
+      it('should trigger on initialization when no condition yields a trigger', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'user', users: ['abc'] },
+                { condition: 'user_agent', user_agent: 'Chrome' },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'user', users: ['abc'] },
+            { condition: 'user_agent', user_agent: 'Chrome' },
+          ],
+          triggers: [{ trigger: 'initialized' }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+    });
+
+    describe("automation singular keys and Home Assistant's single-item forms", () => {
+      const live = { action: 'fire-dom-event', advanced_camera_card_action: 'live' };
+      const automate = (
+        automation: RawAdvancedCameraCardConfig,
+      ): RawAdvancedCameraCardConfig & {
+        automations: RawAdvancedCameraCardConfig[];
+      } => ({
+        type: 'custom:advanced-camera-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        automations: [automation],
+      });
+
+      it('should leave an automation using the singular trigger key untouched', () => {
+        const config = automate({
+          trigger: [{ trigger: 'initialized' }],
+          conditions: [{ condition: 'view', views: ['live'] }],
+          actions: [live],
+        });
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0]).toEqual({
+          trigger: [{ trigger: 'initialized' }],
+          conditions: [{ condition: 'view', views: ['live'] }],
+          actions: [live],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should promote a singular condition key and retain the ongoing conditions under it', () => {
+        const config = automate({
+          condition: [{ condition: 'camera' }, { condition: 'view', views: ['live'] }],
+          actions: [live],
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          condition: [{ condition: 'view', views: ['live'] }],
+          triggers: [{ trigger: 'camera' }, { trigger: 'view', views: ['live'] }],
+          actions: [live],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should promote a single condition standing in for the conditions list', () => {
+        const config = automate({
+          conditions: { condition: 'view', views: ['live'] },
+          actions: [live],
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'view', views: ['live'] }],
+          actions: [live],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should convert actions_not when the conditions are a single condition', () => {
+        const config = automate({
+          conditions: {
+            condition: 'state',
+            entity_id: 'binary_sensor.door',
+            state: 'on',
+          },
+          actions: [live],
+          actions_not: [
+            { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
+          ],
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.door', state: 'on' }],
+              then: [live],
+              else: [{ action: 'fire-dom-event', advanced_camera_card_action: 'clips' }],
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should convert actions_not under the singular action key', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+          ],
+          action: [live],
+          actions_not: [
+            { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
+          ],
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+          action: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.door', state: 'on' }],
+              then: [live],
+              else: [{ action: 'fire-dom-event', advanced_camera_card_action: 'clips' }],
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
     });
 
     describe('automation actions_not -> if/then/else', () => {
@@ -5047,6 +5310,22 @@ describe('should handle version specific upgrades', () => {
         expect(config.automations).toEqual([]);
         expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
         postUpgradeChecks(config);
+      });
+
+      it('should keep a retired microphone action in a recorded upgrade failure', () => {
+        const failing = {
+          conditions: [{ condition: 'template', value_template: '{{ true }}' }],
+          actions: [
+            {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'microphone_connect',
+            },
+          ],
+          actions_not: elseActions,
+        };
+        const config = automate({ ...failing });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
       });
 
       it('should record a screen condition as an upgrade failure, untouched', () => {
@@ -5475,6 +5754,230 @@ describe('should handle version specific upgrades', () => {
             ],
           },
         ]);
+      });
+    });
+
+    describe('composite condition shorthand', () => {
+      it('should keep a conditional element whose shorthand conditions are all retained', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [
+                {
+                  or: [
+                    { condition: 'state', state: 'off', entity: 'input_boolean.door' },
+                    { condition: 'call', call: 'answered' },
+                  ],
+                },
+              ],
+              elements: [{ type: 'icon', icon: 'mdi:cow' }],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.elements).toEqual([
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            conditions: [
+              {
+                or: [
+                  { condition: 'state', state: 'off', entity: 'input_boolean.door' },
+                  { condition: 'call', call: 'answered' },
+                ],
+              },
+            ],
+            elements: [{ type: 'icon', icon: 'mdi:cow' }],
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should prune trigger-only leaves from an operator shorthand composite', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [
+                {
+                  or: [{ condition: 'camera' }, { condition: 'view', views: ['live'] }],
+                },
+              ],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([
+          {
+            conditions: [{ or: [{ condition: 'view', views: ['live'] }] }],
+            merge: { menu: { style: 'none' } },
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should prune trigger-only leaves from an implicit and composite', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [
+                {
+                  condition: [
+                    { condition: 'camera' },
+                    { condition: 'view', views: ['live'] },
+                  ],
+                },
+              ],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([
+          {
+            conditions: [{ condition: [{ condition: 'view', views: ['live'] }] }],
+            merge: { menu: { style: 'none' } },
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should promote the leaves of a shorthand composite to triggers', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                {
+                  or: [{ condition: 'camera' }, { condition: 'view', views: ['live'] }],
+                },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [{ or: [{ condition: 'view', views: ['live'] }] }],
+          triggers: [{ trigger: 'camera' }, { trigger: 'view', views: ['live'] }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should keep a composite the user wrote empty', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [{ condition: [] }],
+              elements: [{ type: 'icon', icon: 'mdi:cow' }],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.elements).toEqual([
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            conditions: [{ condition: [] }],
+            elements: [{ type: 'icon', icon: 'mdi:cow' }],
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should keep an untouched single-condition composite as it was written', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [{ or: { condition: 'view', views: ['live'] } }],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.overrides).toEqual([
+          {
+            conditions: [{ or: { condition: 'view', views: ['live'] } }],
+            merge: { menu: { style: 'none' } },
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should prune a trigger-only leaf from a single-condition composite', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [{ or: { condition: 'camera' } }],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([]);
+        postUpgradeChecks(config);
+      });
+
+      it('should promote the leaf of a single-condition composite to a trigger', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ or: { condition: 'view', views: ['live'] } }],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [{ or: { condition: 'view', views: ['live'] } }],
+          triggers: [{ trigger: 'view', views: ['live'] }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should drop a bare picture-element state condition with no state match', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [
+                { entity: 'binary_sensor.door' },
+                { condition: 'view', views: ['live'] },
+              ],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([
+          {
+            conditions: [{ condition: 'view', views: ['live'] }],
+            merge: { menu: { style: 'none' } },
+          },
+        ]);
+        postUpgradeChecks(config);
       });
     });
 

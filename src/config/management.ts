@@ -24,6 +24,7 @@ import {
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from './const';
+import { getCompositeConditionsKey } from './schema/condition-trigger/conditions/composite';
 import type {
   RawAdvancedCameraCardConfig,
   RawAdvancedCameraCardConfigArray,
@@ -350,7 +351,9 @@ export const upgradeArrayOfObjects = function (
 };
 
 /**
- * Recursively upgrade an object.
+ * Recursively upgrade an object. The entries recorded under
+ * {@link CONF_UPGRADE_FAILURE} are the user's own configuration, kept for them
+ * to migrate by hand, so this never descends into them.
  * @param transform A transform applied to each object recursively.
  * @param getObject A function to get the object to be upgraded.
  * @returns An upgrade function.
@@ -374,6 +377,9 @@ export const upgradeObjectRecursively = (
         });
       } else {
         Object.keys(data).forEach((key) => {
+          if (key === CONF_UPGRADE_FAILURE) {
+            return;
+          }
           result = recurse(data[key] as RawAdvancedCameraCardConfig) || result;
         });
       }
@@ -508,23 +514,36 @@ const conditionToConditionsTransform = (data: unknown): boolean => {
   return false;
 };
 
-const isCompositeCondition = (condition: unknown): boolean => {
-  if (!isRecord(condition)) {
-    return false;
-  }
-  const kind = condition['condition'];
-  return typeof kind === 'string' && ['or', 'and', 'not'].includes(kind);
-};
+const isCompositeCondition = (condition: unknown): boolean =>
+  getCompositeConditionsKey(condition) !== null;
 
 // Triggers are a flat OR list with no composites, so a composite condition is
 // reduced to its leaf conditions for the trigger list (the composite itself is
 // retained on the `conditions:` side).
 const flattenConditionLeaves = (condition: unknown): unknown[] => {
-  if (!isCompositeCondition(condition) || !isRecord(condition)) {
+  const key = getCompositeConditionsKey(condition);
+  if (!key || !isRecord(condition)) {
     return [condition];
   }
-  const inner = condition['conditions'];
-  return Array.isArray(inner) ? inner.flatMap(flattenConditionLeaves) : [];
+  return arrayify(condition[key]).flatMap(flattenConditionLeaves);
+};
+
+// Whether promoting this condition to a trigger would lose something, so the
+// automation keeps the condition. `user` and `user_agent` have no trigger at
+// all; a `state` condition holding both `state` and `state_not` loses one,
+// since a state trigger carries `to` or `not_to`, never both.
+const mustRetainCondition = (condition: unknown): boolean => {
+  if (!isRecord(condition)) {
+    return false;
+  }
+  const kind = condition['condition'];
+  if (kind === 'user' || kind === 'user_agent') {
+    return true;
+  }
+  if (kind === 'state' || kind === undefined) {
+    return condition['state'] !== undefined && condition['state_not'] !== undefined;
+  }
+  return false;
 };
 
 // A condition that fired on a *change* rather than describing an ongoing state
@@ -556,20 +575,27 @@ const isTriggerOnlyCondition = (condition: unknown): boolean => {
 };
 
 // Drop trigger-only conditions from a retained `conditions:` list, recursing
-// into composites and discarding any that become empty.
+// into composites and discarding any the recursion empties.
 const dropTriggerOnlyConditions = (conditions: unknown[]): unknown[] => {
   const kept: unknown[] = [];
   for (const condition of conditions) {
-    if (
-      isCompositeCondition(condition) &&
-      isRecord(condition) &&
-      Array.isArray(condition['conditions'])
-    ) {
-      const inner = dropTriggerOnlyConditions(condition['conditions']);
-      if (inner.length) {
-        kept.push({ ...condition, conditions: inner });
+    const key = getCompositeConditionsKey(condition);
+    if (key && isRecord(condition)) {
+      const children = arrayify(condition[key]);
+      const inner = dropTriggerOnlyConditions(children);
+      // An empty `or` never matches and an empty `and` always does, so a
+      // composite the user wrote empty is kept; only one the recursion emptied
+      // is dropped.
+      if (inner.length || !children.length) {
+        // `arrayify` has already normalised `children`, so rebuilding a
+        // composite the recursion left alone would rewrite Home Assistant's
+        // single-condition spelling (`or: <condition>`) into a list the user
+        // never wrote.
+        kept.push(isEqual(inner, children) ? condition : { ...condition, [key]: inner });
       }
-    } else if (!isTriggerOnlyCondition(condition)) {
+      continue;
+    }
+    if (!isTriggerOnlyCondition(condition)) {
       kept.push(condition);
     }
   }
@@ -598,13 +624,26 @@ const rewriteConditionAsTrigger = (condition: unknown): unknown => {
   // picture-element state form -- the only condition that may omit `condition`.
   if (kind === 'state' || kind === undefined) {
     const entityId = condition['entity_id'] ?? condition['entity'];
+    const matchFields = mustRetainCondition(condition)
+      ? {}
+      : {
+          ...(condition['state'] !== undefined && { to: condition['state'] }),
+          ...(condition['state_not'] !== undefined && {
+            not_to: condition['state_not'],
+          }),
+        };
     return {
       trigger: 'state',
       ...withoutKeys('condition', 'entity', 'entity_id', 'state', 'state_not'),
       ...(entityId !== undefined && { entity_id: entityId }),
-      ...(condition['state'] !== undefined && { to: condition['state'] }),
-      ...(condition['state_not'] !== undefined && { not_to: condition['state_not'] }),
+      ...matchFields,
     };
+  }
+
+  // `user` and `user_agent` are fixed for the session, so no trigger matches
+  // them.
+  if (kind === 'user' || kind === 'user_agent') {
+    return null;
   }
 
   // A `call` condition describes a phase; as a trigger it is the arrival at
@@ -624,38 +663,67 @@ const rewriteConditionAsTrigger = (condition: unknown): unknown => {
   return { trigger: kind, ...withoutKeys('condition') };
 };
 
+// Home Assistant accepts the singular `trigger`/`condition`/`action` keys as
+// aliases for the plural ones (the schema renames them), and a single item in
+// place of a list. Migration reads whichever spelling the automation was written
+// in so that it can write back under the same key.
+const getAutomationList = (
+  automation: RawAdvancedCameraCardConfig,
+  plural: string,
+  singular: string,
+): { key: string; items: unknown[] } => {
+  // Mirroring the schema's rename, the singular key is honoured only when the
+  // plural is absent; an automation with neither is written under the plural.
+  const key = singular in automation && !(plural in automation) ? singular : plural;
+  return { key, items: arrayify(automation[key]) };
+};
+
+const hasAutomationTriggers = (automation: RawAdvancedCameraCardConfig): boolean =>
+  'triggers' in automation || 'trigger' in automation;
+
 /**
  * Promote an automation's `conditions:` into HA-native `triggers:`.
  *
- * A single simple condition becomes one trigger and the `conditions:` block is
- * dropped. Multiple conditions (or a composite) become one trigger per leaf,
- * while the original `conditions:` are retained as an ongoing predicate
- * (dual-list) -- minus any trigger-only forms, which would no longer be valid
- * conditions. Idempotent: an automation that already has `triggers:` is left
+ * A single condition that its trigger fully expresses becomes that trigger, and
+ * the `conditions:` block is dropped. Everything else -- multiple conditions, a
+ * composite, or a condition the trigger cannot express -- becomes one trigger
+ * per leaf, and the original `conditions:` are retained as an ongoing predicate
+ * (dual-list) minus any trigger-only forms, which would no longer be valid
+ * conditions. Idempotent: an automation that already has triggers is left
  * untouched.
  */
 const promoteConditionsToTriggersTransform = (data: unknown): boolean => {
-  if (!isRecord(data) || 'triggers' in data) {
+  if (!isRecord(data) || hasAutomationTriggers(data)) {
     return false;
   }
-  const conditions = data['conditions'];
-  if (!Array.isArray(conditions) || !conditions.length) {
+  const { key, items: conditions } = getAutomationList(data, 'conditions', 'condition');
+  if (!conditions.length) {
     return false;
   }
 
-  if (conditions.length === 1 && !isCompositeCondition(conditions[0])) {
+  if (
+    conditions.length === 1 &&
+    !isCompositeCondition(conditions[0]) &&
+    !mustRetainCondition(conditions[0])
+  ) {
     data['triggers'] = [rewriteConditionAsTrigger(conditions[0])];
-    delete data['conditions'];
+    delete data[key];
+    return true;
+  }
+
+  const triggers = conditions
+    .flatMap(flattenConditionLeaves)
+    .map(rewriteConditionAsTrigger)
+    .filter((trigger) => trigger !== null);
+
+  // Conditions that produce no trigger never change after startup, so
+  // evaluating them once at startup is faithful.
+  data['triggers'] = triggers.length ? triggers : [{ trigger: 'initialized' }];
+  const ongoing = dropTriggerOnlyConditions(conditions);
+  if (ongoing.length) {
+    data[key] = ongoing;
   } else {
-    data['triggers'] = conditions
-      .flatMap(flattenConditionLeaves)
-      .map(rewriteConditionAsTrigger);
-    const ongoing = dropTriggerOnlyConditions(conditions);
-    if (ongoing.length) {
-      data['conditions'] = ongoing;
-    } else {
-      delete data['conditions'];
-    }
+    delete data[key];
   }
   return true;
 };
@@ -803,9 +871,13 @@ const hasRisingEdgeOnlyCondition = (conditions: unknown[]): boolean =>
 const convertActionsNotAutomation = (
   automation: RawAdvancedCameraCardConfig,
 ): 'converted' | 'failed' => {
-  const conditions = automation['conditions'];
+  const { key: conditionsKey, items: conditions } = getAutomationList(
+    automation,
+    'conditions',
+    'condition',
+  );
 
-  if (!Array.isArray(conditions) || !conditions.length) {
+  if (!conditions.length) {
     // No conditions -- `actions_not` could never have run; it is simply dropped.
     delete automation['actions_not'];
     return 'converted';
@@ -816,25 +888,29 @@ const convertActionsNotAutomation = (
   }
 
   const actionsNot = automation['actions_not'];
-  const actions = Array.isArray(automation['actions']) ? automation['actions'] : [];
+  const { key: actionsKey, items: actions } = getAutomationList(
+    automation,
+    'actions',
+    'action',
+  );
 
   automation['triggers'] = synthesizeAnyChangeTriggers(conditions);
   delete automation['actions_not'];
 
-  // `conditions` move *into* the `if` below; they must not also remain as a
+  // The conditions move *into* the `if` below; they must not also remain as a
   // top-level ongoing condition, which would block the automation (and so the
   // `else` branch) whenever they fail -- exactly the case `else` exists to handle.
-  delete automation['conditions'];
+  delete automation[conditionsKey];
 
   // The `if` tests only the ongoing predicates; dropping the trigger-only
   // conditions can leave nothing, in which case `else` could never run.
   const ongoing = dropTriggerOnlyConditions(conditions);
   if (!ongoing.length) {
-    automation['actions'] = actions;
+    automation[actionsKey] = actions;
     return 'converted';
   }
 
-  automation['actions'] = [
+  automation[actionsKey] = [
     {
       if: ongoing,
       then: actions,
@@ -1511,6 +1587,10 @@ const ACTION_PROPERTIES = [
   'then',
 ];
 
+// The action properties that are required wherever they appear, so removing
+// their last action must leave an empty list.
+const REQUIRED_ACTION_PROPERTIES = ['actions', 'then'];
+
 const isRemovedMicrophoneAction = (data: unknown): boolean =>
   isRecord(data) &&
   (data['action'] === 'fire-dom-event' ||
@@ -1526,10 +1606,9 @@ const isRemovedMicrophoneAction = (data: unknown): boolean =>
  * merely resembles an action -- the `data` of a `perform-action`, for
  * instance -- is left as the user wrote it.
  *
- * A property holding a single such action is deleted, since every one of those
- * is optional. A list keeps its property even when it empties: some are
- * required (`automations[].actions`, an `if` action's `then`) and an empty one
- * is valid everywhere.
+ * A property that empties is left as an empty list where it is required
+ * (`automations[].actions`, an `if` action's `then`), and deleted elsewhere. An
+ * empty list is valid wherever one is accepted.
  */
 const removeMicrophoneActionsTransform = (data: unknown): boolean => {
   // Arrays are records too, so their entries are walked by the loop below.
@@ -1542,7 +1621,11 @@ const removeMicrophoneActionsTransform = (data: unknown): boolean => {
     if (ACTION_PROPERTIES.includes(key)) {
       const value = data[key];
       if (isRemovedMicrophoneAction(value)) {
-        delete data[key];
+        if (REQUIRED_ACTION_PROPERTIES.includes(key)) {
+          data[key] = [];
+        } else {
+          delete data[key];
+        }
         modified = true;
         continue;
       }
@@ -1555,7 +1638,11 @@ const removeMicrophoneActionsTransform = (data: unknown): boolean => {
       }
     }
 
-    modified = removeMicrophoneActionsTransform(data[key]) || modified;
+    // The entries recorded under `__UPGRADE_FAILURE__` are kept as the user
+    // wrote them.
+    if (key !== CONF_UPGRADE_FAILURE) {
+      modified = removeMicrophoneActionsTransform(data[key]) || modified;
+    }
   }
   return modified;
 };
