@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   getGo2RTCMetadataEndpoint,
   getGo2RTCStreamEndpoint,
-} from '../../../src/camera-manager/utils/go2rtc/endpoint.js';
-import { createCameraConfig } from '../../config/test-utils';
+} from '../../src/go2rtc/endpoint.js';
+import { createCameraConfig } from '../config/test-utils';
 
 describe('getGo2RTCStreamEndpoint', () => {
   it('with local configuration', () => {

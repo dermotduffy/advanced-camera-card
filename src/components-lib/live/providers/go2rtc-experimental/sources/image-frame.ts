@@ -1,4 +1,8 @@
 import type { Go2RTCMode } from '../../../../../config/schema/cameras';
+import {
+  isServerErrorForMode,
+  type Go2RTCMessage,
+} from '../../../../../go2rtc/messages';
 import type {
   MediaLoadedCapabilities,
   MediaTechnology,
@@ -6,13 +10,11 @@ import type {
 } from '../../../../../types';
 import { Timer } from '../../../../../utils/timer';
 import type {
-  Go2RTCMessage,
   ImageStreamTarget,
   StreamProfile,
   StreamSource,
   StreamSourceContext,
 } from '../types';
-import { isServerErrorForMode } from '../utils/messages';
 
 // Fail if no frame arrives within this window. The channel is open and the mode
 // was requested, but the server may send neither a frame nor an error, so

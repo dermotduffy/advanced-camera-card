@@ -1,3 +1,12 @@
+import {
+  isServerErrorForMode,
+  type Go2RTCMessage,
+} from '../../../../../go2rtc/messages';
+import {
+  createBrowserPeerConnection,
+  GO2RTC_PEER_CONNECTION_CONFIG,
+  type PeerConnectionFactory,
+} from '../../../../../go2rtc/peer-connection';
 import type {
   MediaLoadedCapabilities,
   MediaTechnology,
@@ -6,19 +15,12 @@ import type {
 import { has2WayAudio, hasAudio } from '../../../../../utils/audio';
 import { isRecord } from '../../../../../utils/basic';
 import { Timer } from '../../../../../utils/timer';
-import {
-  createBrowserPeerConnection,
-  GO2RTC_PEER_CONNECTION_CONFIG,
-  type PeerConnectionFactory,
-} from '../adapters/peer-connection';
 import type {
-  Go2RTCMessage,
   StreamProfile,
   StreamSource,
   StreamSourceContext,
   VideoStreamTarget,
 } from '../types';
-import { isServerErrorForMode } from '../utils/messages';
 import { sdpHasH265 } from '../utils/webrtc-sdp';
 
 // ===========================================================================

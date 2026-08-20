@@ -1,5 +1,5 @@
-import type { CameraConfig } from '../../../config/schema/cameras';
-import type { Endpoint } from '../../../types';
+import type { CameraConfig } from '../config/schema/cameras';
+import type { Endpoint } from '../types';
 
 interface EndpointOptions {
   url?: string;

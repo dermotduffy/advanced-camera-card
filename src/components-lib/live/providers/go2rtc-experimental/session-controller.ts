@@ -2,6 +2,8 @@ import { isEqual } from 'lodash-es';
 
 import { GO2RTC_MODES, type Go2RTCMode } from '../../../../config/schema/cameras';
 import type { CardWideConfig } from '../../../../config/schema/types';
+import type { PeerConnectionFactory } from '../../../../go2rtc/peer-connection';
+import { SignalingChannel, type WebSocketFactory } from '../../../../go2rtc/signaling';
 import type {
   MediaPlayerController,
   UntargetedMediaLoadedInfo,
@@ -19,9 +21,7 @@ import { createMediaLoadedInfo } from '../../../../utils/media-info';
 import { RetryTimer } from '../../../../utils/retry-timer';
 import { convertToWebSocketURL } from '../../../../utils/websocket-url';
 import type { MediaSourceFactory } from './adapters/media-source';
-import type { PeerConnectionFactory } from './adapters/peer-connection';
 import { OffscreenVideo, type VideoElementFactory } from './offscreen-video';
-import { SignalingChannel, type WebSocketFactory } from './signaling';
 import {
   createBinarySource,
   createWebRTCSource,

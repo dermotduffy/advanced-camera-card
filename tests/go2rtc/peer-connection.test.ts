@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createBrowserPeerConnection,
   GO2RTC_PEER_CONNECTION_CONFIG,
-} from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/adapters/peer-connection';
+} from '../../src/go2rtc/peer-connection';
 
 describe('peer-connection', () => {
   it('should configure two STUN servers with max-bundle', () => {

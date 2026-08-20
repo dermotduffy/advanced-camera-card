@@ -10,6 +10,7 @@ import {
   resolveProxyConfig,
   type EnabledProxyConfig,
 } from '../config/schema/common/proxy';
+import { getGo2RTCMetadataEndpoint, getGo2RTCStreamEndpoint } from '../go2rtc/endpoint';
 import { computeDomain } from '../ha/compute-domain';
 import { matchesEventContext, matchesEventData } from '../ha/event-match';
 import { getTriggerEventType } from '../ha/get-trigger-event-type';
@@ -32,10 +33,6 @@ import type {
   CameraProxyConfig,
 } from './types';
 import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
-import {
-  getGo2RTCMetadataEndpoint,
-  getGo2RTCStreamEndpoint,
-} from './utils/go2rtc/endpoint';
 import { getConfiguredPTZAction } from './utils/ptz';
 
 interface CapabilityOptions {

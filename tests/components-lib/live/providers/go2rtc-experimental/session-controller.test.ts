@@ -21,11 +21,11 @@ import type {
 import { GO2RTC_MODES, type Go2RTCMode } from '../../../../../src/config/schema/cameras';
 import type { CardWideConfig } from '../../../../../src/config/schema/types';
 import type { MediaPlayerController } from '../../../../../src/types';
+import { FakeWebSocket } from '../../../../go2rtc/test-utils';
 import {
   FakeMediaStream,
   FakeMediaStreamTrack,
   FakeRTCPeerConnection,
-  FakeWebSocket,
 } from './test-utils';
 
 const H264_PROFILE: StreamProfile = {

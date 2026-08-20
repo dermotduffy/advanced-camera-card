@@ -1,6 +1,6 @@
 import type { Go2RTCMode } from '../../../../../config/schema/cameras';
+import type { PeerConnectionFactory } from '../../../../../go2rtc/peer-connection';
 import type { MediaSourceFactory } from '../adapters/media-source';
-import type { PeerConnectionFactory } from '../adapters/peer-connection';
 import type {
   ImageStreamTarget,
   StreamSource,
