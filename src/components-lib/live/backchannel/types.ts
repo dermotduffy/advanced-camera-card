@@ -15,17 +15,17 @@ export class BackchannelError extends Error {
   }
 }
 
-// An outbound audio path from the browser microphone to a camera held for the
+// Carries audio from the browser microphone to a camera, held for the
 // duration of a call. Implementations are per live provider.
 export interface Backchannel {
-  // Opens the path carrying the given microphone stream. Resolves once the
+  // Opens the backchannel carrying the given microphone stream. Resolves once the
   // camera can actually be spoken to.
   start(stream: MediaStream): Promise<void>;
 
-  // Swaps the microphone stream being carried, leaving the path open.
+  // Swaps the microphone stream being carried, leaving the backchannel open.
   setStream(stream: MediaStream): Promise<void>;
 
-  // Closes the path, releasing the camera (the microphone itself belongs to
+  // Closes the backchannel, releasing the camera (the microphone itself belongs to
   // MicrophoneManager and is untouched).
   stop(): void;
 }
