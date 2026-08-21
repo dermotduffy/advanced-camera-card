@@ -1,6 +1,8 @@
 /**
- * Vite plugin: writes the date of the build into the card.
+ * Writes the date of the build into the card.
  */
+
+import type { Plugin } from 'vite';
 
 // Strict length requirement: See below.
 export const BUILD_DATE_PLACEHOLDER = '__BUILD_DATE_SENTINEL___';
@@ -11,10 +13,8 @@ export const BUILD_DATE_PLACEHOLDER = '__BUILD_DATE_SENTINEL___';
  * As such, every rebuild would report the time the watcher started rather than
  * the actual build time. Output is generated afresh for each build, so the date
  * is written here instead.
- *
- * @type {() => import('vite').Plugin}
  */
-export const buildDate = () => ({
+export const buildDate = (): Plugin => ({
   name: 'build-date',
 
   renderChunk(code) {

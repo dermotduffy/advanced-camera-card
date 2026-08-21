@@ -1,3 +1,9 @@
+import type { Plugin } from 'vite';
+
+interface FacadeEntryOptions {
+  publicFileNames: string[];
+}
+
 /**
  * Emits the files a dashboard resource can name, each a re-export of the hashed
  * chunk holding the actual card.
@@ -8,10 +14,8 @@
  * run a second time, and defining its elements twice will throw an error.
  * Keeping the card itself in a hashed chunk that nothing outside can name is
  * what prevents that, and the check below is what keeps it true.
- *
- * @type {(options: { publicFileNames: string[] }) => import('vite').Plugin}
  */
-export const facadeEntry = ({ publicFileNames }) => ({
+export const facadeEntry = ({ publicFileNames }: FacadeEntryOptions): Plugin => ({
   name: 'facade-entry',
 
   generateBundle(_options, bundle) {

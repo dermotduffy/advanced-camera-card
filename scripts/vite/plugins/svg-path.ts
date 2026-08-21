@@ -1,13 +1,12 @@
 import { readFileSync } from 'node:fs';
 
+import type { Plugin } from 'vite';
+
 /**
- * Vite plugin: importing an SVG yields `{ path, viewBox }` extracted at build
- * time, the shape a Home Assistant custom iconset serves. The SVG must be a
- * single-path icon.
- *
- * @type {() => import('vite').Plugin}
+ * Importing an SVG yields `{ path, viewBox }` extracted at build time, the shape a
+ * Home Assistant custom iconset serves. The SVG must be a single-path icon.
  */
-export const svgPath = () => ({
+export const svgPath = (): Plugin => ({
   name: 'svg-path',
 
   // Run before Vite's builtin asset handling.

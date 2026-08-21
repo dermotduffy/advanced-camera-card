@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { commands } from 'vitest/browser';
 
-import { PUBLIC_ENTRIES, PUBLIC_ENTRY } from '../../scripts/public-entries.js';
+import { PUBLIC_ENTRIES, PUBLIC_ENTRY } from '../../scripts/vite/public-entries.js';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import type { FakeHASS } from '../browser/fake-hass';
 import { defineHAElementStubs } from '../browser/ha-element-stubs';

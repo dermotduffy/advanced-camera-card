@@ -1,12 +1,12 @@
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
-import { buildDate } from './scripts/build-date-plugin.js';
-import { getBuildDefines } from './scripts/build-defines.js';
-import { cleanDist } from './scripts/clean-dist-plugin.js';
-import { facadeEntry } from './scripts/facade-entry-plugin.js';
-import { PUBLIC_ENTRIES } from './scripts/public-entries.js';
-import { svgPath } from './scripts/svg-path-plugin.js';
+import { getBuildDefines } from './scripts/vite/build-defines.js';
+import { buildDate } from './scripts/vite/plugins/build-date.js';
+import { cleanDist } from './scripts/vite/plugins/clean-dist.js';
+import { facadeEntry } from './scripts/vite/plugins/facade-entry.js';
+import { svgPath } from './scripts/vite/plugins/svg-path.js';
+import { PUBLIC_ENTRIES } from './scripts/vite/public-entries.js';
 
 // `yarn start` passes `--mode development`; a plain `vite build` is
 // `production`.
