@@ -5,13 +5,13 @@ import type {
   StreamSourceContext,
   VideoStreamTarget,
 } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
-import { flushPromises } from '../../../../../test-utils';
 import {
   FakeMediaStream,
   FakeMediaStreamTrack,
   FakeRTCPeerConnection,
-  FakeStreamSourceChannel,
-} from '../test-utils';
+} from '../../../../../go2rtc/test-utils';
+import { flushPromises } from '../../../../../test-utils';
+import { FakeStreamSourceChannel } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('WebRTCStreamSource', () => {

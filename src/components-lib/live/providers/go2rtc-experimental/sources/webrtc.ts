@@ -13,7 +13,7 @@ import type {
   UnsubscribeCallback,
 } from '../../../../../types';
 import { has2WayAudio, hasAudio } from '../../../../../utils/audio';
-import { isRecord } from '../../../../../utils/basic';
+import { getErrorDescription } from '../../../../../utils/basic';
 import { Timer } from '../../../../../utils/timer';
 import type {
   StreamProfile,
@@ -40,22 +40,6 @@ const WEBRTC_CONNECT_TIMEOUT_SECONDS = 5;
 // ===========================================================================
 
 export type MediaStreamFactory = (tracks: MediaStreamTrack[]) => MediaStream;
-
-// What a thrown value has to say for itself, preferring the browser's sentence
-// ("The peer connection is closed") over the bare type name
-// ("InvalidStateError"), which means nothing to the person reading it.
-//
-// DOMException may not inherit from Error, and catch blocks may be handed
-// anything, so extract details structurally rather than using `instanceof
-// Error`.
-const getErrorDescription = (error: unknown): string | null => {
-  if (!isRecord(error)) {
-    return null;
-  }
-  const message = typeof error.message === 'string' ? error.message : '';
-  const name = typeof error.name === 'string' ? error.name : '';
-  return message || name || null;
-};
 
 interface WebRTCStreamSourceOptions {
   createPeerConnection?: PeerConnectionFactory;
