@@ -7,15 +7,15 @@ import type {
 } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
 import {
   FakeMediaStream,
-  FakeMediaStreamTrack,
   FakeRTCPeerConnection,
+  type FakeMediaStreamTrack,
 } from '../../../../../go2rtc/test-utils';
 import { flushPromises } from '../../../../../test-utils';
 import { FakeStreamSourceChannel } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('WebRTCStreamSource', () => {
-  const setup = (options?: { microphoneStream?: FakeMediaStream | null }) => {
+  const setup = () => {
     const video = document.createElement('video');
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
@@ -29,13 +29,10 @@ describe('WebRTCStreamSource', () => {
 
     const pc = new FakeRTCPeerConnection();
     const createPeerConnection = vi.fn(() => pc.asPeerConnection());
-    const microphoneErrorCallback = vi.fn();
     const source = new WebRTCStreamSource(context, {
       createPeerConnection,
       createMediaStream: (tracks) =>
         new FakeMediaStream(tracks as unknown as FakeMediaStreamTrack[]).asMediaStream(),
-      microphoneStream: options?.microphoneStream?.asMediaStream() ?? null,
-      microphoneErrorCallback,
     });
 
     return {
@@ -44,7 +41,6 @@ describe('WebRTCStreamSource', () => {
       createPeerConnection,
       failedCallback,
       loadedCallback,
-      microphoneErrorCallback,
       pc,
       source,
       video,
@@ -60,27 +56,14 @@ describe('WebRTCStreamSource', () => {
   });
 
   describe('transceivers', () => {
-    it('should pre-arm a sendonly audio transceiver and recvonly video and audio', () => {
+    it('should offer inbound video and audio only', () => {
       const { source, pc } = setup();
       source.start();
 
-      expect(pc.transceivers).toHaveLength(3);
-      expect(pc.transceivers[0].direction).toBe('sendonly');
-      expect(pc.transceivers[1].direction).toBe('recvonly');
-      expect(pc.transceivers[2].direction).toBe('recvonly');
-
-      // Kind-only pre-arm: no track, so no getUserMedia and no permission prompt.
-      expect(pc.transceivers[0].sender.track).toBeNull();
-    });
-
-    it('should pre-arm with the current microphone track', () => {
-      const micTrack = new FakeMediaStreamTrack('audio');
-      const { source, pc } = setup({
-        microphoneStream: new FakeMediaStream([micTrack]),
-      });
-      source.start();
-
-      expect(pc.transceivers[0].sender.track).toBe(micTrack);
+      expect(pc.transceivers.map((transceiver) => transceiver.direction)).toEqual([
+        'recvonly',
+        'recvonly',
+      ]);
     });
   });
 
@@ -431,6 +414,17 @@ describe('WebRTCStreamSource', () => {
       expect(source.getPeerConnection()).toBe(pc.asPeerConnection());
     });
 
+    it('should report its media capabilities', () => {
+      const { source, pc } = setup();
+      source.start();
+      pc.fireConnectionStateChange('connected');
+
+      expect(source.getCapabilities()).toEqual({
+        supportsPause: true,
+        hasAudio: expect.any(Boolean),
+      });
+    });
+
     it('should report webrtc technology', () => {
       const { source } = setup();
 
@@ -461,140 +455,6 @@ describe('WebRTCStreamSource', () => {
         hasAudio: false,
         hasAACAudio: false,
       });
-    });
-
-    it('should report 2-way audio capability once a mic track is armed', () => {
-      const micTrack = new FakeMediaStreamTrack('audio');
-      const { source, pc } = setup({
-        microphoneStream: new FakeMediaStream([micTrack]),
-      });
-      source.start();
-      pc.fireConnectionStateChange('connected');
-
-      expect(source.getCapabilities().has2WayAudio).toBe(true);
-      expect(source.getCapabilities().supportsPause).toBe(true);
-    });
-  });
-
-  describe('setMicrophoneStream', () => {
-    it('should do nothing for an unchanged stream', async () => {
-      const stream = new FakeMediaStream([new FakeMediaStreamTrack('audio')]);
-      const { source, pc } = setup({ microphoneStream: stream });
-      source.start();
-      await source.setMicrophoneStream(stream.asMediaStream());
-
-      expect(pc.getMicrophoneTransceiver().sender.replaceTrack).not.toHaveBeenCalled();
-    });
-
-    it('should replace the outbound track without renegotiating', async () => {
-      const { source, pc } = setup();
-      source.start();
-      const newTrack = new FakeMediaStreamTrack('audio');
-      await source.setMicrophoneStream(new FakeMediaStream([newTrack]).asMediaStream());
-
-      expect(pc.getMicrophoneTransceiver().sender.replaceTrack).toHaveBeenCalledWith(
-        newTrack,
-      );
-    });
-
-    it('should clear the outbound track for a null stream', async () => {
-      const stream = new FakeMediaStream([new FakeMediaStreamTrack('audio')]);
-      const { source, pc } = setup({ microphoneStream: stream });
-      source.start();
-      await source.setMicrophoneStream(null);
-
-      expect(pc.getMicrophoneTransceiver().sender.replaceTrack).toHaveBeenCalledWith(
-        null,
-      );
-    });
-
-    it('should do nothing before there is a peer connection', async () => {
-      const { source, microphoneErrorCallback } = setup();
-      await source.setMicrophoneStream(
-        new FakeMediaStream([new FakeMediaStreamTrack('audio')]).asMediaStream(),
-      );
-
-      expect(microphoneErrorCallback).not.toHaveBeenCalled();
-    });
-
-    it.each([
-      [
-        'what the browser said when the rejection has a message',
-        new DOMException('The peer connection is closed', 'InvalidStateError'),
-        'The peer connection is closed',
-      ],
-      [
-        'the rejection type when there is no message to quote',
-        new DOMException('', 'InvalidStateError'),
-        'InvalidStateError',
-      ],
-      ['nothing when the rejection is not an object', 'nope', undefined],
-      [
-        'nothing when the rejection describes itself with neither',
-        { message: 5, name: 7 },
-        undefined,
-      ],
-    ] as const)(
-      'should report %s when a current replaceTrack rejects',
-      async (_summary, rejection, expected) => {
-        const { source, pc, microphoneErrorCallback } = setup();
-        source.start();
-        pc.getMicrophoneTransceiver().sender.replaceTrack.mockRejectedValue(rejection);
-        await source.setMicrophoneStream(
-          new FakeMediaStream([new FakeMediaStreamTrack('audio')]).asMediaStream(),
-        );
-
-        expect(microphoneErrorCallback).toHaveBeenCalledWith(expected);
-      },
-    );
-
-    it('should not fail the stream source when the microphone cannot attach', async () => {
-      const { source, pc, failedCallback } = setup();
-      source.start();
-      pc.getMicrophoneTransceiver().sender.replaceTrack.mockRejectedValue(
-        new DOMException('replace failed', 'InvalidStateError'),
-      );
-      await source.setMicrophoneStream(
-        new FakeMediaStream([new FakeMediaStreamTrack('audio')]).asMediaStream(),
-      );
-
-      // The inbound video is unaffected by an outbound audio failure, so the
-      // source must keep running rather than failing over to another one.
-      expect(failedCallback).not.toHaveBeenCalled();
-    });
-
-    it('should not report a rejection when detaching the microphone', async () => {
-      const stream = new FakeMediaStream([new FakeMediaStreamTrack('audio')]);
-      const { source, pc, microphoneErrorCallback } = setup({
-        microphoneStream: stream,
-      });
-      source.start();
-      pc.getMicrophoneTransceiver().sender.replaceTrack.mockRejectedValue(
-        new DOMException('The peer connection is closed', 'InvalidStateError'),
-      );
-      await source.setMicrophoneStream(null);
-
-      // Ignore the error, the user is not trying to be heard anyway.
-      expect(microphoneErrorCallback).not.toHaveBeenCalled();
-    });
-
-    it('should ignore a stale replaceTrack rejection after stop', async () => {
-      const { source, pc, microphoneErrorCallback } = setup();
-      source.start();
-      let rejectReplace: (reason: Error) => void = () => {};
-      pc.getMicrophoneTransceiver().sender.replaceTrack.mockReturnValue(
-        new Promise((_resolve, reject) => {
-          rejectReplace = reject;
-        }),
-      );
-      const promise = source.setMicrophoneStream(
-        new FakeMediaStream([new FakeMediaStreamTrack('audio')]).asMediaStream(),
-      );
-      source.stop();
-      rejectReplace(new Error('replace failed'));
-      await promise;
-
-      expect(microphoneErrorCallback).not.toHaveBeenCalled();
     });
   });
 });

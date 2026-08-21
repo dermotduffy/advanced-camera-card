@@ -357,22 +357,6 @@ export class CallManager {
     });
   }
 
-  // The microphone could not be used for the call, so it is connected but the
-  // user cannot be heard. `description` is what the reporting layer knows about
-  // the failure, when it knows anything.
-  public reportCallMicrophoneError(targetID: string, description?: string): void {
-    const call = this._call;
-
-    // A report that no longer matches the call in progress describes an attempt
-    // the user has already moved past, e.g. the call ended before the provider
-    // finished reporting.
-    if (!call || !call.answered || call.cameraID !== targetID) {
-      return;
-    }
-
-    this._notifyError('error.call_microphone_failed', { context: description });
-  }
-
   // Tears down everything `initialize()` set up: stops any in-flight ringtone
   // and unanswered timer, drops the active call session, clears the call
   // condition state, and de-registers the condition-state listener. Driven by

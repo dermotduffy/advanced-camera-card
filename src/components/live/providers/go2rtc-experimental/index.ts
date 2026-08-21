@@ -23,14 +23,12 @@ import {
 import type { SurfaceKind } from '../../../../components-lib/live/providers/go2rtc-experimental/types.js';
 import { mapStreamFailureReasonToIssueReason } from '../../../../components-lib/live/providers/go2rtc-experimental/utils/stream-failure-reason.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
-import { dispatchMicrophoneErrorEvent } from '../../../../components-lib/live/utils/dispatch-microphone-error.js';
 import { MediaLoadedInfoSourceController } from '../../../../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
 import {
   getSignedURLErrorText,
   SignedURLController,
 } from '../../../../components-lib/signed-url-controller.js';
-import type { MicrophoneConfig } from '../../../../config/schema/live.js';
 import type { CardWideConfig } from '../../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
@@ -57,12 +55,6 @@ export class AdvancedCameraCardGo2RTCExperimental
   // The BASE camera ID (camera property may be a substream)
   @property({ attribute: false })
   public targetID?: string;
-
-  @property({ attribute: false })
-  public microphoneStream?: MediaStream | null;
-
-  @property({ attribute: false })
-  public microphoneConfig?: MicrophoneConfig;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -168,19 +160,7 @@ export class AdvancedCameraCardGo2RTCExperimental
       this._streamError = mapStreamFailureReasonToIssueReason(reason);
       dispatchLiveErrorEvent(this, { reason: this._streamError });
     },
-
-    microphoneErrorCallback: (error) => this._reportMicrophoneError(error),
   });
-
-  private _reportMicrophoneError(error?: string): void {
-    if (!this.targetID) {
-      return;
-    }
-    dispatchMicrophoneErrorEvent(this, {
-      targetID: this.targetID,
-      description: error,
-    });
-  }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._activeSurface === 'image'
@@ -236,11 +216,6 @@ export class AdvancedCameraCardGo2RTCExperimental
     if (changedProps.has('controls')) {
       // Only the video surface has native controls; the image surface has none.
       this._videoMediaPlayerController.setControls(this.controls).catch(() => {});
-    }
-
-    if (changedProps.has('microphoneStream')) {
-      // The WebRTC lane swaps the outbound track in place; no visible reload.
-      this._session.setMicrophoneStream(this.microphoneStream ?? null);
     }
   }
 

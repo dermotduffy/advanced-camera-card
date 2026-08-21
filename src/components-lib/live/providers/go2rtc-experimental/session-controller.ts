@@ -97,11 +97,6 @@ interface Go2RTCSessionCallbacks {
   // The reason is the most recent source failure, or null when there is none
   // (e.g. the socket dropped with no source having reported a cause).
   streamErrorCallback: (reason: StreamSourceFailureReason | null) => void;
-
-  // The outbound microphone could not be used, so the camera cannot be talked
-  // to. The inbound video is unaffected. `error` is what the source knows about
-  // the failure, when it knows anything.
-  microphoneErrorCallback: (error?: string) => void;
 }
 
 // Injectable platform and factory seams for tests. Every field defaults to
@@ -141,7 +136,6 @@ export class Go2RTCSessionController {
   private _url: string | null = null;
   private _surfaces: SessionSurfaces | null = null;
   private _modes: readonly Go2RTCMode[] = GO2RTC_MODES;
-  private _microphoneStream: MediaStream | null = null;
 
   // Binary lane: the active source paired with the surface it renders on (mse
   // -> video, MP4/MJPEG -> image). Kept as one unit because the factory returns
@@ -247,11 +241,6 @@ export class Go2RTCSessionController {
 
     this._url = null;
     this._surfaces = null;
-  }
-
-  public setMicrophoneStream(stream: MediaStream | null): void {
-    this._microphoneStream = stream;
-    this._webRTCSource?.setMicrophoneStream(stream).catch(() => {});
   }
 
   // ===========================================================================
@@ -462,8 +451,6 @@ export class Go2RTCSessionController {
     };
 
     source = (this._options?.createWebRTCSource ?? createWebRTCSource)(sourceContext, {
-      microphoneStream: this._microphoneStream,
-      microphoneErrorCallback: (error) => this._callbacks.microphoneErrorCallback(error),
       createPeerConnection: this._options?.createPeerConnection,
       createMediaStream: this._options?.createMediaStream,
     });

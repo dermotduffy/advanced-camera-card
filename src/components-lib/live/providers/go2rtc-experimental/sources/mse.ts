@@ -167,7 +167,6 @@ export class MSEStreamSource implements StreamSource {
     return {
       supportsPause: true,
       hasAudio: hasAudio(this._context.target.video, { mseCodecs: this._codecs }),
-      has2WayAudio: false,
     };
   }
 

@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   addAudioTracksMuteStateListener,
-  has2WayAudio,
   hasAudio,
   mayHaveAudio,
   type AudioProperties,
@@ -173,76 +172,6 @@ describe('hasAudio', () => {
       video.mozHasAudio = false;
       expect(hasAudio(video)).toBe(false);
     });
-  });
-});
-
-describe('has2WayAudio', () => {
-  const createMockTransceiver = (
-    trackKind: string | null,
-    direction: RTCRtpTransceiverDirection,
-  ): RTCRtpTransceiver => {
-    return {
-      sender: {
-        track: trackKind ? { kind: trackKind } : null,
-      },
-      direction,
-    } as unknown as RTCRtpTransceiver;
-  };
-
-  const createMockPeerConnection = (
-    transceivers: RTCRtpTransceiver[],
-  ): RTCPeerConnection => {
-    return {
-      getTransceivers: () => transceivers,
-    } as unknown as RTCPeerConnection;
-  };
-
-  it('should return false for null peer connection', () => {
-    expect(has2WayAudio(null)).toBe(false);
-  });
-
-  it('should return false when no transceivers', () => {
-    const pc = createMockPeerConnection([]);
-    expect(has2WayAudio(pc)).toBe(false);
-  });
-
-  it('should return true when audio transceiver is sendonly', () => {
-    const pc = createMockPeerConnection([createMockTransceiver('audio', 'sendonly')]);
-    expect(has2WayAudio(pc)).toBe(true);
-  });
-
-  it('should return true when audio transceiver is sendrecv', () => {
-    const pc = createMockPeerConnection([createMockTransceiver('audio', 'sendrecv')]);
-    expect(has2WayAudio(pc)).toBe(true);
-  });
-
-  it('should return false when audio transceiver is recvonly', () => {
-    const pc = createMockPeerConnection([createMockTransceiver('audio', 'recvonly')]);
-    expect(has2WayAudio(pc)).toBe(false);
-  });
-
-  it('should return false when audio transceiver is inactive', () => {
-    const pc = createMockPeerConnection([createMockTransceiver('audio', 'inactive')]);
-    expect(has2WayAudio(pc)).toBe(false);
-  });
-
-  it('should return false when only video transceiver with sendonly', () => {
-    const pc = createMockPeerConnection([createMockTransceiver('video', 'sendonly')]);
-    expect(has2WayAudio(pc)).toBe(false);
-  });
-
-  it('should return false when transceiver has no track', () => {
-    const pc = createMockPeerConnection([createMockTransceiver(null, 'sendonly')]);
-    expect(has2WayAudio(pc)).toBe(false);
-  });
-
-  it('should return true when mixed transceivers include sendonly audio', () => {
-    const pc = createMockPeerConnection([
-      createMockTransceiver('video', 'recvonly'),
-      createMockTransceiver('audio', 'recvonly'),
-      createMockTransceiver('audio', 'sendonly'),
-    ]);
-    expect(has2WayAudio(pc)).toBe(true);
   });
 });
 

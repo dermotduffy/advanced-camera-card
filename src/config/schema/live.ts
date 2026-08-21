@@ -85,7 +85,6 @@ const microphoneConfigSchema = z
       .default(microphoneConfigDefault.mute_after_microphone_mute_seconds),
   })
   .default(microphoneConfigDefault);
-export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;
 
 export const liveConfigDefault = {
   auto_play: [...MEDIA_ACTION_POSITIVE_CONDITIONS],

@@ -265,14 +265,11 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const mediaEpoch = view?.context?.mediaEpoch?.[cameraID] ?? 0;
 
     const isSelectedSlide = !!view?.camera && cameraID === view.camera;
-    const microphoneStream = this._getRelevantMicrophoneStream(cameraID, view);
-
     return html`
       <div class="embla__slide">
         ${keyed(
           mediaEpoch,
           html`<advanced-camera-card-live-provider
-            .microphoneStream=${microphoneStream}
             .camera=${resolvedCamera}
             .targetID=${cameraID}
             .cameraTitle=${cameraMetadata?.title}
@@ -302,25 +299,6 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   private _getSubstreamCameraID(cameraID: string, view?: View | null): string {
     return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
-  }
-
-  // Return a microphone stream only for the camera the call runs on, only
-  // while the call has been answered, and only while that camera's engaged
-  // stream is still the call's audio source. The `answered` gate is a
-  // privacy guarantee: an inbound call that's still ringing must not
-  // transmit audio even if the mic happens to be un-muted (e.g. left open
-  // by `auto_unmute: ['selected']` or a prior call). The substream gate
-  // stops transmission if the substream has since changed.
-  private _getRelevantMicrophoneStream(
-    cameraID: string,
-    view?: View | null,
-  ): MediaStream | null {
-    const isRelevant =
-      !!this.call?.answered &&
-      this.call.cameraID === cameraID &&
-      this._getSubstreamCameraID(cameraID, view) ===
-        (this.call.callCameraID ?? cameraID);
-    return isRelevant ? this.microphoneState?.stream ?? null : null;
   }
 
   private _toggleMute(): void {

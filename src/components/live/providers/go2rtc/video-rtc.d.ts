@@ -32,10 +32,8 @@ export class VideoRTC extends HTMLElement {
 
   // Custom methods/members.
   mediaPlayerController: MediaPlayerController | null;
-  microphoneStream: MediaStream | null;
   targetID: string | null;
   reconnect();
   reset(): void;
   setControls(controls: boolean): void;
-  setMicrophoneStream(stream: MediaStream | null): Promise<void>;
 }
