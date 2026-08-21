@@ -3,7 +3,7 @@ import { join } from 'path';
 
 import { defineConfig } from 'vitest/config';
 
-import { svgPath } from './scripts/svg-path-plugin.js';
+import { svgPath } from './scripts/vite/plugins/svg-path.js';
 
 const EXCLUSIONS = [
   '.eslintrc.cjs',

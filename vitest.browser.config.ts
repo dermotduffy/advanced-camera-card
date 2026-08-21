@@ -1,8 +1,8 @@
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 
-import { getBrowsers, type Browser } from './scripts/browsers.js';
-import { svgPath } from './scripts/svg-path-plugin.js';
+import { svgPath } from './scripts/vite/plugins/svg-path.js';
+import { getBrowsers, type Browser } from './scripts/vitest/browsers.js';
 
 // Browser tests mount the real card in a browser. Their own config rather than
 // a fourth project in `vitest.config.ts`, because `vitest run` executes every

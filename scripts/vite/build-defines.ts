@@ -1,12 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-import { BUILD_DATE_PLACEHOLDER } from './build-date-plugin.js';
+import { BUILD_DATE_PLACEHOLDER } from './plugins/build-date.js';
 
 /**
  * Asks git something or gives back nothing when it cannot be asked.
  */
-const askGit = (...args) => {
+const askGit = (...args: string[]): string => {
   try {
     return execFileSync('git', args, {
       encoding: 'utf-8',
@@ -17,8 +17,25 @@ const askGit = (...args) => {
   }
 };
 
-const getPackageVersion = () =>
-  JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8')).version;
+const getPackageVersion = (): string => {
+  const contents: unknown = JSON.parse(
+    readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'),
+  );
+  if (
+    typeof contents !== 'object' ||
+    contents === null ||
+    !('version' in contents) ||
+    typeof contents.version !== 'string'
+  ) {
+    throw new Error('package.json must have a string version');
+  }
+  return contents.version;
+};
+
+interface BuildDefinesOptions {
+  dev: boolean;
+  releaseVersion?: string;
+}
 
 /**
  * What the build stamps into the card, as names for the bundler to substitute.
@@ -33,7 +50,10 @@ const getPackageVersion = () =>
  *
  * The values are JSON so that a bundler can drop them in as written.
  */
-export const getBuildDefines = ({ dev, releaseVersion }) => {
+export const getBuildDefines = ({
+  dev,
+  releaseVersion,
+}: BuildDefinesOptions): Record<string, string> => {
   const gitHash = askGit('rev-parse', '--short', 'HEAD');
   const developmentVersion = gitHash ? `dev+${gitHash}` : 'dev';
 

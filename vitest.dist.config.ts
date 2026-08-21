@@ -1,8 +1,8 @@
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 
-import { getBrowsers, type Browser } from './scripts/browsers.js';
-import { distCommands } from './scripts/dist-commands.js';
+import { getBrowsers, type Browser } from './scripts/vitest/browsers.js';
+import { distCommands } from './scripts/vitest/dist-commands.js';
 
 // This is the only test suite that runs against the built bundle rather than
 // `src/`. They need a build to already exist: run `yarn run build` first.

@@ -1,19 +1,19 @@
 import { readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 
+import type { Plugin } from 'vite';
+
 /**
- * Vite plugin: removes build artifacts an earlier build left behind, which
- * otherwise accumulate indefinitely as the hashed names change.
+ * Removes build artifacts an earlier build left behind, which otherwise accumulate
+ * indefinitely as the hashed names change.
  *
  * Runs once the new output is on disk, and keeps whatever this build just
  * wrote, rather than emptying the directory beforehand. This ensures the card
  * is never briefly missing from a directory Home Assistant is potentially
  * serving out of. Only the build's own kind of file is removed, by extension
  * and without recursing, so anything else there survives.
- *
- * @type {() => import('vite').Plugin}
  */
-export const cleanDist = () => ({
+export const cleanDist = (): Plugin => ({
   name: 'clean-dist',
 
   writeBundle(options, bundle) {
