@@ -101,8 +101,10 @@ export class MicrophoneManager {
 
     // A connect over an existing stream must not leak the tracks of the
     // stream it replaces.
+    this._removeEndedListeners(this._stream);
     this._stopTracks(this._stream);
     this._stream = stream;
+    this._addEndedListeners(stream);
     this._forbidden = false;
     this._reconcile();
     this._setState();
@@ -171,8 +173,31 @@ export class MicrophoneManager {
     stream?.getTracks().forEach((track) => track.stop());
   }
 
+  // A device that disappears -- unplugged, or its permission revoked -- ends
+  // its tracks. Nothing can revive them, so the stream is dropped and the new
+  // state published, rather than leaving the card reporting a connected
+  // microphone that captures nothing. `stop()` does not fire this event, so
+  // releasing the stream cannot re-enter.
+  private _handleTrackEnded = (): void => {
+    this._releaseStream();
+    this._setState();
+  };
+
+  private _addEndedListeners(stream: MediaStream): void {
+    stream
+      .getTracks()
+      .forEach((track) => track.addEventListener('ended', this._handleTrackEnded));
+  }
+
+  private _removeEndedListeners(stream: MediaStream | null): void {
+    stream
+      ?.getTracks()
+      .forEach((track) => track.removeEventListener('ended', this._handleTrackEnded));
+  }
+
   private _releaseStream(): void {
     this._connectGeneration.invalidate();
+    this._removeEndedListeners(this._stream);
     this._stopTracks(this._stream);
     this._stream = null;
   }

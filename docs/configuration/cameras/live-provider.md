@@ -46,6 +46,8 @@ cameras:
 > itself: Frigate [recommends](https://docs.frigate.video/configuration/live/)
 > adding `#backchannel=0` to the stream it restreams, which stops that stream
 > offering 2-way audio at all. Point `stream` at a talk-capable stream instead.
+> Note that _any_ `#` option on an RTSP source has this effect unless it also
+> includes `backchannel=1`.
 
 ## `go2rtc (experimental)`
 

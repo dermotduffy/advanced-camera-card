@@ -340,6 +340,72 @@ describe('Go2RTCBackchannel', () => {
       expect(errorCallback).not.toHaveBeenCalled();
     });
   });
+  describe('losing the microphone', () => {
+    const endTrack = (stream: FakeMediaStream): void => {
+      const track = stream.getAudioTracks()[0];
+      track.readyState = 'ended';
+      track.dispatchEvent(new Event('ended'));
+    };
+
+    it('should fail a start whose microphone ends before connecting', async () => {
+      const stream = createStream();
+      const { backchannel, websocket } = setup();
+      const started = backchannel.start(stream.asMediaStream());
+      await flushPromises();
+      websocket.fireOpen();
+      await flushPromises();
+
+      endTrack(stream);
+
+      await expect(started).rejects.toMatchObject({ reason: 'failed' });
+    });
+
+    it('should release the camera and report when the microphone ends mid-call', async () => {
+      const errorCallback = vi.fn();
+      const stream = createStream();
+      const { backchannel, pc, websocket } = setup({ errorCallback });
+      const started = backchannel.start(stream.asMediaStream());
+      await connect(pc, websocket);
+      await started;
+
+      endTrack(stream);
+
+      expect(pc.close).toHaveBeenCalled();
+      expect(errorCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ reason: 'failed' }),
+      );
+    });
+
+    it('should stop watching a microphone that has been replaced', async () => {
+      const stream = createStream();
+      const errorCallback = vi.fn();
+      const { backchannel, pc, websocket } = setup({ errorCallback });
+      const started = backchannel.start(stream.asMediaStream());
+      await connect(pc, websocket);
+      await started;
+
+      await backchannel.setStream(createStream().asMediaStream());
+      endTrack(stream);
+
+      expect(errorCallback).not.toHaveBeenCalled();
+      expect(pc.close).not.toHaveBeenCalled();
+    });
+
+    it('should stop watching the microphone once stopped', async () => {
+      const stream = createStream();
+      const errorCallback = vi.fn();
+      const { backchannel, pc, websocket } = setup({ errorCallback });
+      const started = backchannel.start(stream.asMediaStream());
+      await connect(pc, websocket);
+      await started;
+
+      backchannel.stop();
+      endTrack(stream);
+
+      expect(errorCallback).not.toHaveBeenCalled();
+    });
+  });
+
   describe('stale and defensive paths', () => {
     it('should use the browser factories when none are supplied', async () => {
       const pc = new FakeRTCPeerConnection();
@@ -360,6 +426,41 @@ describe('Go2RTCBackchannel', () => {
 
       expect(pc.transceivers).toHaveLength(1);
       vi.unstubAllGlobals();
+    });
+
+    it('should time out an address resolution that never returns', async () => {
+      vi.useFakeTimers();
+      vi.mocked(resolveEndpointURL).mockReturnValue(new Promise(() => {}));
+
+      const { backchannel } = setup();
+      const started = backchannel.start(createStream().asMediaStream());
+      vi.advanceTimersByTime(10 * 1000);
+
+      await expect(started).rejects.toMatchObject({ reason: 'failed' });
+      vi.useRealTimers();
+    });
+
+    it('should reject with a reason and release the connection when setup throws', async () => {
+      const { backchannel, pc } = setup();
+      pc.addTransceiver = () => {
+        throw new Error('bad track');
+      };
+
+      await expect(
+        backchannel.start(createStream().asMediaStream()),
+      ).rejects.toMatchObject({ reason: 'failed', description: 'bad track' });
+      expect(pc.close).toHaveBeenCalled();
+    });
+
+    it('should reject without a description when setup throws something not error-like', async () => {
+      const { backchannel, pc } = setup();
+      pc.addTransceiver = () => {
+        throw 'a bare string';
+      };
+
+      await expect(
+        backchannel.start(createStream().asMediaStream()),
+      ).rejects.toMatchObject({ reason: 'failed', description: null });
     });
 
     it('should abandon a start stopped while the address resolves', async () => {

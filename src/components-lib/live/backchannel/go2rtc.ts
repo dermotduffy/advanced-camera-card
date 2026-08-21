@@ -21,6 +21,11 @@ import {
 
 const BACKCHANNEL_CONNECT_TIMEOUT_SECONDS = 10;
 
+const toBackchannelError = (error: unknown): BackchannelError =>
+  error instanceof BackchannelError
+    ? error
+    : new BackchannelError('failed', getErrorDescription(error) ?? undefined);
+
 interface PendingStart {
   resolve: () => void;
   reject: (error: BackchannelError) => void;
@@ -52,6 +57,8 @@ export class Go2RTCBackchannel implements Backchannel {
   private _connectTimer = new Timer();
   private _generation = new Generation();
 
+  private _outboundTrack: MediaStreamTrack | null = null;
+
   // `start()` cannot determine its own outcome: the camera is only known to be
   // reachable once the peer connection reports `connected`, and go2rtc may
   // refuse in a message that arrives even later. Whichever handler learns the
@@ -70,11 +77,27 @@ export class Go2RTCBackchannel implements Backchannel {
     this._options = options ?? null;
   }
 
-  public async start(stream: MediaStream): Promise<void> {
+  public start(stream: MediaStream): Promise<void> {
     this.stop();
 
     const generation = this._generation.next();
 
+    // Both exist before the first await: a timeout cannot end a wait unless the
+    // promise it rejects has already been created.
+    return new Promise<void>((resolve, reject) => {
+      this._pendingStart = { resolve, reject };
+
+      this._connectTimer.start(BACKCHANNEL_CONNECT_TIMEOUT_SECONDS, () =>
+        this._failStart(generation, new BackchannelError('failed')),
+      );
+
+      this._start(stream, generation).catch((error: unknown) =>
+        this._failStart(generation, toBackchannelError(error)),
+      );
+    });
+  }
+
+  private async _start(stream: MediaStream, generation: number): Promise<void> {
     // A microphone stream carries exactly one audio track.
     const track = stream.getAudioTracks()[0] ?? null;
     if (!track || track.readyState === 'ended') {
@@ -99,6 +122,7 @@ export class Go2RTCBackchannel implements Backchannel {
 
     // This connection only sends audio.
     this._transceiver = pc.addTransceiver(track, { direction: 'sendonly' });
+    this._watchTrack(track);
 
     const channel = new SignalingChannel(
       convertToWebSocketURL(resolvedURL.url),
@@ -110,34 +134,26 @@ export class Go2RTCBackchannel implements Backchannel {
     );
     this._channel = channel;
 
-    await new Promise<void>((resolve, reject) => {
-      this._pendingStart = { resolve, reject };
-
-      this._unsubscribeCallbacks.push(
-        channel.subscribeToMessages((message) =>
-          this._handleMessage(pc, message, generation),
-        ),
-      );
-      pc.addEventListener('icecandidate', (ev) => {
-        if (!this._generation.isCurrent(generation)) {
-          return;
-        }
-        // An empty value signals end-of-candidates.
-        channel.send({
-          type: 'webrtc/candidate',
-          value: ev.candidate ? ev.candidate.candidate : '',
-        });
+    this._unsubscribeCallbacks.push(
+      channel.subscribeToMessages((message) =>
+        this._handleMessage(pc, message, generation),
+      ),
+    );
+    pc.addEventListener('icecandidate', (ev) => {
+      if (!this._generation.isCurrent(generation)) {
+        return;
+      }
+      // An empty value signals end-of-candidates.
+      channel.send({
+        type: 'webrtc/candidate',
+        value: ev.candidate ? ev.candidate.candidate : '',
       });
-      pc.addEventListener('connectionstatechange', () =>
-        this._handleConnectionStateChange(pc, generation),
-      );
-
-      this._connectTimer.start(BACKCHANNEL_CONNECT_TIMEOUT_SECONDS, () =>
-        this._failStart(generation, new BackchannelError('failed')),
-      );
-
-      channel.connect();
     });
+    pc.addEventListener('connectionstatechange', () =>
+      this._handleConnectionStateChange(pc, generation),
+    );
+
+    channel.connect();
   }
 
   public async setStream(stream: MediaStream): Promise<void> {
@@ -156,6 +172,7 @@ export class Go2RTCBackchannel implements Backchannel {
     }
 
     await transceiver.sender.replaceTrack(track);
+    this._watchTrack(track);
   }
 
   public stop(): void {
@@ -171,6 +188,8 @@ export class Go2RTCBackchannel implements Backchannel {
     this._channel?.close();
     this._channel = null;
 
+    this._unwatchTrack();
+
     // Closing the peer connection is what makes go2rtc release the camera's
     // backchannel. The outbound track keeps running: MicrophoneManager owns the
     // microphone and shares it across cameras.
@@ -180,6 +199,29 @@ export class Go2RTCBackchannel implements Backchannel {
     this._transceiver = null;
 
     pendingStart?.reject(new BackchannelError('abandoned'));
+  }
+
+  private _handleTrackEnded = (): void =>
+    this._reportLost(this._generation.current(), new BackchannelError('failed'));
+
+  private _watchTrack(track: MediaStreamTrack): void {
+    this._unwatchTrack();
+    track.addEventListener('ended', this._handleTrackEnded);
+    this._outboundTrack = track;
+  }
+
+  private _unwatchTrack(): void {
+    this._outboundTrack?.removeEventListener('ended', this._handleTrackEnded);
+    this._outboundTrack = null;
+  }
+
+  private _reportLost(generation: number, error: BackchannelError): void {
+    if (this._pendingStart) {
+      this._failStart(generation, error);
+      return;
+    }
+    this.stop();
+    this._options?.errorCallback?.(error);
   }
 
   private async _negotiate(
@@ -275,20 +317,7 @@ export class Go2RTCBackchannel implements Backchannel {
       this._pendingStart?.resolve();
       this._pendingStart = null;
     } else if (pc.connectionState === 'failed') {
-      const error = new BackchannelError('failed');
-
-      if (this._pendingStart) {
-        this._failStart(generation, error);
-        return;
-      }
-
-      // `start()` already resolved, so there is no request left to fail and the
-      // call is under way. Its video and inbound audio ride a different
-      // connection and are unaffected, so the call continues and only the loss
-      // of outbound audio is reported. Tearing down still matters: closing the
-      // dead peer connection is what releases the camera's backchannel.
-      this.stop();
-      this._options?.errorCallback?.(error);
+      this._reportLost(generation, new BackchannelError('failed'));
     }
   }
 
