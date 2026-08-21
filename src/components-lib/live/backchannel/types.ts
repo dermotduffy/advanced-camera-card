@@ -1,4 +1,8 @@
-export type BackchannelFailureReason = 'no_two_way_audio' | 'failed' | 'abandoned';
+export type BackchannelFailureReason =
+  | 'no_two_way_audio'
+  | 'no_microphone'
+  | 'failed'
+  | 'abandoned';
 
 export class BackchannelError extends Error {
   public readonly reason: BackchannelFailureReason;

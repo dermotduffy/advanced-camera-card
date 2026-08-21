@@ -101,7 +101,7 @@ export class Go2RTCBackchannel implements Backchannel {
     // A microphone stream carries exactly one audio track.
     const track = stream.getAudioTracks()[0] ?? null;
     if (!track || track.readyState === 'ended') {
-      throw new BackchannelError('failed');
+      throw new BackchannelError('no_microphone');
     }
 
     const resolvedURL = await resolveEndpointURL(this._hass, this._endpoint, {
@@ -168,7 +168,7 @@ export class Go2RTCBackchannel implements Backchannel {
     // instead would leave the user believing they can be heard.
     const track = stream.getAudioTracks()[0] ?? null;
     if (!track || track.readyState === 'ended') {
-      throw new BackchannelError('failed');
+      throw new BackchannelError('no_microphone');
     }
 
     await transceiver.sender.replaceTrack(track);
@@ -202,7 +202,7 @@ export class Go2RTCBackchannel implements Backchannel {
   }
 
   private _handleTrackEnded = (): void =>
-    this._reportLost(this._generation.current(), new BackchannelError('failed'));
+    this._reportLost(this._generation.current(), new BackchannelError('no_microphone'));
 
   private _watchTrack(track: MediaStreamTrack): void {
     this._unwatchTrack();

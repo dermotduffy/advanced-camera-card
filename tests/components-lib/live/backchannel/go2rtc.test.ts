@@ -108,7 +108,7 @@ describe('Go2RTCBackchannel', () => {
       const { backchannel } = setup();
       await expect(
         backchannel.start(new FakeMediaStream().asMediaStream()),
-      ).rejects.toMatchObject({ reason: 'failed' });
+      ).rejects.toMatchObject({ reason: 'no_microphone' });
     });
 
     it('should reject when the microphone track has already ended', async () => {
@@ -117,7 +117,7 @@ describe('Go2RTCBackchannel', () => {
       track.readyState = 'ended';
       await expect(
         backchannel.start(new FakeMediaStream([track]).asMediaStream()),
-      ).rejects.toMatchObject({ reason: 'failed' });
+      ).rejects.toMatchObject({ reason: 'no_microphone' });
     });
 
     it('should reject when the address cannot be resolved', async () => {
@@ -357,7 +357,7 @@ describe('Go2RTCBackchannel', () => {
 
       endTrack(stream);
 
-      await expect(started).rejects.toMatchObject({ reason: 'failed' });
+      await expect(started).rejects.toMatchObject({ reason: 'no_microphone' });
     });
 
     it('should release the camera and report when the microphone ends mid-call', async () => {
@@ -372,7 +372,7 @@ describe('Go2RTCBackchannel', () => {
 
       expect(pc.close).toHaveBeenCalled();
       expect(errorCallback).toHaveBeenCalledWith(
-        expect.objectContaining({ reason: 'failed' }),
+        expect.objectContaining({ reason: 'no_microphone' }),
       );
     });
 
@@ -673,7 +673,7 @@ describe('Go2RTCBackchannel', () => {
 
       await expect(
         backchannel.setStream(new FakeMediaStream().asMediaStream()),
-      ).rejects.toMatchObject({ reason: 'failed' });
+      ).rejects.toMatchObject({ reason: 'no_microphone' });
       expect(pc.getMicrophoneTransceiver().sender.replaceTrack).not.toHaveBeenCalled();
     });
 
@@ -687,7 +687,7 @@ describe('Go2RTCBackchannel', () => {
       track.readyState = 'ended';
       await expect(
         backchannel.setStream(new FakeMediaStream([track]).asMediaStream()),
-      ).rejects.toMatchObject({ reason: 'failed' });
+      ).rejects.toMatchObject({ reason: 'no_microphone' });
     });
     it('should reject without a description when an answer failure names nothing', async () => {
       const { backchannel, pc, websocket } = setup();
