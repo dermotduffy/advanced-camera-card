@@ -33,6 +33,14 @@ describe('MediaDimensionsContainerController', () => {
   });
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // The controller debounces its resize. Without fake timers a trailing
+    // resize outlives the test that scheduled it and runs against mocks that
+    // have since been cleared, in whatever test file happens to be running.
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   const configWithAspectRatio: CameraDimensionsConfig = {
@@ -622,13 +630,6 @@ describe('MediaDimensionsContainerController', () => {
   });
 
   describe('should respond to slot changes', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
     it('should resize container on slotchange event', () => {
       const host = createLitElement();
       host.getBoundingClientRect = vi.fn().mockReturnValue({
@@ -663,13 +664,6 @@ describe('MediaDimensionsContainerController', () => {
   });
 
   describe('should respond to media load', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
     it('should resize container on media load', () => {
       const host = createLitElement();
       host.getBoundingClientRect = vi.fn().mockReturnValue({
