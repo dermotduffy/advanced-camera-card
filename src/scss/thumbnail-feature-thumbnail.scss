@@ -37,16 +37,25 @@ img {
   object-fit: contain;
 }
 
-advanced-camera-card-icon {
+// The bordered frame occupies the same space an image would, with the icon
+// centered at half size within it.
+.icon-container {
+  width: 100%;
+  height: 100%;
+
   display: flex;
-  width: 50%;
-
-  --mdc-icon-size: 100%;
-  color: var(--primary-text-color);
-
   justify-content: center;
   align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-sizing: border-box;
+  border-radius: var(--advanced-camera-card-border-radius-final);
   opacity: 0.2;
+}
+
+advanced-camera-card-icon {
+  width: 50%;
+  height: 50%;
+
+  --mdc-icon-size: 100%;
+  color: var(--primary-text-color);
 }
