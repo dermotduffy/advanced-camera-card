@@ -6,6 +6,8 @@ import {
 } from '../../utils/action.js';
 import { arrayify } from '../../utils/basic.js';
 
+const DISMISSING_INTERACTIONS = ['tap', 'hold', 'double_tap'];
+
 export function handleControlAction(
   ev: CustomEvent<{ action: string }>,
   control: NotificationControl,
@@ -17,7 +19,11 @@ export function handleControlAction(
   if (action) {
     dispatchActionExecutionRequest(host, { actions: arrayify(action) });
   }
-  if (onDismiss && control.dismiss !== false) {
+  if (
+    onDismiss &&
+    control.dismiss !== false &&
+    DISMISSING_INTERACTIONS.includes(ev.detail.action)
+  ) {
     onDismiss();
   }
 }
