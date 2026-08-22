@@ -1,12 +1,30 @@
-import { Task } from '@lit-labs/task';
+import { Task, type TaskConfig, type TaskFunctionOptions } from '@lit/task';
 import type { ReactiveControllerHost } from 'lit';
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { createFetchThumbnailTask } from '../../src/utils/thumbnail';
+import {
+  createFetchThumbnailTask,
+  type FetchThumbnailTaskArgs,
+} from '../../src/utils/thumbnail';
 import { createHASS, flushPromises } from '../test-utils';
 
-vi.mock('@lit-labs/task');
+vi.mock('@lit/task');
+
+// The Task constructor accepts either (host, config) or (host, taskFunction,
+// argsFunction). When the tests read the constructor arguments back from the
+// mock, TypeScript types them using only the last of those overloads, so the
+// second argument appears to be a task function even though
+// createFetchThumbnailTask always passes a config object. This check narrows it
+// back to the config type.
+const isTaskConfig = (
+  value: unknown,
+): value is TaskConfig<FetchThumbnailTaskArgs, string | null> =>
+  typeof value === 'object' && value !== null && 'task' in value;
+
+const createTaskFunctionOptions = (): TaskFunctionOptions => ({
+  signal: new AbortController().signal,
+});
 
 describe('thumbnail utilities', () => {
   afterEach(() => {
@@ -28,7 +46,8 @@ describe('thumbnail utilities', () => {
     assert(call);
 
     const options = call[1];
-    const result = await options.task([true, thumbnailURL]);
+    assert(isTaskConfig(options));
+    const result = await options.task([true, thumbnailURL], createTaskFunctionOptions());
 
     expect(result).toBe(thumbnailURL);
     expect(hass.fetchWithAuth).not.toHaveBeenCalled();
@@ -48,7 +67,8 @@ describe('thumbnail utilities', () => {
     assert(call);
 
     const options = call[1];
-    const result = await options.task([true, thumbnailURL]);
+    assert(isTaskConfig(options));
+    const result = await options.task([true, thumbnailURL], createTaskFunctionOptions());
 
     expect(result).toBe(thumbnailURL);
   });
@@ -88,7 +108,8 @@ describe('thumbnail utilities', () => {
     assert(call);
 
     const options = call[1];
-    const runPromise = options.task([true, thumbnailURL]);
+    assert(isTaskConfig(options));
+    const runPromise = options.task([true, thumbnailURL], createTaskFunctionOptions());
 
     await flushPromises();
     mockFileReader.onload?.(mock<ProgressEvent<FileReader>>());
@@ -117,7 +138,10 @@ describe('thumbnail utilities', () => {
     assert(call);
 
     const options = call[1];
-    await expect(options.task([true, thumbnailURL])).rejects.toThrow('Not Found');
+    assert(isTaskConfig(options));
+    await expect(
+      options.task([true, thumbnailURL], createTaskFunctionOptions()),
+    ).rejects.toThrow('Not Found');
   });
 
   it('should handle reader error', async () => {
@@ -147,7 +171,8 @@ describe('thumbnail utilities', () => {
     assert(call);
 
     const options = call[1];
-    const runPromise = options.task([true, thumbnailURL]);
+    assert(isTaskConfig(options));
+    const runPromise = options.task([true, thumbnailURL], createTaskFunctionOptions());
 
     await flushPromises();
     mockFileReader.onerror?.(
@@ -186,7 +211,8 @@ describe('thumbnail utilities', () => {
     assert(call);
 
     const options = call[1];
-    const runPromise = options.task([true, thumbnailURL]);
+    assert(isTaskConfig(options));
+    const runPromise = options.task([true, thumbnailURL], createTaskFunctionOptions());
 
     await flushPromises();
     mockFileReader.onload?.(mock<ProgressEvent<FileReader>>());
@@ -206,7 +232,8 @@ describe('thumbnail utilities', () => {
     assert(call);
 
     const options = call[1];
-    const result = await options.task([false, undefined]);
+    assert(isTaskConfig(options));
+    const result = await options.task([false, undefined], createTaskFunctionOptions());
     expect(result).toBeNull();
   });
 
@@ -221,9 +248,12 @@ describe('thumbnail utilities', () => {
       () => thumbnailURL,
     );
     const call = vi.mocked(Task).mock.calls[0];
-    assert(call && call[1].args);
+    assert(call);
 
-    const args = call[1].args();
+    const options = call[1];
+    assert(isTaskConfig(options) && options.args);
+
+    const args = options.args();
     expect(args).toEqual([true, thumbnailURL]);
 
     vi.mocked(Task).mockClear();
@@ -234,9 +264,12 @@ describe('thumbnail utilities', () => {
       () => undefined,
     );
     const call2 = vi.mocked(Task).mock.calls[0];
-    assert(call2 && call2[1].args);
+    assert(call2);
 
-    const args2 = call2[1].args();
+    const options2 = call2[1];
+    assert(isTaskConfig(options2) && options2.args);
+
+    const args2 = options2.args();
     expect(args2).toEqual([false, undefined]);
   });
 });

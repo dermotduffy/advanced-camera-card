@@ -1,4 +1,4 @@
-import { Task } from '@lit-labs/task';
+import { Task } from '@lit/task';
 import {
   html,
   LitElement,

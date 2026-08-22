@@ -1,4 +1,4 @@
-import { TaskStatus, type Task } from '@lit-labs/task';
+import { TaskStatus, type Task } from '@lit/task';
 import {
   html,
   LitElement,
