@@ -80,6 +80,39 @@ describe('MediaDimensionsContainerController', () => {
       expect(observer?.disconnect).toHaveBeenCalled();
     });
 
+    it('should cancel a pending resize on disconnect', () => {
+      const host = createLitElement();
+      host.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 200,
+        width: 200,
+      });
+
+      const innerContainer = document.createElement('div');
+      innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 90,
+        width: 160,
+      });
+      const outerContainer = document.createElement('div');
+
+      const controller = new MediaDimensionsContainerController(host);
+
+      Object.defineProperty(host, 'isConnected', {
+        value: true,
+      });
+      controller.hostConnected();
+
+      controller.setConfig(configWithRotation);
+      controller.setContainers(innerContainer, outerContainer);
+
+      host.removeAttribute('rotated');
+
+      innerContainer.dispatchEvent(new Event('slotchange'));
+      controller.hostDisconnected();
+      vi.advanceTimersByTime(RESIZE_DEBOUNCE_SECONDS * 1000);
+
+      expect(host.hasAttribute('rotated')).toBeFalsy();
+    });
+
     it('should connect and disconnect with a container when host is connected', () => {
       const host = createLitElement();
       Object.defineProperty(host, 'isConnected', {
