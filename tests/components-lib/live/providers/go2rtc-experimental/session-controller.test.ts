@@ -26,7 +26,7 @@ import {
   FakeMediaStreamTrack,
   FakeRTCPeerConnection,
   FakeWebSocket,
-} from './test-utils';
+} from '../../../../go2rtc/test-utils';
 
 const H264_PROFILE: StreamProfile = {
   hasVideo: true,
@@ -128,7 +128,6 @@ describe('Go2RTCSessionController', () => {
         source.getCapabilities.mockReturnValue({
           supportsPause: true,
           hasAudio: true,
-          has2WayAudio: false,
         });
         source.getTechnology.mockReturnValue([mode]);
         binarySources.push(source);
@@ -154,15 +153,12 @@ describe('Go2RTCSessionController', () => {
         source.getCapabilities.mockReturnValue({
           supportsPause: true,
           hasAudio: true,
-          has2WayAudio: false,
         });
         source.getTechnology.mockReturnValue(['webrtc']);
         source.getMediaStream.mockReturnValue(webRTCStream.asMediaStream());
         source.getPeerConnection.mockReturnValue(
           options?.webRTCPeerConnection?.asPeerConnection() ?? null,
         );
-        source.setMicrophoneStream.mockResolvedValue(undefined);
-
         webRTCSources.push(source);
         return source;
       },
@@ -179,7 +175,6 @@ describe('Go2RTCSessionController', () => {
     const mediaLoadedCallback = vi.fn();
     const surfaceCommittedCallback = vi.fn();
     const streamErrorCallback = vi.fn();
-    const microphoneErrorCallback = vi.fn();
 
     const session = new Go2RTCSessionController(
       {
@@ -188,7 +183,6 @@ describe('Go2RTCSessionController', () => {
         mediaLoadedCallback,
         surfaceCommittedCallback,
         streamErrorCallback,
-        microphoneErrorCallback,
       },
       { createWebSocket, createBinarySource, createWebRTCSource, createVideoElement },
     );
@@ -204,7 +198,6 @@ describe('Go2RTCSessionController', () => {
       createWebRTCSource,
       createWebSocket,
       streamErrorCallback,
-      microphoneErrorCallback,
       mediaLoadedCallback,
       offscreenVideos,
       session,
@@ -285,7 +278,6 @@ describe('Go2RTCSessionController', () => {
         getCardWideConfig: () => null,
         mediaLoadedCallback: vi.fn(),
         streamErrorCallback: vi.fn(),
-        microphoneErrorCallback: vi.fn(),
       });
       session.connect('ws://localhost:1/api/ws', createSurfaces().surfaces, ['mse']);
       session.reset();
@@ -526,42 +518,6 @@ describe('Go2RTCSessionController', () => {
       expect(video.srcObject).toBeNull();
       vi.advanceTimersByTime(2 * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(2);
-    });
-
-    it('should pre-arm the WebRTC source with the current microphone stream', () => {
-      const { session, surfaces, websockets, webRTCOptions } = setup();
-      const micStream = new FakeMediaStream([
-        new FakeMediaStreamTrack('audio'),
-      ]).asMediaStream();
-      session.setMicrophoneStream(micStream);
-      session.connect('http://host/api/ws?src=camera', surfaces, ['webrtc']);
-      websockets[0].fireOpen();
-
-      expect(webRTCOptions[0]?.microphoneStream).toBe(micStream);
-    });
-
-    it('should report a microphone error without disturbing the stream', () => {
-      const {
-        session,
-        surfaces,
-        websockets,
-        webRTCOptions,
-        webRTCSources,
-        microphoneErrorCallback,
-        streamErrorCallback,
-      } = setup();
-      session.connect('http://host/api/ws?src=camera', surfaces, ['webrtc']);
-      websockets[0].fireOpen();
-
-      webRTCOptions[0]?.microphoneErrorCallback?.('InvalidStateError');
-
-      expect(microphoneErrorCallback).toHaveBeenCalledWith('InvalidStateError');
-
-      // The inbound video is unaffected by an outbound audio failure, so the
-      // source keeps running and the session neither escalates nor reconnects.
-      expect(streamErrorCallback).not.toHaveBeenCalled();
-      expect(webRTCSources[0].stop).not.toHaveBeenCalled();
-      expect(websockets).toHaveLength(1);
     });
 
     it('should re-dispatch loaded media on an audio mute transition', () => {
@@ -858,26 +814,6 @@ describe('Go2RTCSessionController', () => {
     });
   });
 
-  describe('microphone', () => {
-    it('should forward a microphone change to the WebRTC source', () => {
-      const { session, surfaces, websockets, webRTCSources } = setup();
-      session.connect('http://host/api/ws?src=camera', surfaces, ['webrtc']);
-      websockets[0].fireOpen();
-      const micStream = new FakeMediaStream([
-        new FakeMediaStreamTrack('audio'),
-      ]).asMediaStream();
-      session.setMicrophoneStream(micStream);
-
-      expect(webRTCSources[0].setMicrophoneStream).toHaveBeenCalledWith(micStream);
-    });
-
-    it('should tolerate a microphone change with no WebRTC source', () => {
-      const { session } = setup();
-
-      expect(() => session.setMicrophoneStream(null)).not.toThrow();
-    });
-  });
-
   describe('lifecycle', () => {
     it('should stop the source and reconnect on unexpected closure', () => {
       const { session, surfaces, websockets, binarySources, createWebSocket } = setup();
@@ -1078,16 +1014,6 @@ describe('Go2RTCSessionController', () => {
       expect(mediaLoadedCallback).not.toHaveBeenCalled();
     });
 
-    it('should swallow a rejected microphone update', async () => {
-      const { session, surfaces, websockets, webRTCSources } = setup();
-      session.connect('http://host/api/ws?src=camera', surfaces, ['webrtc']);
-      websockets[0].fireOpen();
-      webRTCSources[0].setMicrophoneStream.mockRejectedValue(new Error('replace'));
-
-      expect(() => session.setMicrophoneStream(null)).not.toThrow();
-      await Promise.resolve();
-    });
-
     it('should ignore callbacks fired while a binary source is constructed', () => {
       const websockets: FakeWebSocket[] = [];
       const createWebSocket = vi.fn<(url: string) => WebSocket>(() => {
@@ -1112,7 +1038,6 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           mediaLoadedCallback,
           streamErrorCallback: vi.fn(),
-          microphoneErrorCallback: vi.fn(),
         },
         { createWebSocket, createBinarySource },
       );
@@ -1147,7 +1072,6 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           mediaLoadedCallback,
           streamErrorCallback: vi.fn(),
-          microphoneErrorCallback: vi.fn(),
         },
         { createWebSocket, createWebRTCSource },
       );
@@ -1174,7 +1098,6 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           mediaLoadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
-          microphoneErrorCallback: vi.fn(),
         },
         { createWebSocket },
       );
@@ -1206,7 +1129,6 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           mediaLoadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
-          microphoneErrorCallback: vi.fn(),
         },
         { createWebSocket },
       );
@@ -1247,7 +1169,6 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           mediaLoadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
-          microphoneErrorCallback: vi.fn(),
         },
         { createWebSocket, createBinarySource, createWebRTCSource },
       );

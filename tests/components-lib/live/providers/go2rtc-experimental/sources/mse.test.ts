@@ -568,7 +568,6 @@ describe('MSEStreamSource', () => {
       expect(source.getCapabilities()).toEqual({
         supportsPause: true,
         hasAudio: false,
-        has2WayAudio: false,
       });
     });
 
@@ -579,7 +578,6 @@ describe('MSEStreamSource', () => {
       expect(setupResult.source.getCapabilities()).toEqual({
         supportsPause: true,
         hasAudio: true,
-        has2WayAudio: false,
       });
     });
 
@@ -595,7 +593,6 @@ describe('MSEStreamSource', () => {
       expect(setupResult.source.getCapabilities()).toEqual({
         supportsPause: true,
         hasAudio: false,
-        has2WayAudio: false,
       });
     });
 

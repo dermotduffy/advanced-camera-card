@@ -1,3 +1,8 @@
+import { createBackchannel } from '../../components-lib/live/backchannel/factory';
+import {
+  BackchannelError,
+  type Backchannel,
+} from '../../components-lib/live/backchannel/types';
 import { createNotificationFromText } from '../../components-lib/notification/factory';
 import type { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { localize } from '../../localize/localize';
@@ -15,6 +20,8 @@ export class CallManager {
   private _call: CallSession | null = null;
   private _ringtone = new Ringtone();
   private _unansweredTimer = new Timer();
+
+  private _backchannel: Backchannel | null = null;
 
   // Identifies the current init/uninit cycle so an in-flight `start()` or
   // `answer()` resuming from its microphone-connect await can detect that its
@@ -200,7 +207,8 @@ export class CallManager {
     if (call.inbound && !call.answered && timeoutSeconds > 0) {
       this._unansweredTimer.start(timeoutSeconds, () => this.end());
     }
-    return true;
+
+    return call.answered ? await this._openBackchannel(call, inbound) : true;
   }
 
   // Ends the call and returns to the pre-call view. Returns true iff a call was
@@ -242,10 +250,12 @@ export class CallManager {
     // Replace (don't mutate) so Lit identity checks downstream pick up the
     // change. The `update()` below forces card.ts to re-render and re-read
     // `getCall()`, propagating the new session to the carousel.
-    this._call = { ...call, answered: true };
+    const answeredCall = { ...call, answered: true };
+    this._call = answeredCall;
     this._api.getConditionStateManager().setState({ call: 'answered' });
     this._api.getCardElementManager().update();
-    return true;
+
+    return await this._openBackchannel(answeredCall, false);
   }
 
   // Ends the active call iff every supplied predicate matches the session.
@@ -270,20 +280,81 @@ export class CallManager {
     return this.end();
   }
 
-  // The microphone could not be used for the call, so it is connected but the
-  // user cannot be heard. `description` is what the reporting layer knows about
-  // the failure, when it knows anything.
-  public reportCallMicrophoneError(targetID: string, description?: string): void {
-    const call = this._call;
+  // Opens the backchannel for an answered call. Failing to open it ends
+  // the call, so the user is never left with call controls when they cannot be
+  // heard. Returns true iff the call is still running.
+  private async _openBackchannel(call: CallSession, inbound: boolean): Promise<boolean> {
+    const targetID = call.callCameraID ?? call.cameraID;
+    const hass = this._api.getHASSManager().getHASS();
+    const camera = this._api.getCameraManager().getStore().getCamera(targetID);
+    const stream = this._api.getMicrophoneManager().getStream();
 
-    // A report that no longer matches the call in progress describes an attempt
-    // the user has already moved past, e.g. the call ended before the provider
-    // finished reporting.
-    if (!call || !call.answered || call.cameraID !== targetID) {
+    const backchannel =
+      hass && camera
+        ? createBackchannel(hass, camera, (error) =>
+            this._reportBackchannelLoss(call, error),
+          )
+        : null;
+    if (!backchannel || !stream) {
+      this._notifyError('error.call_no_two_way_audio', { inbound });
+      this._end(true);
+      return false;
+    }
+
+    this._backchannel = backchannel;
+
+    try {
+      await backchannel.start(stream);
+    } catch (error: unknown) {
+      if (this._call !== call) {
+        return false;
+      }
+      this._closeBackchannel();
+      this._notifyBackchannelError(error, inbound);
+      this._end(true);
+      return false;
+    }
+
+    if (this._call !== call) {
+      backchannel.stop();
+      return false;
+    }
+    return true;
+  }
+
+  private _closeBackchannel(): void {
+    this._backchannel?.stop();
+    this._backchannel = null;
+  }
+
+  private _reportBackchannelLoss(call: CallSession, error: BackchannelError): void {
+    if (this._call !== call) {
+      return;
+    }
+    this._notifyBackchannelError(error, call.inbound);
+  }
+
+  private _notifyBackchannelError(error: unknown, inbound: boolean): void {
+    const reason = error instanceof BackchannelError ? error.reason : 'failed';
+
+    // Abandonment means this manager closed the backchannel itself, because the
+    // call ended or was replaced. Nothing failed, so there is nothing to report.
+    if (reason === 'abandoned') {
       return;
     }
 
-    this._notifyError('error.call_microphone_failed', { context: description });
+    const messageKey =
+      reason === 'no_two_way_audio'
+        ? 'error.call_no_two_way_audio'
+        : reason === 'no_microphone'
+          ? 'error.call_microphone_failed'
+          : 'error.call_camera_unreachable';
+
+    this._notifyError(messageKey, {
+      inbound,
+      ...(error instanceof BackchannelError &&
+        error.description && { context: error.description }),
+    });
   }
 
   // Tears down everything `initialize()` set up: stops any in-flight ringtone
@@ -296,6 +367,7 @@ export class CallManager {
     this._initGeneration.invalidate();
     this._ringtone.stop();
     this._unansweredTimer.stop();
+    this._closeBackchannel();
     this._api.getMicrophoneManager().setTransmissionActive(false);
     if (this._call) {
       this._call = null;
@@ -323,6 +395,8 @@ export class CallManager {
     // Silence any ringtone before the navigation.
     this._ringtone.stop();
     this._unansweredTimer.stop();
+
+    this._closeBackchannel();
 
     // Clear the session first: ending the call dispatches a view change, and
     // the resulting condition-state change must not see this (now-ending) call

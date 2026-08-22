@@ -88,6 +88,21 @@ export function contentsChanged(
   return !isEqualWith(n, o, customizer);
 }
 
+// Get a description from thrown value preferring the browser's sentence ("The
+// peer connection is closed") over the bare type name ("InvalidStateError").
+//
+// DOMException may not inherit from Error, and catch blocks may be handed
+// anything, so details are extracted structurally rather than via `instanceof
+// Error`.
+export const getErrorDescription = (error: unknown): string | null => {
+  if (!isRecord(error)) {
+    return null;
+  }
+  const message = typeof error.message === 'string' ? error.message : '';
+  const name = typeof error.name === 'string' ? error.name : '';
+  return message || name || null;
+};
+
 /**
  * Log an error as a warning to the console.
  * @param e The caught error or error-like value.

@@ -9,6 +9,11 @@ import { CallManager } from '../../../src/card-controller/call/manager';
 import { Ringtone } from '../../../src/card-controller/call/ringtone';
 import type { CardController } from '../../../src/card-controller/controller';
 import { SubstreamViewModifier } from '../../../src/card-controller/view/modifiers/substream';
+import { createBackchannel } from '../../../src/components-lib/live/backchannel/factory';
+import {
+  BackchannelError,
+  type Backchannel,
+} from '../../../src/components-lib/live/backchannel/types';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import type { ConditionStateChange } from '../../../src/condition-trigger/conditions/types';
 import { CallTrigger } from '../../../src/condition-trigger/triggers/triggers/call';
@@ -23,7 +28,7 @@ import {
 } from '../../camera-manager/test-utils';
 import { createTriggerEvaluatorContext } from '../../condition-trigger/triggers/triggers/test-utils';
 import { createCameraConfig, createConfig } from '../../config/test-utils';
-import { createCardAPI } from '../../test-utils';
+import { createCardAPI, createHASS } from '../../test-utils';
 import { createView } from '../../view/test-utils';
 
 // Replace Ringtone with a fresh `mock<Ringtone>()` per construction so each
@@ -36,6 +41,20 @@ vi.mock('../../../src/card-controller/call/ringtone', () => ({
     return mock<Ringtone>();
   }),
 }));
+
+vi.mock('../../../src/components-lib/live/backchannel/factory');
+
+const getBackchannel = (): Backchannel => {
+  const results = vi.mocked(createBackchannel).mock.results;
+  const last = results.at(-1);
+  assert(last);
+  return last.value;
+};
+
+beforeEach(() => {
+  vi.mocked(createBackchannel).mockReset();
+  vi.mocked(createBackchannel).mockImplementation(() => mock<Backchannel>());
+});
 
 // Each test creates a new CallManager which constructs a new Ringtone, so the
 // most recent constructor result is always this test's mock.
@@ -65,6 +84,8 @@ const createAPI = (options?: {
   config?: PartialDeep<AdvancedCameraCardConfig>;
 }): CardController => {
   const api = createCardAPI();
+  vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+  vi.mocked(api.getMicrophoneManager().getStream).mockReturnValue(mock<MediaStream>());
   vi.mocked(api.getViewManager().getView).mockReturnValue(options?.view ?? null);
   vi.mocked(api.getCameraManager).mockReturnValue(
     createCameraManager(options?.store ?? createCallableStore()),
@@ -942,65 +963,6 @@ describe('endIf', () => {
 
       expect(manager.isActive()).toBe(true);
     });
-  });
-});
-
-describe('reportCallMicrophoneError', () => {
-  it('should report a microphone that could not be attached', async () => {
-    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
-    const manager = new CallManager(api);
-    expect(await manager.start()).toBe(true);
-    vi.mocked(api.getNotificationManager().setNotification).mockClear();
-
-    manager.reportCallMicrophoneError('camera.office', 'The peer connection is closed');
-
-    expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith({
-      heading: { text: 'Two-way audio unavailable' },
-      body: { text: 'Your microphone could not be connected.' },
-      context: ['The peer connection is closed'],
-    });
-  });
-
-  it('should omit the context when the browser provided none', async () => {
-    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
-    const manager = new CallManager(api);
-    expect(await manager.start()).toBe(true);
-    vi.mocked(api.getNotificationManager().setNotification).mockClear();
-
-    manager.reportCallMicrophoneError('camera.office');
-
-    expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith(
-      expect.not.objectContaining({ context: expect.anything() }),
-    );
-  });
-
-  it('should not report without a call', () => {
-    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
-
-    new CallManager(api).reportCallMicrophoneError('camera.office');
-
-    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
-  });
-
-  it('should not report while an inbound call is still ringing', async () => {
-    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
-    const manager = new CallManager(api);
-    expect(await manager.start({ inbound: true })).toBe(true);
-
-    manager.reportCallMicrophoneError('camera.office');
-
-    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
-  });
-
-  it('should not report for a camera the call is not on', async () => {
-    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
-    const manager = new CallManager(api);
-    expect(await manager.start()).toBe(true);
-    vi.mocked(api.getNotificationManager().setNotification).mockClear();
-
-    manager.reportCallMicrophoneError('camera.other');
-
-    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 });
 
@@ -2227,7 +2189,7 @@ describe('state changes during in-flight start', () => {
     const second = manager.start({ cameraID: 'camera.garage' });
     resolveConnect(true);
 
-    expect(await first).toBe(true);
+    expect(await first).toBe(false);
     expect(await second).toBe(true);
 
     // The second request must end the first request's session rather than
@@ -2344,6 +2306,244 @@ describe('state changes during in-flight answer', () => {
 // these drive a real ConditionStateManager and a real CallTrigger and assert
 // the transitions an automation would fire on, rather than that `setState` was
 // called.
+describe('the backchannel', () => {
+  const startAnsweredCall = async (
+    api: CardController,
+  ): Promise<{ manager: CallManager; started: boolean }> => {
+    const manager = new CallManager(api);
+    manager.initialize();
+    const started = await manager.start();
+    return { manager, started };
+  };
+
+  it('should open the backchannel when an outbound call starts', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+
+    const { started } = await startAnsweredCall(api);
+
+    expect(started).toBe(true);
+    expect(getBackchannel().start).toHaveBeenCalled();
+  });
+
+  it('should not open the backchannel while an inbound call is only ringing', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    await manager.start({ inbound: true });
+
+    expect(createBackchannel).not.toHaveBeenCalled();
+  });
+
+  it('should open the backchannel when an inbound call is answered', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    manager.initialize();
+    await manager.start({ inbound: true });
+
+    expect(await manager.answer()).toBe(true);
+    expect(getBackchannel().start).toHaveBeenCalled();
+  });
+
+  it('should release the backchannel when the call ends', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const { manager } = await startAnsweredCall(api);
+    const backchannel = getBackchannel();
+
+    manager.end();
+
+    expect(backchannel.stop).toHaveBeenCalled();
+  });
+
+  it('should release the backchannel when the manager is torn down', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const { manager } = await startAnsweredCall(api);
+    const backchannel = getBackchannel();
+
+    manager.uninitialize();
+
+    expect(backchannel.stop).toHaveBeenCalled();
+  });
+
+  it('should end the call and report when the backchannel cannot be opened', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    vi.mocked(createBackchannel).mockImplementation(() => {
+      const backchannel = mock<Backchannel>();
+      backchannel.start.mockRejectedValue(new BackchannelError('no_two_way_audio'));
+      return backchannel;
+    });
+
+    const { manager, started } = await startAnsweredCall(api);
+
+    expect(started).toBe(false);
+    expect(manager.getCall()).toBeNull();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
+  });
+
+  it('should not report a backchannel abandoned by this manager', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    vi.mocked(createBackchannel).mockImplementation(() => {
+      const backchannel = mock<Backchannel>();
+      backchannel.start.mockRejectedValue(new BackchannelError('abandoned'));
+      return backchannel;
+    });
+
+    await startAnsweredCall(api);
+
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
+  });
+
+  it('should release the previous backchannel before opening the next', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const order: string[] = [];
+    vi.mocked(createBackchannel).mockImplementation(() => {
+      const backchannel = mock<Backchannel>();
+      backchannel.start.mockImplementation(async () => void order.push('start'));
+      backchannel.stop.mockImplementation(() => void order.push('stop'));
+      return backchannel;
+    });
+
+    const manager = new CallManager(api);
+    manager.initialize();
+    await manager.start();
+    await manager.start({ cameraID: 'camera.garage' });
+
+    // A camera that permits a single backchannel must never see two at once.
+    expect(order).toEqual(['start', 'stop', 'start']);
+  });
+
+  it('should end the call when the live provider has no backchannel to offer', async () => {
+    // This is reachable through `capabilities.force` which can force 2-way
+    // audio on a live provider that does not support it.
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    vi.mocked(createBackchannel).mockReturnValue(null);
+
+    const { manager, started } = await startAnsweredCall(api);
+
+    expect(started).toBe(false);
+    expect(manager.getCall()).toBeNull();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
+  });
+
+  it('should still report a failure that has no reason', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    vi.mocked(createBackchannel).mockImplementation(() => {
+      const backchannel = mock<Backchannel>();
+      backchannel.start.mockRejectedValue(new Error('boom'));
+      return backchannel;
+    });
+
+    await startAnsweredCall(api);
+
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: { text: 'The camera could not be reached for two-way audio.' },
+      }),
+    );
+  });
+
+  it('should end the call when Home Assistant is not available', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
+
+    const { manager, started } = await startAnsweredCall(api);
+
+    expect(started).toBe(false);
+    expect(manager.getCall()).toBeNull();
+  });
+
+  it('should distinguish a microphone failure from an unreachable camera', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    vi.mocked(createBackchannel).mockImplementation(() => {
+      const backchannel = mock<Backchannel>();
+      backchannel.start.mockRejectedValue(new BackchannelError('no_microphone'));
+      return backchannel;
+    });
+
+    await startAnsweredCall(api);
+
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: { text: 'Your microphone could not be connected.' },
+      }),
+    );
+  });
+
+  it('should not report a backchannel that failed for a replaced call', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+
+    let rejectFirst: (error: unknown) => void = () => {};
+    let call = 0;
+    vi.mocked(createBackchannel).mockImplementation(() => {
+      const backchannel = mock<Backchannel>();
+      if (call++ === 0) {
+        backchannel.start.mockReturnValue(
+          new Promise((_resolve, reject) => (rejectFirst = reject)),
+        );
+      }
+      return backchannel;
+    });
+
+    const manager = new CallManager(api);
+    manager.initialize();
+    const first = manager.start();
+    await manager.start({ cameraID: 'camera.garage' });
+
+    rejectFirst(new BackchannelError('failed'));
+
+    expect(await first).toBe(false);
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
+    expect(manager.getCall()?.cameraID).toBe('camera.garage');
+  });
+
+  it('should not report a backchannel lost after its call ended', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const { manager } = await startAnsweredCall(api);
+    const errorCallback = vi.mocked(createBackchannel).mock.calls[0][2];
+    assert(errorCallback);
+
+    manager.end();
+    errorCallback(new BackchannelError('failed'));
+
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
+  });
+
+  it('should report the backchannel being lost mid-call', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    await startAnsweredCall(api);
+
+    const errorCallback = vi.mocked(createBackchannel).mock.calls[0][2];
+    assert(errorCallback);
+    errorCallback(new BackchannelError('failed', 'the sky fell'));
+
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
+  });
+});
+
 describe('published phase transitions in condition state', () => {
   const createAPIWithRealStateManager = (options?: {
     config?: PartialDeep<AdvancedCameraCardConfig>;

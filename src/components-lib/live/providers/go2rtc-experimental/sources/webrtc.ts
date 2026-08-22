@@ -1,24 +1,25 @@
+import {
+  isServerErrorForMode,
+  type Go2RTCMessage,
+} from '../../../../../go2rtc/messages';
+import {
+  createBrowserPeerConnection,
+  GO2RTC_PEER_CONNECTION_CONFIG,
+  type PeerConnectionFactory,
+} from '../../../../../go2rtc/peer-connection';
 import type {
   MediaLoadedCapabilities,
   MediaTechnology,
   UnsubscribeCallback,
 } from '../../../../../types';
-import { has2WayAudio, hasAudio } from '../../../../../utils/audio';
-import { isRecord } from '../../../../../utils/basic';
+import { hasAudio } from '../../../../../utils/audio';
 import { Timer } from '../../../../../utils/timer';
-import {
-  createBrowserPeerConnection,
-  GO2RTC_PEER_CONNECTION_CONFIG,
-  type PeerConnectionFactory,
-} from '../adapters/peer-connection';
 import type {
-  Go2RTCMessage,
   StreamProfile,
   StreamSource,
   StreamSourceContext,
   VideoStreamTarget,
 } from '../types';
-import { isServerErrorForMode } from '../utils/messages';
 import { sdpHasH265 } from '../utils/webrtc-sdp';
 
 // ===========================================================================
@@ -39,32 +40,9 @@ const WEBRTC_CONNECT_TIMEOUT_SECONDS = 5;
 
 export type MediaStreamFactory = (tracks: MediaStreamTrack[]) => MediaStream;
 
-// What a thrown value has to say for itself, preferring the browser's sentence
-// ("The peer connection is closed") over the bare type name
-// ("InvalidStateError"), which means nothing to the person reading it.
-//
-// DOMException may not inherit from Error, and catch blocks may be handed
-// anything, so extract details structurally rather than using `instanceof
-// Error`.
-const getErrorDescription = (error: unknown): string | null => {
-  if (!isRecord(error)) {
-    return null;
-  }
-  const message = typeof error.message === 'string' ? error.message : '';
-  const name = typeof error.name === 'string' ? error.name : '';
-  return message || name || null;
-};
-
 interface WebRTCStreamSourceOptions {
   createPeerConnection?: PeerConnectionFactory;
   createMediaStream?: MediaStreamFactory;
-  microphoneStream?: MediaStream | null;
-
-  // The outbound microphone track could not be attached. Separate from the
-  // stream-source failure channel: a microphone that cannot attach says nothing
-  // about the inbound video which keeps playing. `error` is what the browser
-  // said went wrong, when it said anything.
-  microphoneErrorCallback?: (error?: string) => void;
 }
 
 export class WebRTCStreamSource implements StreamSource {
@@ -74,10 +52,6 @@ export class WebRTCStreamSource implements StreamSource {
 
   private _createPeerConnection: PeerConnectionFactory;
   private _createMediaStream: MediaStreamFactory;
-  private _microphoneStream: MediaStream | null;
-  private _microphoneErrorCallback: ((error?: string) => void) | null;
-
-  private _microphoneTransceiver: RTCRtpTransceiver | null = null;
 
   private _connectTimer = new Timer();
 
@@ -97,23 +71,12 @@ export class WebRTCStreamSource implements StreamSource {
       options?.createPeerConnection ?? createBrowserPeerConnection;
     this._createMediaStream =
       options?.createMediaStream ?? ((tracks) => new MediaStream(tracks));
-
-    this._microphoneStream = options?.microphoneStream ?? null;
-    this._microphoneErrorCallback = options?.microphoneErrorCallback ?? null;
   }
 
   public start(): void {
     const pc = this._createPeerConnection(GO2RTC_PEER_CONNECTION_CONFIG);
     this._pc = pc;
 
-    // Always pre-arm exactly one outbound audio slot so the microphone track
-    // can be attached later via `replaceTrack` with no renegotiation. The
-    // kind-only `addTransceiver('audio', ...)` form never calls getUserMedia,
-    // so it never raises permission prompt for users.
-    const microphoneTrack = this._microphoneStream?.getAudioTracks()[0] ?? null;
-    this._microphoneTransceiver = pc.addTransceiver(microphoneTrack ?? 'audio', {
-      direction: 'sendonly',
-    });
     pc.addTransceiver('video', { direction: 'recvonly' });
     pc.addTransceiver('audio', { direction: 'recvonly' });
 
@@ -162,17 +125,10 @@ export class WebRTCStreamSource implements StreamSource {
 
     this._context.target.video.removeEventListener('loadeddata', this._loadedHandler);
     if (this._pc) {
-      // pc.close() does not stop the sender's tracks, so the outbound microphone
-      // track keeps running. That is deliberate: MicrophoneManager owns the mic
-      // (it is shared across cameras), so stopping it here would break it
-      // elsewhere -- do not add a track.stop() here. See
-      // https://github.com/dermotduffy/advanced-camera-card/issues/1810
       this._pc.close();
       this._pc = null;
     }
 
-    // The transceiver belonged to the now-closed peer connection.
-    this._microphoneTransceiver = null;
     this._context.target.video.srcObject = null;
     this._stream = null;
   }
@@ -189,7 +145,6 @@ export class WebRTCStreamSource implements StreamSource {
     return {
       supportsPause: true,
       hasAudio: hasAudio(this._context.target.video, { pc: this._pc }),
-      has2WayAudio: has2WayAudio(this._pc),
     };
   }
 
@@ -206,45 +161,6 @@ export class WebRTCStreamSource implements StreamSource {
       hasAudio: (this._stream?.getAudioTracks().length ?? 0) > 0,
       hasAACAudio: false,
     };
-  }
-
-  // Swap the outbound microphone track without renegotiating.
-  public async setMicrophoneStream(stream: MediaStream | null): Promise<void> {
-    if (this._microphoneStream === stream) {
-      return;
-    }
-    this._microphoneStream = stream;
-
-    const transceiver = this._microphoneTransceiver;
-    if (!transceiver) {
-      // No peer connection yet; the next `start()` reads the current stream and
-      // pre-arms the transceiver with it.
-      return;
-    }
-
-    // Whether the awaited microphone request is still the one in effect: a newer
-    // stream, or teardown, retires it, and reporting a retired outcome would
-    // describe something that is no longer being attempted.
-    const isCurrentRequest = (
-      transceiver: RTCRtpTransceiver,
-      stream: MediaStream | null,
-    ): boolean =>
-      transceiver === this._microphoneTransceiver &&
-      this._microphoneStream === stream &&
-      this._pc !== null;
-
-    // A microphone stream carries a single audio track; null detaches the sender.
-    const desiredTrack = stream?.getAudioTracks()[0] ?? null;
-    try {
-      await transceiver.sender.replaceTrack(desiredTrack);
-    } catch (error) {
-      // Only a failed attach is reported. A failed detach leaves nothing for
-      // the user to act on: the track stops being transmitted when the peer
-      // connection closes.
-      if (desiredTrack && isCurrentRequest(transceiver, stream)) {
-        this._microphoneErrorCallback?.(getErrorDescription(error) ?? undefined);
-      }
-    }
   }
 
   private async _negotiate(pc: RTCPeerConnection): Promise<void> {

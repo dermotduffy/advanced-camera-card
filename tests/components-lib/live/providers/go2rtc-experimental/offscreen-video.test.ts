@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { OffscreenVideo } from '../../../../../src/components-lib/live/providers/go2rtc-experimental/offscreen-video';
-import { FakeMediaStream, FakeMediaStreamTrack } from './test-utils';
+import { FakeMediaStream, FakeMediaStreamTrack } from '../../../../go2rtc/test-utils';
 
 // @vitest-environment jsdom
 describe('OffscreenVideo', () => {

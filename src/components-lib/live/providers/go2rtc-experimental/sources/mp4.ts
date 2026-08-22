@@ -1,5 +1,6 @@
+import type { Go2RTCMessage } from '../../../../../go2rtc/messages';
 import { OffscreenVideo, type VideoElementFactory } from '../offscreen-video';
-import type { Go2RTCMessage, ImageStreamTarget, StreamSourceContext } from '../types';
+import type { ImageStreamTarget, StreamSourceContext } from '../types';
 import { arrayBufferToBase64 } from '../utils/base64';
 import {
   convertToCodecString,

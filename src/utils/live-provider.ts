@@ -1,7 +1,7 @@
-import { supports2WayAudio as gortcSupports2WayAudio } from '../camera-manager/utils/go2rtc/audio';
 import type { CameraConfig } from '../config/schema/cameras';
 import type { LiveProvider } from '../config/schema/cameras.js';
 import type { EnabledProxyConfig } from '../config/schema/common/proxy';
+import { supports2WayAudio as gortcSupports2WayAudio } from '../go2rtc/audio';
 import type { HomeAssistant } from '../ha/types';
 import type { Endpoint } from '../types';
 

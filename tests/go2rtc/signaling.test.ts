@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { SignalingChannel } from '../../../../../src/components-lib/live/providers/go2rtc-experimental/signaling';
+import { SignalingChannel } from '../../src/go2rtc/signaling';
 import { FakeWebSocket } from './test-utils';
 
 describe('SignalingChannel', () => {

@@ -1,5 +1,5 @@
-import type { CameraConfig } from '../../../config/schema/cameras';
-import type { Endpoint } from '../../../types';
+import type { CameraConfig } from '../config/schema/cameras';
+import type { Endpoint } from '../types';
 
 interface EndpointOptions {
   url?: string;
@@ -18,7 +18,7 @@ const buildGo2RTCEndpoint = (
     return null;
   }
 
-  const endpoint = pathBuilder(url, stream);
+  const endpoint = pathBuilder(url, encodeURIComponent(stream));
   return {
     endpoint,
     // Only sign the endpoint if it's local to HA.
@@ -43,9 +43,9 @@ export const getGo2RTCMetadataEndpoint = (
 ): Endpoint | null => {
   return buildGo2RTCEndpoint(
     cameraConfig,
-    // Use probe parameters to trigger active stream detection.
-    // Without these, go2rtc only returns static config without producer medias.
-    (url, stream) => `${url}/api/streams?src=${stream}&video=all&audio=all&microphone`,
+    // The `video` and `audio` parameters make go2rtc connect to the camera and
+    // report what it finds vs just reporting its own configuration.
+    (url, stream) => `${url}/api/streams?src=${stream}&video=all&audio=all`,
     options,
   );
 };

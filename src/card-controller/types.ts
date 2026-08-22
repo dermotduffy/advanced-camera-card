@@ -85,6 +85,7 @@ export interface CardCallAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
+  getHASSManager(): HASSManager;
   getMicrophoneManager(): MicrophoneManager;
   getNotificationManager(): NotificationManager;
   getViewManager(): ViewManager;

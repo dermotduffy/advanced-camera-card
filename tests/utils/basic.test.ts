@@ -18,6 +18,7 @@ import {
   generateFloatApproximatelyEqualsCustomizer,
   getChildrenFromElement,
   getDurationString,
+  getErrorDescription,
   ignoreFunctionIdentity,
   isHoverableDevice,
   isHTMLElement,
@@ -101,6 +102,26 @@ describe('contentsChanged', () => {
   });
   it('should not have changed contents', () => {
     expect(contentsChanged([1, 2], [1, 2])).toBeFalsy();
+  });
+});
+
+describe('getErrorDescription', () => {
+  it('should prefer the message', () => {
+    expect(getErrorDescription(new Error('the peer connection is closed'))).toBe(
+      'the peer connection is closed',
+    );
+  });
+
+  it('should fall back to the name when there is no message', () => {
+    expect(getErrorDescription({ name: 'InvalidStateError' })).toBe('InvalidStateError');
+  });
+
+  it('should return null when there is neither', () => {
+    expect(getErrorDescription({})).toBeNull();
+  });
+
+  it('should return null for a value that is not error-like', () => {
+    expect(getErrorDescription('a bare string')).toBeNull();
   });
 });
 

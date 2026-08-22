@@ -2,18 +2,15 @@ import type { ReactiveController, ReactiveControllerHost } from 'lit';
 import { isEqual } from 'lodash-es';
 
 import type { EnabledProxyConfig } from '../config/schema/common/proxy.js';
-import { homeAssistantGetSignedURLIfNecessary } from '../ha/sign-path.js';
-import type { HomeAssistant } from '../ha/types.js';
 import {
-  createProxiedEndpointIfNecessary,
-  type CreateProxiedEndpointOptions,
-} from '../ha/web-proxy.js';
+  PROXY_URL_SIGN_EXPIRY_SECONDS,
+  resolveEndpointURL,
+} from '../ha/resolve-endpoint.js';
+import type { HomeAssistant } from '../ha/types.js';
+import type { CreateProxiedEndpointOptions } from '../ha/web-proxy.js';
 import { localize } from '../localize/localize.js';
 import type { Endpoint } from '../types.js';
-import { errorToConsole } from '../utils/basic.js';
 import { Generation } from '../utils/concurrency/generation.js';
-
-const PROXY_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
 // Re-register and re-sign well before the signed URL expires.
 const PROXY_CACHE_TTL_SECONDS = PROXY_URL_SIGN_EXPIRY_SECONDS / 2;
@@ -146,78 +143,20 @@ export class SignedURLController implements ReactiveController {
     this._cachedAt = null;
     const requestID = this._requestGeneration.next();
 
-    const resolvedEndpoint = await this._proxy(
+    const resolved = await resolveEndpointURL(
       hass,
-      targetURL,
-      endpoint,
-      proxyConfig,
-      proxyEndpointOptions,
+      { endpoint: targetURL, sign: endpoint.sign },
+      { proxyConfig, proxyEndpointOptions },
     );
     if (!this._requestGeneration.isCurrent(requestID)) {
       return;
     }
-    if (!resolvedEndpoint) {
-      this._applyError('proxy');
+    if (!resolved.success) {
+      this._applyError(resolved.error);
       return;
     }
 
-    const signedURL = await this._sign(hass, resolvedEndpoint);
-    if (!this._requestGeneration.isCurrent(requestID)) {
-      return;
-    }
-    if (!signedURL) {
-      this._applyError('sign');
-      return;
-    }
-
-    this._applySuccess(signedURL);
-  }
-
-  /**
-   * Proxy the endpoint if proxying is enabled, otherwise return it as-is.
-   */
-  private async _proxy(
-    hass: HomeAssistant,
-    targetURL: string,
-    endpoint: Endpoint,
-    proxyConfig: EnabledProxyConfig | null | undefined,
-    proxyEndpointOptions: CreateProxiedEndpointOptions | undefined,
-  ): Promise<Endpoint | null> {
-    if (!proxyConfig?.enabled) {
-      return { endpoint: targetURL, sign: endpoint.sign };
-    }
-
-    try {
-      return await createProxiedEndpointIfNecessary(
-        hass,
-        { endpoint: targetURL, sign: false },
-        proxyConfig,
-        {
-          ttl: PROXY_URL_SIGN_EXPIRY_SECONDS,
-          openLimit: 0,
-          ...proxyEndpointOptions,
-        },
-      );
-    } catch (e: unknown) {
-      errorToConsole(e);
-      return null;
-    }
-  }
-
-  /**
-   * Sign the endpoint if it requires signing, otherwise return the URL as-is.
-   */
-  private async _sign(hass: HomeAssistant, endpoint: Endpoint): Promise<string | null> {
-    try {
-      return await homeAssistantGetSignedURLIfNecessary(
-        hass,
-        endpoint,
-        PROXY_URL_SIGN_EXPIRY_SECONDS,
-      );
-    } catch (e: unknown) {
-      errorToConsole(e);
-      return null;
-    }
+    this._applySuccess(resolved.url);
   }
 
   private _applySuccess(url: string): void {

@@ -72,9 +72,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public microphoneStream?: MediaStream | null;
-
-  @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
 
   @property({ attribute: false })
@@ -430,8 +427,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               .camera=${this.camera}
               .targetID=${this.targetID}
               .cameraTitle=${this.cameraTitle}
-              .microphoneStream=${this.microphoneStream}
-              .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this._getEffectiveBuiltinControls()}
             >
             </advanced-camera-card-live-go2rtc>`
@@ -443,8 +438,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 .camera=${this.camera}
                 .targetID=${this.targetID}
                 .cameraTitle=${this.cameraTitle}
-                .microphoneStream=${this.microphoneStream}
-                .microphoneConfig=${this.liveConfig.microphone}
                 .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this._getEffectiveBuiltinControls()}
               >

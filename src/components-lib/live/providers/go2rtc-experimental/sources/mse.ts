@@ -1,3 +1,7 @@
+import {
+  isServerErrorForMode,
+  type Go2RTCMessage,
+} from '../../../../../go2rtc/messages';
 import type {
   MediaLoadedCapabilities,
   MediaTechnology,
@@ -11,7 +15,6 @@ import {
   type MediaSourceInterface,
 } from '../adapters/media-source';
 import type {
-  Go2RTCMessage,
   StreamProfile,
   StreamSource,
   StreamSourceContext,
@@ -25,7 +28,6 @@ import {
 } from '../utils/codecs';
 import { LiveEdgeTracker } from '../utils/live-edge-tracker';
 import type { LiveEdgeAction } from '../utils/live-edge-tracker/types';
-import { isServerErrorForMode } from '../utils/messages';
 import { isWebKitUserAgent } from '../utils/user-agent';
 
 // ===========================================================================
@@ -165,7 +167,6 @@ export class MSEStreamSource implements StreamSource {
     return {
       supportsPause: true,
       hasAudio: hasAudio(this._context.target.video, { mseCodecs: this._codecs }),
-      has2WayAudio: false,
     };
   }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isServerErrorForMode } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/utils/messages';
+import { isServerErrorForMode } from '../../src/go2rtc/messages';
 
 describe('isServerErrorForMode', () => {
   it('should match an error for the mode', () => {

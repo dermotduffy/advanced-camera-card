@@ -15,7 +15,6 @@ import {
   getSignedURLErrorText,
   SignedURLController,
 } from '../../../../components-lib/signed-url-controller.js';
-import type { MicrophoneConfig } from '../../../../config/schema/live.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss?inline';
@@ -36,12 +35,6 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   // The BASE camera ID (camera property may be a substream)
   @property({ attribute: false })
   public targetID?: string;
-
-  @property({ attribute: false })
-  public microphoneStream?: MediaStream | null;
-
-  @property({ attribute: false })
-  public microphoneConfig?: MicrophoneConfig;
 
   // The camera's title, shown in error messages to identify the camera.
   @property({ attribute: false })
@@ -110,7 +103,6 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     this._player = new VideoRTC();
     this._player.targetID = this.targetID ?? null;
     this._player.mediaPlayerController = this._mediaPlayerController;
-    this._player.microphoneStream = this.microphoneStream ?? null;
     this._player.src = src;
     this._player.visibilityCheck = false;
     this._player.setControls(this.controls);
@@ -142,13 +134,6 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
     if (changedProps.has('controls') && this._player) {
       this._player.setControls(this.controls);
-    }
-
-    if (this._player && changedProps.has('microphoneStream')) {
-      // VideoRTC owns the transition: it updates microphoneStream, swaps the
-      // track on the pre-armed transceiver, and validates against stale async
-      // completions before any reconnect fallback. Fire-and-forget is fine.
-      void this._player.setMicrophoneStream(this.microphoneStream ?? null);
     }
   }
 

@@ -518,10 +518,63 @@ describe('MicrophoneManager', () => {
     });
   });
 
+  describe('should handle the device disappearing', () => {
+    const endTrack = (stream: MediaStream): void => {
+      const track = getTrack(stream);
+      vi.mocked(track.addEventListener)
+        .mock.calls.filter(([type]) => type === 'ended')
+        .forEach(([, listener]) => (listener as EventListener)(new Event('ended')));
+    };
+
+    it('should release a stream whose track ends', async () => {
+      const stream = createMockStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      manager.setTransmissionActive(true);
+      await manager.connect();
+      expect(manager.isConnected()).toBeTruthy();
+
+      endTrack(stream);
+
+      expect(manager.isConnected()).toBeFalsy();
+      expect(manager.getStream()).toBeNull();
+    });
+
+    it('should stop listening to a stream that has been replaced', async () => {
+      const streamA = createMockStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(streamA);
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      manager.setTransmissionActive(true);
+      await manager.connect();
+
+      const streamB = createMockStream();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(streamB);
+      await manager.connect();
+
+      const track = getTrack(streamA);
+      const added = vi
+        .mocked(track.addEventListener)
+        .mock.calls.find(([type]) => type === 'ended');
+      const removed = vi
+        .mocked(track.removeEventListener)
+        .mock.calls.find(([type]) => type === 'ended');
+
+      expect(added).toBeDefined();
+      expect(removed?.[1]).toBe(added?.[1]);
+      expect(manager.getStream()).toBe(streamB);
+    });
+  });
+
   describe('should require initialization', async () => {
     it('should require when configured and supported', async () => {
       const api = createCardAPI();
       const manager = new MicrophoneManager(api);
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+        createMockStream(),
+      );
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           live: {

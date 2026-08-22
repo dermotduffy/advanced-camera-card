@@ -68,22 +68,6 @@ export const hasAudio = (
   return mayHaveAudio(video);
 };
 
-/**
- * Check if a WebRTC peer connection has an outbound audio channel (i.e. 2-way
- * audio / microphone support).
- * @param pc The RTCPeerConnection to check.
- * @returns True if the connection has an audio transceiver configured to send.
- */
-export const has2WayAudio = (pc: RTCPeerConnection | null): boolean => {
-  return !!pc
-    ?.getTransceivers()
-    .some(
-      (tr) =>
-        tr.sender.track?.kind === 'audio' &&
-        (tr.direction === 'sendonly' || tr.direction === 'sendrecv'),
-    );
-};
-
 export type AudioTracksMuteStateCleanup = (() => void) | null;
 
 /**

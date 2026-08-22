@@ -17,12 +17,18 @@ challenging.
 
 - Only Frigate cameras are supported.
 - Only the `go2rtc` and `go2rtc-experimental` live providers are supported.
-- Only the `webrtc` mode supports 2-way audio.
+- The browser must be able to reach `go2rtc` over WebRTC. Outbound audio always
+  travels on its own WebRTC connection, regardless of what mode is carrying the
+  video.
 
 If your setup supports 2-way audio but detection is intermittent on load:
 
 - Increase `cameras[].go2rtc.metadata_fetch_timeout_seconds`.
 - Or force the capability with `cameras[].capabilities.force: ['2-way-audio']`.
+
+If detection never succeeds for a camera, the `go2rtc` stream itself may not
+offer 2-way audio -- see
+[`go2rtc` live provider configuration](../configuration/cameras/live-provider.md?id=go2rtc).
 
 ## Example configuration
 
@@ -65,10 +71,14 @@ enabled by default and appears in the `live` view whenever the selected camera
   in the overlay to speak. Both behaviors are configurable via
   [`live.microphone.auto_unmute`](../configuration/live.md?id=microphone) and
   [`live.auto_unmute`](../configuration/live.md).
-- The camera will always load _without_ the microphone connected, unless the
+- The camera loads _without_ the microphone connected, unless the
   [`always_connected`](../configuration/live.md?id=microphone) microphone option
-  is set to `true`. On the first call there may be a brief `webrtc` connection
-  reset to include 2-way audio.
+  is set to `true`. Starting a call opens a separate connection that carries your
+  voice to the camera; ending the call closes it. The camera's audio input is
+  therefore occupied only while a call is in progress, leaving it free for other
+  applications the rest of the time. Expect under half a second between starting
+  a call and being audible on a local network, and a little more remotely. The
+  video keeps playing throughout.
 - The browser asks for microphone permission when a call needs it. How often it
   asks depends on the browser: Chrome remembers the choice for the site, Safari
   asks once per page load, and Firefox asks for every call unless _Remember this

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import * as go2rtcAudio from '../../src/camera-manager/utils/go2rtc/audio';
+import * as go2rtcAudio from '../../src/go2rtc/audio';
 import {
   getResolvedLiveProvider,
   isGo2RTCLiveProvider,
@@ -9,7 +9,7 @@ import {
 import { createCameraConfig } from '../config/test-utils';
 import { createHASS } from '../test-utils';
 
-vi.mock('../../src/camera-manager/utils/go2rtc/audio');
+vi.mock('../../src/go2rtc/audio');
 
 describe('live-provider utils', () => {
   beforeEach(() => {

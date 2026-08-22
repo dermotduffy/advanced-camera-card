@@ -160,8 +160,7 @@ describe('Camera', () => {
         expect.anything(),
         2,
         {
-          endpoint:
-            'http://go2rtc/api/streams?src=stream&video=all&audio=all&microphone',
+          endpoint: 'http://go2rtc/api/streams?src=stream&video=all&audio=all',
           sign: false,
         },
         expect.objectContaining({

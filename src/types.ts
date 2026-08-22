@@ -20,11 +20,6 @@ export interface MediaLoadedCapabilities {
   supportsPause?: boolean;
 
   hasAudio?: boolean;
-
-  // Note: This is whether the current stream already _has_ 2-way audio, not
-  // whether the underlying camera _could_ establish 2 way audio. For the
-  // latter, consult the camera's capabilities ('2-way-audio').
-  has2WayAudio?: boolean;
 }
 
 export type MediaTechnology =

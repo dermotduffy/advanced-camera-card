@@ -1,4 +1,4 @@
-import type { Go2RTCMessage } from '../types';
+import type { Go2RTCMessage } from '../../../../../go2rtc/messages';
 import { ImageFrameStreamSource } from './image-frame';
 
 // Each binary frame is a complete JPEG, shown directly as an image frame.

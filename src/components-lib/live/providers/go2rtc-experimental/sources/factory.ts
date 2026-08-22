@@ -1,6 +1,6 @@
 import type { Go2RTCMode } from '../../../../../config/schema/cameras';
+import type { PeerConnectionFactory } from '../../../../../go2rtc/peer-connection';
 import type { MediaSourceFactory } from '../adapters/media-source';
-import type { PeerConnectionFactory } from '../adapters/peer-connection';
 import type {
   ImageStreamTarget,
   StreamSource,
@@ -88,8 +88,6 @@ export const createBinarySource: BinarySourceFactory = (
 export interface CreateWebRTCSourceOptions {
   createPeerConnection?: PeerConnectionFactory;
   createMediaStream?: MediaStreamFactory;
-  microphoneStream?: MediaStream | null;
-  microphoneErrorCallback?: (error?: string) => void;
 }
 
 export type WebRTCSourceFactory = (

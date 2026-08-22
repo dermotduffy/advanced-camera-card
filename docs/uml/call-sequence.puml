@@ -40,6 +40,12 @@ note over User, Mic
   can ring even where microphone access needs a tap to be granted
 end note
 
+note over Card
+  The card opens an audio connection to the camera and holds it only while the
+  call is in progress. If the camera has no 2-way audio, or another application
+  is already using it, the call fails with an error
+end note
+
 Card --> User : You hear the caller
 note over Card
   Inbound audio unmutes if configured (<color:#43a047>**""live.auto_unmute""**</color>)
@@ -61,6 +67,7 @@ note over User, Card
   <color:#43a047>**""live.controls.call.lock""**</color> is disabled -- navigating away
 end note
 
+note over Card : The audio connection to the camera closes, releasing it for other applications
 Card --> User : Inbound audio mutes (<color:#43a047>**""live.auto_mute""**</color>)
 Card -> Mic : Microphone mutes and disconnects
 note over Mic

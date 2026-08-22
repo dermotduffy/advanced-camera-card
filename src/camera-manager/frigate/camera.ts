@@ -3,6 +3,10 @@ import { format } from 'date-fns';
 import type { ActionsExecutor } from '../../card-controller/actions/types';
 import type { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import type { CameraConfig } from '../../config/schema/cameras';
+import {
+  getGo2RTCMetadataEndpoint,
+  getGo2RTCStreamEndpoint,
+} from '../../go2rtc/endpoint';
 import type { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import type { HomeAssistant } from '../../ha/types';
 import {
@@ -16,10 +20,6 @@ import { Camera, type CameraInitializationOptions } from '../camera';
 import { CameraNoEntityError } from '../error';
 import type { CameraEndpoints, CameraEndpointsContext } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
-import {
-  getGo2RTCMetadataEndpoint,
-  getGo2RTCStreamEndpoint,
-} from '../utils/go2rtc/endpoint';
 import { getPTZCapabilitiesFromCameraConfig, mergePTZCapabilities } from '../utils/ptz';
 import { getPTZInfo } from './requests';
 import {
