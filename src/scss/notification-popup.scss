@@ -4,10 +4,13 @@
 
 :host {
   position: absolute;
-  inset: 0;
+
+  inset: var(--notification-popup-inset-top, 0) 0
+    var(--notification-popup-inset-bottom, 0) 0;
+
   display: flex;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
   padding: 24px;
   pointer-events: none;
   z-index: $z-index-notification;
@@ -28,6 +31,12 @@
 
   width: min(92%, 400px);
   max-height: calc(100% - 48px);
+
+  // min-height has priority over max-height: with the 40px vertical padding it
+  // holds the border box at 48px (matched to equal control's 8px offset + 32px
+  // + 8px).
+  min-height: 8px;
+
   padding: 20px 24px;
   padding-right: 48px;
   overflow-y: auto;

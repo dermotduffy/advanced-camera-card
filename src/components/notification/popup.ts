@@ -11,6 +11,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import { handleControlAction } from '../../components-lib/notification/action.js';
 import { NotificationContextController } from '../../components-lib/notification/notification-context-controller.js';
 import { NotificationPopupController } from '../../components-lib/notification/notification-popup-controller.js';
+import { NotificationPopupViewportController } from '../../components-lib/notification/notification-popup-viewport-controller.js';
 import type { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
 import notificationPopupStyle from '../../scss/notification-popup.scss?inline';
@@ -31,6 +32,13 @@ export class AdvancedCameraCardNotification extends LitElement {
     () => this._refNotification.value ?? null,
   );
   private _contextController = new NotificationContextController(this);
+
+  constructor() {
+    super();
+
+    // Controller automatically registers itself with this element.
+    new NotificationPopupViewportController(this);
+  }
 
   protected render(): TemplateResult | void {
     if (!this.notification) {

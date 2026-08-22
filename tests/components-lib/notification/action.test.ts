@@ -82,6 +82,43 @@ describe('handleControlAction', () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
+  it.each([['hold'], ['double_tap']])(
+    'should dismiss the notification on a %s',
+    (interaction: string) => {
+      vi.mocked(getActionConfigGivenAction).mockReturnValue(null);
+
+      const ev = new CustomEvent('action', { detail: { action: interaction } });
+      const host = document.createElement('div');
+      const onDismiss = vi.fn();
+
+      handleControlAction(ev, createControl(), host, onDismiss);
+
+      expect(onDismiss).toHaveBeenCalled();
+    },
+  );
+
+  it.each([['start_tap'], ['end_tap']])(
+    'should dispatch a %s action without dismissing',
+    (interaction: string) => {
+      const action = { action: 'navigate' as const, navigation_path: '/foo' };
+      vi.mocked(getActionConfigGivenAction).mockReturnValue(action);
+
+      const ev = new CustomEvent('action', { detail: { action: interaction } });
+      const control = createControl({
+        actions: { [`${interaction}_action`]: action },
+      });
+      const host = document.createElement('div');
+      const onDismiss = vi.fn();
+
+      handleControlAction(ev, control, host, onDismiss);
+
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(host, {
+        actions: [action],
+      });
+      expect(onDismiss).not.toHaveBeenCalled();
+    },
+  );
+
   it('should not call onDismiss when no onDismiss is provided', () => {
     vi.mocked(getActionConfigGivenAction).mockReturnValue(null);
 
