@@ -1,4 +1,4 @@
-import type { Task } from '@lit-labs/task';
+import type { Task } from '@lit/task';
 import { html, render, type TemplateResult } from 'lit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';

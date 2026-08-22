@@ -1,4 +1,4 @@
-import type { Task } from '@lit-labs/task';
+import type { Task } from '@lit/task';
 import { html, type TemplateResult } from 'lit';
 
 import { renderProgressIndicator } from '../components/progress-indicator';
@@ -14,7 +14,7 @@ import { errorToConsole } from './basic';
  * @returns A template.
  */
 export const renderTask = <R>(
-  task: Task<unknown[], R>,
+  task: Task<readonly unknown[], R>,
   completeFunc: (result: R) => TemplateResult | void,
   options?: {
     cardWideConfig?: CardWideConfig;

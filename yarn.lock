@@ -648,19 +648,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lit-labs/ssr-dom-shim@npm:^1.0.0, @lit-labs/ssr-dom-shim@npm:^1.2.0":
+"@lit-labs/ssr-dom-shim@npm:^1.2.0":
   version: 1.2.0
   resolution: "@lit-labs/ssr-dom-shim@npm:1.2.0"
   checksum: 10c0/016168cf6901ab343462c13fb168dda6d549f8b42680aa394e6b7cd0af7cce51271e00dbfa5bbbe388912bf89cbb8f941a21cc3ec9bf95d6a84b6241aa9e5a72
-  languageName: node
-  linkType: hard
-
-"@lit-labs/task@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "@lit-labs/task@npm:1.1.3"
-  dependencies:
-    "@lit/reactive-element": "npm:^1.1.0"
-  checksum: 10c0/bea28fbd87a486a06d4f2f51ba63db27419e659a97e723dc6c0009375262fb0f526a7436273589830fdf42dc1117f7aec372c5bf975c6adfca69cf64eaeecfd0
   languageName: node
   linkType: hard
 
@@ -673,12 +664,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lit/reactive-element@npm:^1.1.0":
-  version: 1.6.3
-  resolution: "@lit/reactive-element@npm:1.6.3"
+"@lit/task@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@lit/task@npm:1.0.3"
   dependencies:
-    "@lit-labs/ssr-dom-shim": "npm:^1.0.0"
-  checksum: 10c0/10f1d25e24e32feb21c4c6f9e11d062901241602e12c4ecf746b3138f87fed4d8394194645514d5c1bfd5f33f3fd56ee8ef41344e2cb4413c40fe4961ec9d419
+    "@lit/reactive-element": "npm:^1.0.0 || ^2.0.0"
+  checksum: 10c0/538ae891209bcfd6d0dcc20d2314b1233609d97caf59d3e3c69a7a83a7fa070f539d58ea903060b2bb3fd9cf3cab528acb3fcc258a6e2e5091aff1b6191ccabc
   languageName: node
   linkType: hard
 
@@ -2549,7 +2540,7 @@ __metadata:
     "@graphiteds/core": "npm:^1.9.21"
     "@ianvs/prettier-plugin-sort-imports": "npm:^4.7.1"
     "@lit-labs/scoped-registry-mixin": "npm:^1.0.3"
-    "@lit-labs/task": "npm:^1.1.3"
+    "@lit/task": "npm:^1.0.3"
     "@semantic-release/github": "npm:^10.3.3"
     "@types/js-yaml": "npm:^4"
     "@types/lodash-es": "npm:^4.17.12"
