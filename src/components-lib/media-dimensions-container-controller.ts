@@ -60,6 +60,7 @@ export class MediaDimensionsContainerController implements ReactiveController {
   public hostDisconnected(): void {
     this._resizeObserver.disconnect();
     this._removeInnerContainerListeners();
+    this.resize.cancel();
   }
 
   private _removeInnerContainerListeners(): void {
