@@ -1,17 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 
 import type { FrigateEvent } from '../../../src/camera-manager/frigate/types';
 import type { PartialAdvancedCameraCardConfig } from '../../../src/config/types';
 import { deepQuery } from '../../browser/dom';
 import {
+  createFrigateCameraDescription,
   createTestFrigateEvent,
   EVENT_TIME_NEWER,
   EVENT_TIME_OLDER,
+  FakeFrigate,
   mountCardWithFrigate,
 } from '../../browser/fake-frigate';
-import type { MountedCard } from '../../browser/mounted-card';
+import { MountedCardFactory, type MountedCard } from '../../browser/mounted-card';
 import {
   clickThumbnail,
+  createCameraHASS,
+  createStillImageCardConfig,
   getBlockNotificationText,
   getMediaViewerMediaURLs,
   getThumbnails,
@@ -55,6 +59,57 @@ describe('AdvancedCameraCardGallery', () => {
     );
 
     expect(image.src).toMatch(/^data:image\/png/);
+  });
+
+  it('should fill the thumbnail with a square frame when the picture cannot be fetched', async () => {
+    const hass = createCameraHASS([createFrigateCameraDescription()]);
+    const frigate = new FakeFrigate(hass);
+    frigate.setEvents([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    frigate.failThumbnails();
+
+    const card = await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({ view: { default: 'clips' } }),
+      hass,
+    );
+
+    await waitForThumbnails(card, 1);
+    const thumbnail = getThumbnails(card.card)[0];
+
+    const frame = await card.waitForRender(
+      () => deepQuery<HTMLElement>(thumbnail, '.icon-container'),
+      'the fallback icon frame',
+    );
+    const box = deepQuery<HTMLElement>(
+      thumbnail,
+      'advanced-camera-card-thumbnail-feature-thumbnail',
+    );
+    assert(box);
+
+    const icon = deepQuery<HTMLElement>(frame, 'advanced-camera-card-icon');
+    assert(icon);
+
+    const boxRect = box.getBoundingClientRect();
+    const frameRect = frame.getBoundingClientRect();
+    const iconRect = icon.getBoundingClientRect();
+
+    const expectClose = (actual: number, expected: number): void =>
+      expect(Math.abs(actual - expected)).toBeLessThanOrEqual(
+        Math.max(
+          4, // Allow at least 4 pixels of tolerance.
+          expected * 0.05,
+        ),
+      );
+
+    // The frame spans the whole thumbnail box and is square.
+    expectClose(frameRect.width, boxRect.width);
+    expectClose(frameRect.height, boxRect.height);
+    expectClose(frameRect.width, frameRect.height);
+
+    // The icon sits centered in the frame at half its size.
+    expectClose(iconRect.width, frameRect.width / 2);
+    expectClose(iconRect.height, frameRect.height / 2);
+    expectClose(iconRect.left - frameRect.left, (frameRect.width - iconRect.width) / 2);
+    expectClose(iconRect.top - frameRect.top, (frameRect.height - iconRect.height) / 2);
   });
 
   it('should say there is nothing to view when the camera has no events', async () => {

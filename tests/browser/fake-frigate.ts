@@ -226,6 +226,7 @@ const matchesEventQuery = (event: FrigateEvent, query: EventQuery): boolean =>
 export class FakeFrigate {
   private _events: FrigateEvent[] = [];
   private _mediaURLs = new Map<string, string>();
+  private _thumbnailFailureStatus: number | null = null;
 
   constructor(hass: FakeHASS) {
     hass.registerCommand(
@@ -304,6 +305,13 @@ export class FakeFrigate {
    */
   public setMediaURL(eventID: string, mediaType: FrigateMediaType, url: string): void {
     this._mediaURLs.set(this._getMediaKey(eventID, mediaType), url);
+  }
+
+  /**
+   * Refuse every thumbnail request with the given HTTP status.
+   */
+  public failThumbnails(status = 404): void {
+    this._thumbnailFailureStatus = status;
   }
 
   // Answer a command addressed to this instance, refusing one meant for
@@ -395,6 +403,10 @@ export class FakeFrigate {
       !this._getEvent(groups['eventID'])
     ) {
       throw new Error(`FakeFrigate has no thumbnail at: ${path}`);
+    }
+
+    if (this._thumbnailFailureStatus !== null) {
+      return new Response(null, { status: this._thumbnailFailureStatus });
     }
 
     return await fetch(createFixtureURL(SNAPSHOT_FIXTURE_FILENAME));

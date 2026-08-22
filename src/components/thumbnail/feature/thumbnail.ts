@@ -68,10 +68,15 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    const imageOff = html`<advanced-camera-card-icon
-      .icon=${{ icon: 'mdi:image-off' }}
-      title=${localize('thumbnail.no_thumbnail')}
-    ></advanced-camera-card-icon> `;
+    const renderIcon = (icon: string): TemplateResult =>
+      html`<div class="icon-container">
+        <advanced-camera-card-icon
+          .icon=${{ icon }}
+          title=${localize('thumbnail.no_thumbnail')}
+        ></advanced-camera-card-icon>
+      </div>`;
+
+    const imageOff = renderIcon('mdi:image-off');
 
     if (!this._embedThumbnailTask) {
       return imageOff;
@@ -83,11 +88,7 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
           (embeddedThumbnail: string | null) =>
             embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
           {
-            inProgressFunc: () =>
-              html`<advanced-camera-card-icon
-                .icon=${{ icon: 'mdi:image-refresh' }}
-                title=${localize('thumbnail.no_thumbnail')}
-              ></advanced-camera-card-icon> `,
+            inProgressFunc: () => renderIcon('mdi:image-refresh'),
             errorFunc: () => imageOff,
           },
         )
