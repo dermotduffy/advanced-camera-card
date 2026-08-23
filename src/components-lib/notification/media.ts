@@ -9,8 +9,9 @@ export interface MediaNotificationOptions {
   // A short heading. A longer explanation goes in `detail`.
   title: string;
 
-  // The heading icon. Defaults to a generic alert icon.
-  icon?: string;
+  // The heading icon. Defaults to a generic alert icon; `null` for no icon at
+  // all.
+  icon?: string | null;
 
   // Appended to the heading to identify the media, when it has a title (e.g. the
   // camera title `: Front Door`). Absent for untitled media (a url or
@@ -36,7 +37,7 @@ export const createMediaNotification = (
   options: MediaNotificationOptions,
 ): Notification => ({
   heading: {
-    icon: options.icon ?? 'mdi:alert-circle',
+    ...(options.icon !== null && { icon: options.icon ?? 'mdi:alert-circle' }),
     text: options.targetTitle
       ? `${options.title}: ${options.targetTitle}`
       : options.title,
