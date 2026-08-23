@@ -89,7 +89,7 @@ export class MediaDimensionsContainerController implements ReactiveController {
   private _mediaLoadedHandler = (ev: CustomEvent<MediaLoadedInfoEventDetail>): void => {
     const info = ev.detail.info;
     // Only resize if the media dimensions have changed (otherwise the loading
-    // image whilst waiting for the stream, will trigger aresize every second).
+    // image while waiting for the stream, will trigger aresize every second).
     if (
       this._mediaDimensions?.width === info.width &&
       this._mediaDimensions.height === info.height

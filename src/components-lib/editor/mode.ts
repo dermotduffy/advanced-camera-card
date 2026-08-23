@@ -20,7 +20,7 @@ const getShownPaths = (forms: EditorForm[]): Set<string> =>
 
 // What the full editor shows and the simple editor does not. Configuration
 // outside this is either something the simple editor shows too, or something
-// neither shows (`elements`, `debug`, anything the card does not recognise at
+// neither shows (`elements`, `debug`, anything the card does not recognize at
 // all), which the full editor would be no better at showing.
 const getFullOnlyPaths = (): Set<string> => {
   const simplePaths = getShownPaths([

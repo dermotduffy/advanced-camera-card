@@ -1,7 +1,7 @@
 import type { AdvancedCameraCardConfig } from '../../config/schema/types';
 
 // The card state exposed via the `acc` namespace AND as the
-// `trigger.from_acc`/`to_acc` before/after snapshots (the card analogue of HA's
+// `trigger.from_acc`/`to_acc` before/after snapshots (the card analog of HA's
 // full `trigger.from_state`/`to_state`).
 export interface TemplateAdvancedCameraCardState {
   camera?: string;

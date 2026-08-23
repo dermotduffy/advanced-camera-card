@@ -26,8 +26,7 @@ img {
   border-radius: var(--advanced-camera-card-border-radius-final);
 
   // Not 'contain' as some thumbnails may vary in aspect-ratio slightly and
-  // should be clipped to fill the thumbnail div whilst maintaining
-  // aspect-ratio.
+  // should be clipped to fill the thumbnail div while maintaining aspect-ratio.
   object-fit: cover;
 }
 

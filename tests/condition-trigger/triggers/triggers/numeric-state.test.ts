@@ -379,7 +379,7 @@ describe('NumericStateTrigger', () => {
       setHass(stateManager, { [SENSOR]: { state: '25' } });
       vi.advanceTimersByTime(3000);
 
-      // Leaves the range before the hold elapses: cancelled.
+      // Leaves the range before the hold elapses: canceled.
       setHass(stateManager, { [SENSOR]: { state: '10' } });
       vi.advanceTimersByTime(5000);
       expect(callback).not.toHaveBeenCalled();

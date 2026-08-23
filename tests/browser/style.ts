@@ -36,7 +36,7 @@ const HOME_ASSISTANT_THEME = `
     color: var(--primary-text-color);
   }
 
-  /* A dashboard sits the card on the background colour with room around it. */
+  /* A dashboard sits the card on the background color with room around it. */
   body {
     background: var(--primary-background-color);
     margin: 0;

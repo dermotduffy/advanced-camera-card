@@ -25,7 +25,7 @@ export class SubstreamViewModifier implements ViewModifier {
       return;
     }
     // A stream equal to the camera itself is semantically "no substream";
-    // normalise it to a cleared override so the map doesn't carry self-
+    // normalize it to a cleared override so the map doesn't carry self-
     // referential entries.
     if (!this._options.stream || this._options.stream === cameraID) {
       view.context?.live?.overrides?.delete(cameraID);

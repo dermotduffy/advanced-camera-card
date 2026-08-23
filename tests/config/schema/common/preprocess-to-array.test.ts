@@ -14,7 +14,7 @@ describe('preprocessToArray', () => {
     });
   });
 
-  it('should normalise a single item to a list', () => {
+  it('should normalize a single item to a list', () => {
     expect(schema.parse({ items: { name: 'office' } })).toEqual({
       items: [{ name: 'office' }],
     });

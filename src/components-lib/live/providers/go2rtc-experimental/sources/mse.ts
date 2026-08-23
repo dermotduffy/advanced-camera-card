@@ -34,7 +34,7 @@ import { isWebKitUserAgent } from '../utils/user-agent';
 // MSE Tuning
 // ===========================================================================
 
-// These are judgement-based budgets (time, buffered seconds, staged bytes)
+// These are judgment-based budgets (time, buffered seconds, staged bytes)
 // balancing latency and resilience, not derived values. The retained-buffer
 // window and the staged-bytes cap follow go2rtc's reference web client; the
 // negotiation timeout has no counterpart there and is added by this

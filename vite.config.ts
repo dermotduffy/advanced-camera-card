@@ -46,12 +46,13 @@ export default defineConfig(({ mode }) => {
     },
 
     resolve: {
-      // Same as Vite's default, minus the trailing `jsnext:main` and `jsnext`: an
-      // early convention for naming an ES module build that `module` replaced.
-      // `moment` is the one dependency still shipping it, and honouring it hands
-      // out moment as an ES module, which `vis-timeline`'s CommonJS build cannot
-      // then use -- causing timeline views to throw an error. Requiring an ES
-      // module yields the namespace object rather than moment itself.
+      // Same as Vite's default, minus the trailing `jsnext:main` and `jsnext`:
+      // an early convention for naming an ES module build that `module`
+      // replaced. `moment` is the one dependency still shipping it, and
+      // honoring it hands out moment as an ES module, which `vis-timeline`'s
+      // CommonJS build cannot then use -- causing timeline views to throw an
+      // error. Requiring an ES module yields the namespace object rather than
+      // moment itself.
       mainFields: ['browser', 'module'],
     },
 

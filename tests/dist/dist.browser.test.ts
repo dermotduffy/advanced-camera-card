@@ -227,7 +227,7 @@ describe('the built card', () => {
     // only through the accessors `@property` installs. Were the decorator
     // output wrong, writes would land on plain instance fields and none of this
     // would work. This verifies the build's treatment of decorators rather than
-    // the card's behaviour per se (already well covered in other tests).
+    // the card's behavior per se (already well covered in other tests).
     await mounted.events.waitForFirst('advanced-camera-card:media:loaded');
 
     expect(isLiveMediaShowing(mounted.card)).toBe(true);

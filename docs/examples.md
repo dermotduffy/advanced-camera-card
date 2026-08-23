@@ -376,7 +376,7 @@ elements:
 
 The [`doorbell` profile](configuration/profiles.md?id=doorbell) turns a dashboard into a phone-like ringer when somebody presses the doorbell, by setting [`view.triggers.actions.trigger: call`](configuration/view.md?id=triggers) and auto-discovering [HA `event.*` entities](https://www.home-assistant.io/integrations/event/#device-class) with `device_class: doorbell` on the camera's device (Ring, UniFi Protect, Nest, DoorBird, Reolink, etc.). The intended deployment is a wall-mounted tablet sitting on the dashboard.
 
-A doorbell press is instantaneous, so the card synthesises a ring window from [`view.triggers.event_hold_seconds`](configuration/view.md?id=triggers) (default `30`s) -- long enough for a typical phone-style answer window. `untrigger_delay_seconds` then lingers past that, same as for any stateful trigger.
+A doorbell press is instantaneous, so the card synthesizes a ring window from [`view.triggers.event_hold_seconds`](configuration/view.md?id=triggers) (default `30`s) -- long enough for a typical phone-style answer window. `untrigger_delay_seconds` then lingers past that, same as for any stateful trigger.
 
 `triggers.motion`, `triggers.occupancy`, and `triggers.media_events` are off by default -- only the explicit doorbell press triggers the call, so casual motion won't make the card ring.
 
@@ -506,7 +506,7 @@ automations:
 
 > [!WARNING]
 > This example is only relevant to those doorbells with a design flaw
-> that prevents the doorbell being rung whilst a 2-way channel is enabled. This
+> that prevents the doorbell being rung while a 2-way channel is enabled. This
 > means simply watching the stream, when you might _in future_ hold a 2-way
 > conversation on that stream, can disable the actual whole point of a doorbell --
 > to ring!

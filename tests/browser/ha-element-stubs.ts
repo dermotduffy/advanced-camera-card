@@ -40,8 +40,8 @@ class HAPlayerStandIn extends LitElement {
 }
 
 /**
- * A stand-in that renders its children and nothing else. Behaviour is added
- * only for elements the card is observed to depend on.
+ * A stand-in that renders its children and nothing else. Behavior is added only
+ * for elements the card is observed to depend on.
  */
 class HAElementStub extends LitElement {
   static styles = css`

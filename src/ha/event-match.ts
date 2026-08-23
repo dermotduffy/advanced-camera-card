@@ -88,7 +88,7 @@ const matchesSchemaValue = (expected: unknown, actual: unknown): boolean => {
 // HA-faithful match for the event `context` object: every defined filter field
 // must match the event's corresponding field by equality (scalar filter) or
 // list-membership (array filter). A null event-side field never satisfies an
-// explicit filter, mirroring HA's behaviour.
+// explicit filter, mirroring HA's behavior.
 // https://www.home-assistant.io/docs/automation/trigger/#event-trigger
 export const matchesEventContext = (
   filter: HAEventContextFilter,

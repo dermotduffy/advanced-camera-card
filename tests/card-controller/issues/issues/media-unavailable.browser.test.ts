@@ -488,7 +488,7 @@ describe('MediaUnavailableIssue', () => {
 
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
 
-    // The status bar only summarises. Everything a user can do about the
+    // The status bar only summarizes. Everything a user can do about the
     // failure is behind it, which is the point of the issue report being
     // clickable.
     await card.clickControl(MEDIA_ISSUE_TITLE);

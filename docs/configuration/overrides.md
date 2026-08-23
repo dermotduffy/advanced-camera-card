@@ -11,7 +11,10 @@ overrides:
 ```
 
 > [!WARNING]
-> Whilst all configuration parameters are theoretically overridable, in some instances a configuration variable may only be consulted on startup or changing its value may negatively impact behavior -- override results may vary!
+> While all configuration parameters are theoretically overridable, in some
+> instances a configuration variable may only be consulted on startup or
+> changing its value may negatively impact behavior -- override results may
+> vary!
 
 > [!WARNING]
 > Avoid an override whose `conditions` depend on a value that the override itself

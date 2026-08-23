@@ -92,12 +92,12 @@ const createRegistryEntry = (entityID: string, overrides?: Partial<Entity>): Ent
  * A driveable stand-in for the `hass` object the card is handed by Home
  * Assistant.
  *
- * Home Assistant updates immutably, and that is the behaviour reproduced here:
- * a change hands consumers a new top-level object and a new `states` map
- * holding a new state object for the entity that changed, while every other
- * entity keeps the object it already had. Anything the card can observe about
- * a real `hass` it must be able to observe about this one, so a divergence here
- * is a bug in the fake rather than a shortcut worth taking.
+ * Home Assistant updates immutably, and that is the behavior reproduced here: a
+ * change hands consumers a new top-level object and a new `states` map holding
+ * a new state object for the entity that changed, while every other entity
+ * keeps the object it already had. Anything the card can observe about a real
+ * `hass` it must be able to observe about this one, so a divergence here is a
+ * bug in the fake rather than a shortcut worth taking.
  */
 export class FakeHASS {
   private _hass: HomeAssistant;
