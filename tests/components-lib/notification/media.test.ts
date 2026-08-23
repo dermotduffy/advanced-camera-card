@@ -21,6 +21,14 @@ describe('createMediaNotification', () => {
     expect(notification.heading?.icon).toBe('mdi:alert-circle');
   });
 
+  it('should omit the heading icon when it is null', () => {
+    const notification = createMediaNotification({
+      icon: null,
+      title: 'Awaiting live view',
+    });
+    expect(notification.heading?.icon).toBeUndefined();
+  });
+
   it('should append the camera title to the heading', () => {
     const notification = createMediaNotification({
       icon: 'mdi:alert-circle',

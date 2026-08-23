@@ -292,7 +292,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     // endpoints). Instead, simply never render uninitialized cameras.
     if (!this.camera?.isInitialized()) {
       return renderMediaNotification({
-        icon: 'mdi:progress-helper',
+        icon: null,
         title: localize('error.awaiting_live'),
         targetTitle: this.cameraTitle,
       });
@@ -488,7 +488,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
     return html`<div class="fill">
       ${renderMediaNotification({
-        icon: 'mdi:progress-helper',
+        icon: null,
         title: localize('error.awaiting_live'),
         targetTitle: this.cameraTitle,
       })}

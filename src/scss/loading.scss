@@ -24,10 +24,9 @@
   opacity: 0;
 }
 
-// The hidden element stays mounted: without this the icon would rotate
-// invisibly forever.
 :host([loaded]) advanced-camera-card-icon {
-  animation: none;
+  display: none;
+  transition: display 0s 1.5s allow-discrete;
 }
 
 advanced-camera-card-icon {

@@ -1,11 +1,34 @@
-// Use the outlined Iris logo since the background color is unknown.
-$bg-img: url('../images/iris-background.svg');
+$bracket-length: 24px;
+$bracket-thickness: 1px;
+$bracket-inset: 10px;
+
+// Mix from text color so the brackets show against both light/dark.
+$bracket-color: color-mix(
+  in srgb,
+  var(--advanced-camera-card-text-color),
+  transparent 90%
+);
+
+$arm: linear-gradient($bracket-color 0 0);
+$arm-horizontal: $bracket-length $bracket-thickness;
+$arm-vertical: $bracket-thickness $bracket-length;
 
 :host {
   background-color: var(--advanced-camera-card-background);
-  background-position: center;
+
+  // Corner brackets mark a media surface that is rendering nothing at all,
+  // which is otherwise indistinguishable from a black video frame.
+  background-image: $arm, $arm, $arm, $arm, $arm, $arm, $arm, $arm;
+  background-size: $arm-horizontal, $arm-vertical, $arm-horizontal, $arm-vertical,
+    $arm-horizontal, $arm-vertical, $arm-horizontal, $arm-vertical;
+  background-position:
+    left $bracket-inset top $bracket-inset,
+    left $bracket-inset top $bracket-inset,
+    right $bracket-inset top $bracket-inset,
+    right $bracket-inset top $bracket-inset,
+    left $bracket-inset bottom $bracket-inset,
+    left $bracket-inset bottom $bracket-inset,
+    right $bracket-inset bottom $bracket-inset,
+    right $bracket-inset bottom $bracket-inset;
   background-repeat: no-repeat;
-  background-image: $bg-img;
-  background-size: 10%;
-  background-position: center;
 }
