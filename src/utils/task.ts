@@ -10,7 +10,7 @@ import { errorToConsole } from './basic';
  * @param host The host object.
  * @param task The Lit task.
  * @param completeFunc The function to call with the result.
- * @param inProgressFunc The function to call whilst in progress.
+ * @param inProgressFunc The function to call while in progress.
  * @returns A template.
  */
 export const renderTask = <R>(

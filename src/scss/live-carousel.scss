@@ -38,12 +38,12 @@
 
 // Triggered and transmitting cameras are highlighted with a soft inset glow,
 // drawn by an overlay stacked above the camera feed. The overlays come before
-// the carousel controls in source order, so they stack above the feed but
-// below the controls; `pointer-events: none` keeps them inert. The glow is an
+// the carousel controls in source order, so they stack above the feed but below
+// the controls; `pointer-events: none` keeps them inert. The glow is an
 // interior effect, so it coexists with the grid selection border (see
 // media-grid.scss) without competing for the `border` property.
 //
-// The two states differ by colour and rhythm: triggered is an amber glow that
+// The two states differ by color and rhythm: triggered is an amber glow that
 // pulses fully out and back (a "something happened" beacon), transmitting is a
 // red glow that breathes gently without ever fully fading ("you are live").
 // Transmitting wins: while it is active the trigger overlay is faded out.
@@ -82,7 +82,7 @@
   // Hidden by default; activation/deactivation is a plain opacity fade. Each
   // overlay carries its own static box-shadow (not scoped to the
   // `[triggered]`/`[transmitting]` selectors) so the glow stays painted in its
-  // own colour throughout the fade-out, after its animation has been removed.
+  // own color throughout the fade-out, after its animation has been removed.
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
 }

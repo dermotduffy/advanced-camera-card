@@ -55,11 +55,11 @@
 }
 
 // Each top-level section is an HA expansion panel. An open section draws its
-// own outline, which would otherwise sit directly against the neighbouring
+// own outline, which would otherwise sit directly against the neighboring
 // sections, so every section is spaced whether it is open or not: a gap that
-// appeared only on opening would move the sections below as the panel grew.
-// The margins of two adjacent sections collapse together, so the gap is the
-// same wherever it falls.
+// appeared only on opening would move the sections below as the panel grew. The
+// margins of two adjacent sections collapse together, so the gap is the same
+// wherever it falls.
 .section {
   display: block;
 

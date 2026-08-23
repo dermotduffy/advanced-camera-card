@@ -64,7 +64,7 @@ folders:
 ```
 
 > [!TIP]
-> To match everything at a given level whilst parsing nothing would simply be
+> To match everything at a given level while parsing nothing would simply be
 > represented by an empty object `{}`
 
 #### Matchers

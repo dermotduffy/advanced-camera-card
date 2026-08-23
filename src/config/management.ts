@@ -587,7 +587,7 @@ const dropTriggerOnlyConditions = (conditions: unknown[]): unknown[] => {
       // composite the user wrote empty is kept; only one the recursion emptied
       // is dropped.
       if (inner.length || !children.length) {
-        // `arrayify` has already normalised `children`, so rebuilding a
+        // `arrayify` has already normalized `children`, so rebuilding a
         // composite the recursion left alone would rewrite Home Assistant's
         // single-condition spelling (`or: <condition>`) into a list the user
         // never wrote.
@@ -672,7 +672,7 @@ const getAutomationList = (
   plural: string,
   singular: string,
 ): { key: string; items: unknown[] } => {
-  // Mirroring the schema's rename, the singular key is honoured only when the
+  // Mirroring the schema's rename, the singular key is honored only when the
   // plural is absent; an automation with neither is written under the plural.
   const key = singular in automation && !(plural in automation) ? singular : plural;
   return { key, items: arrayify(automation[key]) };

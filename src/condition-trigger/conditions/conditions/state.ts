@@ -5,9 +5,10 @@ import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
 
 // Home Assistant resolves an expected value that names an `input_*` helper to
-// that helper's current state (its Lovelace state-condition behaviour), on both
+// that helper's current state (its Lovelace state-condition behavior), on both
 // the state and the attribute path; only these helper domains are resolved.
-// Regexp directly from: https://github.com/home-assistant/core/blob/dev/homeassistant/helpers/condition.py
+// Regexp directly from:
+// https://github.com/home-assistant/core/blob/dev/homeassistant/helpers/condition.py
 const INPUT_ENTITY_ID =
   /^input_(?:select|text|number|boolean|datetime)\.(?!.+__)(?!_)[\da-z_]+(?<!_)$/;
 

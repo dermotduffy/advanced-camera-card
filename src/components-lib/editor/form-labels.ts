@@ -20,7 +20,7 @@ export const getLocalizationKeyForPath = (path: ConfigPath): string =>
  * Compute the label for a form field. Intended for use as an `ha-form`
  * `computeLabel` callback. A field is named for the setting it edits, which for
  * a bound field is wherever that setting is stored rather than where the field
- * sits in the form. Container nodes are labelled by their explicit title, never
+ * sits in the form. Container nodes are labeled by their explicit title, never
  * by configuration path (their headers already render the title).
  * @param form The form the field belongs to.
  * @param schema The field's schema.
@@ -37,7 +37,7 @@ export const computeFormLabel = (
     return schema.label;
   }
   if (!isFormFieldSchema(schema)) {
-    // Only an expandable has a title: a grid lays out fields that are labelled
+    // Only an expandable has a title: a grid lays out fields that are labeled
     // individually, and shows nothing of its own.
     return (schema.type === 'expandable' ? schema.title : null) ?? schema.name ?? '';
   }

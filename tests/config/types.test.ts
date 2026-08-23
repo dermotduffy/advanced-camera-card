@@ -1389,7 +1389,7 @@ describe('conditions should accept Home Assistant composite shorthand', () => {
     });
   });
 
-  it('should normalise a single shorthand condition to a list', () => {
+  it('should normalize a single shorthand condition to a list', () => {
     expect(
       conditionSchema.parse({ or: { condition: 'fullscreen', fullscreen: true } }),
     ).toMatchObject({
@@ -1760,7 +1760,7 @@ describe('should lazy evaluate schemas', () => {
     ).toBeFalsy();
   });
 
-  it('should normalise single if/then/else items to lists', () => {
+  it('should normalize single if/then/else items to lists', () => {
     const result = actionConfigSchema.parse({
       if: { condition: 'state', entity_id: 'light.office', state: 'on' },
       then: {
@@ -1912,7 +1912,7 @@ describe('automations should require actions', () => {
 });
 
 describe('automations should accept Home Assistant input shorthands', () => {
-  it('should normalise singular keys and single items to lists', () => {
+  it('should normalize singular keys and single items to lists', () => {
     const result = automationsSchema.parse([
       {
         trigger: { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },

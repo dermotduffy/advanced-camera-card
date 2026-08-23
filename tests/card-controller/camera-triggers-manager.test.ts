@@ -538,7 +538,8 @@ describe('CameraTriggersManager', () => {
       vi.runOnlyPendingTimers();
       await flushPromises();
 
-      // Should still be triggered because the second 'new' event should have cancelled the first timer.
+      // Should still be triggered because the second 'new' event should have
+      // canceled the first timer.
       expect(manager.isTriggered()).toBeTruthy();
       expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
     });

@@ -1373,8 +1373,8 @@ describe('answer', () => {
 
       expect(getRingtone().stop).toHaveBeenCalled();
 
-      // Timer was armed and should now be cancelled: advancing past the
-      // timeout must not end the (now-answered) call.
+      // Timer was armed and should now be canceled: advancing past the timeout
+      // must not end the (now-answered) call.
       vi.advanceTimersByTime(60_000);
       expect(manager.isActive()).toBe(true);
     } finally {

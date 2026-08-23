@@ -12,8 +12,8 @@ interface AudioMocks {
 }
 
 // Uses real jsdom HTMLAudioElement instances and only stubs the parts jsdom
-// can't fulfil (`play()` / `pause()` -- no audio backend). Tests then exercise
-// observable behaviour: registered listeners fire via `dispatchEvent`, property
+// can't fulfill (`play()` / `pause()` -- no audio backend). Tests then exercise
+// observable behavior: registered listeners fire via `dispatchEvent`, property
 // writes round-trip on the element, etc.
 //
 // Called once at module load. The `beforeEach`/`afterEach` calls inside this

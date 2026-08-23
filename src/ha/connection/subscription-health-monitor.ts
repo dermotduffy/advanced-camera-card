@@ -10,7 +10,7 @@ export interface SubscriptionFailure<K> {
   failureCount?: number;
 }
 
-// Recoverable health of a set of keyed subscriptions. A named specialisation
+// Recoverable health of a set of keyed subscriptions. A named specialization
 // for readability and the extension point for any subscription-specific health
 // surface later.
 export type SubscriptionHealthInterface<K> = RecoverableHealthInterface<

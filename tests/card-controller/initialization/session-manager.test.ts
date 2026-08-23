@@ -245,7 +245,7 @@ describe('SessionManager', () => {
     });
   });
 
-  // The user-facing behaviour the machine exists for, driven through the real
+  // The user-facing behavior the machine exists for, driven through the real
   // schema, trigger factory and evaluator rather than hand-written state.
   describe('should drive the initialized trigger', () => {
     it('should fire once per session and not when a session ends', () => {

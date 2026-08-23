@@ -186,7 +186,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
       livenessOptions: {
         // Frames are only due while the refresh timer runs. A snapshot with
         // refreshing switched off shows one picture forever, which is the
-        // configured behaviour and never a stall.
+        // configured behavior and never a stall.
         isFrameExpected: () => this._cachedValueController.hasTimer(),
 
         // Allow a whole refresh interval to pass, plus the standard window, so

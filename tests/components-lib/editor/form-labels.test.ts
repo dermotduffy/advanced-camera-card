@@ -118,7 +118,7 @@ describe('computeFormLabel', () => {
   });
 
   it('should return an empty label for a grid', () => {
-    // The fields a grid lays out are labelled individually; the grid itself
+    // The fields a grid lays out are labeled individually; the grid itself
     // shows nothing.
     expect(computeFormLabel(createForm([]), { type: 'grid', schema: [] })).toBe('');
   });

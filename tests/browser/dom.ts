@@ -92,7 +92,7 @@ export const tabUntil = async (
 
 /**
  * Click an element with a real pointer, which is the only kind that carries the
- * browser's own behaviour: the press moves focus, and an element that stops the
+ * browser's own behavior: the press moves focus, and an element that stops the
  * press doing so leaves it where it was.
  */
 export const clickElement = async (element: Element): Promise<void> =>

@@ -873,7 +873,7 @@ describe('IssueManager', () => {
 
       // The attempt is now in flight: the problem is still unresolved
       // (needsRetry) but cannot be retried right now (canRetryNow). The running
-      // timer is cancelled and no further attempt fires, however long we wait.
+      // timer is canceled and no further attempt fires, however long we wait.
       canRetryNow.mockReturnValue(false);
       manager.evaluate();
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);

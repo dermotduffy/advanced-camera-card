@@ -12,7 +12,7 @@ The Advanced Camera Card will execute these actions in the following circumstanc
 - On 'tab' change in a dashboard.
 - When a `navigate` [action](https://www.home-assistant.io/dashboards/actions/)
   is called on the dashboard (e.g. a button click requests navigation).
-- When the user uses the `back` / `forward` browser buttons whilst viewing a
+- When the user uses the `back` / `forward` browser buttons while viewing a
   dashboard.
 
 ## Instructions

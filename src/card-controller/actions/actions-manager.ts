@@ -96,7 +96,7 @@ export class ActionsManager implements ActionsExecutor {
     ev: Event | CustomEvent<ActionConfig>,
   ): Promise<void> => {
     if (!('detail' in ev)) {
-      // The event may or may not be a CustomEvent object. For example, whilst
+      // The event may or may not be a CustomEvent object. For example, while
       // this card doesn't use custom-card-helpers, embedded elements may:
       // https://github.com/custom-cards/custom-card-helpers/blob/master/src/fire-event.ts#L70
       return;

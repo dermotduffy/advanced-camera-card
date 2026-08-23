@@ -154,7 +154,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   /**
    * Determine if a camera image should be shown in lieu of the real stream
-   * whilst loading.
+   * while loading.
    * @returns`true` if an image should be shown.
    */
   private _shouldShowImageDuringLoading(): boolean {
@@ -287,7 +287,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   private _getNotification(failure: StreamFailure | null): TemplateResult | null {
     // If a card *re*-initializes (e.g. was already initialized and then there's
     // a use of the editor to change the config), cameras will re-initialize in
-    // place, which means they might be asked to render (here) whilst not yet
+    // place, which means they might be asked to render (here) while not yet
     // being initialized. This can cause spurious errors (e.g. lack of resolved
     // endpoints). Instead, simply never render uninitialized cameras.
     if (!this.camera?.isInitialized()) {

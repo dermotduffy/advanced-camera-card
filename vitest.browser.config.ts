@@ -24,7 +24,7 @@ export default defineConfig({
 
   resolve: {
     // Several dependencies declare their own Lit. Two copies in one page do not
-    // recognise each other's directives and template results, which surfaces as
+    // recognize each other's directives and template results, which surfaces as
     // "Multiple versions of Lit loaded" followed by render-time type errors.
     // The build gets one copy from its own resolver; the tests have to be told.
     dedupe: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],

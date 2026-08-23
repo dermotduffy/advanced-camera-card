@@ -55,7 +55,7 @@ To resolve it:
 1. Re-create each entry under it in the current format (see the relevant
    configuration documentation in the sidebar). An upgrade usually fails this
    way when a feature has been retired, or changed enough that the migration
-   needs human judgement.
+   needs human judgment.
 1. Once you're happy with the result, delete the `__UPGRADE_FAILURE__` key.
 
 The notification clears once the `__UPGRADE_FAILURE__` key is gone.

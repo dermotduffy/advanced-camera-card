@@ -158,11 +158,11 @@ interface EventEntry {
   target: EventTarget | null;
 }
 
-interface LabelledElement extends Element {
+interface LabeledElement extends Element {
   label?: string;
 }
 
-const hasLabel = (element: Element): element is LabelledElement => 'label' in element;
+const hasLabel = (element: Element): element is LabeledElement => 'label' in element;
 
 /**
  * What a control calls itself to the user. The card titles the controls it
