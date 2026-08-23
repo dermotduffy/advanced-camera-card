@@ -72,6 +72,25 @@ export const releaseKey = async (key: string): Promise<void> =>
 export const pressTab = async (): Promise<void> => await userEvent.tab();
 
 /**
+ * Press Tab until the page reaches the state the caller is waiting for,
+ * reporting whether it got there. `maximumPresses` is a runaway guard rather
+ * than a count: a page that never reaches that state fails the caller instead
+ * of tabbing forever.
+ */
+export const tabUntil = async (
+  isReached: () => boolean,
+  maximumPresses: number,
+): Promise<boolean> => {
+  for (let press = 0; press < maximumPresses; ++press) {
+    await pressTab();
+    if (isReached()) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
  * Click an element with a real pointer, which is the only kind that carries the
  * browser's own behaviour: the press moves focus, and an element that stops the
  * press doing so leaves it where it was.

@@ -4,11 +4,13 @@ import { hasPopOutAnimationEnded } from '../../utils/animation.js';
 import { dispatchDismissNotificationEvent } from '../../utils/notification.js';
 
 // Manages the popup notification's modal interaction: dismiss on outside
-// interaction or Escape, and emit the dismiss event once the pop-out animation
-// finishes.
+// interaction or Escape, hold focus while it is shown, and emit the dismiss
+// event once the pop-out animation finishes.
 export class NotificationPopupController implements ReactiveController {
   private _host: ReactiveControllerHost & HTMLElement;
   private _getNotificationElement: () => HTMLElement | null;
+  private _elementFocusedBeforePopup: Element | null = null;
+  private _hasTakenFocus = false;
 
   constructor(
     host: ReactiveControllerHost & HTMLElement,
@@ -20,6 +22,8 @@ export class NotificationPopupController implements ReactiveController {
   }
 
   public hostConnected(): void {
+    this._elementFocusedBeforePopup = document.activeElement;
+
     window.addEventListener('click', this._handleOutsideInteraction);
     window.addEventListener('focusin', this._handleOutsideInteraction);
 
@@ -29,10 +33,31 @@ export class NotificationPopupController implements ReactiveController {
     window.addEventListener('keydown', this._handleKeyDown, { capture: true });
   }
 
+  public hostUpdated(): void {
+    const notification = this._getNotificationElement();
+
+    if (notification && !this._hasTakenFocus) {
+      this._hasTakenFocus = true;
+      notification.focus();
+    }
+  }
+
   public hostDisconnected(): void {
     window.removeEventListener('click', this._handleOutsideInteraction);
     window.removeEventListener('focusin', this._handleOutsideInteraction);
     window.removeEventListener('keydown', this._handleKeyDown, { capture: true });
+
+    this._hasTakenFocus = false;
+
+    // Focus returns to whatever held it before the popup appeared, unless
+    // something else has taken focus since.
+    if (
+      this._elementFocusedBeforePopup instanceof HTMLElement &&
+      document.activeElement === document.body
+    ) {
+      this._elementFocusedBeforePopup.focus();
+    }
+    this._elementFocusedBeforePopup = null;
   }
 
   public dismiss = (): void => {

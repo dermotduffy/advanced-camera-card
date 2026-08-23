@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished, vi } from 'vitest';
+import { assert, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { NotificationPopupController } from '../../../src/components-lib/notification/notification-popup-controller';
 import { POP_OUT_ANIMATION_NAME } from '../../../src/utils/animation';
@@ -76,6 +76,96 @@ describe('NotificationPopupController', () => {
       document.body.appendChild(outside);
       outside.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
       expect(popup.classList.contains('exiting')).toBe(false);
+    });
+  });
+
+  describe('focus', () => {
+    // The notification element must be in the document and focusable for the
+    // controller to be able to move focus to it.
+    const createFocusablePopup = (): HTMLElement => {
+      const popup = document.createElement('div');
+      popup.setAttribute('tabindex', '-1');
+      document.body.appendChild(popup);
+      return popup;
+    };
+
+    it('should take focus when the notification appears', () => {
+      const popup = createFocusablePopup();
+      const { controller } = create(() => popup);
+
+      controller.hostUpdated();
+
+      expect(document.activeElement).toBe(popup);
+    });
+
+    it('should leave focus alone on later updates', () => {
+      const popup = createFocusablePopup();
+      const { controller } = create(() => popup);
+      controller.hostUpdated();
+
+      const control = document.createElement('button');
+      document.body.appendChild(control);
+      control.focus();
+
+      controller.hostUpdated();
+
+      expect(document.activeElement).toBe(control);
+    });
+
+    it('should do nothing when there is no notification element', () => {
+      const { controller } = create(() => null);
+
+      expect(() => controller.hostUpdated()).not.toThrow();
+    });
+
+    it('should return focus to the element that had it', () => {
+      const before = document.createElement('button');
+      document.body.appendChild(before);
+      before.focus();
+
+      const popup = createFocusablePopup();
+      const { controller } = create(() => popup);
+      controller.hostUpdated();
+      popup.remove();
+
+      controller.hostDisconnected();
+
+      expect(document.activeElement).toBe(before);
+    });
+
+    it('should leave focus alone when something else has taken it', () => {
+      const before = document.createElement('button');
+      document.body.appendChild(before);
+      before.focus();
+
+      const { controller } = create();
+
+      const elsewhere = document.createElement('button');
+      document.body.appendChild(elsewhere);
+      elsewhere.focus();
+
+      controller.hostDisconnected();
+
+      expect(document.activeElement).toBe(elsewhere);
+    });
+
+    it('should do nothing when nothing had focus', () => {
+      const activeElement = Object.getOwnPropertyDescriptor(
+        Document.prototype,
+        'activeElement',
+      );
+      assert(activeElement);
+      Object.defineProperty(document, 'activeElement', {
+        configurable: true,
+        get: () => null,
+      });
+      onTestFinished(() => {
+        Object.defineProperty(document, 'activeElement', activeElement);
+      });
+
+      const { controller } = create();
+
+      expect(() => controller.hostDisconnected()).not.toThrow();
     });
   });
 

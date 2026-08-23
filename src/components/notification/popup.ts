@@ -53,6 +53,7 @@ export class AdvancedCameraCardNotification extends LitElement {
       <div class="backdrop" @click=${this._popupController.dismiss}></div>
       <div
         class="notification"
+        tabindex="-1"
         ${ref(this._refNotification)}
         @animationend=${this._popupController.handleAnimationEnd}
       >
@@ -70,11 +71,16 @@ export class AdvancedCameraCardNotification extends LitElement {
               )}
             </div>`
           : ''}
-        <div class="close" @click=${this._popupController.dismiss}>
+        <button
+          class="close"
+          title=${localize('common.close')}
+          aria-label=${localize('common.close')}
+          @click=${this._popupController.dismiss}
+        >
           <advanced-camera-card-icon
             .icon=${{ icon: 'mdi:close' }}
           ></advanced-camera-card-icon>
-        </div>
+        </button>
         <div class="details">
           ${heading ? renderDetail(heading, 'heading') : ''}
           ${renderNotificationBody(this.notification, context)}
