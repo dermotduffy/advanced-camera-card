@@ -9,6 +9,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
 import type { IssuePresence } from '../card-controller/issues/types';
+import type { MicrophoneTrackDiagnostics } from '../card-controller/types';
 import type { RawAdvancedCameraCardConfig } from '../config/types';
 import type { DeviceRegistryManager } from '../ha/registry/device';
 import type { HomeAssistant } from '../ha/types';
@@ -31,12 +32,16 @@ export class AdvancedCameraCardDiagnostics extends LitElement {
   @property({ attribute: false })
   public issues?: IssuePresence;
 
+  @property({ attribute: false })
+  public microphoneDiagnostics?: MicrophoneTrackDiagnostics;
+
   private async _renderDiagnostics(): Promise<TemplateResult> {
     const diagnostics = await getDiagnostics(
       this.hass,
       this.deviceRegistryManager,
       this.rawConfig,
       this.issues,
+      this.microphoneDiagnostics,
     );
 
     return renderNotificationBlockFromText(localize('error.diagnostics'), {

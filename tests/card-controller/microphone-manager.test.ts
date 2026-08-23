@@ -40,6 +40,7 @@ describe('MicrophoneManager', () => {
     const track = mock<MediaStreamTrack>();
     track.enabled = !mute;
     stream.getTracks.mockImplementation(() => [track]);
+    stream.getAudioTracks.mockImplementation(() => [track]);
     return stream;
   };
 
@@ -89,6 +90,130 @@ describe('MicrophoneManager', () => {
     expect(manager.getStream()).toBe(stream);
     expect(manager.isMuted()).toBeTruthy();
     expect(api.getCardElementManager().update).toHaveBeenCalled();
+    expect(navigatorMock.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+      audio: true,
+      video: false,
+    });
+  });
+
+  it('should request configured ideal audio constraints', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            constraints: {
+              echo_cancellation: true,
+              noise_suppression: false,
+              auto_gain_control: false,
+              channel_count: 1,
+            },
+          },
+        },
+      }),
+    );
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    await manager.connect();
+
+    expect(navigatorMock.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+      audio: {
+        echoCancellation: { ideal: true },
+        noiseSuppression: { ideal: false },
+        autoGainControl: { ideal: false },
+        channelCount: { ideal: 1 },
+      },
+      video: false,
+    });
+  });
+
+  it('should request only configured audio constraints', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            constraints: {
+              noise_suppression: true,
+            },
+          },
+        },
+      }),
+    );
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    await manager.connect();
+
+    expect(navigatorMock.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+      audio: {
+        noiseSuppression: { ideal: true },
+      },
+      video: false,
+    });
+  });
+
+  it('should expose microphone diagnostics without device identifiers', async () => {
+    const api = createCardAPI();
+    const stream = createMockStream();
+    const track = getTrack(stream);
+    vi.mocked(track.getCapabilities).mockReturnValue({
+      echoCancellation: [true, false],
+      deviceId: 'secret-device',
+    });
+    vi.mocked(track.getConstraints).mockReturnValue({
+      echoCancellation: { ideal: true },
+      deviceId: { exact: 'secret-device' },
+    });
+    vi.mocked(track.getSettings).mockReturnValue({
+      echoCancellation: true,
+      deviceId: 'secret-device',
+      groupId: 'secret-group',
+    });
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    await manager.connect();
+    manager.setTransmissionActive(false);
+
+    expect(manager.getDiagnostics()).toEqual({
+      capabilities: {
+        echoCancellation: [true, false],
+      },
+      constraints: {
+        echoCancellation: { ideal: true },
+      },
+      settings: {
+        echoCancellation: true,
+      },
+    });
+  });
+
+  it('should support tracks without diagnostic methods', async () => {
+    const api = createCardAPI();
+    const stream = createMockStream();
+    const track = getTrack(stream);
+    track.getCapabilities = undefined as unknown as MediaStreamTrack['getCapabilities'];
+    track.getConstraints = undefined as unknown as MediaStreamTrack['getConstraints'];
+    track.getSettings = undefined as unknown as MediaStreamTrack['getSettings'];
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    expect(await manager.connect()).toBeTruthy();
+    expect(manager.getDiagnostics()).toEqual({
+      capabilities: undefined,
+      constraints: undefined,
+      settings: undefined,
+    });
   });
 
   it('should release a stream that connects without active transmission', async () => {

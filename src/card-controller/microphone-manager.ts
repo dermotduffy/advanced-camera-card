@@ -1,7 +1,11 @@
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError } from '../types';
 import { Generation } from '../utils/concurrency/generation';
-import type { CardMicrophoneAPI, MicrophoneState } from './types';
+import type {
+  CardMicrophoneAPI,
+  MicrophoneState,
+  MicrophoneTrackDiagnostics,
+} from './types';
 
 export class MicrophoneNotSupportedError extends AdvancedCameraCardError {
   constructor() {
@@ -12,6 +16,7 @@ export class MicrophoneNotSupportedError extends AdvancedCameraCardError {
 export class MicrophoneManager {
   private _api: CardMicrophoneAPI;
   private _stream: MediaStream | null = null;
+  private _diagnostics?: MicrophoneTrackDiagnostics;
 
   // Whether the browser denied the most recent microphone request. Cleared by
   // a later successful connect.
@@ -43,6 +48,10 @@ export class MicrophoneManager {
 
   public getState(): MicrophoneState {
     return this._state;
+  }
+
+  public getDiagnostics(): MicrophoneTrackDiagnostics | undefined {
+    return this._diagnostics;
   }
 
   public initialize(): void {
@@ -79,7 +88,7 @@ export class MicrophoneManager {
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: this._getAudioConstraints(),
         video: false,
       });
     } catch (e: unknown) {
@@ -104,6 +113,7 @@ export class MicrophoneManager {
     this._removeEndedListeners(this._stream);
     this._stopTracks(this._stream);
     this._stream = stream;
+    this._diagnostics = this._getTrackDiagnostics(stream.getAudioTracks?.()?.[0]);
     this._addEndedListeners(stream);
     this._forbidden = false;
     this._reconcile();
@@ -167,6 +177,59 @@ export class MicrophoneManager {
     // For safety, this function always returns the stream mute status directly
     // (rather the desired internal state).
     return !this._stream || this._stream.getTracks().every((track) => !track.enabled);
+  }
+
+  private _getAudioConstraints(): true | MediaTrackConstraints {
+    const config = this._api.getConfigManager().getConfig()?.live
+      .microphone?.constraints;
+    if (!config) {
+      return true;
+    }
+
+    const constraints: MediaTrackConstraints = {};
+    if (config.echo_cancellation !== undefined) {
+      constraints.echoCancellation = { ideal: config.echo_cancellation };
+    }
+    if (config.noise_suppression !== undefined) {
+      constraints.noiseSuppression = { ideal: config.noise_suppression };
+    }
+    if (config.auto_gain_control !== undefined) {
+      constraints.autoGainControl = { ideal: config.auto_gain_control };
+    }
+    if (config.channel_count !== undefined) {
+      constraints.channelCount = { ideal: config.channel_count };
+    }
+    return constraints;
+  }
+
+  private _getTrackDiagnostics(
+    track?: MediaStreamTrack,
+  ): MicrophoneTrackDiagnostics | undefined {
+    if (!track) {
+      return undefined;
+    }
+
+    return {
+      capabilities: this._removeDeviceIdentifiers(track.getCapabilities?.()),
+      constraints: this._removeDeviceIdentifiers(track.getConstraints?.()),
+      settings: this._removeDeviceIdentifiers(track.getSettings?.()),
+    };
+  }
+
+  private _removeDeviceIdentifiers<T extends object>(
+    values?: T,
+  ): Omit<T, 'deviceId' | 'groupId'> | undefined {
+    if (!values) {
+      return undefined;
+    }
+
+    const safeValues = { ...values } as T & {
+      deviceId?: unknown;
+      groupId?: unknown;
+    };
+    delete safeValues.deviceId;
+    delete safeValues.groupId;
+    return safeValues;
   }
 
   private _stopTracks(stream: MediaStream | null): void {

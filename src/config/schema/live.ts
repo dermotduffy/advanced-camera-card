@@ -30,6 +30,13 @@ const microphoneConfigDefault = {
   mute_after_microphone_mute_seconds: 60,
 };
 
+const microphoneConstraintsSchema = z.object({
+  echo_cancellation: z.boolean().optional(),
+  noise_suppression: z.boolean().optional(),
+  auto_gain_control: z.boolean().optional(),
+  channel_count: z.number().int().positive().optional(),
+});
+
 const ringtoneConfigDefault = {
   type: 'chime' as const,
   repeat: 0,
@@ -83,6 +90,7 @@ const microphoneConfigSchema = z
       .number()
       .min(0)
       .default(microphoneConfigDefault.mute_after_microphone_mute_seconds),
+    constraints: microphoneConstraintsSchema.optional(),
   })
   .default(microphoneConfigDefault);
 

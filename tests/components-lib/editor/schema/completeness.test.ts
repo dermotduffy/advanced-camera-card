@@ -96,6 +96,9 @@ const EDITOR_EXCLUDED = [
   'live.controls.ptz.style',
   'media_viewer.controls.ptz.style',
 
+  // Advanced browser microphone constraints are YAML-only.
+  'live.microphone.constraints',
+
   // Advanced folder path parsers/matchers/templating: text-editor only.
   'folders.ha.path',
 ];

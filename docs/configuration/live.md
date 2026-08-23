@@ -228,6 +228,20 @@ live:
 | `auto_mute`                          | `[]`    | A list of conditions in which the microphone is muted. `hidden` will automatically mute the microphone when the card becomes hidden (e.g. browser/tab change, or the card scrolling out of view). Use an empty list (`[]`, the default) to never automatically mute the microphone this way. The microphone is always muted when a call ends.                                                                                                                                                                                                                                     |
 | `auto_unmute`                        | `[]`    | A list of conditions in which the microphone is unmuted. `call` will automatically unmute the microphone when a [two-way audio](../usage/2-way-audio.md) call is started (or answered for inbound calls). `visible` will automatically unmute the microphone when the card becomes visible again. By default this list is empty, so the microphone stays muted even after answering (push-to-talk) -- tap the microphone button in the call overlay to talk. Unmuting only has an effect during a call: at any other time nothing can carry the audio, so the request is ignored. |
 | `mute_after_microphone_mute_seconds` | `60`    | The number of seconds after the microphone mutes to automatically mute the inbound audio when `live.auto_mute` includes `microphone`.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `constraints`                        |         | Optional audio-processing constraints for the browser microphone. See below. The card requests configured values as non-mandatory `ideal` constraints.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+### `constraints`
+
+These options process microphone audio in the browser before WebRTC sends it to the camera. Browser support varies. The diagnostics view shows the supported capabilities, requested constraints, and applied settings.
+
+| Option              | Default | Description                                                                                                                             |
+| ------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `echo_cancellation` |         | Whether to request browser echo cancellation.                                                                                           |
+| `noise_suppression` |         | Whether to request browser noise suppression.                                                                                           |
+| `auto_gain_control` |         | Whether to request browser automatic gain control. Set this to `false` when automatic gain control amplifies unwanted background noise. |
+| `channel_count`     |         | The preferred positive integer channel count. Use `1` to request mono audio.                                                            |
+
+Browsers can ignore unsupported `ideal` constraints. Check the microphone `settings` in the diagnostics view to see the values that the browser reports as applied.
 
 See [Using 2-way audio](../usage/2-way-audio.md) for more information about the very particular requirements that must be followed for 2-way audio to work.
 
@@ -306,6 +320,12 @@ live:
     auto_mute: []
     auto_unmute: []
     mute_after_microphone_mute_seconds: 60
+    # Optional audio-processing constraints have no defaults.
+    constraints:
+      echo_cancellation: true
+      noise_suppression: true
+      auto_gain_control: false
+      channel_count: 1
   display:
     mode: single
     grid_selected_position: default

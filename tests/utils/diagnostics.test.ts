@@ -173,6 +173,34 @@ describe('getDiagnostics', () => {
     expect(result.issues).toEqual(['config_upgrade']);
   });
 
+  it('should include microphone diagnostics', async () => {
+    const microphoneDiagnostics = {
+      capabilities: {
+        echoCancellation: [true, false],
+      },
+      constraints: {
+        echoCancellation: { ideal: true },
+      },
+      settings: {
+        echoCancellation: true,
+      },
+    };
+
+    expect(
+      await getDiagnostics(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        microphoneDiagnostics,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        microphone: microphoneDiagnostics,
+      }),
+    );
+  });
+
   it('should fetch diagnostics without device model', async () => {
     const deviceRegistryManager = mock<DeviceRegistryManager>();
     deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);

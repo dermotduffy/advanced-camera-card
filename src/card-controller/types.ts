@@ -377,6 +377,12 @@ export interface MicrophoneState {
   forbidden: boolean;
 }
 
+export interface MicrophoneTrackDiagnostics {
+  capabilities?: Omit<MediaTrackCapabilities, 'deviceId' | 'groupId'>;
+  constraints?: Omit<MediaTrackConstraints, 'deviceId' | 'groupId'>;
+  settings?: Omit<MediaTrackSettings, 'deviceId' | 'groupId'>;
+}
+
 export interface TaggedAutomation extends Automation {
   tag?: unknown;
 }
