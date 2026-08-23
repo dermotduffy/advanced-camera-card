@@ -6,6 +6,7 @@
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
+    "close": "Close",
     "event": "Event",
     "folder": "Folder",
     "in_progress": "In progress...",

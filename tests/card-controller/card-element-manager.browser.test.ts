@@ -8,6 +8,7 @@ import {
   getFocusedElement,
   pressKey,
   pressTab,
+  tabUntil,
 } from '../browser/dom';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
@@ -52,17 +53,7 @@ const mountCard = async (): Promise<MountedCard> => {
 const tabPastCard = async (card: MountedCard): Promise<void> => {
   const bound = deepQueryAll(card.card, '*').length;
 
-  // Tabbing starts from the top of the page, so the first press is the one
-  // that reaches the card.
-  await pressTab();
-
-  for (
-    let press = 0;
-    press < bound && card.card.contains(document.activeElement);
-    press++
-  ) {
-    await pressTab();
-  }
+  await tabUntil(() => !card.card.contains(document.activeElement), bound);
 };
 
 /**

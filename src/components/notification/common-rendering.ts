@@ -50,6 +50,8 @@ export function renderControl(
   return html`
     <div
       class="${classMap(classes)}"
+      role="button"
+      tabindex="0"
       title=${control.tooltip ?? ''}
       .actionHandler=${actionHandler({
         hasHold: hasAction(control.actions?.hold_action),
