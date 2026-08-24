@@ -1,4 +1,5 @@
 import type { IssueKey, IssuePresence } from '../card-controller/issues/types';
+import type { MicrophoneDiagnostics } from '../card-controller/types';
 import type { RawAdvancedCameraCardConfig } from '../config/types';
 import { getIntegrationManifest } from '../ha/integration';
 import type { IntegrationManifest } from '../ha/integration/types';
@@ -32,6 +33,7 @@ interface Diagnostics {
   ha_version?: string;
   config?: RawAdvancedCameraCardConfig;
   issues?: IssueKey[];
+  microphone?: MicrophoneDiagnostics;
 
   custom_integrations: {
     frigate: IntegrationDiagnostics & {
@@ -62,12 +64,16 @@ const getIntegrationDiagnostics = async (
   };
 };
 
-export const getDiagnostics = async (
-  hass?: HomeAssistant,
-  deviceRegistryManager?: DeviceRegistryManager,
-  rawConfig?: RawAdvancedCameraCardConfig,
-  issues?: IssuePresence,
-): Promise<Diagnostics> => {
+export const getDiagnostics = async (options?: {
+  hass?: HomeAssistant;
+  deviceRegistryManager?: DeviceRegistryManager;
+  rawConfig?: RawAdvancedCameraCardConfig;
+  issues?: IssuePresence;
+  microphoneDiagnostics?: MicrophoneDiagnostics;
+}): Promise<Diagnostics> => {
+  const { hass, deviceRegistryManager, rawConfig, issues, microphoneDiagnostics } =
+    options ?? {};
+
   // Get the Frigate devices in order to extract the Frigate integration and
   // server version numbers.
   const frigateDevices =
@@ -112,5 +118,6 @@ export const getDiagnostics = async (
     },
     issues: issues ? [...issues.keys()] : [],
     ...(rawConfig && { config: rawConfig }),
+    ...(microphoneDiagnostics && { microphone: microphoneDiagnostics }),
   };
 };

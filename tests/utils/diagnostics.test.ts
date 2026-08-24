@@ -67,8 +67,10 @@ describe('getDiagnostics', () => {
     });
 
     expect(
-      await getDiagnostics(hass, deviceRegistryManager, {
-        cameras: [{ camera_entity: 'camera.office' }],
+      await getDiagnostics({
+        hass,
+        deviceRegistryManager,
+        rawConfig: { cameras: [{ camera_entity: 'camera.office' }] },
       }),
     ).toEqual({
       browser: 'AdvancedCameraCardTest/1.0',
@@ -107,8 +109,10 @@ describe('getDiagnostics', () => {
     const deviceRegistryManager = mock<DeviceRegistryManager>();
     deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
 
-    await getDiagnostics(hass, deviceRegistryManager, {
-      cameras: [{ camera_entity: 'camera.office' }],
+    await getDiagnostics({
+      hass,
+      deviceRegistryManager,
+      rawConfig: { cameras: [{ camera_entity: 'camera.office' }] },
     });
 
     // Verify the matcher passed into the deviceRegistryManager correctly filters
@@ -163,21 +167,38 @@ describe('getDiagnostics', () => {
       ],
     ]);
 
-    const result = await getDiagnostics(
+    const result = await getDiagnostics({
       hass,
       deviceRegistryManager,
-      { cameras: [{ camera_entity: 'camera.office' }] },
+      rawConfig: { cameras: [{ camera_entity: 'camera.office' }] },
       issues,
-    );
+    });
 
     expect(result.issues).toEqual(['config_upgrade']);
+  });
+
+  it('should include microphone diagnostics', async () => {
+    const microphoneDiagnostics = {
+      capabilities: {
+        echoCancellation: [true, false],
+      },
+      settings: {
+        echoCancellation: true,
+      },
+    };
+
+    expect(await getDiagnostics({ microphoneDiagnostics })).toEqual(
+      expect.objectContaining({
+        microphone: microphoneDiagnostics,
+      }),
+    );
   });
 
   it('should fetch diagnostics without device model', async () => {
     const deviceRegistryManager = mock<DeviceRegistryManager>();
     deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
 
-    expect(await getDiagnostics(hass, deviceRegistryManager)).toEqual({
+    expect(await getDiagnostics({ hass, deviceRegistryManager })).toEqual({
       browser: 'AdvancedCameraCardTest/1.0',
       card_version: '1.2.3',
       git: {

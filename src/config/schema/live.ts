@@ -23,12 +23,36 @@ import {
 } from './common/media-actions';
 import { transitionEffectConfigSchema } from './common/transition-effect';
 
+const microphoneAudioProcessingDefault = {
+  auto_gain_control: 'auto' as const,
+  echo_cancellation: 'auto' as const,
+  noise_suppression: 'auto' as const,
+};
+
 const microphoneConfigDefault = {
   always_connected: false,
+  audio_processing: { ...microphoneAudioProcessingDefault },
   auto_mute: [],
   auto_unmute: [],
   mute_after_microphone_mute_seconds: 60,
 };
+
+// `auto` sends no constraint for the option and leaves the choice to the
+// browser, which behaves differently from an explicit `false`.
+const audioProcessingModeSchema = z.boolean().or(z.literal('auto'));
+
+const microphoneAudioProcessingSchema = z.object({
+  auto_gain_control: audioProcessingModeSchema.default(
+    microphoneAudioProcessingDefault.auto_gain_control,
+  ),
+  channel_count: z.number().int().positive().optional(),
+  echo_cancellation: audioProcessingModeSchema.default(
+    microphoneAudioProcessingDefault.echo_cancellation,
+  ),
+  noise_suppression: audioProcessingModeSchema.default(
+    microphoneAudioProcessingDefault.noise_suppression,
+  ),
+});
 
 const ringtoneConfigDefault = {
   type: 'chime' as const,
@@ -71,6 +95,9 @@ const callConfigSchema = z.object({
 const microphoneConfigSchema = z
   .object({
     always_connected: z.boolean().default(microphoneConfigDefault.always_connected),
+    audio_processing: microphoneAudioProcessingSchema.default(
+      microphoneConfigDefault.audio_processing,
+    ),
     auto_mute: z
       .enum(MICROPHONE_MUTE_CONDITIONS)
       .array()

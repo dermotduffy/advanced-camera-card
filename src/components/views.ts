@@ -236,6 +236,7 @@ export class AdvancedCameraCardViews extends LitElement {
             .rawConfig=${this.rawConfig}
             .deviceRegistryManager=${this.deviceRegistryManager}
             .issues=${this.issues}
+            .microphoneDiagnostics=${this.microphoneManager?.getDiagnostics()}
           >
           </advanced-camera-card-diagnostics>`
         : ``}

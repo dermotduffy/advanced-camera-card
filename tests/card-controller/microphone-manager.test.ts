@@ -40,6 +40,7 @@ describe('MicrophoneManager', () => {
     const track = mock<MediaStreamTrack>();
     track.enabled = !mute;
     stream.getTracks.mockImplementation(() => [track]);
+    stream.getAudioTracks.mockImplementation(() => [track]);
     return stream;
   };
 
@@ -89,6 +90,150 @@ describe('MicrophoneManager', () => {
     expect(manager.getStream()).toBe(stream);
     expect(manager.isMuted()).toBeTruthy();
     expect(api.getCardElementManager().update).toHaveBeenCalled();
+    expect(navigatorMock.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+      audio: true,
+      video: false,
+    });
+  });
+
+  it('should request configured ideal audio constraints', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            audio_processing: {
+              echo_cancellation: true,
+              noise_suppression: false,
+              auto_gain_control: false,
+              channel_count: 1,
+            },
+          },
+        },
+      }),
+    );
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    await manager.connect();
+
+    expect(navigatorMock.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+      audio: {
+        autoGainControl: { ideal: false },
+        channelCount: { ideal: 1 },
+        echoCancellation: { ideal: true },
+        noiseSuppression: { ideal: false },
+      },
+      video: false,
+    });
+  });
+
+  it('should request no constraint for an audio processing option left to the browser', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            audio_processing: {
+              auto_gain_control: 'auto',
+              echo_cancellation: 'auto',
+              noise_suppression: true,
+            },
+          },
+        },
+      }),
+    );
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    await manager.connect();
+
+    expect(navigatorMock.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+      audio: {
+        noiseSuppression: { ideal: true },
+      },
+      video: false,
+    });
+  });
+
+  it('should expose microphone diagnostics without device identifiers', async () => {
+    const api = createCardAPI();
+    const stream = createMockStream();
+    const track = getTrack(stream);
+    vi.mocked(track.getCapabilities).mockReturnValue({
+      echoCancellation: [true, false],
+      deviceId: 'secret-device',
+    });
+    vi.mocked(track.getSettings).mockReturnValue({
+      echoCancellation: true,
+      deviceId: 'secret-device',
+      groupId: 'secret-group',
+    });
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    await manager.connect();
+    manager.setTransmissionActive(false);
+
+    expect(manager.getDiagnostics()).toEqual({
+      capabilities: {
+        echoCancellation: [true, false],
+      },
+      settings: {
+        echoCancellation: true,
+      },
+    });
+  });
+
+  it('should omit a diagnostic that holds nothing but device identifiers', async () => {
+    const api = createCardAPI();
+    const stream = createMockStream();
+    const track = getTrack(stream);
+
+    vi.mocked(track.getCapabilities).mockReturnValue({ deviceId: 'secret-device' });
+    vi.mocked(track.getSettings).mockReturnValue({ echoCancellation: true });
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    await manager.connect();
+
+    expect(manager.getDiagnostics()).toEqual({
+      settings: { echoCancellation: true },
+    });
+  });
+
+  it('should support a browser without the capabilities method', async () => {
+    const api = createCardAPI();
+    const stream = createMockStream();
+    const track = getTrack(stream);
+    track.getCapabilities = undefined as unknown as MediaStreamTrack['getCapabilities'];
+    vi.mocked(track.getSettings).mockReturnValue({});
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    expect(await manager.connect()).toBeTruthy();
+    expect(manager.getDiagnostics()).toBeNull();
+  });
+
+  it('should report no diagnostics for a stream without an audio track', async () => {
+    const api = createCardAPI();
+    const stream = createMockStream();
+    vi.mocked(stream.getAudioTracks).mockImplementation(() => []);
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+    const manager = new MicrophoneManager(api);
+
+    manager.setTransmissionActive(true);
+    expect(await manager.connect()).toBeTruthy();
+    expect(manager.getDiagnostics()).toBeNull();
   });
 
   it('should release a stream that connects without active transmission', async () => {

@@ -1,7 +1,13 @@
+import { omit } from 'lodash-es';
+
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError } from '../types';
 import { Generation } from '../utils/concurrency/generation';
-import type { CardMicrophoneAPI, MicrophoneState } from './types';
+import type { CardMicrophoneAPI, MicrophoneDiagnostics, MicrophoneState } from './types';
+
+const MICROPHONE_DEVICE_IDENTIFIERS = ['deviceId', 'groupId'] as const;
+
+export type MicrophoneDeviceIdentifier = (typeof MICROPHONE_DEVICE_IDENTIFIERS)[number];
 
 export class MicrophoneNotSupportedError extends AdvancedCameraCardError {
   constructor() {
@@ -12,6 +18,9 @@ export class MicrophoneNotSupportedError extends AdvancedCameraCardError {
 export class MicrophoneManager {
   private _api: CardMicrophoneAPI;
   private _stream: MediaStream | null = null;
+
+  // The most recent microphone connection's diagnostics.
+  private _diagnostics: MicrophoneDiagnostics | null = null;
 
   // Whether the browser denied the most recent microphone request. Cleared by
   // a later successful connect.
@@ -43,6 +52,10 @@ export class MicrophoneManager {
 
   public getState(): MicrophoneState {
     return this._state;
+  }
+
+  public getDiagnostics(): MicrophoneDiagnostics | null {
+    return this._diagnostics;
   }
 
   public initialize(): void {
@@ -79,7 +92,7 @@ export class MicrophoneManager {
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: this._getAudioProcessingConstraints(),
         video: false,
       });
     } catch (e: unknown) {
@@ -104,6 +117,7 @@ export class MicrophoneManager {
     this._removeEndedListeners(this._stream);
     this._stopTracks(this._stream);
     this._stream = stream;
+    this._diagnostics = this._getTrackDiagnostics(stream.getAudioTracks()[0]);
     this._addEndedListeners(stream);
     this._forbidden = false;
     this._reconcile();
@@ -167,6 +181,55 @@ export class MicrophoneManager {
     // For safety, this function always returns the stream mute status directly
     // (rather the desired internal state).
     return !this._stream || this._stream.getTracks().every((track) => !track.enabled);
+  }
+
+  private _getAudioProcessingConstraints(): true | MediaTrackConstraints {
+    const audioProcessing = this._api.getConfigManager().getConfig()?.live
+      .microphone?.audio_processing;
+
+    const constraints: MediaTrackConstraints = {};
+    if (typeof audioProcessing?.auto_gain_control === 'boolean') {
+      constraints.autoGainControl = { ideal: audioProcessing.auto_gain_control };
+    }
+    if (audioProcessing?.channel_count !== undefined) {
+      constraints.channelCount = { ideal: audioProcessing.channel_count };
+    }
+    if (typeof audioProcessing?.echo_cancellation === 'boolean') {
+      constraints.echoCancellation = { ideal: audioProcessing.echo_cancellation };
+    }
+    if (typeof audioProcessing?.noise_suppression === 'boolean') {
+      constraints.noiseSuppression = { ideal: audioProcessing.noise_suppression };
+    }
+
+    return Object.keys(constraints).length ? constraints : true;
+  }
+
+  private _getTrackDiagnostics(track?: MediaStreamTrack): MicrophoneDiagnostics | null {
+    if (!track) {
+      return null;
+    }
+
+    // Remove values not suitable for sharing.
+    const getReportableValues = <
+      T extends Partial<Record<MicrophoneDeviceIdentifier, unknown>>,
+    >(
+      values?: T,
+    ): Omit<T, MicrophoneDeviceIdentifier> | null => {
+      if (!values) {
+        return null;
+      }
+
+      const reportable = omit(values, MICROPHONE_DEVICE_IDENTIFIERS);
+      return Object.keys(reportable).length ? reportable : null;
+    };
+
+    const capabilities = getReportableValues(track.getCapabilities?.());
+    const settings = getReportableValues(track.getSettings());
+    const diagnostics = {
+      ...(capabilities && { capabilities }),
+      ...(settings && { settings }),
+    };
+    return Object.keys(diagnostics).length ? diagnostics : null;
   }
 
   private _stopTracks(stream: MediaStream | null): void {

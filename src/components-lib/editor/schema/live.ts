@@ -1,5 +1,5 @@
 import { BUTTON_SIZE_MIN } from '../../../config/schema/common/const';
-import type { HAFormExpandableSchema } from '../../../ha/types';
+import type { HAFormExpandableSchema, HAFormSelectorSchema } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import type { EditorForm } from '../types';
 import { getNextPreviousSchema } from './common/controls/next-previous';
@@ -97,6 +97,30 @@ const getControlsSchema = (): HAFormExpandableSchema => ({
   ],
 });
 
+const AUDIO_PROCESSING_LOCALIZE_PREFIX = 'config.live.microphone.audio_processing';
+
+const getAudioProcessingModeField = (name: string): HAFormSelectorSchema => ({
+  name,
+  selector: createSelectSelector([
+    { value: 'auto', label: localize(`${AUDIO_PROCESSING_LOCALIZE_PREFIX}.modes.auto`) },
+    { value: true, label: localize(`${AUDIO_PROCESSING_LOCALIZE_PREFIX}.modes.true`) },
+    { value: false, label: localize(`${AUDIO_PROCESSING_LOCALIZE_PREFIX}.modes.false`) },
+  ]),
+});
+
+const getAudioProcessingSchema = (): HAFormExpandableSchema => ({
+  name: 'audio_processing',
+  type: 'expandable',
+  title: localize(`${AUDIO_PROCESSING_LOCALIZE_PREFIX}.editor_label`),
+  icon: 'mdi:audio-input-stereo-minijack',
+  schema: [
+    getAudioProcessingModeField('auto_gain_control'),
+    { name: 'channel_count', selector: createNumberSelector({ min: 1 }) },
+    getAudioProcessingModeField('echo_cancellation'),
+    getAudioProcessingModeField('noise_suppression'),
+  ],
+});
+
 const getMicrophoneSchema = (): HAFormExpandableSchema => ({
   name: 'microphone',
   type: 'expandable',
@@ -104,6 +128,7 @@ const getMicrophoneSchema = (): HAFormExpandableSchema => ({
   icon: 'mdi:microphone',
   schema: [
     { name: 'always_connected', selector: { boolean: {} } },
+    getAudioProcessingSchema(),
     {
       name: 'auto_mute',
       selector: createSelectSelector(getMicrophoneMuteOptions(), { multiple: true }),
