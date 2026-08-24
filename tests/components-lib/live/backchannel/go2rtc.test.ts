@@ -131,18 +131,21 @@ describe('Go2RTCBackchannel', () => {
       ).rejects.toMatchObject({ reason: 'failed', description: 'proxy' });
     });
 
-    it('should reject when the server reports the stream cannot take audio', async () => {
+    it('should reject with the server error when the offer is refused', async () => {
       const { backchannel, websocket } = setup();
       const started = backchannel.start(createStream().asMediaStream());
       await flushPromises();
       websocket.fireOpen();
       await flushPromises();
       websocket.fireMessage(
-        JSON.stringify({ type: 'error', value: 'webrtc: no backchannel' }),
+        JSON.stringify({
+          type: 'error',
+          value: 'webrtc/offer: streams: wrong response on DESCRIBE',
+        }),
       );
       await expect(started).rejects.toMatchObject({
-        reason: 'no_two_way_audio',
-        description: 'webrtc: no backchannel',
+        reason: 'failed',
+        description: 'webrtc/offer: streams: wrong response on DESCRIBE',
       });
     });
 

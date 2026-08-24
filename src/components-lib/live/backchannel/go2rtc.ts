@@ -252,13 +252,11 @@ export class Go2RTCBackchannel implements Backchannel {
     message: Go2RTCMessage,
     generation: number,
   ): void {
-    // go2rtc refuses a stream it cannot send audio to with an error frame
-    // rather than an answer.
+    // The error frame go2rtc sends in place of an answer does not identify what
+    // failed, so the reason can be no more specific than `failed`, with the
+    // server's text attached as the description.
     if (isServerErrorForMode(message, 'webrtc')) {
-      this._failStart(
-        generation,
-        new BackchannelError('no_two_way_audio', message.value),
-      );
+      this._failStart(generation, new BackchannelError('failed', message.value));
       return;
     }
 
