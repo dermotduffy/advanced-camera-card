@@ -225,25 +225,31 @@ live:
 | Option                               | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `always_connected`                   | `false` | Whether or not to keep the microphone connected while the card is running. By default the microphone is connected when a [two-way audio](../usage/2-way-audio.md) call needs it and disconnected when that call ends. Setting this to `true` connects it at card load and never disconnects it, which avoids the connection setup on the first call at the cost of the browser reporting the microphone as in use for as long as the card is running.                                                                                                                             |
+| `audio_processing`                   |         | Audio processing applied to the browser microphone. See below.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `auto_mute`                          | `[]`    | A list of conditions in which the microphone is muted. `hidden` will automatically mute the microphone when the card becomes hidden (e.g. browser/tab change, or the card scrolling out of view). Use an empty list (`[]`, the default) to never automatically mute the microphone this way. The microphone is always muted when a call ends.                                                                                                                                                                                                                                     |
 | `auto_unmute`                        | `[]`    | A list of conditions in which the microphone is unmuted. `call` will automatically unmute the microphone when a [two-way audio](../usage/2-way-audio.md) call is started (or answered for inbound calls). `visible` will automatically unmute the microphone when the card becomes visible again. By default this list is empty, so the microphone stays muted even after answering (push-to-talk) -- tap the microphone button in the call overlay to talk. Unmuting only has an effect during a call: at any other time nothing can carry the audio, so the request is ignored. |
 | `mute_after_microphone_mute_seconds` | `60`    | The number of seconds after the microphone mutes to automatically mute the inbound audio when `live.auto_mute` includes `microphone`.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `constraints`                        |         | Optional audio-processing constraints for the browser microphone. See below. The card requests configured values as non-mandatory `ideal` constraints.                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
-### `constraints`
+See [Using 2-way audio](../usage/2-way-audio.md) for more information about the very particular requirements that must be followed for 2-way audio.
 
-These options process microphone audio in the browser before WebRTC sends it to the camera. Browser support varies. The diagnostics view shows the supported capabilities, requested constraints, and applied settings.
+### `audio_processing`
 
-| Option              | Default | Description                                                                                                                             |
-| ------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `echo_cancellation` |         | Whether to request browser echo cancellation.                                                                                           |
-| `noise_suppression` |         | Whether to request browser noise suppression.                                                                                           |
-| `auto_gain_control` |         | Whether to request browser automatic gain control. Set this to `false` when automatic gain control amplifies unwanted background noise. |
-| `channel_count`     |         | The preferred positive integer channel count. Use `1` to request mono audio.                                                            |
+These options process microphone audio in the browser before WebRTC sends it to the camera.
 
-Browsers can ignore unsupported `ideal` constraints. Check the microphone `settings` in the diagnostics view to see the values that the browser reports as applied.
+Each option maps to the matching browser [`MediaTrackConstraints`](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints) property, requested as an `ideal` value so the browser never rejects the microphone for being unable to honor it.
 
-See [Using 2-way audio](../usage/2-way-audio.md) for more information about the very particular requirements that must be followed for 2-way audio to work.
+| Option              | Default | Description                                                                                                                                                                                     |
+| ------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto_gain_control` | `auto`  | `true` or `false` to request browser automatic gain control, or `auto` to leave the choice to the browser. Set this to `false` when automatic gain control amplifies unwanted background noise. |
+| `channel_count`     |         | The preferred positive integer channel count. Use `1` to request mono audio. Unset leaves the choice to the browser.                                                                            |
+| `echo_cancellation` | `auto`  | `true` or `false` to request browser echo cancellation, or `auto` to leave the choice to the browser.                                                                                           |
+| `noise_suppression` | `auto`  | `true` or `false` to request browser noise suppression, or `auto` to leave the choice to the browser.                                                                                           |
+
+?> The card passes these settings to the browser, but it is the browser -- not
+the card -- that decides whether to honor them, and it may silently ignore any
+of them. Once a call has been made, the
+[diagnostics](../support.md?id=diagnostics-missing-in-issue) show the microphone
+`capabilities` and the `settings` the browser actually applied.
 
 ## Fully expanded reference
 
@@ -317,15 +323,14 @@ live:
         24h: true
   microphone:
     always_connected: false
+    audio_processing:
+      auto_gain_control: auto
+      channel_count: 1
+      echo_cancellation: auto
+      noise_suppression: auto
     auto_mute: []
     auto_unmute: []
     mute_after_microphone_mute_seconds: 60
-    # Optional audio-processing constraints have no defaults.
-    constraints:
-      echo_cancellation: true
-      noise_suppression: true
-      auto_gain_control: false
-      channel_count: 1
   display:
     mode: single
     grid_selected_position: default

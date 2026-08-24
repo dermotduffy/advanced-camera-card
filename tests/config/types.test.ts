@@ -147,6 +147,11 @@ describe('config defaults', () => {
         lazy_unload: [],
         microphone: {
           always_connected: false,
+          audio_processing: {
+            auto_gain_control: 'auto',
+            echo_cancellation: 'auto',
+            noise_suppression: 'auto',
+          },
           auto_mute: [],
           auto_unmute: [],
           mute_after_microphone_mute_seconds: 60,

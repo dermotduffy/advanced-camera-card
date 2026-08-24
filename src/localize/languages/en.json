@@ -492,6 +492,18 @@
       "lazy_unload": "Live cameras are lazily unloaded",
       "microphone": {
         "always_connected": "Always keep the microphone connected",
+        "audio_processing": {
+          "auto_gain_control": "Automatic gain control",
+          "channel_count": "Channel count (1=mono)",
+          "echo_cancellation": "Echo cancellation",
+          "editor_label": "Audio processing",
+          "modes": {
+            "auto": "Automatic",
+            "false": "Disabled",
+            "true": "Enabled"
+          },
+          "noise_suppression": "Noise suppression"
+        },
         "auto_mute": "Automatically mute the microphone",
         "auto_unmute": "Automatically unmute the microphone",
         "editor_label": "Microphone",

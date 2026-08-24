@@ -51,6 +51,11 @@ jobs:
         with:
           category: 'plugin'
 
+          # Always validate this repository, rather than a contributor's fork:
+          # HACS resolves the entry file (`advanced-camera-card.js`) from a
+          # release and a fork has none.
+          repository: ${{ github.repository }}
+
           # Don't attempt to load into HACS (as it loads the release, not the
           # build).
           ignore: 'hacs'

@@ -24,7 +24,10 @@ import type { KeyboardStateManager } from './keyboard-state-manager';
 import type { LockManager } from './lock/manager';
 import type { MediaLoadedInfoManager } from './media-info-manager';
 import type { MediaPlayerManager } from './media-player-manager';
-import type { MicrophoneManager } from './microphone-manager';
+import type {
+  MicrophoneDeviceIdentifier,
+  MicrophoneManager,
+} from './microphone-manager';
 import type { NotificationManager } from './notification-manager';
 import type { PIPManager } from './pip-manager';
 import type { QueryStringManager } from './query-string-manager';
@@ -377,10 +380,12 @@ export interface MicrophoneState {
   forbidden: boolean;
 }
 
-export interface MicrophoneTrackDiagnostics {
-  capabilities?: Omit<MediaTrackCapabilities, 'deviceId' | 'groupId'>;
-  constraints?: Omit<MediaTrackConstraints, 'deviceId' | 'groupId'>;
-  settings?: Omit<MediaTrackSettings, 'deviceId' | 'groupId'>;
+export interface MicrophoneDiagnostics {
+  // What the microphone is able to do.
+  capabilities?: Omit<MediaTrackCapabilities, MicrophoneDeviceIdentifier>;
+
+  // What the browser actually applied.
+  settings?: Omit<MediaTrackSettings, MicrophoneDeviceIdentifier>;
 }
 
 export interface TaggedAutomation extends Automation {
