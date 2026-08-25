@@ -1,4 +1,5 @@
 import { clamp } from 'lodash-es';
+import type { ReadonlyDeep } from 'type-fest';
 
 import {
   ZOOM_DEFAULT_PAN_X,
@@ -29,7 +30,9 @@ declare module 'action' {
   }
 }
 
-export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialActionConfig> {
+export class PTZDigitalAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<PTZDigitialActionConfig>
+> {
   private _timer = new Timer();
   private _stopped = false;
 

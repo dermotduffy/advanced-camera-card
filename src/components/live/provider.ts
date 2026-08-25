@@ -12,10 +12,12 @@ import { guard } from 'lit/directives/guard.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { Camera } from '../../camera-manager/camera.js';
+import type { CameraLifecycleState } from '../../camera-manager/lifecycle.js';
 import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
 import { MEDIA_UNAVAILABLE_REASONS } from '../../card-controller/issues/issues/media-unavailable.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { isAudioIntendedOnLoad } from '../../components-lib/live/audio-intent.js';
+import { getLifecycleNotification } from '../../components-lib/live/lifecycle-notification.js';
 import {
   StreamLivenessController,
   type StreamFailure,
@@ -52,6 +54,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   @property({ attribute: false })
   public camera?: Camera;
+
+  @property({ attribute: false })
+  public cameraLifecycleState?: CameraLifecycleState;
 
   @property({ attribute: false })
   public stateWatcher?: StateWatcherSubscriptionInterface;
@@ -285,6 +290,16 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   }
 
   private _getNotification(failure: StreamFailure | null): TemplateResult | null {
+    // A camera that is still initializing or has failed to initialize renders a
+    // placeholder instead of its stream.
+    const lifecycleNotification = getLifecycleNotification(
+      this.cameraLifecycleState ?? null,
+      this.cameraTitle,
+    );
+    if (lifecycleNotification) {
+      return renderMediaNotification(lifecycleNotification);
+    }
+
     // If a card *re*-initializes (e.g. was already initialized and then there's
     // a use of the editor to change the config), cameras will re-initialize in
     // place, which means they might be asked to render (here) while not yet

@@ -41,6 +41,13 @@ export function arrayMove(target: unknown[], from: number, to: number): unknown[
   return target;
 }
 
+// Runs the same check as `Array.isArray`, but also recognises a read-only
+// array. TypeScript declares `Array.isArray` as `arg is any[]`, and a read-only
+// array is not an `any[]`.
+// See: https://github.com/microsoft/TypeScript/issues/17002
+const isArray = <T>(value: T | readonly T[]): value is readonly T[] =>
+  Array.isArray(value);
+
 /**
  * Convert a value to an array if it is not already one, dropping falsy inputs
  * (`undefined`/`null`/`0`/`false`/`''`) to an empty array. Use when an absent or
@@ -49,8 +56,11 @@ export function arrayMove(target: unknown[], from: number, to: number): unknown[
  * @param value: A value (which may be an array).
  * @returns An array.
  */
-export const arrayify = <T>(value?: T | T[]): T[] => {
-  return value ? (Array.isArray(value) ? value : [value]) : [];
+export const arrayify = <T>(value?: T | readonly T[]): readonly T[] => {
+  if (!value) {
+    return [];
+  }
+  return isArray(value) ? value : [value];
 };
 
 /**
@@ -298,7 +308,9 @@ export const recursivelyMergeObjectsConcatenatingArraysUniquely = <T>(
   );
 };
 
-export const isValidAspectRatio = (ratio?: number[] | null): ratio is number[] =>
+export const isValidAspectRatio = (
+  ratio?: readonly number[] | null,
+): ratio is readonly number[] =>
   ratio?.length === 2 &&
   ratio.every((dimension) => Number.isFinite(dimension) && dimension > 0);
 

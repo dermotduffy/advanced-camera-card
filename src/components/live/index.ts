@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { CallSession } from '../../card-controller/call/types.js';
 import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
 import type { MicrophoneManager } from '../../card-controller/microphone-manager.js';
@@ -41,7 +41,7 @@ export class AdvancedCameraCardLive extends LitElement {
   public liveConfig?: LiveConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -87,7 +87,7 @@ export class AdvancedCameraCardLive extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.cameraManager) {
+    if (!this.hass || !this.cameraManagerEpoch) {
       return;
     }
 
@@ -98,7 +98,7 @@ export class AdvancedCameraCardLive extends LitElement {
         .viewManagerEpoch=${this.viewManagerEpoch}
         .liveConfig=${this.liveConfig}
         .cardWideConfig=${this.cardWideConfig}
-        .cameraManager=${this.cameraManager}
+        .cameraManagerEpoch=${this.cameraManagerEpoch}
         .microphoneState=${this.microphoneState}
         .call=${this.call}
         .locked=${this.locked}

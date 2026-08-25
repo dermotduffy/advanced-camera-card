@@ -476,7 +476,7 @@ export class AdvancedCameraCard extends LitElement {
               .hass=${this._hass}
               .stateWatcher=${this._controller.getHASSManager().getStateWatcher()}
               .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
-              .cameraManager=${cameraManager}
+              .cameraManagerEpoch=${cameraManager.getEpoch()}
               .foldersManager=${this._controller.getFoldersManager()}
               .viewItemManager=${this._controller.getViewItemManager()}
               .resolvedMediaCache=${this._controller.getResolvedMediaCache()}

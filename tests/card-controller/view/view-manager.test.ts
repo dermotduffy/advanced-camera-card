@@ -6,9 +6,10 @@ import type { CardController } from '../../../src/card-controller/controller';
 import type { ViewFactory } from '../../../src/card-controller/view/factory';
 import { MergeContextViewModifier } from '../../../src/card-controller/view/modifiers/merge-context';
 import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';
-import type {
-  QueryExecutorOptions,
-  ViewModifier,
+import {
+  ViewIncompatible,
+  type QueryExecutorOptions,
+  type ViewModifier,
 } from '../../../src/card-controller/view/types';
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
 import type { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
@@ -1096,5 +1097,63 @@ describe('should apply async view modifications', () => {
     it('should return false when target view is not gallery', async () => {
       expect(await testAdoption('clips', 'live')).toBe(false);
     });
+  });
+});
+
+describe('should defer an unrealizable default while cameras initialize', () => {
+  const createThrowingManager = (
+    initializing: boolean,
+  ): { manager: ViewManager; api: CardController } => {
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getCameraManager().hasInitializingCameras).mockReturnValue(
+      initializing,
+    );
+
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockImplementation(() => {
+      throw new ViewIncompatible();
+    });
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+    return { manager, api };
+  };
+
+  it('should set no view and trigger no issue while cameras initialize', async () => {
+    const { manager, api } = createThrowingManager(true);
+
+    await manager.setViewDefaultWithNewQuery();
+
+    expect(manager.hasView()).toBe(false);
+    expect(api.getIssueManager().trigger).not.toHaveBeenCalledWith(
+      'view_incompatible',
+      expect.anything(),
+    );
+  });
+
+  it('should defer the synchronous default path while cameras initialize', () => {
+    const { manager, api } = createThrowingManager(true);
+
+    manager.setViewDefault();
+
+    expect(manager.hasView()).toBe(false);
+    expect(api.getIssueManager().trigger).not.toHaveBeenCalledWith(
+      'view_incompatible',
+      expect.anything(),
+    );
+  });
+
+  it('should report incompatibility once the cameras have settled', async () => {
+    const { manager, api } = createThrowingManager(false);
+
+    await manager.setViewDefaultWithNewQuery();
+
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
+      'view_incompatible',
+      expect.anything(),
+    );
   });
 });

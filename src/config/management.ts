@@ -576,7 +576,7 @@ const isTriggerOnlyCondition = (condition: unknown): boolean => {
 
 // Drop trigger-only conditions from a retained `conditions:` list, recursing
 // into composites and discarding any the recursion empties.
-const dropTriggerOnlyConditions = (conditions: unknown[]): unknown[] => {
+const dropTriggerOnlyConditions = (conditions: readonly unknown[]): unknown[] => {
   const kept: unknown[] = [];
   for (const condition of conditions) {
     const key = getCompositeConditionsKey(condition);
@@ -671,7 +671,7 @@ const getAutomationList = (
   automation: RawAdvancedCameraCardConfig,
   plural: string,
   singular: string,
-): { key: string; items: unknown[] } => {
+): { key: string; items: readonly unknown[] } => {
   // Mirroring the schema's rename, the singular key is honored only when the
   // plural is absent; an automation with neither is written under the plural.
   const key = singular in automation && !(plural in automation) ? singular : plural;
@@ -829,7 +829,7 @@ const synthesizeAnyChangeTrigger = (
 // leaves. Conditions that are all static never change after startup, so a
 // single `initialized` evaluation is faithful.
 const synthesizeAnyChangeTriggers = (
-  conditions: unknown[],
+  conditions: readonly unknown[],
 ): RawAdvancedCameraCardConfig[] => {
   const triggers: RawAdvancedCameraCardConfig[] = [];
   for (const leaf of conditions.flatMap(flattenConditionLeaves)) {
@@ -848,7 +848,7 @@ const synthesizeAnyChangeTriggers = (
 // `screen`, or a `numeric_state` with no entity to watch) cannot drive the
 // `else` branch when it stops matching, so such an automation cannot be
 // faithfully converted.
-const hasRisingEdgeOnlyCondition = (conditions: unknown[]): boolean =>
+const hasRisingEdgeOnlyCondition = (conditions: readonly unknown[]): boolean =>
   conditions
     .flatMap(flattenConditionLeaves)
     .some((leaf) => synthesizeAnyChangeTrigger(leaf).risingEdgeOnly);

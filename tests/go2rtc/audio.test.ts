@@ -22,14 +22,15 @@ describe('supports2WayAudio', () => {
     expect(await supports2WayAudio(hass, 2, null)).toBe(false);
   });
 
-  it('should return false if fetch fails', async () => {
+  it('should return null if fetch fails', async () => {
     vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
     vi.mocked(homeAssistantSignAndFetch).mockRejectedValue(new Error('fetch error'));
 
     const spy = vi.spyOn(console, 'warn');
     const result = await supports2WayAudio(hass, 2, endpoint);
 
-    expect(result).toBe(false);
+    // The metadata could not be read, so support is unknown rather than absent.
+    expect(result).toBeNull();
     expect(spy).toHaveBeenCalledWith('fetch error');
     spy.mockRestore();
   });

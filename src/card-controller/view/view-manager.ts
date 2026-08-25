@@ -149,6 +149,13 @@ export class ViewManager implements ViewManagerInterface {
         this._api.getIssueManager().reset('media_query');
       }
     } catch (e) {
+      // The card counts as uninitialized until at least one camera has
+      // initialized: while cameras are still initializing, the view aspect
+      // is left uninitialized so the card keeps showing its loading spinner and
+      // a later render retries.
+      if (!this._view && this._api.getCameraManager().hasInitializingCameras()) {
+        return;
+      }
       if (!this._view) {
         view = this._getFailSafeView(viewFactoryFunc);
       }
@@ -234,6 +241,13 @@ export class ViewManager implements ViewManagerInterface {
       });
       this._api.getIssueManager().reset('view_incompatible');
     } catch (e) {
+      // The card counts as uninitialized until at least one camera has
+      // initialized: while cameras are still initializing, the view aspect
+      // is left uninitialized so the card keeps showing its loading spinner and
+      // a later render retries.
+      if (!this._view && this._api.getCameraManager().hasInitializingCameras()) {
+        return;
+      }
       if (!this._view) {
         initialView = this._getFailSafeView(viewFactoryFunc);
       }

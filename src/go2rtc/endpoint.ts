@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CameraConfig } from '../config/schema/cameras';
 import type { Endpoint } from '../types';
 
@@ -7,7 +9,7 @@ interface EndpointOptions {
 }
 
 const buildGo2RTCEndpoint = (
-  cameraConfig: CameraConfig,
+  cameraConfig: ReadonlyDeep<CameraConfig>,
   pathBuilder: (url: string, stream: string) => string,
   options?: EndpointOptions,
 ): Endpoint | null => {
@@ -27,7 +29,7 @@ const buildGo2RTCEndpoint = (
 };
 
 export const getGo2RTCStreamEndpoint = (
-  cameraConfig: CameraConfig,
+  cameraConfig: ReadonlyDeep<CameraConfig>,
   options?: EndpointOptions,
 ): Endpoint | null => {
   return buildGo2RTCEndpoint(
@@ -38,7 +40,7 @@ export const getGo2RTCStreamEndpoint = (
 };
 
 export const getGo2RTCMetadataEndpoint = (
-  cameraConfig: CameraConfig,
+  cameraConfig: ReadonlyDeep<CameraConfig>,
   options?: EndpointOptions,
 ): Endpoint | null => {
   return buildGo2RTCEndpoint(

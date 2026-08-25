@@ -7,7 +7,6 @@ import {
   FrigateViewMediaFactory,
 } from '../../../src/camera-manager/frigate/media';
 import { ViewMediaType } from '../../../src/view/item';
-import { createCameraConfig } from '../../config/test-utils';
 import {
   createFrigateEvent,
   createFrigateRecording,
@@ -611,167 +610,90 @@ describe('FrigateReviewViewMedia', () => {
 });
 
 describe('FrigateViewMediaFactory', () => {
+  const identity = { clientID: 'client', cameraName: 'front' };
+
   describe('createEventViewMedia', () => {
     it('should create clip view media', () => {
-      const config = createCameraConfig({
-        frigate: {
-          client_id: 'client',
-          camera_name: 'front',
-        },
-      });
-      const event = createFrigateEvent({
-        has_clip: true,
-      });
       const media = FrigateViewMediaFactory.createEventViewMedia(
         ViewMediaType.Clip,
         'camera',
-        config,
-        event,
+        identity,
+        createFrigateEvent({ has_clip: true }),
       );
+
       expect(media).toBeInstanceOf(FrigateEventViewMedia);
       expect(media?.getContentID()).toContain('clips');
     });
 
     it('should create snapshot view media', () => {
-      const config = createCameraConfig({
-        frigate: {
-          client_id: 'client',
-          camera_name: 'front',
-        },
-      });
-      const event = createFrigateEvent({
-        has_snapshot: true,
-      });
       const media = FrigateViewMediaFactory.createEventViewMedia(
         ViewMediaType.Snapshot,
         'camera',
-        config,
-        event,
+        identity,
+        createFrigateEvent({ has_snapshot: true }),
       );
+
       expect(media).toBeInstanceOf(FrigateEventViewMedia);
       expect(media?.getContentID()).toContain('snapshots');
     });
 
     it('should return null when clip missing', () => {
-      const config = createCameraConfig({
-        frigate: {
-          client_id: 'client',
-          camera_name: 'front',
-        },
-      });
-      const event = createFrigateEvent({
-        has_clip: false,
-      });
       const media = FrigateViewMediaFactory.createEventViewMedia(
         ViewMediaType.Clip,
         'camera',
-        config,
-        event,
+        identity,
+        createFrigateEvent({ has_clip: false }),
       );
+
       expect(media).toBeNull();
     });
 
     it('should return null when snapshot missing', () => {
-      const config = createCameraConfig({
-        frigate: {
-          client_id: 'client',
-          camera_name: 'front',
-        },
-      });
-      const event = createFrigateEvent({
-        has_snapshot: false,
-      });
       const media = FrigateViewMediaFactory.createEventViewMedia(
         ViewMediaType.Snapshot,
         'camera',
-        config,
-        event,
+        identity,
+        createFrigateEvent({ has_snapshot: false }),
       );
-      expect(media).toBeNull();
-    });
 
-    it('should return null when no camera_name', () => {
-      const config = createCameraConfig();
-      const media = FrigateViewMediaFactory.createEventViewMedia(
-        ViewMediaType.Clip,
-        'camera',
-        config,
-        createFrigateEvent(),
-      );
       expect(media).toBeNull();
     });
 
     it('should pass sub-labels through', () => {
-      const config = createCameraConfig({
-        frigate: {
-          client_id: 'client',
-          camera_name: 'front',
-        },
-      });
       const media = FrigateViewMediaFactory.createEventViewMedia(
         ViewMediaType.Clip,
         'camera',
-        config,
+        identity,
         createFrigateEvent(),
         ['Amazon'],
       );
+
       expect(media?.getTags()).toEqual(['Amazon']);
     });
   });
 
   describe('createRecordingViewMedia', () => {
     it('should create recording view media', () => {
-      const config = createCameraConfig({
-        frigate: {
-          client_id: 'client',
-          camera_name: 'front',
-        },
-      });
       const media = FrigateViewMediaFactory.createRecordingViewMedia(
         'camera',
         createFrigateRecording(),
-        config,
+        identity,
         'Front Camera',
       );
-      expect(media).toBeInstanceOf(FrigateRecordingViewMedia);
-    });
 
-    it('should return null when no camera_name', () => {
-      const config = createCameraConfig();
-      const media = FrigateViewMediaFactory.createRecordingViewMedia(
-        'camera',
-        createFrigateRecording(),
-        config,
-        'Front Camera',
-      );
-      expect(media).toBeNull();
+      expect(media).toBeInstanceOf(FrigateRecordingViewMedia);
     });
   });
 
   describe('createReviewViewMedia', () => {
     it('should create review view media', () => {
-      const config = createCameraConfig({
-        frigate: {
-          client_id: 'client',
-          camera_name: 'front',
-        },
-      });
       const media = FrigateViewMediaFactory.createReviewViewMedia(
         'camera',
         createFrigateReview(),
-        config,
+        identity,
       );
-      expect(media).toBeInstanceOf(FrigateReviewViewMedia);
-    });
 
-    it('should return null when no camera_name', () => {
-      const config = createCameraConfig();
-      const media = FrigateViewMediaFactory.createReviewViewMedia(
-        'camera',
-        createFrigateReview(),
-        config,
-      );
-      expect(media).toBeNull();
+      expect(media).toBeInstanceOf(FrigateReviewViewMedia);
     });
   });
 });

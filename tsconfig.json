@@ -61,7 +61,6 @@
       }
     ]
   },
-
   // `allowJs` would otherwise parse the build output.
   "exclude": ["dist", "node_modules"]
 }

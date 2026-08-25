@@ -60,6 +60,43 @@ To resolve it:
 
 The notification clears once the `__UPGRADE_FAILURE__` key is gone.
 
+### Cameras not fully initialized
+
+Each camera is initialized independently: the card resolves the camera's entity
+and asks the camera, or the integration in front of it, what features it
+supports (e.g. two-way audio, PTZ, recordings, etc). While that is happening the
+camera's pane shows **Waiting for camera to initialize**, and the rest of the
+card is already usable.
+
+If a camera cannot be initialized, the card reports it and keeps the other
+cameras working. There are two outcomes:
+
+| Outcome      | Meaning                                                                                                                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Failed**   | The camera could not be initialized at all and cannot be used. This results in a hard error for this camera.                                                                                                         |
+| **Degraded** | The camera works, but something could not be determined during initialization, so it may offer less functionality than it should (e.g. no call button because the two-way audio capability could not be determined). |
+
+The card retries initialization on its own schedule, and the notification (in
+either of the two states above) also offers a retry control to try again
+immediately.
+
+Common causes:
+
+- The integration providing the camera is not running or not responding, so the
+  card cannot read the details it needs about the camera.
+- A `go2rtc` server is unreachable or slow to answer, so two-way audio support
+  cannot be determined. See
+  [`metadata_fetch_timeout_seconds`](./configuration/cameras/live-provider.md?id=go2rtc)
+  to allow longer, or
+  [`capabilities.force`](./configuration/cameras/README.md?id=capabilities) to
+  declare support and skip detection.
+
+> [!NOTE]
+> A `camera_entity` that Home Assistant does not know at all is reported
+> differently: the whole card fails to start with an initialization error,
+> because the card cannot tell which integration the camera belongs to and so
+> cannot build the camera in the first place. Check the entity name for typos.
+
 ### Media unavailable
 
 Media not loading? Permanent "loading circle"? Live view frozen?
@@ -180,6 +217,20 @@ stills are used during initial Advanced Camera Card load of the `live` view if t
 `live.show_image_during_load` option is enabled. Disabling this option should
 show the default media loading controls (e.g. a spinner or empty video player)
 instead of the blank white image.
+
+### Call menu button not shown
+
+The call menu button (labelled "Call / Two-way audio") will only appear if all of
+the following hold:
+
+- The button is enabled -- see [Menu Button
+  configuration](configuration/menu.md?id=available-buttons).
+- The media that is currently loaded supports 2-way audio. See [Using 2-way
+  audio](usage/2-way-audio.md) for the requirements that must be followed.
+- The card has determined that the camera supports 2-way audio. If detection has
+  not succeeded, the camera is reported as partially initialized and the button
+  appears once a later attempt succeeds -- see [Cameras not fully
+  initialized](#cameras-not-fully-initialized).
 
 ### Casting to Chromecast broken
 
@@ -310,14 +361,6 @@ This card uses [visjs](https://github.com/visjs/vis-timeline) -- a timeline
 library -- to show camera timelines. This library currently uses non-passive
 event-listeners. These warnings can be safely ignored in this instance and
 cannot easily be fixed in the underlying library.
-
-### Microphone menu button not shown
-
-The microphone menu button will only appear if both enabled (see [Menu Button
-configuration](configuration/menu.md?id=available-buttons)) and if the media
-that is currently loaded supports 2-way audio. See [Using 2-way
-audio](usage/2-way-audio.md) for more information about the requirements that
-must be followed.
 
 ### Picture-in-Picture only shows video but not other card controls
 

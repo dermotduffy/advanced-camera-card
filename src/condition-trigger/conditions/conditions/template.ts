@@ -1,12 +1,17 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import { isTemplateTrue } from './is-template-true';
 import type { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
 
 export class TemplateConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'template'>;
+  private _condition: ReadonlyDeep<ConditionOfType<'template'>>;
   private _context: EvaluatorContext;
 
-  constructor(condition: ConditionOfType<'template'>, context: EvaluatorContext) {
+  constructor(
+    condition: ReadonlyDeep<ConditionOfType<'template'>>,
+    context: EvaluatorContext,
+  ) {
     this._condition = condition;
     this._context = context;
   }

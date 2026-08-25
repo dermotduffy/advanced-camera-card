@@ -1,6 +1,7 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CameraConfig } from '../config/schema/cameras';
 import type { CapabilityKey } from '../types';
-import { allPromises } from '../utils/basic';
 import type { ViewMedia } from '../view/item';
 import type { Camera } from './camera';
 import type { CameraManagerEngine } from './engine';
@@ -9,8 +10,8 @@ import type { CapabilitySearchKeys, CapabilitySearchOptions, Engine } from './ty
 type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
 
 export interface CameraManagerReadOnlyConfigStore {
-  getCameraConfig(cameraID: string): CameraConfig | null;
-  getCameraConfigForMedia(media: ViewMedia): CameraConfig | null;
+  getCameraConfig(cameraID: string): ReadonlyDeep<CameraConfig> | null;
+  getCameraForMedia(media: ViewMedia): Camera | null;
 
   hasCameraID(cameraID: string): boolean;
 
@@ -18,10 +19,12 @@ export interface CameraManagerReadOnlyConfigStore {
   getCameras(): Map<string, Camera>;
   getCameraCount(): number;
 
-  getCameraConfigs(cameraIDs?: Iterable<string>): IterableIterator<CameraConfig>;
+  getCameraConfigs(
+    cameraIDs?: Iterable<string>,
+  ): IterableIterator<ReadonlyDeep<CameraConfig>>;
   getCameraConfigEntries(
     cameraIDs?: Iterable<string>,
-  ): IterableIterator<[string, CameraConfig]>;
+  ): IterableIterator<[string, ReadonlyDeep<CameraConfig>]>;
 
   getCameraIDs(): Set<string>;
   getDefaultCameraID(): string | null;
@@ -46,34 +49,50 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
     this._enginesByType.set(camera.getEngine().getEngineType(), camera.getEngine());
   }
 
-  public async setCameras(cameras: Camera[]): Promise<void> {
+  /**
+   * Set the store's cameras synchronously. The displaced cameras (replaced or
+   * removed) are returned for the caller to unsubscribe. The store does not
+   * drive camera lifecycle.
+   */
+  public setCameras(cameras: Camera[]): Camera[] {
     // In setting the store cameras, take great care to replace/add first before
     // remove. Otherwise, there may be race conditions where the card attempts
     // to render a view with (momentarily) no camera.
     // See: https://github.com/dermotduffy/advanced-camera-card/issues/1533
+
+    const displaced: Camera[] = [];
 
     // Replace/Add the new cameras.
     for (const camera of cameras) {
       const oldCamera = this._cameras.get(camera.getID());
       if (oldCamera !== camera) {
         this.addCamera(camera);
-        await oldCamera?.destroy();
+        if (oldCamera) {
+          displaced.push(oldCamera);
+        }
       }
     }
 
     // Remove the old cameras.
-    for (const camera of this._cameras.values()) {
+    for (const camera of [...this._cameras.values()]) {
       if (!cameras.includes(camera)) {
-        await camera.destroy();
         this._cameras.delete(camera.getID());
+        displaced.push(camera);
       }
     }
+
+    return displaced;
   }
 
-  public async reset(): Promise<void> {
-    await allPromises(this._cameras.values(), (camera) => camera.destroy());
+  /**
+   * Empty the store, returning the removed cameras for the caller to
+   * unsubscribe.
+   */
+  public reset(): Camera[] {
+    const cameras = [...this._cameras.values()];
     this._cameras.clear();
     this._enginesByType.clear();
+    return cameras;
   }
 
   public getCamera(cameraID: string): Camera | null {
@@ -82,7 +101,7 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   public getCameras(): Map<string, Camera> {
     return this._cameras;
   }
-  public getCameraConfig(cameraID: string): CameraConfig | null {
+  public getCameraConfig(cameraID: string): ReadonlyDeep<CameraConfig> | null {
     return this._cameras.get(cameraID)?.getConfig() ?? null;
   }
 
@@ -100,7 +119,7 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
 
   public *getCameraConfigs(
     cameraIDs?: Iterable<string>,
-  ): IterableIterator<CameraConfig> {
+  ): IterableIterator<ReadonlyDeep<CameraConfig>> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_cameraID, config] of this.getCameraConfigEntries(cameraIDs)) {
       yield config;
@@ -108,7 +127,7 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   }
   public *getCameraConfigEntries(
     cameraIDs?: Iterable<string>,
-  ): IterableIterator<[string, CameraConfig]> {
+  ): IterableIterator<[string, ReadonlyDeep<CameraConfig>]> {
     for (const cameraID of cameraIDs ?? this._cameras.keys()) {
       const config = this.getCameraConfig(cameraID);
 
@@ -143,9 +162,9 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
     return output;
   }
 
-  public getCameraConfigForMedia(media: ViewMedia): CameraConfig | null {
+  public getCameraForMedia(media: ViewMedia): Camera | null {
     const cameraID = media.getCameraID();
-    return cameraID ? this.getCameraConfig(cameraID) : null;
+    return cameraID ? this.getCamera(cameraID) : null;
   }
 
   public getEngineOfType(engine: Engine): CameraManagerEngine | null {

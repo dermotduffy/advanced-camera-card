@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
@@ -211,7 +212,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     return this._lazyLoadController.isLoaded();
   }
 
-  private _getRelevantCameraConfig(): CameraConfig | null {
+  private _getRelevantCameraConfig(): ReadonlyDeep<CameraConfig> | null {
     const cameraID = this.media?.getCameraID();
     return cameraID
       ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null

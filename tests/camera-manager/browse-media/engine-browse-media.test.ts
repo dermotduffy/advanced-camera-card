@@ -13,9 +13,9 @@ import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
 import type { ViewMedia } from '../../../src/view/item';
-import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createHASS, createHASSManager } from '../../test-utils';
+import { createCameraFromConfig } from '../test-utils';
 
 const createEngine = (): BrowseMediaCameraManagerEngine => {
   return new BrowseMediaCameraManagerEngine(
@@ -74,7 +74,7 @@ describe('BrowseMediaCameraManagerEngine', () => {
       const media = mock<ViewMedia>();
       media.getContentID.mockReturnValue('content-id');
 
-      await engine.getMediaDownloadPath(hass, createCameraConfig(), media);
+      await engine.getMediaDownloadPath(hass, createCameraFromConfig(), media);
 
       expect(media.getContentID).toHaveBeenCalled();
     });

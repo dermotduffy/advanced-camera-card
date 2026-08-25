@@ -30,22 +30,24 @@ export class TPLinkCameraManagerEngine extends GenericCameraManagerEngine {
     return Engine.TPLink;
   }
 
-  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
-    const camera = new TPLinkCamera(cameraConfig, this, {
-      eventCallback: this._eventCallback,
-    });
-    return await camera.initialize({
-      hassManager: this._hassManager,
-      entityRegistryManager: this._entityRegistryManager,
-    });
+  public createCamera(cameraConfig: CameraConfig): Camera {
+    return new TPLinkCamera(
+      cameraConfig,
+      this,
+      {
+        hassManager: this._hassManager,
+        entityRegistryManager: this._entityRegistryManager,
+      },
+      { eventCallback: this._eventCallback },
+    );
   }
 
   public getCameraMetadata(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
   ): CameraManagerCameraMetadata {
     return {
-      ...super.getCameraMetadata(hass, cameraConfig),
+      ...super.getCameraMetadata(hass, camera),
       engineIcon: 'tplink',
     };
   }

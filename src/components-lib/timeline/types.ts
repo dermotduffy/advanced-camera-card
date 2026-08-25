@@ -1,3 +1,4 @@
+import type { ReadonlyDeep } from 'type-fest';
 import type { DateType, IdType, Timeline, TimelineWindow } from 'vis-timeline';
 
 import type { CameraManager } from '../../camera-manager/manager';
@@ -13,7 +14,7 @@ export interface ThumbnailDataRequest {
   item: IdType;
   hass?: HomeAssistant;
   cameraManager?: CameraManager;
-  cameraConfig?: CameraConfig;
+  cameraConfig?: ReadonlyDeep<CameraConfig>;
   media?: ViewMedia;
   viewManagerEpoch?: ViewManagerEpoch;
   viewItemManager?: ViewItemManager;

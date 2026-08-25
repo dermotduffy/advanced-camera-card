@@ -34,7 +34,9 @@ export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
 export interface CameraManagerEngine {
   getEngineType(): Engine;
 
-  createCamera(cameraConfig: CameraConfig): Promise<Camera>;
+  // Construct an uninitialized camera: initialization (`initialize()`) and
+  // subscription registration (`subscribe()`) are the caller's responsibility.
+  createCamera(cameraConfig: CameraConfig): Camera;
 
   /**
    * Get default query parameters for a camera based on its configuration.
@@ -120,20 +122,20 @@ export interface CameraManagerEngine {
 
   getMediaDownloadPath(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
     media: ViewMedia,
   ): Promise<Endpoint | null>;
 
   favoriteMedia(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
     media: ViewMedia,
     favorite: boolean,
   ): Promise<void>;
 
   reviewMedia(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
     media: ViewMedia,
     reviewed: boolean,
   ): Promise<void>;
@@ -155,10 +157,7 @@ export interface CameraManagerEngine {
     engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null>;
 
-  getCameraMetadata(
-    hass: HomeAssistant,
-    cameraConfig: CameraConfig,
-  ): CameraManagerCameraMetadata;
+  getCameraMetadata(hass: HomeAssistant, camera: Camera): CameraManagerCameraMetadata;
 
   getMediaCapabilities(media: ViewMedia): ViewItemCapabilities | null;
 }

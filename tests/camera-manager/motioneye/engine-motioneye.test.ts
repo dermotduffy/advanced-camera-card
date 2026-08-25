@@ -30,6 +30,7 @@ import {
   createRegistryEntity,
   createRichBrowseMedia,
 } from '../../test-utils';
+import { createCameraFromConfig } from '../test-utils';
 
 vi.mock('../../../src/ha/browse-media/browse-media-to-view-media');
 
@@ -72,11 +73,11 @@ const createMotionEyeStore = async (
   const config = createCameraConfig({
     camera_entity: options?.cameraEntity ?? CAMERA_ENTITY_ID,
   });
-  const camera = new MotionEyeCamera(config, engine);
-  await camera.initialize({
+  const camera = new MotionEyeCamera(config, engine, {
     hassManager: createHASSManager(),
     entityRegistryManager: new EntityRegistryManagerMock([entity]),
   });
+  await camera.initialize();
   camera.setID(options?.cameraID ?? 'camera-1');
   const store = new CameraManagerStore();
   store.addCamera(camera);
@@ -135,7 +136,7 @@ describe('MotionEyeCameraManagerEngine', () => {
         camera_entity: CAMERA_ENTITY_ID,
       });
 
-      const camera = await engine.createCamera(config);
+      const camera = engine.createCamera(config);
 
       expect(camera).toBeInstanceOf(Camera);
       expect(camera).toBeInstanceOf(MotionEyeCamera);
@@ -159,7 +160,9 @@ describe('MotionEyeCameraManagerEngine', () => {
     it('should return null when camera is not EntityCamera', async () => {
       const engine = createEngine();
       const store = new CameraManagerStore();
-      const camera = new Camera(createCameraConfig(), engine);
+      const camera = new Camera(createCameraConfig(), engine, {
+        hassManager: createHASSManager(),
+      });
       camera.setID('camera-1');
       store.addCamera(camera);
 
@@ -495,11 +498,11 @@ describe('MotionEyeCameraManagerEngine', () => {
         });
 
         const engine = createEngine({ walker });
-        const camera = new MotionEyeCamera(config, engine);
-        await camera.initialize({
+        const camera = new MotionEyeCamera(config, engine, {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([createEntity()]),
         });
+        await camera.initialize();
         camera.setID('camera-1');
         const store = new CameraManagerStore();
         store.addCamera(camera);
@@ -542,11 +545,11 @@ describe('MotionEyeCameraManagerEngine', () => {
         });
 
         const engine = createEngine({ walker });
-        const camera = new MotionEyeCamera(config, engine);
-        await camera.initialize({
+        const camera = new MotionEyeCamera(config, engine, {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([createEntity()]),
         });
+        await camera.initialize();
         camera.setID('camera-1');
         const store = new CameraManagerStore();
         store.addCamera(camera);
@@ -595,11 +598,11 @@ describe('MotionEyeCameraManagerEngine', () => {
         });
 
         const engine = createEngine({ walker });
-        const camera = new MotionEyeCamera(config, engine);
-        await camera.initialize({
+        const camera = new MotionEyeCamera(config, engine, {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([createEntity()]),
         });
+        await camera.initialize();
         camera.setID('camera-1');
         const store = new CameraManagerStore();
         store.addCamera(camera);
@@ -930,7 +933,9 @@ describe('MotionEyeCameraManagerEngine', () => {
     it('should handle null directories from _getMatchingDirectories', async () => {
       const engine = createEngine();
       const store = new CameraManagerStore();
-      const camera = new Camera(createCameraConfig(), engine);
+      const camera = new Camera(createCameraConfig(), engine, {
+        hassManager: createHASSManager(),
+      });
       camera.setID('camera-1');
       store.addCamera(camera);
 
@@ -975,7 +980,10 @@ describe('MotionEyeCameraManagerEngine', () => {
         camera_entity: CAMERA_ENTITY_ID,
       });
 
-      const metadata = createEngine().getCameraMetadata(createHASS(), config);
+      const metadata = createEngine().getCameraMetadata(
+        createHASS(),
+        createCameraFromConfig(config),
+      );
 
       expect(metadata.title).toBe('My Camera');
       expect(metadata.engineIcon).toBe('motioneye');

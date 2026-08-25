@@ -1,10 +1,14 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { ToggleActionConfig } from '../../../config/schema/actions/stock/toggle';
 import { computeDomain } from '../../../ha/compute-domain';
 import { STATES_OFF } from '../../../ha/const';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class ToggleAction extends AdvancedCameraCardAction<ToggleActionConfig> {
+export class ToggleAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<ToggleActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

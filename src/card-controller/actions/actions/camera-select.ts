@@ -1,8 +1,12 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CameraSelectActionConfig } from '../../../config/schema/actions/custom/camera-select';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class CameraSelectAction extends AdvancedCameraCardAction<CameraSelectActionConfig> {
+export class CameraSelectAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<CameraSelectActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

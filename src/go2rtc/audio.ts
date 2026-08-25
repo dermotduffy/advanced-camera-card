@@ -6,21 +6,6 @@ import type { Endpoint } from '../types';
 import { errorToConsole } from '../utils/basic';
 import { go2RTCStreamInfoSchema, type Go2RTCStreamInfo } from './types';
 
-const getGo2RTCStreamMetadata = async (
-  hass: HomeAssistant,
-  endpoint: Endpoint,
-  timeoutSeconds: number,
-): Promise<Go2RTCStreamInfo | null> => {
-  try {
-    return await homeAssistantSignAndFetch(hass, endpoint, go2RTCStreamInfoSchema, {
-      timeoutSeconds,
-    });
-  } catch (e) {
-    errorToConsole(e);
-    return null;
-  }
-};
-
 const streamSupports2WayAudio = (streamInfo: Go2RTCStreamInfo | null): boolean => {
   if (!streamInfo?.producers) {
     return false;
@@ -38,21 +23,21 @@ const streamSupports2WayAudio = (streamInfo: Go2RTCStreamInfo | null): boolean =
 /**
  * Fetch go2rtc metadata and determine if the stream supports 2-way audio.
  * Handles proxy transformation if proxy config requires it.
- * Returns false if the endpoint is not available or fetch fails.
  *
  * Note: Caller is responsible for checking if live_provider is 'go2rtc' before calling.
  *
  * @param hass Home Assistant instance.
  * @param go2rtcMetadataEndpoint The go2rtc metadata endpoint.
  * @param proxyConfig The resolved proxy configuration for live streams.
- * @returns True if supports 2-way audio, false otherwise.
+ * @returns True or false indicating support available or not respectively, or
+ * `null` when the answer is unknown/unavailable.
  */
 export const supports2WayAudio = async (
   hass: HomeAssistant,
   metadataFetchTimeoutSeconds: number,
   go2rtcMetadataEndpoint?: Endpoint | null,
   proxyConfig?: EnabledProxyConfig,
-): Promise<boolean> => {
+): Promise<boolean | null> => {
   if (!go2rtcMetadataEndpoint) {
     return false;
   }
@@ -67,10 +52,16 @@ export const supports2WayAudio = async (
     return false;
   }
 
-  const streamInfo = await getGo2RTCStreamMetadata(
-    hass,
-    endpoint,
-    metadataFetchTimeoutSeconds,
-  );
-  return streamSupports2WayAudio(streamInfo);
+  try {
+    return streamSupports2WayAudio(
+      await homeAssistantSignAndFetch(hass, endpoint, go2RTCStreamInfoSchema, {
+        timeoutSeconds: metadataFetchTimeoutSeconds,
+      }),
+    );
+  } catch (e) {
+    errorToConsole(e);
+
+    // The metadata could not be read, so an unknown state is returned.
+    return null;
+  }
 };

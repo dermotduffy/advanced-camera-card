@@ -1,4 +1,5 @@
 import type { ActionContext } from 'action';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type {
   ActionConfig,
@@ -9,7 +10,7 @@ import { getActionName } from '../../../utils/action';
 import type { CardActionsAPI } from '../../types';
 import { ActionAbortError, type Action, type ActionPrepareCallback } from '../types';
 
-export class BaseAction<T extends ActionConfig> implements Action {
+export class BaseAction<T extends ReadonlyDeep<ActionConfig>> implements Action {
   protected _context: ActionContext;
   protected _rawAction: T;
   protected _preparedAction: T | null = null;
@@ -33,7 +34,7 @@ export class BaseAction<T extends ActionConfig> implements Action {
 
   protected _shouldSeekConfirmation(api: CardActionsAPI): boolean {
     const hass = api.getHASSManager().getHASS();
-    const action: ActionConfig = this._getAction();
+    const action: ReadonlyDeep<ActionConfig> = this._getAction();
 
     return (
       (typeof action.confirmation === 'boolean' && action.confirmation) ||
@@ -45,7 +46,7 @@ export class BaseAction<T extends ActionConfig> implements Action {
 
   public async execute(api: CardActionsAPI): Promise<void> {
     if (this._shouldSeekConfirmation(api)) {
-      const action: ActionConfig = this._getAction();
+      const action: ReadonlyDeep<ActionConfig> = this._getAction();
       const text =
         (typeof action.confirmation === 'object' ? action.confirmation.text : null) ??
         `${localize('actions.confirmation')}: ${getActionName(action)}`;
@@ -60,4 +61,6 @@ export class BaseAction<T extends ActionConfig> implements Action {
   }
 }
 
-export class AdvancedCameraCardAction<T extends ActionConfig> extends BaseAction<T> {}
+export class AdvancedCameraCardAction<
+  T extends ReadonlyDeep<ActionConfig>,
+> extends BaseAction<T> {}

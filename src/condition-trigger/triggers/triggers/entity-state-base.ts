@@ -59,7 +59,7 @@ export abstract class EntityStateTriggerBase<
   protected _onSubscribe(): void {}
   protected _onDestroy(): void {}
 
-  protected _entityIDs(): string[] {
+  protected _entityIDs(): readonly string[] {
     return arrayify(this._trigger.entity_id ?? this._trigger.entity);
   }
 

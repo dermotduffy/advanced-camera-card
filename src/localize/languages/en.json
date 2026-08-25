@@ -827,6 +827,7 @@
     "call_unavailable_heading": "Two-way audio unavailable",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
+    "camera_initializing": "Waiting for camera to initialize",
     "configuration_error": "Configuration error",
     "could_not_create_elements": "Could not create picture elements",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
@@ -866,6 +867,14 @@
     "webrtc_card_waiting": "Waiting for WebRTC Card to load..."
   },
   "issues": {
+    "camera_initialization": {
+      "heading": "Cameras not fully initialized",
+      "states": {
+        "failed": "Camera initialization failed",
+        "degraded": "Camera partially initialized"
+      },
+      "text": "One or more cameras could not be fully initialized. Cameras that fail to initialize cannot function; cameras that are degraded may only offer partial functionality (for example no two-way audio). The card will keep retrying automatically."
+    },
     "config_error": {
       "heading": "Configuration error"
     },

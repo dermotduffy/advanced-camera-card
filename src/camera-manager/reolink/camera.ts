@@ -4,6 +4,7 @@ import type {
   PTZActionPhase,
   PTZBaseAction,
 } from '../../config/schema/actions/custom/ptz';
+import type { CameraConfig } from '../../config/schema/cameras';
 import type { DeviceRegistryManager } from '../../ha/registry/device/index';
 import type { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import type { HomeAssistant } from '../../ha/types';
@@ -14,11 +15,13 @@ import {
   type PTZCapabilities,
 } from '../../types';
 import { createSelectOptionAction } from '../../utils/action.js';
-import type { CameraInitializationOptions } from '../camera';
+import type { Camera, CameraDependencies, CameraOptions } from '../camera';
+import type { CameraManagerEngine } from '../engine';
 import { EntityCamera } from '../entity-camera';
 import { ReolinkInitializationError } from '../error';
 import type { CameraEndpointsContext, CameraProxyConfig } from '../types';
 import { getPTZCapabilitiesFromCameraConfig, mergePTZCapabilities } from '../utils/ptz';
+import type { ReolinkIdentity } from './types';
 
 // Reolink channels are zero indexed.
 const REOLINK_DEFAULT_CHANNEL = 0;
@@ -38,7 +41,7 @@ const REOLINK_DEFAULT_CHANNEL = 0;
 // Fraction of the zoom range to step per zoom action when using number entity.
 const ZOOM_POSITION_STEP_FRACTION = 0.1;
 
-interface ReolinkCameraInitializationOptions extends CameraInitializationOptions {
+export interface ReolinkCameraDependencies extends CameraDependencies {
   entityRegistryManager: EntityRegistryManager;
   deviceRegistryManager: DeviceRegistryManager;
 }
@@ -77,28 +80,40 @@ const PTZ_BUTTON_ENTITY_KEYS: readonly (keyof PTZButtonEntities)[] = [
   'zoom_out',
 ];
 
-export class ReolinkCamera extends EntityCamera<ReolinkCameraInitializationOptions> {
-  // The HostID identifying the camera or NVR.
-  private _reolinkHostID: string | null = null;
+export const isReolinkCamera = (camera: Camera | null): camera is ReolinkCamera =>
+  camera instanceof ReolinkCamera;
 
-  // For NVRs, the Camera UID.
-  private _reolinkCameraUID: string | null = null;
+export class ReolinkCamera extends EntityCamera {
+  // Reolink cameras require a registry manager to resolve their PTZ entities,
+  // which the constructor below guarantees; the base camera only optionally
+  // has one.
+  protected declare _entityRegistryManager: EntityRegistryManager;
 
-  // The channel number as used by the Reolink integration.
-  private _reolinkChannel: number | null = null;
+  private _deviceRegistryManager: DeviceRegistryManager;
+
+  private _identity: ReolinkIdentity | null = null;
 
   // Entities used for PTZ control.
   private _ptzEntities: PTZEntities | null = null;
 
+  constructor(
+    config: CameraConfig,
+    engine: CameraManagerEngine,
+    dependencies: ReolinkCameraDependencies,
+    options?: CameraOptions,
+  ) {
+    super(config, engine, dependencies, options);
+    this._deviceRegistryManager = dependencies.deviceRegistryManager;
+  }
+
   private async _getChannelFromConfigurationURL(
     hass: HomeAssistant,
-    deviceRegistryManager: DeviceRegistryManager,
   ): Promise<number | null> {
     const deviceID = this._entity?.device_id;
     if (!deviceID) {
       return null;
     }
-    const device = await deviceRegistryManager.getDevice(hass, deviceID);
+    const device = await this._deviceRegistryManager.getDevice(hass, deviceID);
     if (!device?.configuration_url) {
       return null;
     }
@@ -112,10 +127,7 @@ export class ReolinkCamera extends EntityCamera<ReolinkCameraInitializationOptio
     }
   }
 
-  private async _initializeChannel(
-    hass: HomeAssistant,
-    deviceRegistryManager: DeviceRegistryManager,
-  ): Promise<void> {
+  private async _initializeChannel(hass: HomeAssistant): Promise<void> {
     const uniqueID = this._entity?.unique_id;
 
     // Reolink camera unique IDs are dual-mode, they may be in either of these
@@ -150,24 +162,23 @@ export class ReolinkCamera extends EntityCamera<ReolinkCameraInitializationOptio
       (isValidChannel ? channelCandidate : null) ??
       // Channel from the configuration URL (for NVRs where the entity unique
       // id is based on the UID).
-      (await this._getChannelFromConfigurationURL(hass, deviceRegistryManager)) ??
+      (await this._getChannelFromConfigurationURL(hass)) ??
       // Fallback.
       REOLINK_DEFAULT_CHANNEL;
 
     const reolinkCameraUID = !isValidChannel ? channelOrUID : null;
 
-    this._reolinkChannel = channel;
-    this._reolinkHostID = hostid;
-    this._reolinkCameraUID = reolinkCameraUID;
+    this._identity = {
+      hostID: hostid,
+      channel,
+      ...(reolinkCameraUID && { cameraUID: reolinkCameraUID }),
+    };
   }
 
-  protected async _initializeBeforeCapabilities(
-    hass: HomeAssistant,
-    options: ReolinkCameraInitializationOptions,
-  ): Promise<void> {
-    await super._initializeBeforeCapabilities(hass, options);
-    await this._initializeChannel(hass, options.deviceRegistryManager);
-    this._ptzEntities = await this._getPTZEntities(hass, options.entityRegistryManager);
+  protected async _initializeBeforeCapabilities(hass: HomeAssistant): Promise<void> {
+    await super._initializeBeforeCapabilities(hass);
+    await this._initializeChannel(hass);
+    this._ptzEntities = await this._getPTZEntities(hass);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -175,9 +186,15 @@ export class ReolinkCamera extends EntityCamera<ReolinkCameraInitializationOptio
     return this._config.reolink?.url ? { endpoint: this._config.reolink.url } : null;
   }
 
-  protected async _getRawCapabilities(
+  protected override _deriveConfiguredCapabilities(): CapabilitiesRaw {
+    return {
+      ...super._deriveConfiguredCapabilities(),
+      clips: true,
+    };
+  }
+
+  protected override async _deriveResolvedCapabilities(
     hass: HomeAssistant,
-    options: ReolinkCameraInitializationOptions,
   ): Promise<CapabilitiesRaw> {
     const configPTZ = getPTZCapabilitiesFromCameraConfig(this.getConfig());
     const reolinkPTZ = this._ptzEntities
@@ -187,8 +204,6 @@ export class ReolinkCamera extends EntityCamera<ReolinkCameraInitializationOptio
     const combinedPTZ = mergePTZCapabilities(reolinkPTZ, configPTZ);
 
     return {
-      ...(await super._getRawCapabilities(hass, options)),
-      clips: true,
       ...(combinedPTZ && { ptz: combinedPTZ }),
     };
   }
@@ -234,18 +249,15 @@ export class ReolinkCamera extends EntityCamera<ReolinkCameraInitializationOptio
     return Object.keys(reolinkPTZCapabilities).length ? reolinkPTZCapabilities : null;
   }
 
-  private async _getPTZEntities(
-    hass: HomeAssistant,
-    entityRegistry: EntityRegistryManager,
-  ): Promise<PTZEntities | null> {
+  private async _getPTZEntities(hass: HomeAssistant): Promise<PTZEntities | null> {
     /* v8 ignore next: this path cannot be reached as an exception is
        thrown in initialize() if this value is not found -- @preserve */
-    if (!this._reolinkHostID) {
+    if (!this._identity) {
       return null;
     }
 
-    const uniqueIDPrefix = this._getPTZEntityUniqueIDPrefix();
-    const allRelevantEntities = await entityRegistry.getMatchingEntities(
+    const uniqueIDPrefix = this._getPTZEntityUniqueIDPrefix(this._identity);
+    const allRelevantEntities = await this._entityRegistryManager.getMatchingEntities(
       hass,
       (ent: Entity) =>
         ent.config_entry_id === this._entity?.config_entry_id &&
@@ -289,12 +301,14 @@ export class ReolinkCamera extends EntityCamera<ReolinkCameraInitializationOptio
     return Object.keys(ptzEntities).length ? ptzEntities : null;
   }
 
-  public getChannel(): number | null {
-    return this._reolinkChannel;
+  // How the Reolink integration refers to this camera. Null until the camera has
+  // been initialized, since none of it can be configured.
+  public getIdentity(): ReolinkIdentity | null {
+    return this._identity;
   }
 
-  private _getPTZEntityUniqueIDPrefix(): string {
-    return `${this._reolinkHostID}_${this._reolinkCameraUID ?? this._reolinkChannel}_`;
+  private _getPTZEntityUniqueIDPrefix(identity: ReolinkIdentity): string {
+    return `${identity.hostID}_${identity.cameraUID ?? identity.channel}_`;
   }
 
   public getProxyConfig(): CameraProxyConfig {

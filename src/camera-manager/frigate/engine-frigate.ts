@@ -11,6 +11,7 @@ import type { Endpoint } from '../../types';
 import {
   allPromises,
   formatDate,
+  isTruthy,
   prettifyTitle,
   runWhenIdleIfSupported,
 } from '../../utils/basic';
@@ -57,7 +58,7 @@ import {
   type ReviewQuery,
   type ReviewQueryResultsMap,
 } from '../types';
-import { FrigateCamera, isBirdseye } from './camera';
+import { FrigateCamera, isBirdseye, isFrigateCamera } from './camera';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import {
@@ -74,6 +75,7 @@ import {
 import {
   FRIGATE_SEVERITY_MAP,
   type FrigateEventQueryResults,
+  type FrigateIdentity,
   type FrigateRecording,
   type FrigateRecordingQueryResults,
   type FrigateRecordingSegmentsQueryResults,
@@ -117,6 +119,12 @@ export class FrigateQueryResultsClassifier {
   }
 }
 
+const getFrigateIdentity = (camera: Camera | null): FrigateIdentity | null =>
+  isFrigateCamera(camera) ? camera.getIdentity() : null;
+
+const getFrigateClientID = (camera: Camera | null): string | null =>
+  isFrigateCamera(camera) ? camera.getClientID() : null;
+
 export class FrigateCameraManagerEngine
   extends GenericCameraManagerEngine
   implements CameraManagerEngine
@@ -153,16 +161,18 @@ export class FrigateCameraManagerEngine
     return Engine.Frigate;
   }
 
-  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
-    const camera = new FrigateCamera(cameraConfig, this, {
-      eventCallback: this._eventCallback,
-    });
-    return await camera.initialize({
-      hassManager: this._hassManager,
-      entityRegistryManager: this._entityRegistryManager,
-      frigateEventWatcher: this._frigateEventWatcher,
-      frigateReviewWatcher: this._frigateReviewWatcher,
-    });
+  public createCamera(cameraConfig: CameraConfig): Camera {
+    return new FrigateCamera(
+      cameraConfig,
+      this,
+      {
+        hassManager: this._hassManager,
+        entityRegistryManager: this._entityRegistryManager,
+        frigateEventWatcher: this._frigateEventWatcher,
+        frigateReviewWatcher: this._frigateReviewWatcher,
+      },
+      { eventCallback: this._eventCallback },
+    );
   }
 
   public override getDefaultQueryParameters(
@@ -182,26 +192,30 @@ export class FrigateCameraManagerEngine
 
   public async getMediaDownloadPath(
     _hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
     media: ViewMedia,
   ): Promise<Endpoint | null> {
-    if (!cameraConfig.frigate.client_id) {
+    const clientID = getFrigateClientID(camera);
+    if (!clientID) {
       return null;
     }
     if (FrigateViewMediaClassifier.isFrigateEvent(media)) {
       return {
         endpoint:
-          `/api/frigate/${cameraConfig.frigate.client_id}` +
+          `/api/frigate/${clientID}` +
           `/notifications/${media.getID()}/` +
           `${ViewItemClassifier.isClip(media) ? 'clip.mp4' : 'snapshot.jpg'}` +
           `?download=true`,
         sign: true,
       };
-    } else if (FrigateViewMediaClassifier.isFrigateRecording(media)) {
+    }
+
+    const identity = getFrigateIdentity(camera);
+    if (identity && FrigateViewMediaClassifier.isFrigateRecording(media)) {
       return {
         endpoint:
-          `/api/frigate/${cameraConfig.frigate.client_id}` +
-          `/recording/${cameraConfig.frigate.camera_name}` +
+          `/api/frigate/${identity.clientID}` +
+          `/recording/${identity.cameraName}` +
           `/start/${Math.floor(media.getStartTime().getTime() / 1000)}` +
           `/end/${Math.floor(media.getEndTime().getTime() / 1000)}` +
           `?download=true`,
@@ -338,40 +352,31 @@ export class FrigateCameraManagerEngine
 
   public async favoriteMedia(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
     media: ViewMedia,
     favorite: boolean,
   ): Promise<void> {
-    if (
-      !FrigateViewMediaClassifier.isFrigateEvent(media) ||
-      !cameraConfig.frigate.client_id
-    ) {
+    const clientID = getFrigateClientID(camera);
+    if (!FrigateViewMediaClassifier.isFrigateEvent(media) || !clientID) {
       return;
     }
 
-    await retainEvent(hass, cameraConfig.frigate.client_id, media.getID(), favorite);
+    await retainEvent(hass, clientID, media.getID(), favorite);
     media.setFavorite(favorite);
   }
 
   public async reviewMedia(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
     media: ViewMedia,
     reviewed: boolean,
   ): Promise<void> {
-    if (
-      !FrigateViewMediaClassifier.isFrigateReview(media) ||
-      !cameraConfig.frigate.client_id
-    ) {
+    const clientID = getFrigateClientID(camera);
+    if (!FrigateViewMediaClassifier.isFrigateReview(media) || !clientID) {
       return;
     }
 
-    await setReviewsReviewed(
-      hass,
-      cameraConfig.frigate.client_id,
-      [media.getID()],
-      reviewed,
-    );
+    await setReviewsReviewed(hass, clientID, [media.getID()], reviewed);
   }
 
   private _buildInstanceToCameraIDMapFromQuery(
@@ -380,13 +385,12 @@ export class FrigateCameraManagerEngine
   ): Map<string, Set<string>> {
     const output: Map<string, Set<string>> = new Map();
     for (const cameraID of cameraIDs) {
-      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
-      const clientID = cameraConfig?.frigate.client_id;
-      if (clientID) {
-        if (!output.has(clientID)) {
-          output.set(clientID, new Set());
+      const queryableCamera = this._getQueryableCamera(store, cameraID);
+      if (queryableCamera) {
+        if (!output.has(queryableCamera.clientID)) {
+          output.set(queryableCamera.clientID, new Set());
         }
-        output.get(clientID)?.add(cameraID);
+        output.get(queryableCamera.clientID)?.add(cameraID);
       }
     }
     return output;
@@ -396,14 +400,11 @@ export class FrigateCameraManagerEngine
     store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
   ): Set<string> {
-    const output = new Set<string>();
-    for (const cameraID of cameraIDs) {
-      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
-      if (cameraConfig?.frigate.camera_name) {
-        output.add(cameraConfig.frigate.camera_name);
-      }
-    }
-    return output;
+    return new Set(
+      [...cameraIDs]
+        .map((cameraID) => this._getQueryableCamera(store, cameraID)?.cameraName)
+        .filter(isTruthy),
+    );
   }
 
   public async getEvents(
@@ -595,20 +596,12 @@ export class FrigateCameraManagerEngine
         return;
       }
 
-      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
-      if (
-        !cameraConfig ||
-        !cameraConfig.frigate.camera_name ||
-        !cameraConfig.frigate.client_id
-      ) {
+      const queryableCamera = this._getQueryableCamera(store, cameraID);
+      if (!queryableCamera) {
         return;
       }
 
-      const recordingSummary = await getRecordingsSummary(
-        hass,
-        cameraConfig.frigate.client_id,
-        cameraConfig.frigate.camera_name,
-      );
+      const recordingSummary = await getRecordingsSummary(hass, queryableCamera);
 
       let recordings: FrigateRecording[] = [];
 
@@ -644,7 +637,7 @@ export class FrigateCameraManagerEngine
       const result: FrigateRecordingQueryResults = {
         type: QueryResultsType.Recording,
         engine: Engine.Frigate,
-        instanceID: cameraConfig.frigate.client_id,
+        instanceID: queryableCamera.clientID,
         recordings: recordings,
         expiry: add(new Date(), {
           seconds: RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS,
@@ -678,12 +671,8 @@ export class FrigateCameraManagerEngine
       cameraID: string,
     ): Promise<void> => {
       const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
-      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
-      if (
-        !cameraConfig ||
-        !cameraConfig.frigate.camera_name ||
-        !cameraConfig.frigate.client_id
-      ) {
+      const queryableCamera = this._getQueryableCamera(store, cameraID);
+      if (!queryableCamera) {
         return;
       }
 
@@ -704,7 +693,7 @@ export class FrigateCameraManagerEngine
         output.set(query, <FrigateRecordingSegmentsQueryResults>{
           type: QueryResultsType.RecordingSegments,
           engine: Engine.Frigate,
-          instanceID: cameraConfig.frigate.client_id,
+          instanceID: queryableCamera.clientID,
           segments: cachedSegments,
           cached: true,
         });
@@ -712,8 +701,8 @@ export class FrigateCameraManagerEngine
       }
 
       const request: NativeFrigateRecordingSegmentsQuery = {
-        instance_id: cameraConfig.frigate.client_id,
-        camera: cameraConfig.frigate.camera_name,
+        instance_id: queryableCamera.clientID,
+        camera: queryableCamera.cameraName,
         after: Math.floor(query.start.getTime() / 1000),
         before: Math.floor(query.end.getTime() / 1000),
       };
@@ -727,7 +716,7 @@ export class FrigateCameraManagerEngine
       output.set(query, <FrigateRecordingSegmentsQueryResults>{
         type: QueryResultsType.RecordingSegments,
         engine: Engine.Frigate,
-        instanceID: cameraConfig.frigate.client_id,
+        instanceID: queryableCamera.clientID,
         segments: segments,
         cached: false,
       });
@@ -756,10 +745,11 @@ export class FrigateCameraManagerEngine
     if (query.cameraIDs.size === 1) {
       return [...query.cameraIDs][0];
     }
-    for (const [cameraID, cameraConfig] of store.getCameraConfigEntries()) {
+    for (const cameraID of store.getCameraIDs()) {
+      const queryableCamera = this._getQueryableCamera(store, cameraID);
       if (
-        cameraConfig.frigate.client_id === instanceID &&
-        cameraConfig.frigate.camera_name === cameraName
+        queryableCamera?.clientID === instanceID &&
+        queryableCamera.cameraName === cameraName
       ) {
         return cameraID;
       }
@@ -788,8 +778,8 @@ export class FrigateCameraManagerEngine
       if (!cameraID) {
         continue;
       }
-      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
-      if (!cameraConfig) {
+      const queryableCamera = this._getQueryableCamera(store, cameraID);
+      if (!queryableCamera) {
         continue;
       }
       let mediaType: ViewMediaType | null = null;
@@ -810,7 +800,7 @@ export class FrigateCameraManagerEngine
       const media = FrigateViewMediaFactory.createEventViewMedia(
         mediaType,
         cameraID,
-        cameraConfig,
+        queryableCamera,
         event,
         event.sub_label ? this._splitSubLabels(event.sub_label) : undefined,
       );
@@ -833,19 +823,19 @@ export class FrigateCameraManagerEngine
 
     const output: ViewMedia[] = [];
     for (const recording of results.recordings) {
-      const cameraConfig = this._getQueryableCameraConfig(store, recording.cameraID);
-      if (!cameraConfig) {
+      const camera = store.getCamera(recording.cameraID);
+      const queryableCamera = this._getQueryableCamera(store, recording.cameraID);
+      if (!camera || !queryableCamera) {
         continue;
       }
-      const media = FrigateViewMediaFactory.createRecordingViewMedia(
-        recording.cameraID,
-        recording,
-        cameraConfig,
-        this.getCameraMetadata(hass, cameraConfig).title,
+      output.push(
+        FrigateViewMediaFactory.createRecordingViewMedia(
+          recording.cameraID,
+          recording,
+          queryableCamera,
+          this.getCameraMetadata(hass, camera).title,
+        ),
       );
-      if (media) {
-        output.push(media);
-      }
     }
     return output;
   }
@@ -871,18 +861,13 @@ export class FrigateCameraManagerEngine
       if (!cameraID) {
         continue;
       }
-      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
-      if (!cameraConfig) {
+      const queryableCamera = this._getQueryableCamera(store, cameraID);
+      if (!queryableCamera) {
         continue;
       }
-      const media = FrigateViewMediaFactory.createReviewViewMedia(
-        cameraID,
-        review,
-        cameraConfig,
+      output.push(
+        FrigateViewMediaFactory.createReviewViewMedia(cameraID, review, queryableCamera),
       );
-      if (media) {
-        output.push(media);
-      }
     }
     return output;
   }
@@ -945,15 +930,12 @@ export class FrigateCameraManagerEngine
     return null;
   }
 
-  private _getQueryableCameraConfig(
+  private _getQueryableCamera(
     store: CameraManagerReadOnlyConfigStore,
     cameraID: string,
-  ): CameraConfig | null {
-    const cameraConfig = store.getCameraConfig(cameraID);
-    if (!cameraConfig || isBirdseye(cameraConfig)) {
-      return null;
-    }
-    return cameraConfig;
+  ): FrigateIdentity | null {
+    const identity = getFrigateIdentity(store.getCamera(cameraID));
+    return identity && !isBirdseye(identity.cameraName) ? identity : null;
   }
 
   private _splitSubLabels(input: string): string[] {
@@ -1027,6 +1009,8 @@ export class FrigateCameraManagerEngine
         },
         engineOptions,
       );
+      /* v8 ignore next 3: the cameras reached here are the queryable ones, which
+         are exactly the cameras getRecordings() produces results for -- @preserve */
       if (!recordings) {
         return;
       }
@@ -1168,17 +1152,17 @@ export class FrigateCameraManagerEngine
 
   public getCameraMetadata(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
   ): CameraManagerCameraMetadata {
+    const cameraConfig = camera.getConfig();
     return {
-      ...super.getCameraMetadata(hass, cameraConfig),
+      ...super.getCameraMetadata(hass, camera),
       title:
         cameraConfig.title ??
         getEntityTitle(hass, cameraConfig.camera_entity) ??
         getEntityTitle(hass, cameraConfig.webrtc_card?.entity) ??
-        prettifyTitle(cameraConfig.frigate?.camera_name) ??
-        cameraConfig.id ??
-        '',
+        prettifyTitle(getFrigateIdentity(camera)?.cameraName ?? undefined) ??
+        camera.getID(),
       engineIcon: 'frigate',
     };
   }

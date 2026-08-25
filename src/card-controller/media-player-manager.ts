@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CameraConfig } from '../config/schema/cameras';
 import type { AdvancedCameraCardConfig } from '../config/schema/types';
 import type { Entity } from '../ha/registry/entity/types';
@@ -131,7 +133,7 @@ export class MediaPlayerManager {
   private async _playLiveStandard(
     mediaPlayer: string,
     cameraID: string,
-    cameraConfig: CameraConfig,
+    cameraConfig: ReadonlyDeep<CameraConfig>,
   ): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
     const cameraEntity = cameraConfig?.camera_entity ?? null;
@@ -157,7 +159,7 @@ export class MediaPlayerManager {
 
   private async _playLiveDashboard(
     mediaPlayer: string,
-    cameraConfig: CameraConfig,
+    cameraConfig: ReadonlyDeep<CameraConfig>,
   ): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
     if (!hass) {

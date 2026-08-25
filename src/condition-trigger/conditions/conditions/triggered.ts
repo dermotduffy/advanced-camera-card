@@ -1,11 +1,13 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { TriggeredBase } from '../../../config/schema/condition-trigger/common/triggered';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator } from './types';
 
 export class TriggeredConditionEvaluator implements ConditionEvaluator {
-  private _condition: TriggeredBase;
+  private _condition: ReadonlyDeep<TriggeredBase>;
 
-  constructor(condition: TriggeredBase) {
+  constructor(condition: ReadonlyDeep<TriggeredBase>) {
     this._condition = condition;
   }
 
