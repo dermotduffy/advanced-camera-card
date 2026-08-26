@@ -44,8 +44,10 @@ describe('CameraManagerStore', async () => {
 
   const setupStore = (): CameraManagerStore => {
     const store = new CameraManagerStore();
-    store.addCamera(createCamera(configVisible, engineGeneric));
-    store.addCamera(createCamera(configHidden, engineFrigate));
+    store.setCameras([
+      createCamera(configVisible, engineGeneric),
+      createCamera(configHidden, engineFrigate),
+    ]);
     return store;
   };
 
@@ -168,6 +170,15 @@ describe('CameraManagerStore', async () => {
     expect(store.getEngineOfType(Engine.MotionEye)).toBeNull();
   });
 
+  it('should not return an engine that no current camera uses', async () => {
+    const store = setupStore();
+
+    store.setCameras([createCamera(configVisible, engineGeneric)]);
+
+    expect(store.getEngineOfType(Engine.Generic)).toBe(engineGeneric);
+    expect(store.getEngineOfType(Engine.Frigate)).toBeNull();
+  });
+
   it('getEngineForCameraID', async () => {
     const store = setupStore();
     expect(store.getEngineForCameraID('camera-visible')).toBe(engineGeneric);
@@ -182,16 +193,12 @@ describe('CameraManagerStore', async () => {
     });
 
     it('multiple cameras', async () => {
-      const store = setupStore();
-      store.addCamera(
-        createCamera(
-          {
-            ...configVisible,
-            id: 'camera-visible2',
-          },
-          engineGeneric,
-        ),
-      );
+      const store = new CameraManagerStore();
+      store.setCameras([
+        createCamera(configVisible, engineGeneric),
+        createCamera(configHidden, engineFrigate),
+        createCamera({ ...configVisible, id: 'camera-visible2' }, engineGeneric),
+      ]);
 
       expect(
         store.getEnginesForCameraIDs(
@@ -228,7 +235,7 @@ describe('CameraManagerStore', async () => {
   describe('getAllDependentCameras', () => {
     it('should return dependent cameras', () => {
       const store = new CameraManagerStore();
-      store.addCamera(
+      store.setCameras([
         createCamera(
           createCameraConfig({
             id: 'one',
@@ -238,20 +245,18 @@ describe('CameraManagerStore', async () => {
           }),
           engineGeneric,
         ),
-      );
-      store.addCamera(
         createCamera(
           createCameraConfig({
             id: 'two',
           }),
           engineGeneric,
         ),
-      );
+      ]);
       expect(store.getAllDependentCameras('one')).toEqual(new Set(['one', 'two']));
     });
     it('should return all cameras', () => {
       const store = new CameraManagerStore();
-      store.addCamera(
+      store.setCameras([
         createCamera(
           createCameraConfig({
             id: 'one',
@@ -261,21 +266,19 @@ describe('CameraManagerStore', async () => {
           }),
           engineGeneric,
         ),
-      );
-      store.addCamera(
         createCamera(
           createCameraConfig({
             id: 'two',
           }),
           engineGeneric,
         ),
-      );
+      ]);
       expect(store.getAllDependentCameras('one')).toEqual(new Set(['one', 'two']));
     });
 
     it('should return cameras with specific capabilities', async () => {
       const store = new CameraManagerStore();
-      store.addCamera(
+      store.setCameras([
         createCamera(
           createCameraConfig({
             id: 'one',
@@ -285,8 +288,6 @@ describe('CameraManagerStore', async () => {
           }),
           engineGeneric,
         ),
-      );
-      store.addCamera(
         await createInitializedCamera(
           createCameraConfig({
             id: 'two',
@@ -294,13 +295,13 @@ describe('CameraManagerStore', async () => {
           engineGeneric,
           new Capabilities({ clips: true }),
         ),
-      );
+      ]);
       expect(store.getAllDependentCameras('one', 'clips')).toEqual(new Set(['two']));
     });
 
     it('should return cameras with specific capabilities inclusive of parent', async () => {
       const store = new CameraManagerStore();
-      store.addCamera(
+      store.setCameras([
         createCamera(
           createCameraConfig({
             id: 'one',
@@ -310,8 +311,6 @@ describe('CameraManagerStore', async () => {
           }),
           engineGeneric,
         ),
-      );
-      store.addCamera(
         await createInitializedCamera(
           createCameraConfig({
             id: 'two',
@@ -319,7 +318,7 @@ describe('CameraManagerStore', async () => {
           engineGeneric,
           new Capabilities({ clips: true }),
         ),
-      );
+      ]);
       expect(store.getAllDependentCameras('one', 'clips', { inclusive: true })).toEqual(
         new Set(['one', 'two']),
       );
@@ -328,7 +327,7 @@ describe('CameraManagerStore', async () => {
 
   it('getCameraIDsWithCapability', async () => {
     const store = new CameraManagerStore();
-    store.addCamera(
+    store.setCameras([
       await createInitializedCamera(
         createCameraConfig({
           id: 'one',
@@ -336,15 +335,13 @@ describe('CameraManagerStore', async () => {
         engineGeneric,
         new Capabilities({ clips: true }),
       ),
-    );
-    store.addCamera(
       createCamera(
         createCameraConfig({
           id: 'two',
         }),
         engineGeneric,
       ),
-    );
+    ]);
     expect(store.getCameraIDsWithCapability('clips')).toEqual(new Set(['one']));
   });
 

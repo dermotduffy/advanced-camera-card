@@ -451,7 +451,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       <advanced-camera-card-ptz
         .hass=${this.hass}
         .config=${this.liveConfig.controls.ptz}
-        .cameraManager=${cameraManager}
+        .cameraManagerEpoch=${this.cameraManagerEpoch}
         .cameraID=${streamAwareCameraID}
         .forceVisibility=${forcePTZVisibility}
         .type=${this._getDisplayPTZType(streamAwareCameraID)}

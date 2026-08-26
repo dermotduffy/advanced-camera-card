@@ -44,11 +44,6 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   private _cameras: Map<string, Camera> = new Map();
   private _enginesByType: Map<Engine, CameraManagerEngine> = new Map();
 
-  public addCamera(camera: Camera): void {
-    this._cameras.set(camera.getID(), camera);
-    this._enginesByType.set(camera.getEngine().getEngineType(), camera.getEngine());
-  }
-
   /**
    * Set the store's cameras synchronously. The displaced cameras (replaced or
    * removed) are returned for the caller to unsubscribe. The store does not
@@ -66,7 +61,7 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
     for (const camera of cameras) {
       const oldCamera = this._cameras.get(camera.getID());
       if (oldCamera !== camera) {
-        this.addCamera(camera);
+        this._cameras.set(camera.getID(), camera);
         if (oldCamera) {
           displaced.push(oldCamera);
         }
@@ -80,6 +75,13 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
         displaced.push(camera);
       }
     }
+
+    this._enginesByType = new Map(
+      [...this._cameras.values()].map((camera) => [
+        camera.getEngine().getEngineType(),
+        camera.getEngine(),
+      ]),
+    );
 
     return displaced;
   }

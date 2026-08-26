@@ -106,6 +106,7 @@ export const createStore = (
   }[],
 ): CameraManagerStore => {
   const store = new CameraManagerStore();
+  const built: Camera[] = [];
   for (const cameraProps of cameras ?? []) {
     const eventCallback = cameraProps.eventCallback ?? vi.fn();
     const capabilities =
@@ -124,8 +125,9 @@ export const createStore = (
       { eventCallback },
     ).setCapabilities(capabilities);
     camera.setID(cameraProps.cameraID);
-    store.addCamera(camera);
+    built.push(camera);
   }
+  store.setCameras(built);
   return store;
 };
 
@@ -133,10 +135,16 @@ export const createStore = (
  * Wait for a camera manager to finish initializing its cameras, which it does in
  * the background.
  */
-export const settleCameraInitialization = async (
+export const waitForCameraInitialization = async (
   manager: CameraManager,
 ): Promise<void> => {
-  await vi.waitFor(() => expect(manager.hasInitializingCameras()).toBe(false));
+  await vi.waitFor(() =>
+    expect(
+      [...manager.getStore().getCameraIDs()].some((cameraID) =>
+        manager.isCameraInitializing(cameraID),
+      ),
+    ).toBe(false),
+  );
 };
 
 export const createCameraManager = (store?: CameraManagerStore): CameraManager => {
@@ -159,6 +167,11 @@ export const createCameraManager = (store?: CameraManagerStore): CameraManager =
         : null;
     },
   );
+  vi.mocked(cameraManager.isCameraReady).mockImplementation((cameraID: string) =>
+    cameraManager.getStore().hasCameraID(cameraID),
+  );
+  vi.mocked(cameraManager.isCameraInitializing).mockReturnValue(false);
+
   vi.mocked(cameraManager.getEpoch).mockImplementation(() => ({
     manager: cameraManager,
   }));

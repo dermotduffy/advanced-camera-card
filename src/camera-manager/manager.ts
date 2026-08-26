@@ -231,6 +231,11 @@ export class CameraManager {
       return;
     }
 
+    // Cameras skip initialization entirely when Home Assistant is unavailable.
+    if (!camera.isInitialized()) {
+      return;
+    }
+
     if (
       (await this._commitInitializedCamera(camera, generation)) &&
       this._generation.isCurrent(generation)
@@ -374,10 +379,13 @@ export class CameraManager {
     return this._lifecycleStates.get(cameraID) ?? null;
   }
 
-  // Whether any camera is still initializing in the background.
-  public hasInitializingCameras(): boolean {
-    return [...this._lifecycleStates.values()].some(
-      (state) => state.status === CameraLifecycleStatus.Initializing,
+  public isCameraReady(cameraID: string): boolean {
+    return this._lifecycleStates.get(cameraID)?.status === CameraLifecycleStatus.Ready;
+  }
+
+  public isCameraInitializing(cameraID: string): boolean {
+    return (
+      this._lifecycleStates.get(cameraID)?.status === CameraLifecycleStatus.Initializing
     );
   }
 

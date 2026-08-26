@@ -12,7 +12,7 @@ describe('getLifecycleNotification', () => {
         'Front Door',
       ),
     ).toEqual({
-      icon: 'mdi:progress-helper',
+      icon: null,
       title: localize('error.camera_initializing'),
       targetTitle: 'Front Door',
     });

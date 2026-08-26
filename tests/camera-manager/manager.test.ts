@@ -44,8 +44,8 @@ import {
 import { generateViewMediaArray, TestViewMedia } from '../view/test-utils';
 import {
   createCapabilities,
-  settleCameraInitialization,
   TestCamera,
+  waitForCameraInitialization,
 } from './test-utils';
 
 describe('QueryClassifier', () => {
@@ -380,7 +380,7 @@ describe('CameraManager', () => {
       );
 
       expect(manager.getStore().getCameraCount()).toBe(1);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       expect(stateWatcher.subscribe).toHaveBeenCalled();
     });
 
@@ -418,7 +418,7 @@ describe('CameraManager', () => {
       expect([...manager.getStore().getCameraIDs()]).toEqual(['healthy', 'failing']);
 
       // The healthy camera subscribes; the failing one never does.
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       expect(healthyWatcher.subscribe).toHaveBeenCalled();
       expect(failingWatcher.subscribe).not.toHaveBeenCalled();
     });
@@ -483,7 +483,7 @@ describe('CameraManager', () => {
           stateWatcher: oldWatcher,
         },
       ]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       expect(oldWatcher.subscribe).toHaveBeenCalled();
 
       await manager.setCameras(
@@ -503,7 +503,7 @@ describe('CameraManager', () => {
       // replacement subscribes once its own background initialization completes.
       expect([...manager.getStore().getCameraIDs()]).toEqual(['new']);
       expect(oldWatcher.unsubscribe).toHaveBeenCalled();
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       expect(newWatcher.subscribe).toHaveBeenCalled();
     });
 
@@ -537,12 +537,12 @@ describe('CameraManager', () => {
 
       // The camera that throws while subscribing is marked failed; the healthy
       // camera subscribes and stays ready.
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(manager.getCameraLifecycleState('failing')?.status).toBe(
         CameraLifecycleStatus.Failed,
       );
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(manager.getCameraLifecycleState('healthy')?.status).toBe(
         CameraLifecycleStatus.Ready,
@@ -580,7 +580,7 @@ describe('CameraManager', () => {
       expect(stateWatcher.subscribe).not.toHaveBeenCalled();
 
       slowCamera.releaseInitialization();
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       expect(stateWatcher.subscribe).toHaveBeenCalled();
     });
 
@@ -594,7 +594,7 @@ describe('CameraManager', () => {
         { capabilities: createCapabilities({ trigger: true }), stateWatcher },
       ]);
 
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(manager.getCameraLifecycleState('id')?.status).toBe(
         CameraLifecycleStatus.Ready,
@@ -631,7 +631,7 @@ describe('CameraManager', () => {
       await second.hasStarted;
 
       second.releaseInitialization();
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
     });
 
     it('should discard a set superseded before it reaches the store', async () => {
@@ -671,7 +671,7 @@ describe('CameraManager', () => {
 
       // The failure commit finds a stale generation, so no lifecycle entry
       // survives.
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       expect(manager.getStore().getCameraCount()).toBe(0);
       expect(manager.getCameraLifecycleState('id')).toBeNull();
     });
@@ -863,7 +863,7 @@ describe('CameraManager', () => {
       });
 
       await manager.setCameras([degraded.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(manager.getCameraLifecycleState('id')).toEqual({
         status: CameraLifecycleStatus.Ready,
@@ -885,7 +885,7 @@ describe('CameraManager', () => {
       complete.set2WayAudio();
 
       await manager.setCameras([complete.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(api.getIssueManager().resolve).toHaveBeenCalledWith(
         'camera_initialization',
@@ -908,7 +908,7 @@ describe('CameraManager', () => {
       await manager.setCameras(
         buildCameras([{ entityRegistryManager }], mock<CameraManagerEngine>()),
       );
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
         'camera_initialization',
@@ -936,7 +936,7 @@ describe('CameraManager', () => {
           mock<CameraManagerEngine>(),
         ),
       );
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
         'camera_initialization',
@@ -957,7 +957,7 @@ describe('CameraManager', () => {
       });
 
       await manager.setCameras([degraded.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       expect(degraded.camera.getCapabilities().has('2-way-audio')).toBe(false);
 
       degraded.set2WayAudio();
@@ -980,7 +980,7 @@ describe('CameraManager', () => {
       const degraded = createDegradedCamera(mock<CameraManagerEngine>());
 
       await manager.setCameras([degraded.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       const epoch = manager.getEpoch();
 
       degraded.set2WayAudio();
@@ -994,7 +994,7 @@ describe('CameraManager', () => {
       const degraded = createDegradedCamera(mock<CameraManagerEngine>());
 
       await manager.setCameras([degraded.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       const epoch = manager.getEpoch();
 
       await manager.reinitializeCamera('id');
@@ -1026,7 +1026,7 @@ describe('CameraManager', () => {
           mock<CameraManagerEngine>(),
         ),
       );
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       expect(manager.getCameraLifecycleState('id')?.status).toBe(
         CameraLifecycleStatus.Failed,
       );
@@ -1055,7 +1055,7 @@ describe('CameraManager', () => {
       const degraded = createDegradedCamera(mock<CameraManagerEngine>());
 
       await manager.setCameras([degraded.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       vi.spyOn(degraded.camera, 'reinitialize').mockRejectedValue(
         new Error('initialization failed'),
@@ -1078,7 +1078,7 @@ describe('CameraManager', () => {
       const manager = new CameraManager(createCardAPI());
       const degraded = createDegradedCamera(mock<CameraManagerEngine>());
       await manager.setCameras([degraded.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       const reinitialize = vi.spyOn(degraded.camera, 'reinitialize');
       await manager.reinitializeCamera('unknown');
@@ -1091,7 +1091,7 @@ describe('CameraManager', () => {
       const degraded = createDegradedCamera(mock<CameraManagerEngine>());
 
       await manager.setCameras([degraded.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       const probeCountBefore = degraded.getCapabilityProbeCount();
 
       const { release } = degraded.holdNextInitialization();
@@ -1110,7 +1110,7 @@ describe('CameraManager', () => {
       const degraded = createDegradedCamera(mock<CameraManagerEngine>());
 
       await manager.setCameras([degraded.camera]);
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       const { release } = degraded.holdNextInitialization();
       const initialization = manager.reinitializeCamera('id');
@@ -1128,7 +1128,7 @@ describe('CameraManager', () => {
       const manager = new CameraManager(api);
 
       await manager.setCameras(buildCameras([{}], engine));
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       vi.mocked(api.getIssueManager().reset).mockClear();
 
       await manager.setCameras(
@@ -1146,7 +1146,7 @@ describe('CameraManager', () => {
       const manager = new CameraManager(api);
 
       await manager.setCameras(buildCameras([{}], mock<CameraManagerEngine>()));
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
       vi.mocked(api.getIssueManager().reset).mockClear();
 
       await manager.destroy();
@@ -1179,11 +1179,34 @@ describe('CameraManager', () => {
 
       slowCamera.releaseInitialization();
 
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(manager.getCameraLifecycleState('id')?.status).toBe(
         CameraLifecycleStatus.Ready,
       );
+    });
+
+    it('should leave a camera initializing when hass is unavailable', async () => {
+      const api = createCardAPI();
+      const manager = new CameraManager(api);
+      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+      const camera = new TestCamera(
+        createCameraConfig(baseCameraConfig),
+        mock<CameraManagerEngine>(),
+        { hassManager: createHASSManager({ hass: null, stateWatcher }) },
+      ).setCapabilities(createCapabilities({ trigger: true }));
+
+      const initialize = vi.spyOn(camera, 'initialize');
+      await manager.setCameras([camera]);
+
+      await vi.waitFor(() => expect(initialize).toHaveBeenCalled());
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(manager.getCameraLifecycleState('id')?.status).toBe(
+        CameraLifecycleStatus.Initializing,
+      );
+      expect(stateWatcher.subscribe).not.toHaveBeenCalled();
+      expect(api.getIssueManager().resolve).not.toHaveBeenCalled();
     });
 
     it('should mark a camera failed with its initialization error', async () => {
@@ -1207,7 +1230,7 @@ describe('CameraManager', () => {
 
       await manager.setCameras(cameras);
 
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(manager.getCameraLifecycleState('broken')).toEqual({
         status: CameraLifecycleStatus.Failed,
@@ -1229,7 +1252,7 @@ describe('CameraManager', () => {
       );
 
       expect(manager.getCameraLifecycleState('old')).toBeNull();
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(manager.getCameraLifecycleState('new')?.status).toBe(
         CameraLifecycleStatus.Ready,
@@ -1238,7 +1261,7 @@ describe('CameraManager', () => {
 
     it('should clear all lifecycle on destroy', async () => {
       const manager = await createCameraManager(createCardAPI());
-      await settleCameraInitialization(manager);
+      await waitForCameraInitialization(manager);
 
       expect(manager.getCameraLifecycleState('id')?.status).toBe(
         CameraLifecycleStatus.Ready,
@@ -1262,18 +1285,20 @@ describe('CameraManager', () => {
       expect(after.manager).toBe(manager);
     });
 
-    it('should report whether any camera is still initializing', async () => {
-      const engine = mock<CameraManagerEngine>();
+    it('should report a camera as initializing until it finishes', async () => {
       const manager = new CameraManager(createCardAPI());
-      const slowCamera = buildSlowInitializingCamera({}, engine);
+      const slowCamera = buildSlowInitializingCamera({}, mock<CameraManagerEngine>());
 
       await manager.setCameras([slowCamera.camera]);
 
-      expect(manager.hasInitializingCameras()).toBe(true);
+      expect(manager.isCameraInitializing('id')).toBe(true);
+      expect(manager.isCameraReady('id')).toBe(false);
 
       slowCamera.releaseInitialization();
-      await settleCameraInitialization(manager);
-      expect(manager.hasInitializingCameras()).toBe(false);
+      await waitForCameraInitialization(manager);
+
+      expect(manager.isCameraInitializing('id')).toBe(false);
+      expect(manager.isCameraReady('id')).toBe(true);
     });
   });
 

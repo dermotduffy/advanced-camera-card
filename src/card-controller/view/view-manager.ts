@@ -8,12 +8,13 @@ import { InitializationAspect } from '../initialization/initialization-manager';
 import type { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
 import { applyViewModifiers } from './modifiers';
-import type {
-  QueryExecutorOptions,
-  ViewFactoryOptions,
-  ViewManagerEpoch,
-  ViewManagerInterface,
-  ViewModifier,
+import {
+  ViewDeferred,
+  type QueryExecutorOptions,
+  type ViewFactoryOptions,
+  type ViewManagerEpoch,
+  type ViewManagerInterface,
+  type ViewModifier,
 } from './types';
 import { ViewQueryExecutor } from './view-query-executor';
 
@@ -149,11 +150,8 @@ export class ViewManager implements ViewManagerInterface {
         this._api.getIssueManager().reset('media_query');
       }
     } catch (e) {
-      // The card counts as uninitialized until at least one camera has
-      // initialized: while cameras are still initializing, the view aspect
-      // is left uninitialized so the card keeps showing its loading spinner and
-      // a later render retries.
-      if (!this._view && this._api.getCameraManager().hasInitializingCameras()) {
+      // A camera that may serve this view is still initializing.
+      if (e instanceof ViewDeferred) {
         return;
       }
       if (!this._view) {
@@ -241,11 +239,8 @@ export class ViewManager implements ViewManagerInterface {
       });
       this._api.getIssueManager().reset('view_incompatible');
     } catch (e) {
-      // The card counts as uninitialized until at least one camera has
-      // initialized: while cameras are still initializing, the view aspect
-      // is left uninitialized so the card keeps showing its loading spinner and
-      // a later render retries.
-      if (!this._view && this._api.getCameraManager().hasInitializingCameras()) {
+      // A camera that may serve this view is still initializing.
+      if (e instanceof ViewDeferred) {
         return;
       }
       if (!this._view) {

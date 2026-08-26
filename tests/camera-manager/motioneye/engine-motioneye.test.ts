@@ -80,7 +80,7 @@ const createMotionEyeStore = async (
   await camera.initialize();
   camera.setID(options?.cameraID ?? 'camera-1');
   const store = new CameraManagerStore();
-  store.addCamera(camera);
+  store.setCameras([camera]);
   return store;
 };
 
@@ -164,7 +164,7 @@ describe('MotionEyeCameraManagerEngine', () => {
         hassManager: createHASSManager(),
       });
       camera.setID('camera-1');
-      store.addCamera(camera);
+      store.setCameras([camera]);
 
       const result = await engine.getEvents(
         createHASS(),
@@ -505,7 +505,7 @@ describe('MotionEyeCameraManagerEngine', () => {
         await camera.initialize();
         camera.setID('camera-1');
         const store = new CameraManagerStore();
-        store.addCamera(camera);
+        store.setCameras([camera]);
 
         await engine.getEvents(createHASS(), store, createDefaultEventQuery());
 
@@ -552,7 +552,7 @@ describe('MotionEyeCameraManagerEngine', () => {
         await camera.initialize();
         camera.setID('camera-1');
         const store = new CameraManagerStore();
-        store.addCamera(camera);
+        store.setCameras([camera]);
 
         await engine.getEvents(createHASS(), store, createDefaultEventQuery());
 
@@ -605,7 +605,7 @@ describe('MotionEyeCameraManagerEngine', () => {
         await camera.initialize();
         camera.setID('camera-1');
         const store = new CameraManagerStore();
-        store.addCamera(camera);
+        store.setCameras([camera]);
 
         await engine.getEvents(createHASS(), store, createDefaultEventQuery());
 
@@ -937,7 +937,7 @@ describe('MotionEyeCameraManagerEngine', () => {
         hassManager: createHASSManager(),
       });
       camera.setID('camera-1');
-      store.addCamera(camera);
+      store.setCameras([camera]);
 
       const result = await engine.getMediaMetadata(createHASS(), store, {
         type: QueryType.MediaMetadata,

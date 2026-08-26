@@ -12,7 +12,8 @@ export function getLifecycleNotification(
   switch (state?.status) {
     case CameraLifecycleStatus.Initializing:
       return {
-        icon: 'mdi:progress-helper',
+        // No icon, already carries a spinner.
+        icon: null,
         title: localize('error.camera_initializing'),
         targetTitle: cameraTitle,
       };

@@ -2,7 +2,6 @@ import { add } from 'date-fns';
 import type { PartialDeep } from 'type-fest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CameraLifecycleStatus } from '../../src/camera-manager/lifecycle';
 import { CameraTriggersManager } from '../../src/card-controller/camera-triggers-manager';
 import type { CardController } from '../../src/card-controller/controller';
 import type { AdvancedCameraCardView } from '../../src/config/schema/common/const';
@@ -1703,9 +1702,7 @@ describe('CameraTriggersManager', () => {
 
     it('should not trigger a camera that has not finished initializing', async () => {
       const api = createTriggerAPI();
-      vi.mocked(api.getCameraManager().getCameraLifecycleState).mockReturnValue({
-        status: CameraLifecycleStatus.Initializing,
-      });
+      vi.mocked(api.getCameraManager().isCameraReady).mockReturnValue(false);
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
         createHASS({
           'binary_sensor.motion': createStateEntity({ state: 'on' }),

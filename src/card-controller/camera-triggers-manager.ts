@@ -1,6 +1,5 @@
 import { maxBy, throttle } from 'lodash-es';
 
-import { CameraLifecycleStatus } from '../camera-manager/lifecycle';
 import type { CameraEvent } from '../camera-manager/types';
 import { isTriggeredState } from '../ha/is-triggered-state';
 import { Timer } from '../utils/timer';
@@ -130,11 +129,7 @@ export class CameraTriggersManager {
     // A camera that has not finished initializing has not subscribed to its
     // trigger entities, so its already-on entities must not synthesize a
     // trigger (yet).
-    if (
-      !camera ||
-      cameraManager.getCameraLifecycleState(cameraID)?.status !==
-        CameraLifecycleStatus.Ready
-    ) {
+    if (!camera || !cameraManager.isCameraReady(cameraID)) {
       return { actionEvent: null, triggered: false };
     }
 

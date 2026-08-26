@@ -7,6 +7,7 @@ import type { ViewFactory } from '../../../src/card-controller/view/factory';
 import { MergeContextViewModifier } from '../../../src/card-controller/view/modifiers/merge-context';
 import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';
 import {
+  ViewDeferred,
   ViewIncompatible,
   type QueryExecutorOptions,
   type ViewModifier,
@@ -1100,18 +1101,15 @@ describe('should apply async view modifications', () => {
   });
 });
 
-describe('should defer an unrealizable default while cameras initialize', () => {
+describe('should defer a view a camera may yet be able to serve', () => {
   const createThrowingManager = (
-    initializing: boolean,
+    error: Error,
   ): { manager: ViewManager; api: CardController } => {
     const api = createInitializedCardAPI();
-    vi.mocked(api.getCameraManager().hasInitializingCameras).mockReturnValue(
-      initializing,
-    );
 
     const factory = mock<ViewFactory>();
     factory.getViewDefault.mockImplementation(() => {
-      throw new ViewIncompatible();
+      throw error;
     });
     const viewQueryExecutor = mock<ViewQueryExecutor>();
 
@@ -1122,8 +1120,8 @@ describe('should defer an unrealizable default while cameras initialize', () => 
     return { manager, api };
   };
 
-  it('should set no view and trigger no issue while cameras initialize', async () => {
-    const { manager, api } = createThrowingManager(true);
+  it('should set no view and trigger no issue when deferred', async () => {
+    const { manager, api } = createThrowingManager(new ViewDeferred());
 
     await manager.setViewDefaultWithNewQuery();
 
@@ -1134,8 +1132,8 @@ describe('should defer an unrealizable default while cameras initialize', () => 
     );
   });
 
-  it('should defer the synchronous default path while cameras initialize', () => {
-    const { manager, api } = createThrowingManager(true);
+  it('should defer the synchronous default path', () => {
+    const { manager, api } = createThrowingManager(new ViewDeferred());
 
     manager.setViewDefault();
 
@@ -1146,8 +1144,8 @@ describe('should defer an unrealizable default while cameras initialize', () => 
     );
   });
 
-  it('should report incompatibility once the cameras have settled', async () => {
-    const { manager, api } = createThrowingManager(false);
+  it('should report incompatibility when the view can never be served', async () => {
+    const { manager, api } = createThrowingManager(new ViewIncompatible());
 
     await manager.setViewDefaultWithNewQuery();
 

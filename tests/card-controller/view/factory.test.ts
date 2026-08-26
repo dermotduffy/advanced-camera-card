@@ -4,6 +4,7 @@ import { mock } from 'vitest-mock-extended';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import {
+  ViewDeferred,
   ViewIncompatible,
   type ViewModifier,
 } from '../../../src/card-controller/view/types';
@@ -51,6 +52,72 @@ describe('getViewDefault', () => {
 
     const factory = new ViewFactory(api);
     expect(() => factory.getViewDefault()).toThrow(ViewIncompatible);
+  });
+
+  describe('should choose the same camera despite unpredictable initialization timing', () => {
+    const createAPIWithCameras = (
+      capableCameraIDs: string[],
+      initializingCameraIDs: string[],
+    ): ReturnType<typeof createCardAPI> => {
+      const api = createCardAPI();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore(
+          ['camera.office', 'camera.kitchen', 'camera.den'].map((cameraID) => ({
+            cameraID,
+            capabilities: createCapabilities({
+              live: capableCameraIDs.includes(cameraID),
+            }),
+          })),
+        ),
+      );
+      vi.mocked(api.getCameraManager().isCameraInitializing).mockImplementation(
+        (cameraID: string) => initializingCameraIDs.includes(cameraID),
+      );
+      return api;
+    };
+
+    it('should choose the first configured camera that serves the view', () => {
+      const api = createAPIWithCameras(['camera.kitchen', 'camera.den'], []);
+
+      expect(new ViewFactory(api).getViewDefault()?.camera).toBe('camera.kitchen');
+    });
+
+    it('should defer rather than choose a camera that a later one may displace', () => {
+      // The kitchen can serve the view now, but the office is still deciding
+      // and is configured ahead.
+      const api = createAPIWithCameras(['camera.kitchen'], ['camera.office']);
+
+      expect(() => new ViewFactory(api).getViewDefault()).toThrow(ViewDeferred);
+    });
+
+    it('should not wait for cameras after the one it chose', () => {
+      const api = createAPIWithCameras(
+        ['camera.office'],
+        ['camera.kitchen', 'camera.den'],
+      );
+
+      expect(new ViewFactory(api).getViewDefault()?.camera).toBe('camera.office');
+    });
+  });
+
+  it('should defer when the requested camera is still initializing', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        { cameraID: 'camera.office', capabilities: createCapabilities({ live: false }) },
+      ]),
+    );
+    vi.mocked(api.getCameraManager().isCameraInitializing).mockReturnValue(true);
+
+    expect(() =>
+      new ViewFactory(api).getViewByParameters({
+        params: { view: 'live', camera: 'camera.office' },
+      }),
+    ).toThrow(ViewDeferred);
   });
 
   it('should use folders view as default when folders exist without cameras', () => {

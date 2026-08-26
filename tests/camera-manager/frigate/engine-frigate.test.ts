@@ -137,6 +137,7 @@ const createFrigateStore = (
   }[],
 ): CameraManagerStore => {
   const store = new CameraManagerStore();
+  const cameras: Camera[] = [];
   for (const entry of entries) {
     const camera = new FrigateCamera(
       entry.config ?? createFrigateCameraConfig(),
@@ -149,8 +150,9 @@ const createFrigateStore = (
       },
     );
     camera.setID(entry.cameraID);
-    store.addCamera(camera);
+    cameras.push(camera);
   }
+  store.setCameras(cameras);
   return store;
 };
 

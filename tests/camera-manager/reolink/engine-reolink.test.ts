@@ -213,7 +213,7 @@ const createStoreWithReolinkCamera = async (
     createCameraConfig({ camera_entity: 'camera.office', id: 'office' }),
   );
   await camera.initialize();
-  store.addCamera(camera);
+  store.setCameras([camera]);
   return store;
 };
 
@@ -507,7 +507,7 @@ describe('ReolinkCameraManagerEngine', () => {
       await camera.initialize();
 
       const store = new CameraManagerStore();
-      store.addCamera(camera);
+      store.setCameras([camera]);
 
       vi.mocked(homeAssistantWSRequest)
         .mockResolvedValueOnce(TEST_CAMERAS)
@@ -643,9 +643,9 @@ describe('ReolinkCameraManagerEngine', () => {
         const engine = createPopulatedEngine();
 
         const store = new CameraManagerStore();
-        store.addCamera(
+        store.setCameras([
           await createInitializedCamera(createCameraConfig({ id: 'office' }), engine),
-        );
+        ]);
 
         const hass = createHASS();
         const events = await engine.getEvents(hass, store, {
@@ -1165,9 +1165,9 @@ describe('ReolinkCameraManagerEngine', () => {
         const engine = createPopulatedEngine();
 
         const store = new CameraManagerStore();
-        store.addCamera(
+        store.setCameras([
           await createInitializedCamera(createCameraConfig({ id: 'office' }), engine),
-        );
+        ]);
 
         const metadata = await engine.getMediaMetadata(createHASS(), store, {
           type: QueryType.MediaMetadata,
