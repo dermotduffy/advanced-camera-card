@@ -1,5 +1,9 @@
 import { CameraManagerEngineFactory } from '../../camera-manager/engine-factory';
 import { CameraFactory } from '../../camera-manager/factory';
+import {
+  CameraLifecycleStatus,
+  type CameraLifecycleState,
+} from '../../camera-manager/lifecycle';
 import { recursivelyMergeObjectsNotArrays } from '../../utils/basic';
 import type { CardCameraLoaderAPI } from '../types';
 
@@ -44,8 +48,24 @@ export const setCamerasFromConfig = async (
 
   const cameras = await cameraFactory.buildCameras(hass, camerasConfig);
 
+  // A new set of cameras is a new set of trigger sources.
+  api.getCameraTriggersManager().reset();
+
   await api.getCameraManager().setCameras(cameras, {
     engineRequestConcurrency:
       config.performance.features.max_simultaneous_engine_requests,
+    lifecycleCallback: (cameraID: string, state: CameraLifecycleState) => {
+      if (state.status === CameraLifecycleStatus.Ready) {
+        api
+          .getCameraTriggersManager()
+          .handleCameraLifecycleChange(cameraID)
+          .catch(() => {});
+        api
+          .getViewManager()
+          .handleCameraLifecycleChange()
+          .catch(() => {});
+      }
+      api.getCardElementManager().update();
+    },
   });
 };

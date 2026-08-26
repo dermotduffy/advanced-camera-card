@@ -96,7 +96,7 @@ export class CameraTriggersManager {
   /**
    * Handle a single camera reaching the ready state.
    */
-  public handleCameraReady = async (cameraID: string): Promise<boolean> => {
+  public handleCameraLifecycleChange = async (cameraID: string): Promise<boolean> => {
     // `handleCameraEvent` drops an event while no camera is selected (i.e.
     // before the card has initialized) since it needs to respect
     // `filter_selected_camera`. Evaluating now would silently lose this

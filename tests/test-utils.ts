@@ -550,7 +550,9 @@ export const createCardAPI = (): CardController => {
   api.getTemplateManager.mockReturnValue(mock<TemplateManager>());
   api.getCameraTriggersManager.mockReturnValue(mock<CameraTriggersManager>());
   api.getViewItemManager.mockReturnValue(mock<ViewItemManager>());
-  api.getViewManager.mockReturnValue(mock<ViewManager>());
+  const viewManager = mock<ViewManager>();
+  vi.mocked(viewManager.handleCameraLifecycleChange).mockResolvedValue();
+  api.getViewManager.mockReturnValue(viewManager);
 
   return api;
 };

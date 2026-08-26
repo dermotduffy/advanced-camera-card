@@ -20,7 +20,7 @@ import { QueryResults } from '../../../src/view/query-results';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import type { View } from '../../../src/view/view';
 import { createCardAPI } from '../../test-utils';
-import { createEventQuery, createView } from '../../view/test-utils';
+import { createEventQuery, createView, TestViewMedia } from '../../view/test-utils';
 
 const createInitializedCardAPI = (initialized?: boolean): CardController => {
   const api = createCardAPI();
@@ -1045,7 +1045,7 @@ describe('should apply async view modifications', () => {
       const startView = createView({
         view: startViewName,
         camera: 'camera',
-        query: new UnifiedQuery([createEventQuery('c1')]),
+        query: new UnifiedQuery({ nodes: [createEventQuery('c1')] }),
         queryResults: new QueryResults(),
         context: originView ? { gallery: { originView } } : undefined,
       });
@@ -1098,6 +1098,153 @@ describe('should apply async view modifications', () => {
     it('should return false when target view is not gallery', async () => {
       expect(await testAdoption('clips', 'live')).toBe(false);
     });
+  });
+});
+
+describe('handleCameraLifecycleChange', () => {
+  it('should re-attempt the default view when none was resolved', async () => {
+    const api = createInitializedCardAPI();
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView());
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+
+    await manager.handleCameraLifecycleChange();
+
+    expect(factory.getViewDefault).toHaveBeenCalled();
+  });
+
+  it('should rebuild a default-origin query when camera nodes grow', async () => {
+    const api = createInitializedCardAPI();
+    const query = new UnifiedQuery({ origin: 'default' });
+    const results = new QueryResults();
+    const factory = mock<ViewFactory>();
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+    const newResults = new QueryResults({
+      results: [new TestViewMedia({ cameraID: 'c1' })],
+    });
+    viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([
+      new SetQueryViewModifier({ query, queryResults: newResults }),
+    ]);
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+
+    manager.setViewDefault = vi.fn();
+    // Set an initial view with a default-origin query.
+    await manager.setViewDefaultWithNewQuery();
+    vi.mocked(factory.getViewDefault).mockReturnValue(
+      createView({ query, queryResults: results }),
+    );
+    manager.setViewDefault();
+
+    await manager.handleCameraLifecycleChange();
+
+    expect(viewQueryExecutor.getNewQueryModifiers).toHaveBeenCalled();
+    expect(manager.getView()?.queryResults).toBe(newResults);
+  });
+
+  it('should not rebuild a query without default origin', async () => {
+    const api = createInitializedCardAPI();
+    const query = new UnifiedQuery();
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView({ query }));
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+
+    manager.setViewDefault();
+
+    await manager.handleCameraLifecycleChange();
+
+    expect(viewQueryExecutor.getNewQueryModifiers).not.toHaveBeenCalled();
+  });
+
+  it('should preserve the selected item by ID across a rebuild', async () => {
+    const api = createInitializedCardAPI();
+    const selectedMedia = new TestViewMedia({ cameraID: 'c1', id: 'item-42' });
+    const query = new UnifiedQuery({ origin: 'default' });
+    const results = new QueryResults({
+      results: [selectedMedia],
+    });
+    results.selectResultIfFound((item) => item.getID() === 'item-42');
+
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView({ query, queryResults: results }));
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+
+    const newSelectedMedia = new TestViewMedia({ cameraID: 'c1', id: 'item-42' });
+    const newResults = new QueryResults({
+      results: [new TestViewMedia({ cameraID: 'c2', id: 'item-99' }), newSelectedMedia],
+    });
+    viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([
+      new SetQueryViewModifier({ query, queryResults: newResults }),
+    ]);
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+    manager.setViewDefault();
+
+    await manager.handleCameraLifecycleChange();
+
+    expect(manager.getView()?.queryResults?.getSelectedResult()).toBe(newSelectedMedia);
+  });
+
+  it('should not rebuild when the query executor returns null', async () => {
+    const api = createInitializedCardAPI();
+    const query = new UnifiedQuery({ origin: 'default' });
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView({ query }));
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+    viewQueryExecutor.getNewQueryModifiers.mockResolvedValue(null);
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+    manager.setViewDefault();
+
+    const viewBefore = manager.getView();
+    await manager.handleCameraLifecycleChange();
+
+    expect(manager.getView()).toBe(viewBefore);
+  });
+
+  it('should discard a rebuild that lands after the view moved on', async () => {
+    const api = createInitializedCardAPI();
+    const query = new UnifiedQuery({ origin: 'default' });
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView({ query }));
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+    manager.setViewDefault();
+
+    // The executor's callback changes the view while the rebuild is in flight.
+    viewQueryExecutor.getNewQueryModifiers.mockImplementation(async () => {
+      factory.getViewDefault.mockReturnValue(createView({ view: 'clips', query }));
+      manager.setViewDefault();
+      return [new SetQueryViewModifier({ query })];
+    });
+
+    await manager.handleCameraLifecycleChange();
+
+    // The rebuild was discarded; the view that replaced it survives.
+    expect(manager.getView()?.view).toBe('clips');
   });
 });
 

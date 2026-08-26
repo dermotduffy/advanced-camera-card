@@ -8,6 +8,7 @@ import {
   type CameraFactoryOptions,
 } from '../../../src/camera-manager/factory';
 import type * as CameraFactoryModule from '../../../src/camera-manager/factory';
+import { CameraLifecycleStatus } from '../../../src/camera-manager/lifecycle';
 import type { CameraEvent } from '../../../src/camera-manager/types';
 import { setCamerasFromConfig } from '../../../src/card-controller/config/load-cameras';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
@@ -94,9 +95,10 @@ describe('setCamerasFromConfig', () => {
     expect(factory.buildCameras).toHaveBeenCalledWith(hass, [
       expect.objectContaining({ id: 'one', title: 'GLOBAL' }),
     ]);
-    expect(api.getCameraManager().setCameras).toHaveBeenCalledWith([camera], {
-      engineRequestConcurrency: 4,
-    });
+    expect(api.getCameraManager().setCameras).toHaveBeenCalledWith(
+      [camera],
+      expect.objectContaining({ engineRequestConcurrency: 4 }),
+    );
   });
 
   it('should build cameras with the default factory', async () => {
@@ -112,7 +114,7 @@ describe('setCamerasFromConfig', () => {
 
     expect(api.getCameraManager().setCameras).toHaveBeenCalledWith(
       [expect.any(Camera)],
-      { engineRequestConcurrency: undefined },
+      expect.objectContaining({ engineRequestConcurrency: undefined }),
     );
   });
 
@@ -140,5 +142,81 @@ describe('setCamerasFromConfig', () => {
     expect(api.getCameraTriggersManager().handleCameraEvent).toHaveBeenCalledWith(
       cameraEvent,
     );
+  });
+
+  it('should wire the lifecycle callback to update the card and handle readiness', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        cameras: [{ id: 'one', engine: 'generic' }],
+      }),
+    );
+
+    vi.mocked(
+      api.getCameraTriggersManager().handleCameraLifecycleChange,
+    ).mockResolvedValue(true);
+    vi.mocked(api.getViewManager().handleCameraLifecycleChange).mockResolvedValue();
+
+    await setCamerasFromConfig(api);
+
+    const lifecycleCallback = vi.mocked(api.getCameraManager().setCameras).mock
+      .calls[0][1]?.lifecycleCallback;
+    expect(lifecycleCallback).toBeDefined();
+
+    lifecycleCallback?.('one', { status: CameraLifecycleStatus.Ready });
+
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
+    expect(
+      api.getCameraTriggersManager().handleCameraLifecycleChange,
+    ).toHaveBeenCalledWith('one');
+    expect(api.getViewManager().handleCameraLifecycleChange).toHaveBeenCalled();
+  });
+
+  it('should update the card but not handle readiness for non-ready states', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        cameras: [{ id: 'one', engine: 'generic' }],
+      }),
+    );
+
+    await setCamerasFromConfig(api);
+
+    const lifecycleCallback = vi.mocked(api.getCameraManager().setCameras).mock
+      .calls[0][1]?.lifecycleCallback;
+
+    lifecycleCallback?.('one', { status: CameraLifecycleStatus.Initializing });
+
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
+    expect(
+      api.getCameraTriggersManager().handleCameraLifecycleChange,
+    ).not.toHaveBeenCalled();
+    expect(api.getViewManager().handleCameraLifecycleChange).not.toHaveBeenCalled();
+  });
+
+  it('should contain a callback failure without rejecting', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        cameras: [{ id: 'one', engine: 'generic' }],
+      }),
+    );
+    vi.mocked(
+      api.getCameraTriggersManager().handleCameraLifecycleChange,
+    ).mockRejectedValue(new Error('callback failed'));
+    vi.mocked(api.getViewManager().handleCameraLifecycleChange).mockRejectedValue(
+      new Error('callback failed'),
+    );
+
+    await setCamerasFromConfig(api);
+
+    const lifecycleCallback = vi.mocked(api.getCameraManager().setCameras).mock
+      .calls[0][1]?.lifecycleCallback;
+
+    // Reaching here without an unhandled rejection is the assertion.
+    lifecycleCallback?.('one', { status: CameraLifecycleStatus.Ready });
   });
 });

@@ -126,8 +126,8 @@ interface ExtendedMediaQueryResult<T extends MediaQuery> {
 }
 
 interface SetCamerasOptions {
-  // Concurrency limit for engine requests (queries and probes).
   engineRequestConcurrency?: number;
+  lifecycleCallback?: (cameraID: string, state: CameraLifecycleState) => void;
 }
 
 export class CameraManager {
@@ -145,6 +145,8 @@ export class CameraManager {
 
   private _lifecycleStates = new Map<string, CameraLifecycleState>();
   private _epoch: CameraManagerEpoch = { manager: this };
+
+  private _lifecycleCallback?: (cameraID: string, state: CameraLifecycleState) => void;
 
   constructor(
     api: CardCameraAPI,
@@ -172,11 +174,11 @@ export class CameraManager {
     const generation = this._generation.next();
 
     this._requestLimit.concurrency = options?.engineRequestConcurrency ?? Infinity;
+    this._lifecycleCallback = options?.lifecycleCallback;
 
     // A new set of cameras is a new set of trigger sources, so the triggers of
     // the previous set are discarded here. Runs before any camera can become
     // ready, so it cannot discard the triggers of a camera in this set.
-    this._api.getCameraTriggersManager().reset();
     this._api.getIssueManager().reset('camera_initialization');
 
     // Adding the cameras to the store runs on the commit queue so it is
@@ -194,7 +196,9 @@ export class CameraManager {
     for (const camera of cameras) {
       // Fire-and-forget: `_initializeCamera` handles the actionable failures
       // itself, so this only guards against an unexpected rejection in it.
-      this._initializeCamera(camera, generation).catch(() => {});
+      this._initializeCamera(camera, generation).catch(
+        /* v8 ignore next -- @preserve */ () => {},
+      );
     }
   }
 
@@ -240,7 +244,9 @@ export class CameraManager {
       (await this._commitInitializedCamera(camera, generation)) &&
       this._generation.isCurrent(generation)
     ) {
-      await this._api.getCameraTriggersManager().handleCameraReady(camera.getID());
+      this._lifecycleCallback?.(camera.getID(), {
+        status: CameraLifecycleStatus.Ready,
+      });
     }
   }
 
@@ -356,7 +362,9 @@ export class CameraManager {
         return;
       }
       if (changed) {
-        this._replaceEpoch();
+        this._setCameraLifecycleState(camera.getID(), {
+          status: CameraLifecycleStatus.Ready,
+        });
       }
       if (reinitializationFailed) {
         this._triggerCameraInitializationIssue(camera.getID(), 'degraded');
@@ -395,12 +403,8 @@ export class CameraManager {
 
   private _setCameraLifecycleState(cameraID: string, state: CameraLifecycleState): void {
     this._lifecycleStates.set(cameraID, state);
-    this._replaceEpoch();
-  }
-
-  private _replaceEpoch(): void {
     this._epoch = { manager: this };
-    this._api.getCardElementManager().update();
+    this._lifecycleCallback?.(cameraID, state);
   }
 
   public getStore(): CameraManagerReadOnlyConfigStore {

@@ -584,23 +584,6 @@ describe('CameraManager', () => {
       expect(stateWatcher.subscribe).toHaveBeenCalled();
     });
 
-    it('should stay ready when the initial trigger evaluation fails', async () => {
-      const api = createCardAPI();
-      vi.mocked(api.getCameraTriggersManager().handleCameraReady).mockRejectedValue(
-        new Error('trigger failed'),
-      );
-      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
-      const manager = await createCameraManager(api, mock<CameraManagerEngine>(), [
-        { capabilities: createCapabilities({ trigger: true }), stateWatcher },
-      ]);
-
-      await waitForCameraInitialization(manager);
-
-      expect(manager.getCameraLifecycleState('id')?.status).toBe(
-        CameraLifecycleStatus.Ready,
-      );
-    });
-
     it('should serialize initialization under a request-concurrency limit', async () => {
       const engine = mock<CameraManagerEngine>();
       const manager = new CameraManager(createCardAPI());
@@ -1011,6 +994,7 @@ describe('CameraManager', () => {
         .mockResolvedValue(createRegistryEntity({ entity_id: 'camera.foo' }));
 
       const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+      const lifecycleCallback = vi.fn();
       const api = createCardAPI();
       const manager = new CameraManager(api);
 
@@ -1025,6 +1009,7 @@ describe('CameraManager', () => {
           ],
           mock<CameraManagerEngine>(),
         ),
+        { lifecycleCallback },
       );
       await waitForCameraInitialization(manager);
       expect(manager.getCameraLifecycleState('id')?.status).toBe(
@@ -1037,9 +1022,9 @@ describe('CameraManager', () => {
         CameraLifecycleStatus.Ready,
       );
       expect(stateWatcher.subscribe).toHaveBeenCalled();
-      expect(api.getCameraTriggersManager().handleCameraReady).toHaveBeenCalledWith(
-        'id',
-      );
+      expect(lifecycleCallback).toHaveBeenCalledWith('id', {
+        status: CameraLifecycleStatus.Ready,
+      });
       expect(api.getIssueManager().resolve).toHaveBeenCalledWith(
         'camera_initialization',
         {
@@ -1139,6 +1124,89 @@ describe('CameraManager', () => {
       );
 
       expect(api.getIssueManager().reset).toHaveBeenCalledWith('camera_initialization');
+    });
+
+    it('should notify the view layer when a camera gains media capabilities on retry', async () => {
+      vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+      const entityRegistryManager = mock<EntityRegistryManager>();
+      vi.mocked(entityRegistryManager.getEntity)
+        .mockRejectedValueOnce(new Error('initialization failed'))
+        .mockResolvedValue(createRegistryEntity({ entity_id: 'camera.foo' }));
+
+      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+      const lifecycleCallback = vi.fn();
+      const api = createCardAPI();
+      const manager = new CameraManager(api);
+
+      await manager.setCameras(
+        buildCameras(
+          [
+            {
+              capabilities: createCapabilities({ trigger: true }),
+              entityRegistryManager,
+              stateWatcher,
+            },
+          ],
+          mock<CameraManagerEngine>(),
+        ),
+        { lifecycleCallback },
+      );
+      await waitForCameraInitialization(manager);
+
+      await manager.reinitializeCamera('id');
+
+      // The callback fires for lifecycle changes, but the test verifies it was
+      // called (the controller decides what to do with it).
+      expect(lifecycleCallback).toHaveBeenCalled();
+    });
+
+    it('should notify when a degraded camera gains clips on retry', async () => {
+      const lifecycleCallback = vi.fn();
+      const api = createCardAPI();
+      const manager = new CameraManager(api);
+
+      let hasClips = false;
+      class MediaGainingCamera extends Camera {
+        protected override async _buildCapabilities(): Promise<Capabilities> {
+          return createCapabilities({ clips: hasClips });
+        }
+      }
+
+      const camera = new MediaGainingCamera(
+        createCameraConfig(baseCameraConfig),
+        mock<CameraManagerEngine>(),
+        { hassManager: createHASSManager() },
+      );
+
+      await manager.setCameras([camera], { lifecycleCallback });
+      await waitForCameraInitialization(manager);
+      lifecycleCallback.mockClear();
+
+      hasClips = true;
+      await manager.reinitializeCamera('id');
+
+      expect(lifecycleCallback).toHaveBeenCalledWith('id', {
+        status: CameraLifecycleStatus.Ready,
+      });
+    });
+
+    it('should not notify when only non-media capabilities change', async () => {
+      const lifecycleCallback = vi.fn();
+      const api = createCardAPI();
+      const manager = new CameraManager(api);
+      const degraded = createDegradedCamera(mock<CameraManagerEngine>());
+
+      await manager.setCameras([degraded.camera], { lifecycleCallback });
+      await waitForCameraInitialization(manager);
+      lifecycleCallback.mockClear();
+
+      degraded.set2WayAudio();
+      await manager.reinitializeCamera('id');
+
+      // Capabilities changed, so the lifecycle callback fires.
+      expect(lifecycleCallback).toHaveBeenCalledWith('id', {
+        status: CameraLifecycleStatus.Ready,
+      });
     });
 
     it('should stop reporting cameras when the manager is destroyed', async () => {

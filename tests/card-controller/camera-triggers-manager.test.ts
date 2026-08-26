@@ -101,7 +101,7 @@ const readyAllCameras = async (
 ): Promise<boolean> => {
   let triggered = false;
   for (const cameraID of api.getCameraManager().getStore().getCameraIDs()) {
-    triggered = (await manager.handleCameraReady(cameraID)) || triggered;
+    triggered = (await manager.handleCameraLifecycleChange(cameraID)) || triggered;
   }
   return triggered;
 };
@@ -1733,7 +1733,7 @@ describe('CameraTriggersManager', () => {
       );
 
       const manager = new CameraTriggersManager(api);
-      const result = await manager.handleCameraReady('camera_1');
+      const result = await manager.handleCameraLifecycleChange('camera_1');
 
       expect(result).toBeTruthy();
       expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_1']));
@@ -1755,7 +1755,7 @@ describe('CameraTriggersManager', () => {
 
       const manager = new CameraTriggersManager(api);
 
-      expect(await manager.handleCameraReady('camera_1')).toBeFalsy();
+      expect(await manager.handleCameraLifecycleChange('camera_1')).toBeFalsy();
       expect(manager.isTriggered()).toBeFalsy();
       expect(
         api.getViewManager().setViewByParametersWithNewQuery,
@@ -1772,7 +1772,7 @@ describe('CameraTriggersManager', () => {
 
       const manager = new CameraTriggersManager(api);
 
-      expect(await manager.handleCameraReady('not-a-camera')).toBeFalsy();
+      expect(await manager.handleCameraLifecycleChange('not-a-camera')).toBeFalsy();
       expect(manager.isTriggered()).toBeFalsy();
     });
 
@@ -1805,7 +1805,7 @@ describe('CameraTriggersManager', () => {
       await readyAllCameras(manager, api);
       expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_1', 'camera_2']));
 
-      await manager.handleCameraReady('camera_1');
+      await manager.handleCameraLifecycleChange('camera_1');
 
       expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_1', 'camera_2']));
     });
@@ -1827,7 +1827,7 @@ describe('CameraTriggersManager', () => {
 
       const manager = new CameraTriggersManager(api);
 
-      expect(await manager.handleCameraReady('camera_1')).toBeFalsy();
+      expect(await manager.handleCameraLifecycleChange('camera_1')).toBeFalsy();
       expect(manager.isTriggered()).toBeFalsy();
       expect(
         api.getViewManager().setViewByParametersWithNewQuery,
@@ -1850,7 +1850,7 @@ describe('CameraTriggersManager', () => {
       );
 
       const manager = new CameraTriggersManager(api);
-      expect(await manager.handleCameraReady('camera_1')).toBeFalsy();
+      expect(await manager.handleCameraLifecycleChange('camera_1')).toBeFalsy();
 
       const result = await manager.handleInitialTriggers();
 
@@ -1891,8 +1891,8 @@ describe('CameraTriggersManager', () => {
       );
 
       const manager = new CameraTriggersManager(api);
-      await manager.handleCameraReady('camera_1');
-      await manager.handleCameraReady('camera_2');
+      await manager.handleCameraLifecycleChange('camera_1');
+      await manager.handleCameraLifecycleChange('camera_2');
 
       expect(await manager.handleInitialTriggers()).toBeTruthy();
       expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_2']));

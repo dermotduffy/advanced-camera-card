@@ -411,6 +411,54 @@ export class ViewManager implements ViewManagerInterface {
     return this.hasView();
   };
 
+  /**
+   * A camera gained media capabilities. If the current view's query was
+   * default-derived and the re-derived query now covers more cameras, rebuild
+   * it atomically (query first, then one _setView) to avoid blanking the UI.
+   * If no view exists, re-attempt the default view.
+   */
+  public async handleCameraLifecycleChange(): Promise<void> {
+    if (!this.hasView()) {
+      void this.setViewDefaultWithNewQuery({ failSafe: true });
+      return;
+    }
+
+    const view = this._view;
+    if (!view?.query || view.query.getOrigin() !== 'default') {
+      return;
+    }
+
+    const viewModifiers = await this._viewQueryExecutor.getNewQueryModifiers(view);
+    if (!viewModifiers) {
+      return;
+    }
+
+    // The view may have moved on while the query ran.
+    if (this._view && this.hasMajorMediaChange(this._view, view)) {
+      return;
+    }
+
+    /* v8 ignore if: defensive -- the major-change guard above ensures _view
+    exists -- @preserve */
+    if (!this._view) {
+      return;
+    }
+
+    const previouslySelectedID = this._view.queryResults?.getSelectedResult()?.getID();
+
+    const newView = this._view.clone();
+    applyViewModifiers(newView, viewModifiers);
+
+    // Re-select the item the user was looking at before the rebuild.
+    if (previouslySelectedID && newView.queryResults) {
+      newView.queryResults.selectResultIfFound(
+        (item) => item.getID() === previouslySelectedID,
+      );
+    }
+
+    this._setView(newView);
+  }
+
   private _setView(view: Readonly<View> | null): void {
     const oldView = this._view;
 

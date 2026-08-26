@@ -332,7 +332,7 @@ export class UnifiedQueryBuilder {
       ? this._cameraManager.getStore().getAllDependentCameras(cameraID)
       : this._cameraManager.getStore().getCameraIDs();
 
-    const query = new UnifiedQuery();
+    const query = new UnifiedQuery({ origin: 'default' });
     for (const cameraID of cameraIDs) {
       this._addNode(query, this._buildDefaultCameraQueryNodes(cameraID, options));
     }

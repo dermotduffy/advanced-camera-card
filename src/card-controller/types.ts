@@ -96,8 +96,6 @@ export interface CardCallAPI {
 
 export interface CardCameraAPI {
   getActionsManager(): ActionsManager;
-  getCameraTriggersManager(): CameraTriggersManager;
-  getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
   getDeviceRegistryManager(): DeviceRegistryManager;
   getEntityRegistryManager(): EntityRegistryManager;
@@ -109,11 +107,13 @@ export interface CardCameraAPI {
 export interface CardCameraLoaderAPI {
   getCameraManager(): CameraManager;
   getCameraTriggersManager(): CameraTriggersManager;
+  getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
   getDeviceRegistryManager(): DeviceRegistryManager;
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;
   getResolvedMediaCache(): ResolvedMediaCache;
+  getViewManager(): ViewManager;
 }
 
 export interface CardCameraURLAPI {
