@@ -238,6 +238,22 @@ describe('ViewItemManager', () => {
         expect(downloadURL).toHaveBeenCalledWith('foo', 'camera_id.jpg');
       });
 
+      it('should generate filename for recording', async () => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = new ViewItemManager(api);
+        const item = new TestViewMedia({ mediaType: ViewMediaType.Recording });
+
+        vi.mocked(api.getCameraManager().getMediaDownloadPath).mockResolvedValue({
+          sign: false,
+          endpoint: 'foo',
+        });
+
+        expect(await manager.download(item)).toBe(true);
+        expect(downloadURL).toHaveBeenCalledWith('foo', 'camera_id.mp4');
+      });
+
       it('should generate filename for folder without title', async () => {
         const api = createCardAPI();
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());

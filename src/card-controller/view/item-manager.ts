@@ -128,7 +128,7 @@ export class ViewItemManager {
         (cameraID ? toFilename(cameraID) : 'media') +
         (id ? `_${toFilename(id)}` : '') +
         (startTime ? `_${format(startTime, `yyyy-MM-dd-HH-mm-ss`)}` : '') +
-        ('.' + (item.getMediaType() === 'clip' ? 'mp4' : 'jpg'))
+        ('.' + (ViewItemClassifier.isVideo(item) ? 'mp4' : 'jpg'))
       );
     }
 
