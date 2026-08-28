@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { CameraLifecycleStatus } from '../../../src/camera-manager/lifecycle';
 import { getLifecycleNotification } from '../../../src/components-lib/live/lifecycle-notification';
+import { TROUBLESHOOTING_URL } from '../../../src/const';
 import { localize } from '../../../src/localize/localize';
 
 describe('getLifecycleNotification', () => {
@@ -12,9 +13,29 @@ describe('getLifecycleNotification', () => {
         'Front Door',
       ),
     ).toEqual({
-      icon: null,
-      title: localize('error.camera_initializing'),
-      targetTitle: 'Front Door',
+      body: {
+        text: `${localize('error.camera_initializing')}: Front Door`,
+      },
+      link: {
+        url: TROUBLESHOOTING_URL,
+        title: localize('error.troubleshooting'),
+      },
+      in_progress: true,
+    });
+  });
+
+  it('should return a notification while initializing without a camera title', () => {
+    expect(
+      getLifecycleNotification({ status: CameraLifecycleStatus.Initializing }),
+    ).toEqual({
+      body: {
+        text: localize('error.camera_initializing'),
+      },
+      link: {
+        url: TROUBLESHOOTING_URL,
+        title: localize('error.troubleshooting'),
+      },
+      in_progress: true,
     });
   });
 
@@ -25,10 +46,16 @@ describe('getLifecycleNotification', () => {
         error: new Error('boom'),
       }),
     ).toEqual({
-      icon: 'mdi:camera-off',
-      title: localize('error.camera_initialization'),
-      targetTitle: undefined,
-      detail: 'boom',
+      heading: {
+        icon: 'mdi:camera-off',
+        text: localize('error.camera_initialization'),
+      },
+      body: { text: 'boom' },
+      link: {
+        url: TROUBLESHOOTING_URL,
+        title: localize('error.troubleshooting'),
+      },
+      in_progress: true,
     });
   });
 
@@ -39,9 +66,15 @@ describe('getLifecycleNotification', () => {
         error: 'boom',
       }),
     ).toEqual({
-      icon: 'mdi:camera-off',
-      title: localize('error.camera_initialization'),
-      targetTitle: undefined,
+      body: {
+        icon: 'mdi:camera-off',
+        text: localize('error.camera_initialization'),
+      },
+      link: {
+        url: TROUBLESHOOTING_URL,
+        title: localize('error.troubleshooting'),
+      },
+      in_progress: true,
     });
   });
 

@@ -1,6 +1,11 @@
 @use 'media-background.scss';
 @use 'basic-block.scss';
 
+:host {
+  // Let corner brackets show through notification blocks.
+  --advanced-camera-card-notification-block-background: transparent;
+}
+
 .zoom-wrapper {
   display: block;
   width: 100%;

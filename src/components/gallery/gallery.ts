@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { CameraManager } from '../../camera-manager/manager.js';
 import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
@@ -63,6 +64,9 @@ export class AdvancedCameraCardGallery extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public foldersManager?: FoldersManager;
@@ -201,7 +205,7 @@ export class AdvancedCameraCardGallery extends LitElement {
         ${showFilter && this.galleryConfig
           ? html` <advanced-camera-card-media-filter
               .hass=${this.hass}
-              .cameraManager=${this.cameraManager}
+              .cameraManagerEpoch=${this.cameraManagerEpoch}
               .foldersManager=${this.foldersManager}
               .viewManagerEpoch=${this.viewManagerEpoch}
               .cardWideConfig=${this.cardWideConfig}

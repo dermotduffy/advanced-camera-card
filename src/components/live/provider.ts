@@ -43,6 +43,7 @@ import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 
 import '../icon.js';
 
+import { renderNotificationBlock } from '../notification/block.js';
 import { renderMediaNotification } from '../notification/media.js';
 
 import './../media-dimensions-container';
@@ -297,7 +298,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       this.cameraTitle,
     );
     if (lifecycleNotification) {
-      return renderMediaNotification(lifecycleNotification);
+      return renderNotificationBlock(lifecycleNotification);
     }
 
     // If a card *re*-initializes (e.g. was already initialized and then there's
