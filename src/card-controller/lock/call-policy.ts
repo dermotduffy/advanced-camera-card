@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { ActionConfig } from '../../config/schema/actions/types';
 import { VIEWS_USER_SPECIFIED } from '../../config/schema/common/const';
 import { isAdvancedCameraCardCustomAction } from '../../utils/action';
@@ -48,7 +50,7 @@ export class CallLockPolicy implements LockPolicy {
     return this._api.getCallManager().isActive();
   }
 
-  public shouldBlockAction(action: ActionConfig): boolean {
+  public shouldBlockAction(action: ReadonlyDeep<ActionConfig>): boolean {
     return (
       isAdvancedCameraCardCustomAction(action) &&
       CALL_DISRUPTIVE_ACTIONS.has(action.advanced_camera_card_action)

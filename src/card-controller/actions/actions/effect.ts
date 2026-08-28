@@ -1,8 +1,12 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { EffectActionConfig } from '../../../config/schema/actions/custom/effect';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class EffectAction extends AdvancedCameraCardAction<EffectActionConfig> {
+export class EffectAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<EffectActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

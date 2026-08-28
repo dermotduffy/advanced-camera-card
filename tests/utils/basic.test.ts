@@ -61,7 +61,7 @@ describe('arrayify', () => {
   it('should convert non array to array', () => {
     expect(arrayify(1)).toEqual([1]);
   });
-  it('should return array', () => {
+  it('should return an existing array unchanged', () => {
     const data = [1, 2, 3];
     expect(arrayify(data)).toBe(data);
   });

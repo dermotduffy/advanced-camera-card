@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { SetReviewActionConfig } from '../../../config/schema/actions/custom/set-review';
 import { toggleReviewed } from '../../../utils/media-actions';
 import { ViewItemClassifier } from '../../../view/item-classifier';
@@ -5,7 +7,9 @@ import { getReviewedQueryFilterFromQuery } from '../../../view/utils/query-filte
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionConfig> {
+export class SetReviewAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<SetReviewActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

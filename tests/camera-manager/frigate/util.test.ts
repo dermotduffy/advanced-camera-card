@@ -1,6 +1,5 @@
 import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { mock } from 'vitest-mock-extended';
 
 import {
   getEventMediaContentID,
@@ -14,8 +13,6 @@ import {
   getReviewThumbnailURL,
   getReviewTitle,
 } from '../../../src/camera-manager/frigate/util';
-import type { CameraConfig } from '../../../src/config/schema/cameras';
-import { createCameraConfig } from '../../config/test-utils';
 import {
   createFrigateEvent,
   createFrigateRecording,
@@ -130,32 +127,13 @@ describe('getRecordingID', () => {
   it('should get recording ID', () => {
     expect(
       getRecordingID(
-        createCameraConfig({
-          frigate: {
-            client_id: 'unique_client_id',
-            camera_name: 'kitchen',
-          },
-        }),
+        { clientID: 'unique_client_id', cameraName: 'kitchen' },
         createFrigateRecording({
           startTime: new Date('2023-04-29T14:00:00Z'),
           endTime: new Date('2023-04-29T14:59:59Z'),
         }),
       ),
     ).toBe('unique_client_id/kitchen/1682776800000/1682780399000');
-  });
-  it('should get recording ID without client_id or camera_name', () => {
-    // Note: This path is defended against in the code but should not happen in
-    // practice as this would be a malformed (not-zod-parsed) camera config.
-    const cameraConfig = mock<CameraConfig>();
-    expect(
-      getRecordingID(
-        cameraConfig,
-        createFrigateRecording({
-          startTime: new Date('2023-04-29T14:00:00Z'),
-          endTime: new Date('2023-04-29T14:59:59Z'),
-        }),
-      ),
-    ).toBe('//1682776800000/1682780399000');
   });
 });
 

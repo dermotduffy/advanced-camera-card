@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import { getConfiguredPTZPresetAction } from '../../../camera-manager/utils/ptz';
 import type { PTZActionConfig } from '../../../config/schema/actions/custom/ptz';
 import { PTZMovementType } from '../../../types';
@@ -17,7 +19,7 @@ declare module 'action' {
   }
 }
 
-export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
+export class PTZAction extends AdvancedCameraCardAction<ReadonlyDeep<PTZActionConfig>> {
   private _timer = new Timer();
   private _stopped = false;
 

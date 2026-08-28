@@ -204,7 +204,11 @@ export class Go2RTCSessionController {
   // stable surfaces object for as long as the target is unchanged, and hand over
   // a fresh one (or `reset()` first) if they ever remount the underlying
   // elements.
-  public connect(url: string, surfaces: SessionSurfaces, modes?: Go2RTCMode[]): void {
+  public connect(
+    url: string,
+    surfaces: SessionSurfaces,
+    modes?: readonly Go2RTCMode[],
+  ): void {
     const normalizedModes: readonly Go2RTCMode[] = modes?.length ? modes : GO2RTC_MODES;
 
     if (

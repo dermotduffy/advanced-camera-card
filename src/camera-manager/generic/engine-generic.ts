@@ -36,7 +36,6 @@ import {
   type ReviewQueryResultsMap,
 } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
-import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   protected _eventCallback?: CameraEventCallback;
@@ -57,20 +56,18 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     return Engine.Generic;
   }
 
-  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
-    return await new Camera(cameraConfig, this, {
-      eventCallback: this._eventCallback,
-    }).initialize({
-      hassManager: this._hassManager,
-      entityRegistryManager: this._entityRegistryManager,
-      capabilityOptions: {
-        raw: {
-          ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
-        },
-        disable: cameraConfig.capabilities?.disable,
-        disableExcept: cameraConfig.capabilities?.disable_except,
+  public createCamera(cameraConfig: CameraConfig): Camera {
+    return new Camera(
+      cameraConfig,
+      this,
+      {
+        hassManager: this._hassManager,
+        entityRegistryManager: this._entityRegistryManager,
       },
-    });
+      {
+        eventCallback: this._eventCallback,
+      },
+    );
   }
 
   public getDefaultQueryParameters(
@@ -177,7 +174,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public async getMediaDownloadPath(
     _hass: HomeAssistant,
-    _cameraConfig: CameraConfig,
+    _camera: Camera,
     _media: ViewMedia,
   ): Promise<Endpoint | null> {
     return null;
@@ -185,7 +182,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public async favoriteMedia(
     _hass: HomeAssistant,
-    _cameraConfig: CameraConfig,
+    _camera: Camera,
     _media: ViewMedia,
     _favorite: boolean,
   ): Promise<void> {
@@ -194,7 +191,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public async reviewMedia(
     _hass: HomeAssistant,
-    _cameraConfig: CameraConfig,
+    _camera: Camera,
     _media: ViewMedia,
     _reviewed: boolean,
   ): Promise<void> {
@@ -226,16 +223,16 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public getCameraMetadata(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
   ): CameraManagerCameraMetadata {
+    const cameraConfig = camera.getConfig();
     const cameraEntity = getCameraEntityFromConfig(cameraConfig);
     return {
       title:
         cameraConfig.title ??
         getEntityTitle(hass, cameraConfig.camera_entity) ??
         getEntityTitle(hass, cameraConfig.webrtc_card?.entity) ??
-        cameraConfig.id ??
-        '',
+        camera.getID(),
       icon: {
         entity: cameraEntity ?? undefined,
         icon: cameraConfig.icon,

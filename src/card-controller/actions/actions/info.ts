@@ -1,10 +1,14 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import { MediaNotificationController } from '../../../components-lib/media/notification-controller';
 import type { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class InfoAction extends AdvancedCameraCardAction<GeneralActionConfig> {
+export class InfoAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<GeneralActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

@@ -1,11 +1,13 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { ViewBase } from '../../../config/schema/condition-trigger/common/view';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator } from './types';
 
 export class ViewConditionEvaluator implements ConditionEvaluator {
-  private _condition: ViewBase;
+  private _condition: ReadonlyDeep<ViewBase>;
 
-  constructor(condition: ViewBase) {
+  constructor(condition: ReadonlyDeep<ViewBase>) {
     this._condition = condition;
   }
 

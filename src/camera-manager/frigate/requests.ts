@@ -14,6 +14,7 @@ import {
   reviewResultSchema,
   type EventSummary,
   type FrigateEvent,
+  type FrigateIdentity,
   type FrigateReview,
   type PTZInfo,
   type RecordingSummary,
@@ -24,22 +25,20 @@ import {
 /**
  * Get the recordings summary. May throw.
  * @param hass The Home Assistant object.
- * @param clientID The Frigate clientID.
- * @param camera_name The Frigate camera name.
+ * @param identity How Frigate refers to the camera.
  * @returns A RecordingSummary object.
  */
 export const getRecordingsSummary = async (
   hass: HomeAssistant,
-  clientID: string,
-  camera_name: string,
+  identity: FrigateIdentity,
 ): Promise<RecordingSummary> => {
   return (await homeAssistantWSRequest(
     hass,
     recordingSummarySchema,
     {
       type: 'frigate/recordings/summary',
-      instance_id: clientID,
-      camera: camera_name,
+      instance_id: identity.clientID,
+      camera: identity.cameraName,
 
       // Ask for the summary relative to HA timezone
       // See: https://github.com/dermotduffy/advanced-camera-card/issues/1267
@@ -167,16 +166,15 @@ export const getEventSummary = async (
 
 export const getPTZInfo = async (
   hass: HomeAssistant,
-  clientID: string,
-  cameraName: string,
+  identity: FrigateIdentity,
 ): Promise<PTZInfo> => {
   return await homeAssistantWSRequest(
     hass,
     ptzInfoSchema,
     {
       type: 'frigate/ptz/info',
-      instance_id: clientID,
-      camera: cameraName,
+      instance_id: identity.clientID,
+      camera: identity.cameraName,
     },
     true,
   );

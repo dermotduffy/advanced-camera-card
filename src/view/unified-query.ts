@@ -9,11 +9,29 @@ import type { ViewMediaType } from '../types.js';
 
 export type QueryNode = MediaQuery | FolderQuery;
 
+// Identifies who built a query.
+export type QueryOrigin = 'default';
+
+export interface UnifiedQueryOptions {
+  nodes?: QueryNode[];
+  origin?: QueryOrigin;
+}
+
 export class UnifiedQuery {
   private _nodes: QueryNode[];
+  private _origin?: QueryOrigin;
 
-  constructor(nodes?: QueryNode[]) {
-    this._nodes = nodes ? [...nodes] : [];
+  constructor(options?: UnifiedQueryOptions) {
+    this._nodes = options?.nodes ? [...options.nodes] : [];
+    this._origin = options?.origin;
+  }
+
+  public getOrigin(): QueryOrigin | undefined {
+    return this._origin;
+  }
+
+  public setOrigin(origin: QueryOrigin): void {
+    this._origin = origin;
   }
 
   public addNode(node: QueryNode): this {
@@ -105,7 +123,7 @@ export class UnifiedQuery {
   }
 
   public clone(): UnifiedQuery {
-    return new UnifiedQuery(cloneDeep(this._nodes));
+    return new UnifiedQuery({ nodes: cloneDeep(this._nodes), origin: this._origin });
   }
 
   public isEqual(that: UnifiedQuery): boolean {

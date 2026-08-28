@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
-import type { CameraManager } from '../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../camera-manager/lifecycle.js';
 import { PTZController } from '../components-lib/ptz/ptz-controller.js';
 import type { PTZControllerActions } from '../components-lib/ptz/types.js';
 import type { Actions } from '../config/schema/actions/types.js';
@@ -38,7 +38,7 @@ export class AdvancedCameraCardPTZ extends LitElement {
   public config?: PTZControlsConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public cameraID?: string;
@@ -56,13 +56,13 @@ export class AdvancedCameraCardPTZ extends LitElement {
     if (changedProps.has('config')) {
       this._controller.setConfig(this.config);
     }
-    if (changedProps.has('cameraManager') || changedProps.has('cameraID')) {
-      this._controller.setCamera(this.cameraManager, this.cameraID);
+    if (changedProps.has('cameraManagerEpoch') || changedProps.has('cameraID')) {
+      this._controller.setCamera(this.cameraManagerEpoch?.manager, this.cameraID);
     }
     if (changedProps.has('forceVisibility')) {
       this._controller.setForceVisibility(this.forceVisibility);
     }
-    if (changedProps.has('cameraID') || changedProps.has('cameraManager')) {
+    if (changedProps.has('cameraID') || changedProps.has('cameraManagerEpoch')) {
       this._actions = this._controller.getPTZActions();
     }
   }

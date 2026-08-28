@@ -1,6 +1,7 @@
 import { add, differenceInSeconds, sub } from 'date-fns';
 import type { LitElement } from 'lit';
 import { isEqual, throttle } from 'lodash-es';
+import type { ReadonlyDeep } from 'type-fest';
 import type { ViewContext } from 'view';
 import {
   Timeline,
@@ -53,7 +54,7 @@ interface ThumbnailDataRequest {
   item: IdType;
   hass?: HomeAssistant;
   cameraManager?: CameraManager;
-  cameraConfig?: CameraConfig;
+  cameraConfig?: ReadonlyDeep<CameraConfig>;
   media?: ViewMedia;
   viewManagerEpoch?: ViewManagerEpoch;
   viewItemManager?: ViewItemManager;
@@ -223,7 +224,7 @@ export class TimelineController {
     const itemID = request.detail.item;
     const media = this._source?.dataset.get(itemID)?.media;
     const cameraConfig = media
-      ? this._cameraManager?.getStore().getCameraConfigForMedia(media) ?? undefined
+      ? this._cameraManager?.getStore().getCameraForMedia(media)?.getConfig()
       : undefined;
 
     request.detail.hass = this._hass ?? undefined;

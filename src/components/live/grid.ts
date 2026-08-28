@@ -9,7 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { CallSession } from '../../card-controller/call/types.js';
 import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
 import type { MicrophoneState } from '../../card-controller/types.js';
@@ -42,7 +42,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
@@ -62,8 +62,8 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
 
     // Get the camera's grid width factor from its dimensions config.
     const gridWidthFactor = cameraID
-      ? this.cameraManager?.getStore().getCameraConfig(cameraID)?.dimensions?.grid
-          ?.width_factor
+      ? this.cameraManagerEpoch?.manager.getStore().getCameraConfig(cameraID)?.dimensions
+          ?.grid?.width_factor
       : undefined;
 
     return html`
@@ -76,7 +76,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         .viewFilterCameraID=${cameraID}
         .liveConfig=${this.liveConfig}
         .cardWideConfig=${this.cardWideConfig}
-        .cameraManager=${this.cameraManager}
+        .cameraManagerEpoch=${this.cameraManagerEpoch}
         .microphoneState=${this.microphoneState}
         .call=${this.call}
         .locked=${this.locked}
@@ -100,9 +100,8 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
 
   private _getGridCameraIDs(): Set<string> | null {
     const view = this.viewManagerEpoch?.manager.getView();
-    return view && this.cameraManager
-      ? getLiveGridCameraIDs(view, this.cameraManager)
-      : null;
+    const cameraManager = this.cameraManagerEpoch?.manager;
+    return view && cameraManager ? getLiveGridCameraIDs(view, cameraManager) : null;
   }
 
   protected willUpdate(changedProps: PropertyValues): void {

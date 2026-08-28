@@ -5,6 +5,7 @@ import { sideLoadHomeAssistantElements } from '../../ha/side-load-ha-elements';
 import { loadLanguages } from '../../localize/localize';
 import { errorToConsole } from '../../utils/basic';
 import { Initializer } from '../../utils/initializer/initializer';
+import { setCamerasFromConfig } from '../config/load-cameras';
 import type { CardInitializerAPI } from '../types';
 import { SessionManager, SessionState } from './session-manager';
 
@@ -182,7 +183,7 @@ export class InitializationManager {
             // See: https://github.com/dermotduffy/advanced-camera-card/issues/1811
             // See: https://github.com/dermotduffy/advanced-camera-card/issues/1769
             this._api.createCameraManager();
-            await this._api.getCameraManager().initializeCamerasFromConfig();
+            await setCamerasFromConfig(this._api);
           },
 
           // Connecting the microphone (if configured) is considered mandatory to
@@ -227,7 +228,7 @@ export class InitializationManager {
         this._initializer.initializeIfNecessary(
           InitializationAspect.INITIAL_TRIGGER,
           async () => {
-            await this._api.getCameraTriggersManager().handleInitialCameraTriggers();
+            await this._api.getCameraTriggersManager().handleInitialTriggers();
 
             // Force a card update to continue the initialization.
             this._api.getCardElementManager().update();

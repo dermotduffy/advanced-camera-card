@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import { haEqual } from '../../../ha/event-match';
 import { arrayify, arrayifyWithFalsy } from '../../../utils/basic';
 import { renderTimePeriodToSeconds } from '../../common/time-period';
@@ -23,10 +25,13 @@ const resolveExpectedValue = (expected: unknown, state?: ConditionState): unknow
   isInputHelperName(expected) ? state?.hass?.states?.[expected]?.state : expected;
 
 export class StateConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'state'>;
+  private _condition: ReadonlyDeep<ConditionOfType<'state'>>;
   private _context: EvaluatorContext;
 
-  constructor(condition: ConditionOfType<'state'>, context: EvaluatorContext) {
+  constructor(
+    condition: ReadonlyDeep<ConditionOfType<'state'>>,
+    context: EvaluatorContext,
+  ) {
     this._condition = condition;
     this._context = context;
   }

@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CameraManager } from '../../../camera-manager/manager';
 import type { SubstreamOnActionConfig } from '../../../config/schema/actions/custom/substream-on';
 import type { View } from '../../../view/view';
@@ -5,7 +7,9 @@ import type { CardActionsAPI } from '../../types';
 import { SubstreamViewModifier } from '../../view/modifiers/substream';
 import { AdvancedCameraCardAction } from './base';
 
-export class SubstreamOnAction extends AdvancedCameraCardAction<SubstreamOnActionConfig> {
+export class SubstreamOnAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<SubstreamOnActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

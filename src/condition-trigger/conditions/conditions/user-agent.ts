@@ -1,12 +1,14 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import { isBeingCasted } from '../../../utils/casting';
 import { isCompanionApp } from '../../../utils/companion';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator, ConditionOfType } from './types';
 
 export class UserAgentConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'user_agent'>;
+  private _condition: ReadonlyDeep<ConditionOfType<'user_agent'>>;
 
-  constructor(condition: ConditionOfType<'user_agent'>) {
+  constructor(condition: ReadonlyDeep<ConditionOfType<'user_agent'>>) {
     this._condition = condition;
   }
 

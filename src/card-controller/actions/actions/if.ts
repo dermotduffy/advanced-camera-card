@@ -1,4 +1,5 @@
 import type { ActionContext } from 'action';
+import type { ReadonlyDeep } from 'type-fest';
 
 import { createConditionEvaluator } from '../../../condition-trigger/conditions/factory';
 import type { TriggerData } from '../../../condition-trigger/triggers/types';
@@ -10,12 +11,12 @@ import type { CardActionsAPI } from '../../types';
 import type { ActionPrepareCallback } from '../types';
 import { BaseAction } from './base';
 
-export class IfAction extends BaseAction<IfActionConfig> {
+export class IfAction extends BaseAction<ReadonlyDeep<IfActionConfig>> {
   private _triggerData?: TriggerData;
 
   constructor(
     context: ActionContext,
-    action: IfActionConfig,
+    action: ReadonlyDeep<IfActionConfig>,
     config?: AuxillaryActionConfig,
     triggerData?: TriggerData,
   ) {

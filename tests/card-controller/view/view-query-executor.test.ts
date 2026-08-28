@@ -191,6 +191,17 @@ describe('ViewQueryExecutor', () => {
       expect(await factory.getNewQueryModifiers(createView())).toBeNull();
     });
 
+    it('should set default origin on queries', async () => {
+      const api = createPopulatedAPI();
+      const viewQueryExecutor = new ViewQueryExecutor(api);
+      const view = createView({ view: 'clips', camera: 'camera.office' });
+
+      const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+      applyViewModifiers(view, modifiers);
+
+      expect(view.query?.getOrigin()).toBe('default');
+    });
+
     describe('with a live view', () => {
       beforeAll(() => {
         vi.useFakeTimers();

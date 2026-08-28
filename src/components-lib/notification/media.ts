@@ -6,19 +6,20 @@ import { localize } from '../../localize/localize.js';
 // shown over a media surface: provider errors, the awaiting-live placeholder, and
 // the viewer/gallery no-media state.
 export interface MediaNotificationOptions {
-  // A short heading. A longer explanation goes in `detail`.
+  // A short title identifying the situation.
   title: string;
 
-  // The heading icon. Defaults to a generic alert icon; `null` for no icon at
-  // all.
+  // The icon. Defaults to a generic alert icon; `null` for no icon at all.
   icon?: string | null;
 
-  // Appended to the heading to identify the media, when it has a title (e.g. the
+  // Appended to the title to identify the media, when it has a title (e.g. the
   // camera title `: Front Door`). Absent for untitled media (a url or
   // screensaver image).
   targetTitle?: string;
 
-  // A longer explanation, shown as the body when the title alone is not enough.
+  // A longer explanation. When present, the title moves to a prominent heading
+  // and this text goes in the body underneath. When absent, the title alone
+  // goes in the body for lighter visual weight.
   detail?: string;
 
   // Whether to show the retry spinner. A failing media surface is retried, so
@@ -30,24 +31,31 @@ export interface MediaNotificationOptions {
 }
 
 // The standard notification block shown over a media surface (a camera stream, a
-// non-camera url/screensaver image, or an empty viewer/gallery): a short titled
-// heading (with the media title when there is one), an optional longer detail, an
-// optional troubleshooting link, and a retry spinner.
+// non-camera url/screensaver image, or an empty viewer/gallery): title with an
+// optional detail, an optional troubleshooting link, and a retry spinner. When
+// detail is present the title is a prominent heading; when absent the title sits
+// in the body for lighter visual weight.
 export const createMediaNotification = (
   options: MediaNotificationOptions,
-): Notification => ({
-  heading: {
+): Notification => {
+  const text = options.targetTitle
+    ? `${options.title}: ${options.targetTitle}`
+    : options.title;
+  const titleRow = {
     ...(options.icon !== null && { icon: options.icon ?? 'mdi:alert-circle' }),
-    text: options.targetTitle
-      ? `${options.title}: ${options.targetTitle}`
-      : options.title,
-  },
-  ...(options.detail && { body: { text: options.detail } }),
-  ...((options.troubleshooting ?? true) && {
-    link: {
-      url: TROUBLESHOOTING_URL,
-      title: localize('error.troubleshooting'),
-    },
-  }),
-  ...((options.inProgress ?? true) && { in_progress: true }),
-});
+    text,
+  };
+
+  return {
+    ...(options.detail
+      ? { heading: titleRow, body: { text: options.detail } }
+      : { body: titleRow }),
+    ...((options.troubleshooting ?? true) && {
+      link: {
+        url: TROUBLESHOOTING_URL,
+        title: localize('error.troubleshooting'),
+      },
+    }),
+    ...((options.inProgress ?? true) && { in_progress: true }),
+  };
+};

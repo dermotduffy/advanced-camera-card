@@ -3,56 +3,64 @@ import { describe, expect, it } from 'vitest';
 import { createMediaNotification } from '../../../src/components-lib/notification/media';
 
 describe('createMediaNotification', () => {
-  it('should put the title and icon in the heading', () => {
+  it('should put the title in the body when there is no detail', () => {
     const notification = createMediaNotification({
       icon: 'mdi:alert-circle',
       title: 'Streaming server error',
     });
-    expect(notification.heading).toEqual({
+    expect(notification.body).toEqual({
       icon: 'mdi:alert-circle',
       text: 'Streaming server error',
     });
+    expect(notification.heading).toBeUndefined();
   });
 
   it('should default the icon to a generic alert icon', () => {
     const notification = createMediaNotification({
       title: 'Streaming server error',
     });
-    expect(notification.heading?.icon).toBe('mdi:alert-circle');
+    expect(notification.body?.icon).toBe('mdi:alert-circle');
   });
 
-  it('should omit the heading icon when it is null', () => {
+  it('should omit the icon when it is null', () => {
     const notification = createMediaNotification({
       icon: null,
       title: 'Awaiting live view',
     });
-    expect(notification.heading?.icon).toBeUndefined();
+    expect(notification.body?.icon).toBeUndefined();
   });
 
-  it('should append the camera title to the heading', () => {
+  it('should append the target title to the text', () => {
     const notification = createMediaNotification({
       icon: 'mdi:alert-circle',
       title: 'Streaming server error',
       targetTitle: 'Front Door',
     });
-    expect(notification.heading?.text).toBe('Streaming server error: Front Door');
+    expect(notification.body?.text).toBe('Streaming server error: Front Door');
   });
 
-  it('should show the detail as the body', () => {
+  it('should use a heading when detail is present', () => {
     const notification = createMediaNotification({
       icon: 'mdi:alert-circle',
       title: 'Configuration error',
       detail: 'No endpoint',
     });
+    expect(notification.heading).toEqual({
+      icon: 'mdi:alert-circle',
+      text: 'Configuration error',
+    });
     expect(notification.body?.text).toBe('No endpoint');
   });
 
-  it('should omit the body without a detail', () => {
+  it('should use a heading with target title when detail is present', () => {
     const notification = createMediaNotification({
-      icon: 'mdi:alert-circle',
-      title: 'X',
+      icon: 'mdi:camera',
+      title: 'Configuration error',
+      targetTitle: 'Front Door',
+      detail: 'No endpoint',
     });
-    expect(notification.body).toBeUndefined();
+    expect(notification.heading?.text).toBe('Configuration error: Front Door');
+    expect(notification.body?.text).toBe('No endpoint');
   });
 
   it('should include the troubleshooting link', () => {

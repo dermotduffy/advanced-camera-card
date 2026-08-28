@@ -208,3 +208,13 @@ export interface FrigateReviewQueryResults extends ReviewQueryResults {
   instanceID: string;
   reviews: FrigateReview[];
 }
+
+/**
+ * How Frigate refers to a camera: the instance it belongs to and the name that
+ * instance knows it by. Configured (`frigate.client_id`, `frigate.camera_name`)
+ * or read from the camera entity.
+ */
+export interface FrigateIdentity {
+  clientID: string;
+  cameraName: string;
+}

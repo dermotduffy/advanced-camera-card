@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CameraConfig } from '../config/schema/cameras';
 import type { LiveProvider } from '../config/schema/cameras.js';
 import type { EnabledProxyConfig } from '../config/schema/common/proxy';
@@ -6,7 +8,7 @@ import type { HomeAssistant } from '../ha/types';
 import type { Endpoint } from '../types';
 
 export const getResolvedLiveProvider = (
-  config: CameraConfig | undefined,
+  config: ReadonlyDeep<CameraConfig> | undefined,
 ): Exclude<LiveProvider, 'auto'> => {
   if (config?.live_provider === 'auto') {
     if (config.webrtc_card?.entity || config.webrtc_card?.url) {
@@ -31,11 +33,11 @@ export const isGo2RTCLiveProvider = (provider: LiveProvider): boolean =>
 
 export const liveProviderSupports2WayAudio = async (
   hass: HomeAssistant,
-  config: CameraConfig,
+  config: ReadonlyDeep<CameraConfig>,
   metadataFetchTimeoutSeconds: number,
   go2rtcMetadataEndpoint?: Endpoint | null,
   proxyConfig?: EnabledProxyConfig,
-): Promise<boolean> => {
+): Promise<boolean | null> => {
   if (!isGo2RTCLiveProvider(getResolvedLiveProvider(config))) {
     return false;
   }

@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { CameraManager } from '../camera-manager/manager';
 import type { StatusBarItem } from '../config/schema/actions/types';
@@ -18,16 +19,16 @@ export class StatusBarItemManager {
     this._api = api;
   }
 
-  private _dynamicItems: StatusBarItem[] = [];
+  private _dynamicItems: ReadonlyDeep<StatusBarItem>[] = [];
 
-  public addDynamicStatusBarItem(item: StatusBarItem): void {
+  public addDynamicStatusBarItem(item: ReadonlyDeep<StatusBarItem>): void {
     if (!this._dynamicItems.includes(item)) {
       this._dynamicItems.push(item);
     }
     this._api.getCardElementManager().update();
   }
 
-  public removeDynamicStatusBarItem(item: StatusBarItem): void {
+  public removeDynamicStatusBarItem(item: ReadonlyDeep<StatusBarItem>): void {
     this._dynamicItems = this._dynamicItems.filter(
       (existingItem) => !isEqual(existingItem, item),
     );
@@ -45,7 +46,7 @@ export class StatusBarItemManager {
     view?: View | null;
     mediaLoadedInfo?: MediaLoadedInfo | null;
     issues?: KeyedIssueDescription[] | null;
-  }): StatusBarItem[] {
+  }): ReadonlyDeep<StatusBarItem>[] {
     const cameraMetadata = options?.view?.camera
       ? options?.cameraManager?.getCameraMetadata(options.view.camera)
       : null;

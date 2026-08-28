@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
 import type { CallSession } from '../../card-controller/call/types.js';
 import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
@@ -74,7 +74,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
@@ -121,7 +121,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       // For cameras without physical PTZ, always display buttons so the user
       // can control digital zoom. Gesture type controls have no effect on those
       // cameras.
-      !this.cameraManager?.getCameraCapabilities(cameraID)?.hasPTZCapability()
+      !this.cameraManagerEpoch?.manager
+        .getCameraCapabilities(cameraID)
+        ?.hasPTZCapability()
     ) {
       return 'buttons';
     }
@@ -162,7 +164,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       return 0;
     }
 
-    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
+    const cameraIDs = this.cameraManagerEpoch?.manager
+      .getStore()
+      .getCameraIDsWithCapability('live');
     const view = this.viewManagerEpoch?.manager.getView();
     if (!cameraIDs?.size || !view?.camera) {
       return 0;
@@ -212,13 +216,14 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   private _getSlides(): TemplateResult[] {
-    if (!this.cameraManager) {
+    const cameraManager = this.cameraManagerEpoch?.manager;
+    if (!cameraManager) {
       return [];
     }
 
     const cameraIDs = this.viewFilterCameraID
       ? new Set([this.viewFilterCameraID])
-      : this.cameraManager?.getStore().getCameraIDsWithCapability('live');
+      : cameraManager.getStore().getCameraIDsWithCapability('live');
 
     const slides: TemplateResult[] = [];
     for (const cameraID of cameraIDs ?? []) {
@@ -231,7 +236,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   private _setViewHandler(ev: CustomEvent<CarouselSelected>): void {
-    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
+    const cameraIDs = this.cameraManagerEpoch?.manager
+      .getStore()
+      .getCameraIDsWithCapability('live');
     if (cameraIDs?.size && ev.detail.index !== this._getSelectedCameraIndex()) {
       this._setViewCameraID([...cameraIDs][ev.detail.index]);
     }
@@ -254,14 +261,15 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     // (which `Camera` to actually stream), invisible above the provider. The
     // base `cameraID` flows up as the targetID; the substream `Camera` flows
     // down for playback.
-    const resolvedCamera = this.cameraManager
+    const cameraManager = this.cameraManagerEpoch?.manager;
+    const resolvedCamera = cameraManager
       ?.getStore()
       .getCamera(this._getSubstreamCameraID(cameraID, view));
-    if (!this.liveConfig || !this.hass || !this.cameraManager || !resolvedCamera) {
+    if (!this.liveConfig || !this.hass || !cameraManager || !resolvedCamera) {
       return;
     }
 
-    const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
+    const cameraMetadata = cameraManager.getCameraMetadata(cameraID);
     const mediaEpoch = view?.context?.mediaEpoch?.[cameraID] ?? 0;
 
     const isSelectedSlide = !!view?.camera && cameraID === view.camera;
@@ -271,6 +279,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
           mediaEpoch,
           html`<advanced-camera-card-live-provider
             .camera=${resolvedCamera}
+            .cameraLifecycleState=${cameraManager.getCameraLifecycleState(
+              resolvedCamera.getID(),
+            ) ?? undefined}
             .targetID=${cameraID}
             .cameraTitle=${cameraMetadata?.title}
             .liveConfig=${this.liveConfig}
@@ -312,8 +323,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   private _getCameraNeighbors(): CameraNeighbors | null {
-    const cameraIDs = this.cameraManager
-      ? [...this.cameraManager?.getStore().getCameraIDsWithCapability('live')]
+    const cameraManager = this.cameraManagerEpoch?.manager;
+    const cameraIDs = cameraManager
+      ? [...cameraManager.getStore().getCameraIDsWithCapability('live')]
       : [];
     const view = this.viewManagerEpoch?.manager.getView();
 
@@ -337,17 +349,13 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       previous: {
         id: prevID,
         metadata: prevID
-          ? this.cameraManager?.getCameraMetadata(
-              this._getSubstreamCameraID(prevID, view),
-            )
+          ? cameraManager?.getCameraMetadata(this._getSubstreamCameraID(prevID, view))
           : null,
       },
       next: {
         id: nextID,
         metadata: nextID
-          ? this.cameraManager?.getCameraMetadata(
-              this._getSubstreamCameraID(nextID, view),
-            )
+          ? cameraManager?.getCameraMetadata(this._getSubstreamCameraID(nextID, view))
           : null,
       },
     };
@@ -384,7 +392,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   protected render(): TemplateResult | void {
     const view = this.viewManagerEpoch?.manager.getView();
-    if (!this.liveConfig || !this.hass || !view || !this.cameraManager) {
+    const cameraManager = this.cameraManagerEpoch?.manager;
+    if (!this.liveConfig || !this.hass || !view || !cameraManager) {
       return;
     }
 
@@ -442,7 +451,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       <advanced-camera-card-ptz
         .hass=${this.hass}
         .config=${this.liveConfig.controls.ptz}
-        .cameraManager=${this.cameraManager}
+        .cameraManagerEpoch=${this.cameraManagerEpoch}
         .cameraID=${streamAwareCameraID}
         .forceVisibility=${forcePTZVisibility}
         .type=${this._getDisplayPTZType(streamAwareCameraID)}

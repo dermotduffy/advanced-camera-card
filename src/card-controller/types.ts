@@ -100,8 +100,20 @@ export interface CardCameraAPI {
   getDeviceRegistryManager(): DeviceRegistryManager;
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;
+  getIssueManager(): IssueManager;
   getResolvedMediaCache(): ResolvedMediaCache;
+}
+
+export interface CardCameraLoaderAPI {
+  getCameraManager(): CameraManager;
   getCameraTriggersManager(): CameraTriggersManager;
+  getCardElementManager(): CardElementManager;
+  getConfigManager(): ConfigManager;
+  getDeviceRegistryManager(): DeviceRegistryManager;
+  getEntityRegistryManager(): EntityRegistryManager;
+  getHASSManager(): HASSManager;
+  getResolvedMediaCache(): ResolvedMediaCache;
+  getViewManager(): ViewManager;
 }
 
 export interface CardCameraURLAPI {
@@ -234,6 +246,7 @@ export interface CardInitializerAPI {
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
+  getDeviceRegistryManager(): DeviceRegistryManager;
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;
   getMediaPlayerManager(): MediaPlayerManager;

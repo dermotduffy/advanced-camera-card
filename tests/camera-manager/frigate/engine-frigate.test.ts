@@ -1,7 +1,10 @@
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 
 import { RecordingSegmentsCache } from '../../../src/camera-manager/cache';
 import { Camera } from '../../../src/camera-manager/camera';
+import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
+import { FrigateCamera } from '../../../src/camera-manager/frigate/camera';
 import {
   FrigateCameraManagerEngine,
   FrigateQueryResultsClassifier,
@@ -27,6 +30,11 @@ import type {
   FrigateRecordingQueryResults,
   FrigateReviewQueryResults,
 } from '../../../src/camera-manager/frigate/types';
+import type {
+  FrigateEventWatcher,
+  FrigateReviewWatcher,
+} from '../../../src/camera-manager/frigate/watcher';
+import { CameraManagerStore } from '../../../src/camera-manager/store';
 import {
   CameraManagerRequestCache,
   Engine,
@@ -35,6 +43,7 @@ import {
 } from '../../../src/camera-manager/types';
 import type { CameraConfig } from '../../../src/config/schema/cameras';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
+import type { EntityRegistryManager } from '../../../src/ha/registry/entity/types';
 import { QuerySource } from '../../../src/query-source';
 import type { Severity } from '../../../src/severity';
 import { ViewMedia, ViewMediaType } from '../../../src/view/item';
@@ -48,7 +57,6 @@ import {
   createHASSManager,
 } from '../../test-utils';
 import { TestViewMedia } from '../../view/test-utils';
-import { createStore } from '../test-utils';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
 
@@ -119,6 +127,48 @@ const createFrigateCameraConfig = (
     camera_entity: 'camera.office',
     ...config,
   });
+};
+
+const createFrigateStore = (
+  entries: {
+    cameraID: string;
+    config?: CameraConfig;
+    engine?: CameraManagerEngine;
+  }[],
+): CameraManagerStore => {
+  const store = new CameraManagerStore();
+  const cameras: Camera[] = [];
+  for (const entry of entries) {
+    const camera = new FrigateCamera(
+      entry.config ?? createFrigateCameraConfig(),
+      entry.engine ?? mock<CameraManagerEngine>(),
+      {
+        hassManager: createHASSManager(),
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        frigateEventWatcher: mock<FrigateEventWatcher>(),
+        frigateReviewWatcher: mock<FrigateReviewWatcher>(),
+      },
+    );
+    camera.setID(entry.cameraID);
+    cameras.push(camera);
+  }
+  store.setCameras(cameras);
+  return store;
+};
+
+const createFrigateCamera = async (config?: RawAdvancedCameraCardConfig) => {
+  const camera = new FrigateCamera(
+    createFrigateCameraConfig(config),
+    mock<CameraManagerEngine>(),
+    {
+      hassManager: createHASSManager({ hass: createHASS() }),
+      entityRegistryManager: mock<EntityRegistryManager>(),
+      frigateEventWatcher: mock<FrigateEventWatcher>(),
+      frigateReviewWatcher: mock<FrigateReviewWatcher>(),
+    },
+  );
+  await camera.initialize();
+  return camera;
 };
 
 // @vitest-environment jsdom
@@ -238,7 +288,7 @@ describe('FrigateCameraManagerEngine', () => {
           zones: ['front_yard'],
         },
       });
-      const store = createStore([{ cameraID: 'camera-1', config, engine }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config, engine }]);
       const camera = store.getCamera('camera-1');
       assert(camera);
 
@@ -259,7 +309,7 @@ describe('FrigateCameraManagerEngine', () => {
           zones: ['backyard'],
         },
       });
-      const store = createStore([{ cameraID: 'camera-1', config, engine }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config, engine }]);
       const camera = store.getCamera('camera-1');
       assert(camera);
 
@@ -279,7 +329,7 @@ describe('FrigateCameraManagerEngine', () => {
           labels: ['person'],
         },
       });
-      const store = createStore([{ cameraID: 'camera-1', config, engine }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config, engine }]);
       const camera = store.getCamera('camera-1');
       assert(camera);
 
@@ -293,7 +343,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config, engine }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config, engine }]);
       const camera = store.getCamera('camera-1');
       assert(camera);
 
@@ -307,7 +357,7 @@ describe('FrigateCameraManagerEngine', () => {
     it('should get event with clip download path', async () => {
       const endpoint = await createEngine().getMediaDownloadPath(
         createHASS(),
-        createFrigateCameraConfig(),
+        await createFrigateCamera(),
         createClipMedia(),
       );
 
@@ -320,7 +370,7 @@ describe('FrigateCameraManagerEngine', () => {
     it('should get event with snapshot download path', async () => {
       const endpoint = await createEngine().getMediaDownloadPath(
         createHASS(),
-        createFrigateCameraConfig(),
+        await createFrigateCamera(),
         createSnapshotMedia(),
       );
 
@@ -334,7 +384,7 @@ describe('FrigateCameraManagerEngine', () => {
     it('should get recording download path', async () => {
       const endpoint = await createEngine().getMediaDownloadPath(
         createHASS(),
-        createFrigateCameraConfig(),
+        await createFrigateCamera(),
         createRecordingMedia(),
       );
 
@@ -348,7 +398,7 @@ describe('FrigateCameraManagerEngine', () => {
     it('should get no path for unknown type', async () => {
       const endpoint = await createEngine().getMediaDownloadPath(
         createHASS(),
-        createFrigateCameraConfig(),
+        await createFrigateCamera(),
         new ViewMedia(ViewMediaType.Clip, {
           cameraID: 'camera-1',
         }),
@@ -356,11 +406,11 @@ describe('FrigateCameraManagerEngine', () => {
       expect(endpoint).toBeNull();
     });
 
-    it('should get no path when client_id is unresolved', async () => {
+    it('should get no path for a camera that has not been initialized', async () => {
       const endpoint = await createEngine().getMediaDownloadPath(
         createHASS(),
-        createFrigateCameraConfig({
-          frigate: { camera_name: 'camera-1' },
+        new Camera(createFrigateCameraConfig(), mock<CameraManagerEngine>(), {
+          hassManager: createHASSManager(),
         }),
         createClipMedia(),
       );
@@ -377,7 +427,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config2 = createCameraConfig({
         frigate: { camera_name: 'cam2', labels: ['person'] },
       });
-      const store = createStore([
+      const store = createFrigateStore([
         { cameraID: 'camera-1', config: config1 },
         { cameraID: 'camera-2', config: config2 },
       ]);
@@ -401,7 +451,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config2 = createCameraConfig({
         frigate: { camera_name: 'cam2', labels: ['car'] },
       });
-      const store = createStore([
+      const store = createFrigateStore([
         { cameraID: 'camera-1', config: config1 },
         { cameraID: 'camera-2', config: config2 },
       ]);
@@ -422,7 +472,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config2 = createCameraConfig({
         frigate: { camera_name: 'cam2', zones: ['back'] },
       });
-      const store = createStore([
+      const store = createFrigateStore([
         { cameraID: 'camera-1', config: config1 },
         { cameraID: 'camera-2', config: config2 },
       ]);
@@ -440,7 +490,7 @@ describe('FrigateCameraManagerEngine', () => {
 
     it('should return null when no cameras produce queries', () => {
       const engine = createEngine();
-      const store = createStore();
+      const store = createFrigateStore([]);
 
       const queries = engine.generateDefaultEventQuery(
         store,
@@ -455,7 +505,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'cam1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const start = new Date('2026-03-14');
       const end = new Date('2026-03-15');
 
@@ -478,7 +528,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config2 = createCameraConfig({
         frigate: { camera_name: 'cam2', zones: ['front'] },
       });
-      const store = createStore([
+      const store = createFrigateStore([
         { cameraID: 'camera-1', config: config1 },
         { cameraID: 'camera-2', config: config2 },
       ]);
@@ -497,7 +547,7 @@ describe('FrigateCameraManagerEngine', () => {
   describe('generateDefaultRecordingQuery', () => {
     it('should generate recording query', () => {
       const engine = createEngine();
-      const store = createStore();
+      const store = createFrigateStore([]);
 
       const queries = engine.generateDefaultRecordingQuery(store, new Set(['camera-1']));
 
@@ -508,7 +558,7 @@ describe('FrigateCameraManagerEngine', () => {
 
     it('should include partial query overrides', () => {
       const engine = createEngine();
-      const store = createStore();
+      const store = createFrigateStore([]);
       const start = new Date('2026-03-14');
 
       const queries = engine.generateDefaultRecordingQuery(
@@ -524,7 +574,7 @@ describe('FrigateCameraManagerEngine', () => {
   describe('generateDefaultRecordingSegmentsQuery', () => {
     it('should generate segments query with start and end', () => {
       const engine = createEngine();
-      const store = createStore();
+      const store = createFrigateStore([]);
       const start = new Date('2023-01-01T00:00:00Z');
       const end = new Date('2023-01-01T01:00:00Z');
 
@@ -542,7 +592,7 @@ describe('FrigateCameraManagerEngine', () => {
 
     it('should return null without start', () => {
       const engine = createEngine();
-      const store = createStore();
+      const store = createFrigateStore([]);
 
       const queries = engine.generateDefaultRecordingSegmentsQuery(
         store,
@@ -555,7 +605,7 @@ describe('FrigateCameraManagerEngine', () => {
 
     it('should return null without end', () => {
       const engine = createEngine();
-      const store = createStore();
+      const store = createFrigateStore([]);
 
       const queries = engine.generateDefaultRecordingSegmentsQuery(
         store,
@@ -576,7 +626,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config2 = createCameraConfig({
         frigate: { camera_name: 'cam2' },
       });
-      const store = createStore([
+      const store = createFrigateStore([
         { cameraID: 'camera-1', config: config1 },
         { cameraID: 'camera-2', config: config2 },
       ]);
@@ -596,7 +646,7 @@ describe('FrigateCameraManagerEngine', () => {
       const media = createClipMedia();
       vi.mocked(retainEvent).mockResolvedValue();
 
-      await createEngine().favoriteMedia(hass, createFrigateCameraConfig(), media, true);
+      await createEngine().favoriteMedia(hass, await createFrigateCamera(), media, true);
 
       expect(retainEvent).toHaveBeenCalledWith(hass, 'frigate', 'event-id', true);
       expect(media.isFavorite()).toBe(true);
@@ -608,7 +658,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       await createEngine().favoriteMedia(
         hass,
-        createFrigateCameraConfig(),
+        await createFrigateCamera(),
         createClipMedia(),
         false,
       );
@@ -621,7 +671,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       await createEngine().favoriteMedia(
         createHASS(),
-        createFrigateCameraConfig(),
+        await createFrigateCamera(),
         media,
         true,
       );
@@ -641,7 +691,7 @@ describe('FrigateCameraManagerEngine', () => {
       );
       vi.mocked(setReviewsReviewed).mockResolvedValue();
 
-      await createEngine().reviewMedia(hass, createFrigateCameraConfig(), media, true);
+      await createEngine().reviewMedia(hass, await createFrigateCamera(), media, true);
 
       expect(setReviewsReviewed).toHaveBeenCalledWith(
         hass,
@@ -656,7 +706,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       await createEngine().reviewMedia(
         createHASS(),
-        createFrigateCameraConfig(),
+        await createFrigateCamera(),
         media,
         true,
       );
@@ -667,12 +717,16 @@ describe('FrigateCameraManagerEngine', () => {
 
   describe('getEvents', () => {
     it('should return null for unsupported filters', async () => {
-      const result = await createEngine().getEvents(createHASS(), createStore(), {
-        type: QueryType.Event,
-        source: QuerySource.Camera,
-        cameraIDs: new Set(['camera-1']),
-        reviewed: true,
-      });
+      const result = await createEngine().getEvents(
+        createHASS(),
+        createFrigateStore([]),
+        {
+          type: QueryType.Event,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+          reviewed: true,
+        },
+      );
 
       expect(result).toBeNull();
     });
@@ -681,7 +735,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({ camera: 'camera-1' });
       vi.mocked(getEvents).mockResolvedValue([event]);
 
@@ -699,12 +753,41 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.cached).toBe(false);
     });
 
+    it('should only fetch events for the queryable cameras', async () => {
+      const queryableConfig = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+
+      // No client_id.
+      const unqueryableConfig = createCameraConfig({
+        frigate: { camera_name: 'camera-2' },
+      });
+
+      const store = createFrigateStore([
+        { cameraID: 'camera-1', config: queryableConfig },
+        { cameraID: 'camera-2', config: unqueryableConfig },
+      ]);
+      vi.mocked(getEvents).mockResolvedValue([]);
+
+      await createEngine().getEvents(createHASS(), store, {
+        type: QueryType.Event,
+        source: QuerySource.Camera,
+        cameraIDs: new Set(['camera-1', 'camera-2']),
+      });
+
+      expect(getEvents).toHaveBeenCalledTimes(1);
+      expect(getEvents).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ instance_id: 'client-1', cameras: ['camera-1'] }),
+      );
+    });
+
     it('should pass query parameters to native query', async () => {
       const hass = createHASS();
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const start = new Date('2023-01-01T00:00:00Z');
       const end = new Date('2023-01-02T00:00:00Z');
       vi.mocked(getEvents).mockResolvedValue([]);
@@ -746,7 +829,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({ camera: 'camera-1' });
 
       vi.mocked(getEvents).mockResolvedValue([event]);
@@ -779,7 +862,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEvents).mockResolvedValue([]);
 
@@ -808,7 +891,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const result = await createEngine().getEvents(createHASS(), store, {
         type: QueryType.Event,
@@ -829,7 +912,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config3 = createCameraConfig({
         frigate: { camera_name: 'cam3', client_id: 'instance-2' },
       });
-      const store = createStore([
+      const store = createFrigateStore([
         { cameraID: 'camera-1', config: config1 },
         { cameraID: 'camera-2', config: config2 },
         { cameraID: 'camera-3', config: config3 },
@@ -847,12 +930,12 @@ describe('FrigateCameraManagerEngine', () => {
       expect(getEvents).toHaveBeenCalledTimes(2);
     });
 
-    it('should send empty cameras list when camera_name is empty', async () => {
+    it('should not query a camera without a Frigate camera name', async () => {
       const hass = createHASS();
       const config = createCameraConfig({
         frigate: { camera_name: '', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEvents).mockResolvedValue([]);
 
@@ -862,12 +945,8 @@ describe('FrigateCameraManagerEngine', () => {
         cameraIDs: new Set(['camera-1']),
       });
 
-      assert(result);
-      // Event query still runs but with no cameras filter.
-      expect(getEvents).toHaveBeenCalledWith(
-        hass,
-        expect.objectContaining({ cameras: [] }),
-      );
+      expect(result).toBeNull();
+      expect(getEvents).not.toHaveBeenCalled();
     });
 
     it('should skip event cache write when useCache is false', async () => {
@@ -877,7 +956,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEvents).mockResolvedValue([]);
 
@@ -904,12 +983,16 @@ describe('FrigateCameraManagerEngine', () => {
 
   describe('getReviews', () => {
     it('should return null for unsupported filters', async () => {
-      const result = await createEngine().getReviews(createHASS(), createStore(), {
-        type: QueryType.Review,
-        source: QuerySource.Camera,
-        cameraIDs: new Set(['camera-1']),
-        favorite: true,
-      });
+      const result = await createEngine().getReviews(
+        createHASS(),
+        createFrigateStore([]),
+        {
+          type: QueryType.Review,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+          favorite: true,
+        },
+      );
 
       expect(result).toBeNull();
     });
@@ -919,7 +1002,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const reviewHigh = createFrigateReview({ id: 'review-high' });
       const reviewMedium = createFrigateReview({ id: 'review-medium' });
@@ -956,7 +1039,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getReviews).mockResolvedValue([]);
 
@@ -978,7 +1061,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getReviews).mockResolvedValue([]);
 
@@ -997,7 +1080,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getReviews).mockResolvedValue([]);
 
@@ -1022,7 +1105,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getReviews).mockResolvedValue([]);
 
@@ -1046,7 +1129,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const start = new Date('2023-01-01T00:00:00Z');
       const end = new Date('2023-01-02T00:00:00Z');
 
@@ -1082,7 +1165,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const result = await createEngine().getReviews(createHASS(), store, {
         type: QueryType.Review,
@@ -1100,7 +1183,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getReviews).mockResolvedValue([]);
 
@@ -1128,12 +1211,16 @@ describe('FrigateCameraManagerEngine', () => {
 
   describe('getRecordings', () => {
     it('should return null for unsupported filters', async () => {
-      const result = await createEngine().getRecordings(createHASS(), createStore(), {
-        type: QueryType.Recording,
-        source: QuerySource.Camera,
-        cameraIDs: new Set(['camera-1']),
-        what: new Set(['person']),
-      });
+      const result = await createEngine().getRecordings(
+        createHASS(),
+        createFrigateStore([]),
+        {
+          type: QueryType.Recording,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+          what: new Set(['person']),
+        },
+      );
 
       expect(result).toBeNull();
     });
@@ -1142,7 +1229,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
@@ -1170,7 +1257,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       // Use a fixed local-timezone day to avoid UTC/local mismatch.
       const day = new Date(2026, 2, 14, 0, 0, 0);
@@ -1208,7 +1295,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
@@ -1242,7 +1329,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getRecordingsSummary).mockResolvedValue([]);
 
@@ -1265,7 +1352,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const result = await createEngine().getRecordings(createHASS(), store, {
         type: QueryType.Recording,
@@ -1281,7 +1368,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: '' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const result = await createEngine().getRecordings(createHASS(), store, {
         type: QueryType.Recording,
@@ -1296,7 +1383,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getRecordingsSummary).mockResolvedValue(
         null as unknown as Awaited<ReturnType<typeof getRecordingsSummary>>,
@@ -1321,7 +1408,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getRecordingsSummary).mockResolvedValue([]);
 
@@ -1352,7 +1439,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const segments = [{ start_time: 100, end_time: 200, id: 'seg-1' }];
       vi.mocked(getRecordingSegments).mockResolvedValue(segments);
@@ -1384,7 +1471,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const start = new Date('2026-03-14T20:00:00Z');
       const end = new Date('2026-03-14T21:00:00Z');
@@ -1412,7 +1499,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const result = await createEngine().getRecordingSegments(createHASS(), store, {
         type: QueryType.RecordingSegments,
@@ -1428,7 +1515,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: '' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const result = await createEngine().getRecordingSegments(createHASS(), store, {
         type: QueryType.RecordingSegments,
@@ -1447,7 +1534,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const start = new Date('2026-03-14T20:00:00Z');
       const end = new Date('2026-03-14T21:00:00Z');
@@ -1477,7 +1564,7 @@ describe('FrigateCameraManagerEngine', () => {
     it('should return null for non-frigate results', () => {
       const result = createEngine().generateMediaFromEvents(
         createHASS(),
-        createStore(),
+        createFrigateStore([]),
         {
           type: QueryType.Event,
           source: QuerySource.Camera,
@@ -1496,7 +1583,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: true,
@@ -1529,7 +1616,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: false,
@@ -1561,7 +1648,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: true,
@@ -1594,7 +1681,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: true,
@@ -1627,7 +1714,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: false,
@@ -1657,7 +1744,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: true,
@@ -1688,7 +1775,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: true,
@@ -1721,7 +1808,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: true,
@@ -1753,7 +1840,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config2 = createCameraConfig({
         frigate: { camera_name: 'cam2', client_id: 'client-1' },
       });
-      const store = createStore([
+      const store = createFrigateStore([
         { cameraID: 'camera-1', config: config1 },
         { cameraID: 'camera-2', config: config2 },
       ]);
@@ -1787,7 +1874,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config1 = createCameraConfig({
         frigate: { camera_name: 'cam1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config: config1 }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config: config1 }]);
       const event = createFrigateEvent({
         camera: 'unknown-cam',
         has_clip: true,
@@ -1816,7 +1903,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const event = createFrigateEvent({
         camera: 'camera-1',
         has_clip: true,
@@ -1848,7 +1935,7 @@ describe('FrigateCameraManagerEngine', () => {
     it('should return null for non-frigate results', () => {
       const result = createEngine().generateMediaFromRecordings(
         createHASS(),
-        createStore(),
+        createFrigateStore([]),
         {
           type: QueryType.Recording,
           source: QuerySource.Camera,
@@ -1868,7 +1955,7 @@ describe('FrigateCameraManagerEngine', () => {
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
         camera_entity: 'camera.office',
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const recording = createFrigateRecording({
         cameraID: 'camera-1',
       });
@@ -1898,41 +1985,10 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const recording = createFrigateRecording({
         cameraID: 'camera-1',
       });
-
-      const result = createEngine().generateMediaFromRecordings(
-        createHASS(),
-        store,
-        {
-          type: QueryType.Recording,
-          source: QuerySource.Camera,
-          cameraIDs: new Set(['camera-1']),
-        },
-        {
-          type: QueryResultsType.Recording,
-          engine: Engine.Frigate,
-          instanceID: 'client-1',
-          recordings: [recording],
-        } as FrigateRecordingQueryResults,
-      );
-
-      expect(result).toEqual([]);
-    });
-
-    it('should skip recordings when factory returns null', () => {
-      const config = createCameraConfig({
-        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
-        camera_entity: 'camera.office',
-      });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
-      const recording = createFrigateRecording({ cameraID: 'camera-1' });
-
-      vi.spyOn(FrigateViewMediaFactory, 'createRecordingViewMedia').mockReturnValue(
-        null,
-      );
 
       const result = createEngine().generateMediaFromRecordings(
         createHASS(),
@@ -1958,7 +2014,7 @@ describe('FrigateCameraManagerEngine', () => {
     it('should return null for non-frigate results', () => {
       const result = createEngine().generateMediaFromReviews(
         createHASS(),
-        createStore(),
+        createFrigateStore([]),
         {
           type: QueryType.Review,
           source: QuerySource.Camera,
@@ -1977,7 +2033,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const review = createFrigateReview({ camera: 'camera-1' });
 
       const result = createEngine().generateMediaFromReviews(
@@ -2005,7 +2061,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const review = createFrigateReview({ camera: 'camera-1' });
 
       const result = createEngine().generateMediaFromReviews(
@@ -2031,7 +2087,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'cam1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
       const review = createFrigateReview({ camera: 'unknown-cam' });
 
       const result = createEngine().generateMediaFromReviews(
@@ -2041,34 +2097,6 @@ describe('FrigateCameraManagerEngine', () => {
           type: QueryType.Review,
           source: QuerySource.Camera,
           cameraIDs: new Set(['camera-1', 'camera-2']),
-        },
-        {
-          type: QueryResultsType.Review,
-          engine: Engine.Frigate,
-          instanceID: 'client-1',
-          reviews: [review],
-        } as FrigateReviewQueryResults,
-      );
-
-      expect(result).toEqual([]);
-    });
-
-    it('should skip reviews when factory returns null', () => {
-      const config = createCameraConfig({
-        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
-      });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
-      const review = createFrigateReview({ camera: 'camera-1' });
-
-      vi.spyOn(FrigateViewMediaFactory, 'createReviewViewMedia').mockReturnValue(null);
-
-      const result = createEngine().generateMediaFromReviews(
-        createHASS(),
-        store,
-        {
-          type: QueryType.Review,
-          source: QuerySource.Camera,
-          cameraIDs: new Set(['camera-1']),
         },
         {
           type: QueryResultsType.Review,
@@ -2125,7 +2153,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:15:00Z');
       const endTime = new Date('2026-03-14T20:45:00Z');
@@ -2161,7 +2189,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:15:00Z');
       const endTime = new Date('2026-03-14T20:15:10Z');
@@ -2200,7 +2228,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       const result = await createEngine().getMediaSeekTime(
         createHASS(),
-        createStore(),
+        createFrigateStore([]),
         media,
         new Date(),
       );
@@ -2216,7 +2244,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       const result = await createEngine().getMediaSeekTime(
         createHASS(),
-        createStore(),
+        createFrigateStore([]),
         media,
         new Date(),
       );
@@ -2233,7 +2261,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       const result = await createEngine().getMediaSeekTime(
         createHASS(),
-        createStore(),
+        createFrigateStore([]),
         media,
         new Date('2026-03-14T20:20:00Z'),
       );
@@ -2245,7 +2273,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:15:00Z');
       const endTime = new Date('2026-03-14T20:45:00Z');
@@ -2270,7 +2298,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:15:00Z');
       const endTime = new Date('2026-03-14T20:45:00Z');
@@ -2296,7 +2324,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:15:00Z');
       const endTime = new Date('2026-03-14T20:45:00Z');
@@ -2321,7 +2349,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:15:00Z');
       const endTime = new Date('2026-03-14T20:45:00Z');
@@ -2348,7 +2376,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:00:00Z');
       const endTime = new Date('2026-03-14T20:30:00Z');
@@ -2390,7 +2418,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:15:00Z');
       const endTime = new Date('2026-03-14T20:45:00Z');
@@ -2427,7 +2455,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:00:00Z');
       const endTime = new Date('2026-03-14T20:30:00Z');
@@ -2469,7 +2497,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const startTime = new Date('2026-03-14T20:05:00Z');
       const endTime = new Date('2026-03-14T20:15:00Z');
@@ -2511,7 +2539,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([
         {
@@ -2539,7 +2567,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([
         {
@@ -2573,11 +2601,26 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.metadata.days).toContain('2026-03-15');
     });
 
+    it('should omit recording days without a Frigate camera name', async () => {
+      const config = createCameraConfig({ frigate: { client_id: 'client-1' } });
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+
+      vi.mocked(getEventSummary).mockResolvedValue([]);
+
+      const result = await createEngine().getMediaMetadata(createHASS(), store, {
+        type: QueryType.MediaMetadata,
+        cameraIDs: new Set(['camera-1']),
+      });
+
+      assert(result);
+      expect([...result.values()][0].metadata.days).toBeUndefined();
+    });
+
     it('should include recording days in metadata', async () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([]);
       vi.mocked(getRecordingsSummary).mockResolvedValue([
@@ -2604,7 +2647,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([
         {
@@ -2634,7 +2677,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([]);
       vi.mocked(getRecordingsSummary).mockResolvedValue([]);
@@ -2654,7 +2697,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([
         {
@@ -2684,7 +2727,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: '', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([]);
 
@@ -2702,7 +2745,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([
         {
@@ -2734,7 +2777,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([]);
       vi.mocked(getRecordingsSummary).mockResolvedValue([]);
@@ -2766,7 +2809,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       vi.mocked(getEventSummary).mockResolvedValue([]);
       vi.mocked(getRecordingsSummary).mockResolvedValue([]);
@@ -2813,41 +2856,49 @@ describe('FrigateCameraManagerEngine', () => {
   });
 
   describe('getCameraMetadata', () => {
-    it('should use camera title when set', () => {
-      const config = createCameraConfig({
-        title: 'My Camera',
-        frigate: { camera_name: 'camera-1' },
-      });
+    it('should use camera title when set', async () => {
+      const metadata = createEngine().getCameraMetadata(
+        createHASS(),
+        await createFrigateCamera({ title: 'My Camera' }),
+      );
 
-      const metadata = createEngine().getCameraMetadata(createHASS(), config);
       expect(metadata.title).toBe('My Camera');
       expect(metadata.engineIcon).toBe('frigate');
     });
 
-    it('should fall back to frigate camera_name', () => {
-      const config = createCameraConfig({
-        frigate: { camera_name: 'front_door' },
+    it('should fall back to the camera name Frigate knows', async () => {
+      const camera = await createFrigateCamera({
+        camera_entity: undefined,
+        frigate: { camera_name: 'front_door', client_id: 'frigate' },
       });
+      camera.setID('camera-1');
 
-      const metadata = createEngine().getCameraMetadata(createHASS(), config);
+      const metadata = createEngine().getCameraMetadata(createHASS(), camera);
 
       expect(metadata.title).toBe('Front Door');
     });
 
-    it('should fall back to empty string', () => {
-      const metadata = createEngine().getCameraMetadata(
-        createHASS(),
-        createCameraConfig({ frigate: { camera_name: '' } }),
+    it('should fall back to camera id for a non-Frigate camera', () => {
+      const camera = new Camera(
+        createFrigateCameraConfig({ camera_entity: undefined }),
+        mock<CameraManagerEngine>(),
+        { hassManager: createHASSManager() },
       );
+      camera.setID('my-camera');
 
-      expect(metadata.title).toBe('');
+      const metadata = createEngine().getCameraMetadata(createHASS(), camera);
+
+      expect(metadata.title).toBe('my-camera');
     });
 
-    it('should fall back to camera id', () => {
-      const metadata = createEngine().getCameraMetadata(
-        createHASS(),
-        createCameraConfig({ id: 'my-camera', frigate: { camera_name: '' } }),
-      );
+    it('should fall back to camera id for a camera with an empty name', async () => {
+      const camera = await createFrigateCamera({
+        camera_entity: undefined,
+        frigate: { camera_name: '', client_id: 'frigate' },
+      });
+      camera.setID('my-camera');
+
+      const metadata = createEngine().getCameraMetadata(createHASS(), camera);
 
       expect(metadata.title).toBe('my-camera');
     });
@@ -2867,7 +2918,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const start = new Date('2026-03-14T20:00:00Z');
       const end = new Date('2026-03-14T21:00:00Z');
@@ -2926,7 +2977,7 @@ describe('FrigateCameraManagerEngine', () => {
       const config = createCameraConfig({
         frigate: { camera_name: '', client_id: 'client-1' },
       });
-      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
       const start = new Date('2026-03-14T20:00:00Z');
       const end = new Date('2026-03-14T21:00:00Z');

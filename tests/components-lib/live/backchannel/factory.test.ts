@@ -4,10 +4,16 @@ import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../../../src/camera-manager/camera';
 import type { CameraManagerEngine } from '../../../../src/camera-manager/engine';
 import { FrigateCamera } from '../../../../src/camera-manager/frigate/camera';
+import type {
+  FrigateEventWatcher,
+  FrigateReviewWatcher,
+} from '../../../../src/camera-manager/frigate/watcher';
 import { createBackchannel } from '../../../../src/components-lib/live/backchannel/factory';
 import { Go2RTCBackchannel } from '../../../../src/components-lib/live/backchannel/go2rtc';
+import type { EntityRegistryManager } from '../../../../src/ha/registry/entity/types';
 import type { HomeAssistant } from '../../../../src/ha/types';
 import { createCameraConfig } from '../../../config/test-utils';
+import { createHASSManager } from '../../../test-utils';
 
 describe('createBackchannel', () => {
   it('should create a backchannel for a go2rtc camera', () => {
@@ -17,6 +23,7 @@ describe('createBackchannel', () => {
         go2rtc: { url: 'https://go2rtc', stream: 'office' },
       }),
       mock<CameraManagerEngine>(),
+      { hassManager: createHASSManager() },
     );
 
     expect(createBackchannel(mock<HomeAssistant>(), camera)).toBeInstanceOf(
@@ -31,6 +38,7 @@ describe('createBackchannel', () => {
         go2rtc: { url: 'https://go2rtc', stream: 'office' },
       }),
       mock<CameraManagerEngine>(),
+      { hassManager: createHASSManager() },
     );
 
     expect(createBackchannel(mock<HomeAssistant>(), camera)).toBeInstanceOf(
@@ -45,6 +53,7 @@ describe('createBackchannel', () => {
         live_provider: 'ha',
       }),
       mock<CameraManagerEngine>(),
+      { hassManager: createHASSManager() },
     );
 
     expect(createBackchannel(mock<HomeAssistant>(), camera)).toBeNull();
@@ -54,6 +63,7 @@ describe('createBackchannel', () => {
     const camera = new Camera(
       createCameraConfig({ live_provider: 'go2rtc' }),
       mock<CameraManagerEngine>(),
+      { hassManager: createHASSManager() },
     );
 
     expect(createBackchannel(mock<HomeAssistant>(), camera)).toBeNull();
@@ -69,6 +79,12 @@ describe('createBackchannel', () => {
         frigate: { client_id: 'frigate', camera_name: 'office' },
       }),
       mock<CameraManagerEngine>(),
+      {
+        hassManager: createHASSManager(),
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        frigateEventWatcher: mock<FrigateEventWatcher>(),
+        frigateReviewWatcher: mock<FrigateReviewWatcher>(),
+      },
     );
 
     expect(camera.getEndpoints()?.go2rtc?.endpoint).toBe(

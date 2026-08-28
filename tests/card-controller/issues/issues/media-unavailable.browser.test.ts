@@ -21,7 +21,9 @@ import {
 } from '../../../browser/test-media';
 import {
   CAMERA_ENTITY,
+  CARD_INITIALIZED_MESSAGE,
   createGenericCameraHASS,
+  createInitializedAutomation,
   createStillImageCameraConfig,
   createStillImageCardConfig,
   getBlockNotificationText,
@@ -323,7 +325,14 @@ describe('MediaUnavailableIssue', () => {
   });
 
   it('should keep an issue across a detach and re-attach', async () => {
-    const card = await mountCardDualCameras();
+    const card = await mountCardGrid(
+      [
+        createStillImageCameraConfig(),
+        createStillImageCameraConfig(SECOND_CAMERA_ENTITY),
+      ],
+      { config: { automations: [createInitializedAutomation()] } },
+    );
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
 
     card.setEntityState(SECOND_CAMERA_ENTITY, 'unavailable');
     await card.advanceSeconds(LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS);
@@ -331,10 +340,16 @@ describe('MediaUnavailableIssue', () => {
 
     card.detach();
     card.attach();
-    await card.updateComplete;
 
-    // The clock has not moved, so a failure found all over again could not have
-    // been reported yet. This is the issue from before the detach.
+    // Re-attaching rebuilds the camera manager and its cameras; the issue
+    // belongs to one of them, so wait for initialization to finish before
+    // reading it.
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE, { count: 2 });
+    await waitForIssueReported(card);
+
+    // The clock has not moved, so a failure found all over again could not
+    // have been reported yet (the detection grace period cannot have elapsed).
+    // This is the issue from before the detach.
     expect(isIssueReported(card)).toBe(true);
   });
 

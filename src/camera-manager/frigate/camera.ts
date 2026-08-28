@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { ActionsExecutor } from '../../card-controller/actions/types';
 import type { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
@@ -16,7 +17,8 @@ import {
   type PTZCapabilities,
 } from '../../types';
 import { errorToConsole } from '../../utils/basic';
-import { Camera, type CameraInitializationOptions } from '../camera';
+import { Camera, type CameraDependencies, type CameraOptions } from '../camera';
+import type { CameraManagerEngine } from '../engine';
 import { CameraNoEntityError } from '../error';
 import type { CameraEndpoints, CameraEndpointsContext } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
@@ -25,6 +27,7 @@ import { getPTZInfo } from './requests';
 import {
   CARD_SEVERITY_MAP,
   type FrigateEventChange,
+  type FrigateIdentity,
   type FrigateReviewChange,
   type PTZInfo,
 } from './types';
@@ -35,40 +38,49 @@ import type {
 
 const CAMERA_BIRDSEYE = 'birdseye' as const;
 
-interface FrigateCameraInitializationOptions extends CameraInitializationOptions {
+export interface FrigateCameraDependencies extends CameraDependencies {
   entityRegistryManager: EntityRegistryManager;
   frigateEventWatcher: FrigateWatcherSubscriptionInterface<FrigateEventChange>;
   frigateReviewWatcher: FrigateWatcherSubscriptionInterface<FrigateReviewChange>;
 }
 
-export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
-  return cameraConfig.frigate.camera_name === CAMERA_BIRDSEYE;
+export const isBirdseye = (cameraName: string | null): boolean => {
+  return cameraName === CAMERA_BIRDSEYE;
 };
 
-export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
-  // Short-circuits subscription when destroy() was invoked while base
-  // initialization was still awaiting. Set BEFORE awaiting `super.destroy()` so
-  // an in-flight initialize() sees the flip immediately.
-  private _destroyed = false;
+export const isFrigateCamera = (camera: Camera | null): camera is FrigateCamera =>
+  camera instanceof FrigateCamera;
 
-  protected override async _initializeAfterCapabilities(
-    options: FrigateCameraInitializationOptions,
-  ): Promise<void> {
-    // A destroy() while the base class was still initializing means the camera
-    // is being torn down; it must not register live subscriptions afterward.
-    if (this._destroyed) {
-      return;
-    }
+export class FrigateCamera extends Camera {
+  // Frigate cameras require a registry manager to resolve their trigger
+  // entities, which the constructor below guarantees; the base camera only
+  // optionally has one.
+  protected declare _entityRegistryManager: EntityRegistryManager;
 
-    if (this._capabilities?.has('trigger')) {
-      this._subscribeToEvents(options.frigateEventWatcher);
-      this._subscribeToReviews(options.frigateReviewWatcher);
-    }
+  private _frigateEventWatcher: FrigateWatcherSubscriptionInterface<FrigateEventChange>;
+  private _frigateReviewWatcher: FrigateWatcherSubscriptionInterface<FrigateReviewChange>;
+
+  private _clientID: string | null = null;
+  private _cameraName: string | null = null;
+
+  constructor(
+    config: CameraConfig,
+    engine: CameraManagerEngine,
+    dependencies: FrigateCameraDependencies,
+    options?: CameraOptions,
+  ) {
+    super(config, engine, dependencies, options);
+    this._frigateEventWatcher = dependencies.frigateEventWatcher;
+    this._frigateReviewWatcher = dependencies.frigateReviewWatcher;
   }
 
-  public override async destroy(): Promise<void> {
-    this._destroyed = true;
-    await super.destroy();
+  protected override _subscribe(): void {
+    super._subscribe();
+
+    if (this._capabilities?.has('trigger')) {
+      this._subscribeToEvents(this._frigateEventWatcher);
+      this._subscribeToReviews(this._frigateReviewWatcher);
+    }
   }
 
   public async executePTZAction(
@@ -121,55 +133,99 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
     return true;
   }
 
+  public getIdentity(): FrigateIdentity | null {
+    const clientID = this.getClientID();
+    const cameraName = this._getCameraName();
+    return clientID && cameraName ? { clientID, cameraName } : null;
+  }
+
+  public getClientID(): string | null {
+    return this._clientID ?? this.getConfig().frigate.client_id ?? null;
+  }
+
+  private _getCameraName(): string | null {
+    return this._cameraName ?? this.getConfig().frigate.camera_name ?? null;
+  }
+
   protected override async _initializeBeforeCapabilities(
     hass: HomeAssistant,
   ): Promise<void> {
+    await super._initializeBeforeCapabilities(hass);
+
     const config = this.getConfig();
-    const hasCameraName = !!config.frigate?.camera_name;
     const cameraEntity = getCameraEntityFromConfig(config);
 
-    // Frigate needs the entity to derive `camera_name` when one isn't set. The
-    // entity is resolved by base Camera; throw here only when its absence
-    // breaks Frigate setup.
-    if (cameraEntity && !hasCameraName && !this._entity) {
+    if (cameraEntity && !config.frigate.camera_name && !this._entity) {
       throw new CameraNoEntityError(config);
     }
 
-    if (this._entity && !hasCameraName) {
-      const resolvedName = this._getFrigateCameraNameFromEntity(this._entity);
-      if (resolvedName) {
-        this._config.frigate.camera_name = resolvedName;
-      }
-    }
-
-    if (!this._config.frigate.client_id) {
-      const stateEntity = cameraEntity ? hass.states[cameraEntity] : undefined;
-      const clientID = stateEntity?.attributes?.client_id;
-
-      // Prefer the client_id the entity advertises. When it is unreadable (e.g.
-      // the entity is unavailable) assume the integration default:
-      // initialization runs once, so leaving client_id unresolved would leave
-      // the camera permanently without endpoints.
-      this._config.frigate.client_id =
-        typeof clientID === 'string' && clientID ? clientID : 'frigate';
-    }
+    this._cameraName = this._resolveCameraName();
+    this._clientID = this._resolveClientID(hass, cameraEntity);
   }
 
-  protected override async _getTriggerEntities(
+  private _resolveCameraName(): string | null {
+    return (
+      this.getConfig().frigate.camera_name ??
+      (this._entity ? this._getCameraNameFromEntity(this._entity) : null)
+    );
+  }
+
+  private _resolveClientID(hass: HomeAssistant, cameraEntity: string | null): string {
+    return (
+      this.getConfig().frigate.client_id ??
+      this._getClientIDFromEntity(hass, cameraEntity) ??
+      // Must have a clientID to serve. Use integration default.
+      'frigate'
+    );
+  }
+
+  private _getCameraNameFromEntity(entity: Entity): string | null {
+    if (
+      entity.platform === 'frigate' &&
+      entity.unique_id &&
+      typeof entity.unique_id === 'string'
+    ) {
+      const match = entity.unique_id.match(/:camera:(?<camera>[^:]+)$/);
+      if (match && match.groups) {
+        return match.groups['camera'];
+      }
+    }
+    return null;
+  }
+
+  private _getClientIDFromEntity(
     hass: HomeAssistant,
-    options: FrigateCameraInitializationOptions,
-  ): Promise<void> {
-    await this._getFrigateMotionAndOccupancyEntities(hass, options);
-    await super._getTriggerEntities(hass, options);
+    cameraEntity: string | null,
+  ): string | null {
+    const stateEntity = cameraEntity ? hass.states[cameraEntity] : undefined;
+
+    if (cameraEntity && !stateEntity) {
+      // Home Assistant knows the entity but holds no state for it (e.g. the
+      // integration is reloading, or another temporary failure), so the client
+      // id cannot be detected. Initialization will be retried later.
+      this._degraded = true;
+    }
+
+    const clientID = stateEntity?.attributes?.client_id;
+    return typeof clientID === 'string' && clientID ? clientID : null;
+  }
+
+  protected override async _getDetectedTriggerEntities(
+    hass: HomeAssistant,
+  ): Promise<string[]> {
+    return [
+      ...(await this._getFrigateMotionAndOccupancyEntities(hass)),
+      ...(await super._getDetectedTriggerEntities(hass)),
+    ];
   }
 
   private async _getFrigateMotionAndOccupancyEntities(
     hass: HomeAssistant,
-    options: FrigateCameraInitializationOptions,
-  ): Promise<void> {
+  ): Promise<string[]> {
     const config = this.getConfig();
-    if (!config.triggers.motion && !config.triggers.occupancy) {
-      return;
+    const cameraName = this.getIdentity()?.cameraName;
+    if ((!config.triggers.motion && !config.triggers.occupancy) || !cameraName) {
+      return [];
     }
 
     // Motion/occupancy auto-discovery requires the camera entity to derive
@@ -182,7 +238,7 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
     // are binary_sensors with the same config entry ID as the camera;
     // searching via unique_id ensures this still works if the user renames
     // the entity_id.
-    const binarySensorEntities = await options.entityRegistryManager.getMatchingEntities(
+    const binarySensorEntities = await this._entityRegistryManager.getMatchingEntities(
       hass,
       (ent) =>
         ent.config_entry_id === this._entity?.config_entry_id &&
@@ -190,61 +246,61 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
         ent.entity_id.startsWith('binary_sensor.'),
     );
 
+    const entities: string[] = [];
+
     if (config.triggers.motion) {
-      const motionEntity = this._getMotionSensor(config, [
+      const motionEntity = this._getMotionSensor(cameraName, [
         ...binarySensorEntities.values(),
       ]);
       if (motionEntity) {
-        config.triggers.entities.push(motionEntity);
+        entities.push(motionEntity);
       }
     }
 
     if (config.triggers.occupancy) {
-      const occupancyEntities = this._getOccupancySensor(config, [
+      const occupancyEntities = this._getOccupancySensors(cameraName, [
         ...binarySensorEntities.values(),
       ]);
       if (occupancyEntities) {
-        config.triggers.entities.push(...occupancyEntities);
+        entities.push(...occupancyEntities);
       }
     }
+
+    return entities;
   }
 
-  protected async _getRawCapabilities(
-    hass: HomeAssistant,
-    options: FrigateCameraInitializationOptions,
-  ): Promise<CapabilitiesRaw> {
-    const base = await super._getRawCapabilities(hass, options);
-    const config = this.getConfig();
+  protected override _deriveConfiguredCapabilities(): CapabilitiesRaw {
+    const cameraName = this.getIdentity()?.cameraName;
 
-    const frigatePTZ = await this._getPTZCapabilities(hass, config);
-    const configPTZ = getPTZCapabilitiesFromCameraConfig(config);
+    return {
+      ...super._deriveConfiguredCapabilities(),
+      ...(cameraName && this._getMediaCapabilities(cameraName)),
+    };
+  }
+
+  protected override async _deriveResolvedCapabilities(
+    hass: HomeAssistant,
+  ): Promise<CapabilitiesRaw> {
+    const frigatePTZ = await this._getPTZCapabilities(hass);
+    const configPTZ = getPTZCapabilitiesFromCameraConfig(this.getConfig());
     const combinedPTZ = mergePTZCapabilities(frigatePTZ, configPTZ);
 
-    const birdseye = isBirdseye(config);
     return {
-      ...base,
+      ...this._getMediaCapabilities(this._getCameraName()),
+      ...(combinedPTZ && { ptz: combinedPTZ }),
+    };
+  }
+
+  private _getMediaCapabilities(cameraName: string | null): CapabilitiesRaw {
+    const birdseye = isBirdseye(cameraName);
+    return {
       'favorite-events': !birdseye,
       seek: !birdseye,
       clips: !birdseye,
       snapshots: !birdseye,
       recordings: !birdseye,
       reviews: !birdseye,
-      ...(combinedPTZ && { ptz: combinedPTZ }),
     };
-  }
-
-  private _getFrigateCameraNameFromEntity(entity: Entity): string | null {
-    if (
-      entity.platform === 'frigate' &&
-      entity.unique_id &&
-      typeof entity.unique_id === 'string'
-    ) {
-      const match = entity.unique_id.match(/:camera:(?<camera>[^:]+)$/);
-      if (match && match.groups) {
-        return match.groups['camera'];
-      }
-    }
-    return null;
   }
 
   public override getEndpoints(
@@ -271,21 +327,19 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
   private _buildGo2RTCEndpoint(
     path: 'go2rtc' | 'mse',
     builder: (
-      cameraConfig: CameraConfig,
+      cameraConfig: ReadonlyDeep<CameraConfig>,
       options: { url: string; stream?: string },
     ) => Endpoint | null,
   ): Endpoint | null {
+    const clientID = this.getClientID();
     const url =
-      this._config.go2rtc?.url ??
-      (this._config.frigate.client_id
-        ? `/api/frigate/${this._config.frigate.client_id}/${path}`
-        : null);
+      this._config.go2rtc?.url ?? (clientID ? `/api/frigate/${clientID}/${path}` : null);
     if (!url) {
       return null;
     }
     return builder(this._config, {
       url,
-      stream: this._config.go2rtc?.stream ?? this._config.frigate.camera_name,
+      stream: this._config.go2rtc?.stream ?? this._getCameraName() ?? undefined,
     });
   }
 
@@ -298,13 +352,12 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
   }
 
   private _getJSMPEGEndpoint(): Endpoint | null {
-    if (!this._config.frigate.camera_name || !this._config.frigate.client_id) {
+    const identity = this.getIdentity();
+    if (!identity) {
       return null;
     }
     return {
-      endpoint:
-        `/api/frigate/${this._config.frigate.client_id}` +
-        `/jsmpeg/${this._config.frigate.camera_name}`,
+      endpoint: `/api/frigate/${identity.clientID}/jsmpeg/${identity.cameraName}`,
       sign: true,
     };
   }
@@ -356,25 +409,20 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
 
   private async _getPTZCapabilities(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
   ): Promise<PTZCapabilities | null> {
-    if (
-      !cameraConfig.frigate.camera_name ||
-      !cameraConfig.frigate.client_id ||
-      isBirdseye(cameraConfig)
-    ) {
+    const identity = this.getIdentity();
+    if (!identity || isBirdseye(identity.cameraName)) {
       return null;
     }
 
     let ptzInfo: PTZInfo | null = null;
     try {
-      ptzInfo = await getPTZInfo(
-        hass,
-        cameraConfig.frigate.client_id,
-        cameraConfig.frigate.camera_name,
-      );
+      ptzInfo = await getPTZInfo(hass, identity);
     } catch (e) {
       errorToConsole(e);
+
+      // Could not get PTZ capabilities: degrade to allow re-attempt later.
+      this._degraded = true;
       return null;
     }
 
@@ -403,40 +451,19 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
     return null;
   }
 
-  /**
-   * Get the motion sensor entity for a given camera.
-   * @param cache The EntityCache of entity registry information.
-   * @param cameraConfig The camera config in question.
-   * @returns The entity id of the motion sensor or null.
-   */
-  private _getMotionSensor(
-    cameraConfig: CameraConfig,
-    entities: Entity[],
-  ): string | null {
-    if (cameraConfig.frigate.camera_name) {
-      return (
-        entities.find(
-          (entity) =>
-            typeof entity.unique_id === 'string' &&
-            !!entity.unique_id?.match(
-              new RegExp(`:motion_sensor:${cameraConfig.frigate.camera_name}`),
-            ),
-        )?.entity_id ?? null
-      );
-    }
-    return null;
+  private _getMotionSensor(cameraName: string, entities: Entity[]): string | null {
+    return (
+      entities.find(
+        (entity) =>
+          typeof entity.unique_id === 'string' &&
+          !!entity.unique_id?.match(new RegExp(`:motion_sensor:${cameraName}`)),
+      )?.entity_id ?? null
+    );
   }
 
-  /**
-   * Get the occupancy sensor entity for a given camera.
-   * @param cache The EntityCache of entity registry information.
-   * @param cameraConfig The camera config in question.
-   * @returns The entity id of the occupancy sensor or null.
-   */
-  private _getOccupancySensor(
-    cameraConfig: CameraConfig,
-    entities: Entity[],
-  ): string[] | null {
+  // One entity per configured zone and label, so a camera can have several.
+  private _getOccupancySensors(cameraName: string, entities: Entity[]): string[] | null {
+    const cameraConfig = this.getConfig();
     const entityIDs: string[] = [];
     const addEntityIDIfFound = (cameraOrZone: string, label: string): void => {
       const entityID =
@@ -452,53 +479,43 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
       }
     };
 
-    if (cameraConfig.frigate.camera_name) {
-      // If zone(s) are specified, the master occupancy sensor for the overall
-      // camera is not used by default (but could be manually added by the
-      // user).
-      const camerasAndZones = cameraConfig.frigate.zones?.length
-        ? cameraConfig.frigate.zones
-        : [cameraConfig.frigate.camera_name];
+    // If zone(s) are specified, the master occupancy sensor for the overall
+    // camera is not used by default (but could be manually added by the user).
+    const camerasAndZones = cameraConfig.frigate.zones?.length
+      ? cameraConfig.frigate.zones
+      : [cameraName];
 
-      const labels = cameraConfig.frigate.labels?.length
-        ? cameraConfig.frigate.labels
-        : ['all'];
-      for (const cameraOrZone of camerasAndZones) {
-        for (const label of labels) {
-          addEntityIDIfFound(cameraOrZone, label);
-        }
-      }
-
-      if (entityIDs.length) {
-        return entityIDs;
+    const labels = cameraConfig.frigate.labels?.length
+      ? cameraConfig.frigate.labels
+      : ['all'];
+    for (const cameraOrZone of camerasAndZones) {
+      for (const label of labels) {
+        addEntityIDIfFound(cameraOrZone, label);
       }
     }
-    return null;
+
+    return entityIDs.length ? entityIDs : null;
   }
 
   private _subscribeToEvents(
     frigateEventWatcher: FrigateWatcherSubscriptionInterface<FrigateEventChange>,
   ): void {
-    const config = this.getConfig();
-    if (
-      !config.triggers.media_events.length ||
-      !config.frigate.camera_name ||
-      !config.frigate.client_id
-    ) {
+    const identity = this.getIdentity();
+    if (!this.getConfig().triggers.media_events.length || !identity) {
       return;
     }
 
     /* v8 ignore next -- exercising the matcher is not possible when the
     test uses an event watcher -- @preserve */
     const request: FrigateWatcherRequest<FrigateEventChange> = {
-      instanceID: config.frigate.client_id,
+      instanceID: identity.clientID,
       callback: (event: FrigateEventChange) => this._frigateEventHandler(event),
       matcher: (event: FrigateEventChange): boolean =>
-        event.after.camera === config.frigate.camera_name,
+        event.after.camera === identity.cameraName,
     };
 
     frigateEventWatcher.subscribe(request);
-    this._onDestroy(() => frigateEventWatcher.unsubscribe(request));
+    this._addUnsubscribeCallback(() => frigateEventWatcher.unsubscribe(request));
   }
 
   private _frigateEventHandler = (ev: FrigateEventChange): void => {
@@ -508,7 +525,7 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
     const clipChange = !ev.before.has_clip && ev.after.has_clip;
 
     const config = this.getConfig();
-    const cameraID = this._config.id;
+    const cameraID = this._getID();
 
     if (!cameraID) {
       // This can happen if an event arrives during the time a camera is
@@ -560,34 +577,29 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
   private _subscribeToReviews(
     frigateReviewWatcher: FrigateWatcherSubscriptionInterface<FrigateReviewChange>,
   ): void {
-    const config = this.getConfig();
-    const reviewConfig = config.triggers.reviews;
+    const identity = this.getIdentity();
 
     // Must have at least one severity configured and a camera name to subscribe
-    if (
-      !reviewConfig.severities.length ||
-      !config.frigate.camera_name ||
-      !config.frigate.client_id
-    ) {
+    if (!this.getConfig().triggers.reviews.severities.length || !identity) {
       return;
     }
 
     /* v8 ignore next -- exercising the matcher is not possible when the
     test uses a review watcher -- @preserve */
     const request: FrigateWatcherRequest<FrigateReviewChange> = {
-      instanceID: config.frigate.client_id,
+      instanceID: identity.clientID,
       callback: (review: FrigateReviewChange) => this._frigateReviewHandler(review),
       matcher: (review: FrigateReviewChange): boolean =>
-        review.after.camera === config.frigate.camera_name,
+        review.after.camera === identity.cameraName,
     };
 
     frigateReviewWatcher.subscribe(request);
-    this._onDestroy(() => frigateReviewWatcher.unsubscribe(request));
+    this._addUnsubscribeCallback(() => frigateReviewWatcher.unsubscribe(request));
   }
 
   private _frigateReviewHandler = (review: FrigateReviewChange): void => {
     const config = this.getConfig();
-    const cameraID = this._config.id;
+    const cameraID = this._getID();
 
     if (!cameraID) {
       return;
