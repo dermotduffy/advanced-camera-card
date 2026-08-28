@@ -597,6 +597,17 @@ describe('UnifiedQueryBuilder', () => {
       expect(store.getAllDependentCameras).toHaveBeenCalledWith('camera.office');
     });
 
+    it('should set the origin to default', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+      expect(query.getOrigin()).toBe('default');
+    });
+
     it('should build reviews query for camera with reviews capability', () => {
       const { cameraManager, foldersManager, store } = createMocks();
       store.getCameraIDs.mockReturnValue(new Set(['camera.office']));

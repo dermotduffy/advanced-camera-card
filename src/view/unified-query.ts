@@ -30,6 +30,10 @@ export class UnifiedQuery {
     return this._origin;
   }
 
+  public setOrigin(origin: QueryOrigin): void {
+    this._origin = origin;
+  }
+
   public addNode(node: QueryNode): this {
     this._nodes.push(node);
     return this;
