@@ -110,7 +110,7 @@ describe('CameraInitializationIssue', () => {
 
       expect(issue.getIssue()).toEqual(
         expect.objectContaining({
-          icon: 'mdi:cctv-off',
+          icon: 'mdi:camera-off',
           severity: 'high',
           notification: expect.objectContaining({
             heading: expect.objectContaining({
@@ -147,15 +147,15 @@ describe('CameraInitializationIssue', () => {
     });
 
     it.each([
-      ['failed' as const, 'Camera initialization failed'],
-      ['degraded' as const, 'Camera partially initialized'],
-    ])('should give the %s state its own text', (state, text) => {
+      ['failed' as const, 'Camera initialization failed', 'mdi:camera-off'],
+      ['degraded' as const, 'Camera partially initialized', 'mdi:progress-helper'],
+    ])('should give the %s state its own text and icon', (state, text, icon) => {
       const issue = new CameraInitializationIssue(createAPI());
 
       issue.trigger({ cameraID: 'camera.office', state });
 
       expect(issue.getNotification().metadata).toEqual([
-        { text: `camera.office: ${text}` },
+        { icon, text: `camera.office: ${text}` },
       ]);
     });
 

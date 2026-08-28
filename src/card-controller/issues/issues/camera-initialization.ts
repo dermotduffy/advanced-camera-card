@@ -44,7 +44,7 @@ const CAMERA_INITIALIZATION_STATES: Record<
 > = {
   failed: {
     localizationKey: 'issues.camera_initialization.states.failed',
-    icon: 'mdi:cctv-off',
+    icon: 'mdi:camera-off',
     severity: 'high',
   },
   degraded: {
@@ -194,10 +194,10 @@ export class CameraInitializationIssue implements Issue {
     cameraID: string,
     state: CameraInitializationState,
   ): NotificationDetail {
+    const entry = CAMERA_INITIALIZATION_STATES[state];
     return {
-      text: `${this._getCameraName(cameraID)}: ${localize(
-        CAMERA_INITIALIZATION_STATES[state].localizationKey,
-      )}`,
+      icon: entry.icon,
+      text: `${this._getCameraName(cameraID)}: ${localize(entry.localizationKey)}`,
     };
   }
 

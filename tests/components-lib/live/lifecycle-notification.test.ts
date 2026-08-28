@@ -39,36 +39,19 @@ describe('getLifecycleNotification', () => {
     });
   });
 
-  it('should return an error notification when failed', () => {
+  it('should return a notification when failed', () => {
     expect(
-      getLifecycleNotification({
-        status: CameraLifecycleStatus.Failed,
-        error: new Error('boom'),
-      }),
-    ).toEqual({
-      heading: {
-        icon: 'mdi:camera-off',
-        text: localize('error.camera_initialization'),
-      },
-      body: { text: 'boom' },
-      link: {
-        url: TROUBLESHOOTING_URL,
-        title: localize('error.troubleshooting'),
-      },
-      in_progress: true,
-    });
-  });
-
-  it('should omit the reason when the failure is not an Error', () => {
-    expect(
-      getLifecycleNotification({
-        status: CameraLifecycleStatus.Failed,
-        error: 'boom',
-      }),
+      getLifecycleNotification(
+        {
+          status: CameraLifecycleStatus.Failed,
+          error: new Error('boom'),
+        },
+        'Front Door',
+      ),
     ).toEqual({
       body: {
         icon: 'mdi:camera-off',
-        text: localize('error.camera_initialization'),
+        text: `${localize('error.camera_initialization')}: Front Door`,
       },
       link: {
         url: TROUBLESHOOTING_URL,

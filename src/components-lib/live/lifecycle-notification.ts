@@ -22,7 +22,6 @@ export function getLifecycleNotification(
         icon: 'mdi:camera-off',
         title: localize('error.camera_initialization'),
         targetTitle: cameraTitle,
-        detail: state.error instanceof Error ? state.error.message : undefined,
       });
   }
   return null;
