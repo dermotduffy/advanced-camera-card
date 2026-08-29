@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { add } from 'date-fns';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { supports2WayAudio } from '../../src/go2rtc/audio';
@@ -12,10 +13,15 @@ vi.mock('../../src/ha/web-proxy');
 
 describe('supports2WayAudio', () => {
   const hass = mock<HomeAssistant>();
-  const endpoint: Endpoint = { endpoint: 'http://go2rtc', sign: true };
+
+  // Answers are cached by endpoint for the life of the page, so each test uses
+  // a unique endpoint.
+  let endpointCount = 0;
+  let endpoint: Endpoint;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    endpoint = { endpoint: `http://go2rtc-${++endpointCount}`, sign: true };
   });
 
   it('should return false if no endpoint provided', async () => {
@@ -125,5 +131,107 @@ describe('supports2WayAudio', () => {
     vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(null);
 
     expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+  });
+
+  describe('should cache answers', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should reuse an answer rather than fetch again', async () => {
+      vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
+      vi.mocked(homeAssistantSignAndFetch).mockResolvedValue({
+        producers: [{ medias: ['audio,sendonly,opus'] }],
+      });
+
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(true);
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(true);
+
+      expect(homeAssistantSignAndFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fetch once for simultaneous callers', async () => {
+      vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
+      vi.mocked(homeAssistantSignAndFetch).mockResolvedValue({
+        producers: [{ medias: ['audio,sendonly,opus'] }],
+      });
+
+      expect(
+        await Promise.all([
+          supports2WayAudio(hass, 2, endpoint),
+          supports2WayAudio(hass, 2, endpoint),
+        ]),
+      ).toEqual([true, true]);
+
+      expect(homeAssistantSignAndFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep answers for different endpoints separate', async () => {
+      const otherEndpoint: Endpoint = { endpoint: 'http://go2rtc-other', sign: true };
+
+      vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
+      vi.mocked(homeAssistantSignAndFetch)
+        .mockResolvedValueOnce({ producers: [{ medias: ['audio,sendonly,opus'] }] })
+        .mockResolvedValueOnce({ producers: [{ medias: ['video,sendonly,h264'] }] });
+
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(true);
+      expect(await supports2WayAudio(hass, 2, otherEndpoint)).toBe(false);
+    });
+
+    it('should fetch again after the answer expires', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-08-28T12:00:00Z'));
+
+      vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
+      vi.mocked(homeAssistantSignAndFetch).mockResolvedValue({
+        producers: [{ medias: ['audio,sendonly,opus'] }],
+      });
+
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(true);
+
+      vi.setSystemTime(add(new Date(), { minutes: 6 }));
+
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(true);
+      expect(homeAssistantSignAndFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not reuse a failed fetch', async () => {
+      vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
+      vi.mocked(homeAssistantSignAndFetch).mockRejectedValue(new Error('fetch error'));
+
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+
+      expect(homeAssistantSignAndFetch).toHaveBeenCalledTimes(2);
+      spy.mockRestore();
+    });
+
+    it('should return false to simultaneous callers when the fetch fails', async () => {
+      vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
+      vi.mocked(homeAssistantSignAndFetch).mockRejectedValue(new Error('fetch error'));
+
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      expect(
+        await Promise.all([
+          supports2WayAudio(hass, 2, endpoint),
+          supports2WayAudio(hass, 2, endpoint),
+        ]),
+      ).toEqual([false, false]);
+
+      expect(homeAssistantSignAndFetch).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+    });
+
+    it('should not reuse an unavailable proxied endpoint', async () => {
+      vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(null);
+
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+
+      expect(createProxiedEndpointIfNecessary).toHaveBeenCalledTimes(2);
+    });
   });
 });
