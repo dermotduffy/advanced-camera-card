@@ -12,6 +12,7 @@ challenging.
 - Must have a camera that supports audio out (otherwise what's the point!)
 - Camera must be supported by `go2rtc` for 2-way audio (see [supported cameras](https://github.com/AlexxIT/go2rtc#two-way-audio)).
 - Must be accessing your Home Assistant instance over `https`. The browser will enforce this.
+- Must be running at least [Frigate integration `v5.12.0`](https://github.com/blakeblackshear/frigate-hass-integration/releases/tag/v5.12.0).
 
 ### Card requirements
 
