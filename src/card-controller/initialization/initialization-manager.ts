@@ -1,6 +1,5 @@
 import PQueue from 'p-queue';
 
-import { isHassReady } from '../../ha/is-hass-ready';
 import { sideLoadHomeAssistantElements } from '../../ha/side-load-ha-elements';
 import { loadLanguages } from '../../localize/localize';
 import { errorToConsole } from '../../utils/basic';
@@ -104,7 +103,7 @@ export class InitializationManager {
     return (
       this._api.getConfigManager().hasConfig() &&
       this._api.getCardElementManager().isConnected() &&
-      isHassReady(this._api.getHASSManager().getHASS()) &&
+      this._api.getHASSManager().isReady() &&
       // Start when aspects remain to be initialized, or when the session is
       // idle even though aspects are otherwise initialized. A run that
       // initialized every aspect and then declined (e.g. because something
@@ -138,11 +137,10 @@ export class InitializationManager {
     // and the card may be detached, lose Home Assistant, or finish initializing
     // while it waits. This is what stops a stale attempt running.
     //
-    // The `isHassReady` call also narrows `hass` for the steps below. Its
-    // RUNNING requirement waits out a Home Assistant that is still loading
-    // integrations, against which integration-specific WS calls fail with
-    // "Unknown command".
-    if (!isHassReady(hass) || !this._shouldInitializeMandatory()) {
+    // Readiness itself is asked of the HASS manager, whose RUNNING requirement
+    // waits out a Home Assistant that is still loading integrations, against
+    // which integration-specific WS calls fail with "Unknown command".
+    if (!hass || !this._shouldInitializeMandatory()) {
       return;
     }
 

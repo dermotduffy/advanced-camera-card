@@ -1,3 +1,4 @@
+import type { HASSReadiness } from '../../card-controller/hass/types';
 import type { KeysState, MicrophoneState } from '../../card-controller/types';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
 import type { ViewDisplayMode } from '../../config/schema/common/display';
@@ -31,7 +32,12 @@ export interface ConditionState {
   mediaLoadedInfo?: MediaLoadedInfo | null;
   microphone?: MicrophoneState;
   panel?: boolean;
+
+  // Home Assistant:
+  // - The main HA object itself.
   hass?: HomeAssistant;
+  // - The card's view of HA's readiness.
+  hassReadiness?: HASSReadiness;
 
   // Initialization:
   // - Currently initialized.

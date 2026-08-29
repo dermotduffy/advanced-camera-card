@@ -109,6 +109,7 @@ export const createHASSSource = (
   const listeners = new Set<HASSListener>();
   const source: HASSSource = {
     getHASS: () => current,
+    isReady: () => !!current?.connected && current.config?.state === STATE_RUNNING,
     addListener: (listener) => {
       listeners.add(listener);
       return () => {
@@ -135,9 +136,9 @@ export const createHASSManager = (options?: {
   eventWatcher?: EventWatcherSubscriptionInterface;
 }): HASSManagerReadonlyInterface => {
   const hassManager = mock<HASSManagerReadonlyInterface>();
-  hassManager.getHASS.mockReturnValue(
-    options?.hass === undefined ? createHASS() : options.hass,
-  );
+  const hass = options?.hass === undefined ? createHASS() : options.hass;
+  hassManager.getHASS.mockReturnValue(hass);
+  hassManager.isReady.mockReturnValue(!!hass);
   hassManager.getStateWatcher.mockReturnValue(
     options?.stateWatcher ?? mock<StateWatcherSubscriptionInterface>(),
   );
