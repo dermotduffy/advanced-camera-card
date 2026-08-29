@@ -24,6 +24,16 @@
 ::slotted(*) {
   box-sizing: border-box;
 
+  // A grid cell is sized by its own content: media renders at the cell width
+  // and the height resolves in the same layout pass. A slotted carousel,
+  // however, carries an inline `max-height` that sizes the card to the
+  // selected medium when the carousel is *not* in a grid, and that is
+  // debounced against loading flicker (see media-height-controller.ts). In a
+  // grid that cap would hold a newly selected (wider) cell at its old height
+  // until the debounce fires, leaving the grid visibly mid-layout.
+  // `!important` is required to override the inline style.
+  max-height: none !important;
+
   // Support multi-column cells via --advanced-camera-card-grid-width-factor CSS variable.
   // Default to 1 column if not specified.
   --advanced-camera-card-grid-width-factor: 1;
