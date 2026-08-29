@@ -1,4 +1,4 @@
-import type { LitElement } from 'lit';
+import type { LitElement, ReactiveController } from 'lit';
 
 import type {
   FullscreenElement,
@@ -12,12 +12,16 @@ import { hideMediaControlsTemporarily, setControlsOnVideo } from '../../utils/co
 import { screenshotVideo } from '../../utils/screenshot';
 import { FrameStallWatchdog } from './frame-stall-watchdog';
 
-export class VideoMediaPlayerController implements MediaPlayerController {
+export class VideoMediaPlayerController
+  implements MediaPlayerController, ReactiveController
+{
   private _host: LitElement;
   private _getVideoCallback: () => HTMLVideoElement | null;
   private _getControlsDefaultCallback: (() => boolean) | null;
 
-  private _rvfcHandle: number | null = null;
+  // The frame callback registration: the video it was made on and the handle to
+  // cancel it with.
+  private _frameCallback: { video: HTMLVideoElement; handle: number } | null = null;
   private _stallWatchdog = new FrameStallWatchdog({
     // Playback is expected unless the video is legitimately idle. Seeking /
     // ended is idle. A poster shown with no media loaded is a still-image
@@ -50,6 +54,26 @@ export class VideoMediaPlayerController implements MediaPlayerController {
     this._host = host;
     this._getVideoCallback = getVideoCallback;
     this._getControlsDefaultCallback = getControlsDefaultCallback ?? null;
+
+    host.addController(this);
+  }
+
+  // A player can replace its video element (e.g. go2rtc rebuilding its player),
+  // so the frame callback has to move with it. Left on the old element it would
+  // be watching something detached that never presents another frame.
+  //
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2726
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2718
+  public hostUpdated(): void {
+    if (!this._frameCallback) {
+      return;
+    }
+    const video = this._getVideoCallback();
+    if (!video || video === this._frameCallback.video) {
+      return;
+    }
+    this._stopFrameSource();
+    this._startFrameSource();
   }
 
   public readonly playback: PlaybackControl = {
@@ -161,29 +185,29 @@ export class VideoMediaPlayerController implements MediaPlayerController {
     if (!video || !('requestVideoFrameCallback' in video)) {
       return false;
     }
-    this._rvfcHandle = video.requestVideoFrameCallback(this._onVideoFrame);
+    this._frameCallback = {
+      video,
+      handle: video.requestVideoFrameCallback(this._onVideoFrame),
+    };
     return true;
   }
 
   private _stopFrameSource(): void {
-    const video = this._getVideoCallback();
-    if (video && this._rvfcHandle !== null) {
-      video.cancelVideoFrameCallback(this._rvfcHandle);
-    }
-    this._rvfcHandle = null;
+    this._frameCallback?.video.cancelVideoFrameCallback(this._frameCallback.handle);
+    this._frameCallback = null;
   }
 
   private _onVideoFrame = (): void => {
     this._stallWatchdog.notifyFrame();
 
     // Re-arm only if still watching: `notifyFrame`'s live notification may have
-    // dropped the last subscriber, which stops the source and nulls the handle.
-    if (this._rvfcHandle === null) {
+    // dropped the last subscriber, which stops the source and clears the
+    // registration.
+    const callback = this._frameCallback;
+    if (!callback) {
       return;
     }
-    const video = this._getVideoCallback();
-    if (video) {
-      this._rvfcHandle = video.requestVideoFrameCallback(this._onVideoFrame);
-    }
+
+    callback.handle = callback.video.requestVideoFrameCallback(this._onVideoFrame);
   };
 }

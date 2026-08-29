@@ -300,6 +300,155 @@ describe('ImageMediaPlayerController', () => {
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
+    it('should not report a stall while a replacement image keeps loading', () => {
+      const original = document.createElement('img');
+      const replacement = document.createElement('img');
+      let current = original;
+      const controller = createImageMediaPlayerWithLiveness(
+        () => true,
+        () => current,
+      );
+      const subscribe = controller.subscribeLiveness;
+      assert(subscribe);
+      const callback = vi.fn();
+
+      subscribe(callback);
+      original.dispatchEvent(new Event('load'));
+
+      current = replacement;
+      controller.hostUpdated();
+
+      // Twice the stall window, with the replacement loading throughout.
+      for (let i = 0; i < 2 * STALL_SECONDS; i++) {
+        replacement.dispatchEvent(new Event('load'));
+        vi.advanceTimersByTime(1000);
+      }
+
+      expect(callback).toHaveBeenCalledExactlyOnceWith(true);
+    });
+
+    it('should not give a replacement longer than the stall window', () => {
+      const original = document.createElement('img');
+      const replacement = document.createElement('img');
+      let current = original;
+      const controller = createImageMediaPlayerWithLiveness(
+        () => true,
+        () => current,
+      );
+      const subscribe = controller.subscribeLiveness;
+      assert(subscribe);
+      const callback = vi.fn();
+
+      subscribe(callback);
+      original.dispatchEvent(new Event('load'));
+
+      current = replacement;
+      controller.hostUpdated();
+
+      vi.advanceTimersByTime(STALL_MS);
+
+      expect(callback).toHaveBeenNthCalledWith(1, true);
+      expect(callback).toHaveBeenNthCalledWith(2, false);
+    });
+
+    it('should stop watching an image the host has replaced', () => {
+      const original = document.createElement('img');
+      const replacement = document.createElement('img');
+      let current = original;
+      const controller = createImageMediaPlayerWithLiveness(
+        () => true,
+        () => current,
+      );
+      const subscribe = controller.subscribeLiveness;
+      assert(subscribe);
+      const callback = vi.fn();
+
+      subscribe(callback);
+      current = replacement;
+      controller.hostUpdated();
+
+      // The abandoned image is no longer listened to, so its loads say nothing.
+      original.dispatchEvent(new Event('load'));
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should keep watching the same image when a render changes nothing', () => {
+      const image = document.createElement('img');
+      const addEventListener = vi.spyOn(image, 'addEventListener');
+      const controller = createImageMediaPlayerWithLiveness(
+        () => true,
+        () => image,
+      );
+      const subscribe = controller.subscribeLiveness;
+      assert(subscribe);
+
+      subscribe(vi.fn());
+      controller.hostUpdated();
+      controller.hostUpdated();
+
+      expect(addEventListener).toHaveBeenCalledOnce();
+    });
+
+    it('should keep watching the old image when a render offers no replacement', () => {
+      const image = document.createElement('img');
+      const removeEventListener = vi.spyOn(image, 'removeEventListener');
+      let current: HTMLImageElement | null = image;
+      const controller = createImageMediaPlayerWithLiveness(
+        () => true,
+        () => current,
+      );
+      const subscribe = controller.subscribeLiveness;
+      assert(subscribe);
+
+      subscribe(vi.fn());
+      current = null;
+      controller.hostUpdated();
+
+      expect(removeEventListener).not.toHaveBeenCalled();
+    });
+
+    it('should ignore a render before anything is being watched', () => {
+      const image = document.createElement('img');
+      const addEventListener = vi.spyOn(image, 'addEventListener');
+      const controller = createImageMediaPlayerWithLiveness(
+        () => true,
+        () => image,
+      );
+
+      controller.hostUpdated();
+
+      expect(addEventListener).not.toHaveBeenCalled();
+    });
+
+    it('should stop watching the replaced image, not its replacement', () => {
+      const original = document.createElement('img');
+      const replacement = document.createElement('img');
+      const removeOriginal = vi.spyOn(original, 'removeEventListener');
+      const removeReplacement = vi.spyOn(replacement, 'removeEventListener');
+      let current = original;
+      const controller = createImageMediaPlayerWithLiveness(
+        () => true,
+        () => current,
+      );
+      const subscribe = controller.subscribeLiveness;
+      assert(subscribe);
+
+      const unsubscribe = subscribe(vi.fn());
+      current = replacement;
+      unsubscribe();
+
+      expect(removeOriginal).toHaveBeenCalled();
+      expect(removeReplacement).not.toHaveBeenCalled();
+    });
+
+    it('should register itself with its host', () => {
+      const host = createLitElement();
+      new ImageMediaPlayerController(host, () => null);
+
+      expect(host.addController).toHaveBeenCalled();
+    });
+
     it('should honor a custom stall window', () => {
       const shortSeconds = 3;
       const image = document.createElement('img');
