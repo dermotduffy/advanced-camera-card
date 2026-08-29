@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 
 import type { VideoRTC } from '../../../../src/components/live/providers/go2rtc/video-rtc';
 import type { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
@@ -28,5 +29,26 @@ describe('AdvancedCameraCardGo2RTC', () => {
 
     const player = await card.waitForSelector<VideoRTC>(PLAYER_SELECTOR);
     expect(player.wsURL).toBe('ws://localhost:1984/api/ws?src=office');
+  });
+
+  it('should start the modes that follow mp4', async () => {
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/2721
+
+    const card = await mount({
+      go2rtc: {
+        url: 'http://localhost:1984',
+        stream: 'office',
+        modes: ['mp4', 'webrtc'],
+      },
+      proxy: { live: false },
+    });
+
+    const player = await card.waitForSelector<VideoRTC>(PLAYER_SELECTOR);
+
+    const ws = mock<WebSocket>();
+    player.ws = ws;
+
+    expect(player.onopen()).toEqual(['mp4', 'webrtc']);
+    expect(ws.send).toHaveBeenCalledWith(expect.stringContaining('"type":"mp4"'));
   });
 });

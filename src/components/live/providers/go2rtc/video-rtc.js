@@ -937,7 +937,10 @@ export class VideoRTC extends HTMLElement {
       video2.src = 'data:video/mp4;base64,' + VideoRTC.btoa(data);
     };
 
-    this.send({ type: 'mp4', value: this.codecs(this.video.canPlayType) });
+    this.send({
+      type: 'mp4',
+      value: this.codecs((type) => this.video.canPlayType(type)),
+    });
   }
 
   static btoa(buffer) {
