@@ -43,7 +43,10 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
+  // The player and the URL it is built for.
   private _player?: VideoRTC;
+  private _playerSource: string | null = null;
+
   private _hasLiveError = false;
 
   private _mediaPlayerController = new VideoMediaPlayerController(
@@ -52,22 +55,18 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     () => this.controls,
   );
 
-  private _signedURLController = new SignedURLController(
-    this,
-    () => {
-      const endpoint = this.camera?.getEndpoints()?.go2rtc;
-      if (!this.hass || !endpoint) {
-        return {};
-      }
-      return {
-        hass: this.hass,
-        endpoint,
-        proxyConfig: this.camera?.getLiveProxyConfig(),
-        proxyEndpointOptions: { websocket: true },
-      };
-    },
-    () => this._createPlayer(),
-  );
+  private _signedURLController = new SignedURLController(this, () => {
+    const endpoint = this.camera?.getEndpoints()?.go2rtc;
+    if (!this.hass || !endpoint) {
+      return {};
+    }
+    return {
+      hass: this.hass,
+      endpoint,
+      proxyConfig: this.camera?.getLiveProxyConfig(),
+      proxyEndpointOptions: { websocket: true },
+    };
+  });
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._mediaPlayerController;
@@ -92,15 +91,12 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     // DISCONNECT_TIMEOUT.
     this._player?.reset();
     this._player = undefined;
+    this._playerSource = null;
   }
 
-  private _createPlayer(): void {
-    const src = this._signedURLController.getValue();
-    if (!src) {
-      return;
-    }
-
+  private _createPlayer(src: string): void {
     this._player = new VideoRTC();
+    this._playerSource = src;
     this._player.targetID = this.targetID ?? null;
     this._player.mediaPlayerController = this._mediaPlayerController;
     this._player.src = src;
@@ -111,14 +107,12 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     if (cameraConfig?.go2rtc?.modes && cameraConfig.go2rtc.modes.length) {
       this._player.mode = cameraConfig.go2rtc.modes.join(',');
     }
-
-    this.requestUpdate();
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('camera')) {
-      // Clear old player; the new one is created by the
-      // SignedURLController's valueChangeCallback once the URL resolves.
+      // Stop streaming the old camera immediately; `update` builds the new
+      // player as soon as that camera's URL is known.
       this._destroyPlayer();
     }
 
@@ -135,6 +129,21 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     if (changedProps.has('controls') && this._player) {
       this._player.setControls(this.controls);
     }
+  }
+
+  // The signed URL controller announces only the URLs it resolves
+  // asynchronously, so the player is built from whatever URL it currently
+  // holds. Lit runs that controller's own update between `willUpdate` and
+  // `update`, so this overrides the latter.
+  protected update(changedProps: PropertyValues): void {
+    const src = this._signedURLController.getValue();
+    if (src !== this._playerSource) {
+      this._destroyPlayer();
+      if (src) {
+        this._createPlayer(src);
+      }
+    }
+    super.update(changedProps);
   }
 
   protected render(): TemplateResult | void {
