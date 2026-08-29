@@ -6,7 +6,6 @@ import {
   type GetKeyCallback,
 } from '../../utils/concurrency/keyed-subscription-manager';
 import { RetryTimer } from '../../utils/retry-timer';
-import { isHassReady } from '../is-hass-ready';
 import type { HASSSource } from '../source';
 import type { HomeAssistant } from '../types';
 import type { HASSWebSocketLiveness, HASSWebSocketOpenCallback } from './types';
@@ -226,7 +225,7 @@ export class HASSConnectionSubscriptionManager<K, R> {
   }
 
   private _handleHASSChange(hass: HomeAssistant | null): void {
-    if (!hass || !isHassReady(hass)) {
+    if (!hass || !this._source.isReady()) {
       if (this._connectionEra !== null) {
         this._endEra();
         // Surface the era end to consumers so they can update any UI that was

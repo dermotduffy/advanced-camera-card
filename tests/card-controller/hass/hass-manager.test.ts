@@ -5,10 +5,24 @@ import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { InitializationAspect } from '../../../src/card-controller/initialization/initialization-manager';
+import type { HomeAssistant } from '../../../src/ha/types';
 import { createCameraManager, createStore } from '../../camera-manager/test-utils';
 import { createCameraConfig, createConfig } from '../../config/test-utils';
 import { createCardAPI, createHASS, createStateEntity } from '../../test-utils';
 import { createView } from '../../view/test-utils';
+
+// The Home Assistant frontend merges each update into the previous `hass`, so
+// until it has read the configuration again the card keeps being handed the
+// exact object it already had.
+const createHASSWithConfigOf = (
+  source: HomeAssistant,
+  options: { connected: boolean },
+): HomeAssistant => {
+  const hass = createHASS();
+  hass.connected = options.connected;
+  hass.config = source.config;
+  return hass;
+};
 
 describe('HASSManager', () => {
   beforeEach(() => {
@@ -95,6 +109,106 @@ describe('HASSManager', () => {
       const hass = createHASS();
       manager.setHASS(hass);
       expect(manager.getHASS()).toBe(hass);
+    });
+  });
+
+  describe('should report readiness when', () => {
+    it('should report not ready before any hass is set', () => {
+      const manager = new HASSManager(createCardAPI());
+
+      expect(manager.isReady()).toBeFalsy();
+    });
+
+    it('should report not ready when disconnected', () => {
+      const manager = new HASSManager(createCardAPI());
+      const hass = createHASS();
+      hass.connected = false;
+      hass.config.state = STATE_RUNNING;
+      manager.setHASS(hass);
+
+      expect(manager.isReady()).toBeFalsy();
+    });
+
+    it('should report not ready while integrations are still loading', () => {
+      const manager = new HASSManager(createCardAPI());
+      const hass = createHASS();
+      hass.connected = true;
+      hass.config.state = STATE_STARTING;
+      manager.setHASS(hass);
+
+      expect(manager.isReady()).toBeFalsy();
+    });
+
+    it('should report not ready when reconnected with the pre-disconnect config', () => {
+      const manager = new HASSManager(createCardAPI());
+
+      const hass = createHASS();
+      hass.connected = true;
+      hass.config.state = STATE_RUNNING;
+      manager.setHASS(hass);
+      expect(manager.isReady()).toBeTruthy();
+
+      manager.setHASS(createHASSWithConfigOf(hass, { connected: false }));
+      manager.setHASS(createHASSWithConfigOf(hass, { connected: true }));
+
+      expect(manager.isReady()).toBeFalsy();
+    });
+
+    it('should report ready when connected and running', () => {
+      const manager = new HASSManager(createCardAPI());
+      const hass = createHASS();
+      hass.connected = true;
+      hass.config.state = STATE_RUNNING;
+      manager.setHASS(hass);
+
+      expect(manager.isReady()).toBeTruthy();
+    });
+
+    it('should report disconnected readiness before any hass is set', () => {
+      const manager = new HASSManager(createCardAPI());
+      expect(manager.getReadiness()).toBe('disconnected');
+    });
+
+    it('should report disconnected readiness when disconnected', () => {
+      const manager = new HASSManager(createCardAPI());
+      const hass = createHASS();
+      hass.connected = false;
+      manager.setHASS(hass);
+
+      expect(manager.getReadiness()).toBe('disconnected');
+    });
+
+    it('should report starting readiness while integrations are still loading', () => {
+      const manager = new HASSManager(createCardAPI());
+      const hass = createHASS();
+      hass.connected = true;
+      hass.config.state = STATE_STARTING;
+      manager.setHASS(hass);
+
+      expect(manager.getReadiness()).toBe('starting');
+    });
+
+    it('should report starting readiness when reconnected with stale config', () => {
+      const manager = new HASSManager(createCardAPI());
+      const hass = createHASS();
+      hass.connected = true;
+      hass.config.state = STATE_RUNNING;
+      manager.setHASS(hass);
+
+      manager.setHASS(createHASSWithConfigOf(hass, { connected: false }));
+      manager.setHASS(createHASSWithConfigOf(hass, { connected: true }));
+
+      expect(manager.getReadiness()).toBe('starting');
+    });
+
+    it('should report ready readiness when connected and running', () => {
+      const manager = new HASSManager(createCardAPI());
+      const hass = createHASS();
+      hass.connected = true;
+      hass.config.state = STATE_RUNNING;
+      manager.setHASS(hass);
+
+      expect(manager.getReadiness()).toBe('ready');
     });
   });
 
@@ -266,6 +380,92 @@ describe('HASSManager', () => {
       manager.setHASS(connectedHASS);
       manager.setHASS(null);
       manager.setHASS(connectedHASS);
+    });
+
+    it('should end the session when the connection is lost and the configuration is unchanged', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      manager.setHASS(createHASSWithConfigOf(readyHASS, { connected: false }));
+
+      expect(api.getInitializationManager().getSessionManager().end).toHaveBeenCalled();
+    });
+
+    it('should not reinitialize while a reconnection still reports the pre-disconnection configuration', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      manager.setHASS(createHASSWithConfigOf(readyHASS, { connected: false }));
+
+      // The socket is back, but Home Assistant has not answered the frontend's
+      // request for its configuration, so the RUNNING it reports is the one
+      // from before the restart.
+      manager.setHASS(createHASSWithConfigOf(readyHASS, { connected: true }));
+
+      expect(manager.isReady()).toBeFalsy();
+      expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalled();
+      expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
+    });
+
+    it('should not reinitialize when a freshly read configuration reports Home Assistant still starting', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      manager.setHASS(createHASSWithConfigOf(readyHASS, { connected: false }));
+      manager.setHASS(createHASSWithConfigOf(readyHASS, { connected: true }));
+
+      const startingHASS = createHASS();
+      startingHASS.connected = true;
+      startingHASS.config.state = STATE_STARTING;
+      manager.setHASS(startingHASS);
+
+      expect(manager.isReady()).toBeFalsy();
+      expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalled();
+      expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
+    });
+
+    it('should reinitialize once after a freshly read configuration reports Home Assistant running', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      manager.setHASS(createHASSWithConfigOf(readyHASS, { connected: false }));
+      manager.setHASS(createHASSWithConfigOf(readyHASS, { connected: true }));
+
+      const startingHASS = createHASS();
+      startingHASS.connected = true;
+      startingHASS.config.state = STATE_STARTING;
+      manager.setHASS(startingHASS);
+
+      const recoveredHASS = createHASS();
+      recoveredHASS.connected = true;
+      recoveredHASS.config.state = STATE_RUNNING;
+      manager.setHASS(recoveredHASS);
+
+      expect(manager.isReady()).toBeTruthy();
+      expect(api.getCameraManager().destroy).toHaveBeenCalledOnce();
+      expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
+        InitializationAspect.CAMERAS,
+      );
     });
   });
 

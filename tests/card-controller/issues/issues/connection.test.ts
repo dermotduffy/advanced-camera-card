@@ -1,8 +1,6 @@
-import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { describe, expect, it } from 'vitest';
 
 import { ConnectionIssue } from '../../../../src/card-controller/issues/issues/connection';
-import { createHASS } from '../../../test-utils';
 
 describe('ConnectionIssue', () => {
   it('should have correct key', () => {
@@ -10,7 +8,7 @@ describe('ConnectionIssue', () => {
     expect(issue.key).toBe('connection');
   });
 
-  it('should report no issue when hass has never been set', () => {
+  it('should report no issue when hassReadiness has never been set', () => {
     const issue = new ConnectionIssue();
 
     issue.detectDynamic({});
@@ -19,12 +17,10 @@ describe('ConnectionIssue', () => {
     expect(issue.getIssue()).toBeNull();
   });
 
-  it('should report a lost issue when hass is disconnected', () => {
+  it('should report a lost issue when disconnected', () => {
     const issue = new ConnectionIssue();
-    const hass = createHASS();
-    hass.connected = false;
 
-    issue.detectDynamic({ hass });
+    issue.detectDynamic({ hassReadiness: 'disconnected' });
 
     expect(issue.hasIssue()).toBe(true);
     expect(issue.getIssue()).toEqual(
@@ -46,13 +42,10 @@ describe('ConnectionIssue', () => {
     );
   });
 
-  it('should report a starting issue when hass is connected but not running', () => {
+  it('should report a starting issue when starting', () => {
     const issue = new ConnectionIssue();
-    const hass = createHASS();
-    hass.connected = true;
-    hass.config.state = STATE_STARTING;
 
-    issue.detectDynamic({ hass });
+    issue.detectDynamic({ hassReadiness: 'starting' });
 
     expect(issue.hasIssue()).toBe(true);
     expect(issue.getIssue()).toEqual(
@@ -74,38 +67,48 @@ describe('ConnectionIssue', () => {
     );
   });
 
-  it('should not report an issue when hass is connected and running', () => {
+  it('should not report an issue when ready', () => {
     const issue = new ConnectionIssue();
-    const hass = createHASS();
-    hass.connected = true;
-    hass.config.state = STATE_RUNNING;
 
-    issue.detectDynamic({ hass });
+    issue.detectDynamic({ hassReadiness: 'ready' });
 
     expect(issue.hasIssue()).toBe(false);
     expect(issue.getIssue()).toBeNull();
   });
 
-  it('should clear when hass transitions lost → starting → ready', () => {
+  it('should clear when hass transitions disconnected to starting to ready', () => {
     const issue = new ConnectionIssue();
-    const hass = createHASS();
 
-    hass.connected = false;
-    issue.detectDynamic({ hass });
+    issue.detectDynamic({ hassReadiness: 'disconnected' });
     expect(issue.hasIssue()).toBe(true);
     expect(issue.getIssue()?.notification.heading?.text).toBe('Connection lost');
 
-    hass.connected = true;
-    hass.config.state = STATE_STARTING;
-    issue.detectDynamic({ hass });
+    issue.detectDynamic({ hassReadiness: 'starting' });
     expect(issue.hasIssue()).toBe(true);
     expect(issue.getIssue()?.notification.heading?.text).toBe(
       'Home Assistant is starting',
     );
 
-    hass.config.state = STATE_RUNNING;
-    issue.detectDynamic({ hass });
+    issue.detectDynamic({ hassReadiness: 'ready' });
     expect(issue.hasIssue()).toBe(false);
+  });
+
+  it('should report starting when reconnected with stale config', () => {
+    const issue = new ConnectionIssue();
+
+    issue.detectDynamic({ hassReadiness: 'ready' });
+    expect(issue.hasIssue()).toBe(false);
+
+    issue.detectDynamic({ hassReadiness: 'disconnected' });
+    expect(issue.hasIssue()).toBe(true);
+
+    // HASSManager reports 'starting' when the reconnected hass still carries
+    // the pre-disconnect config object.
+    issue.detectDynamic({ hassReadiness: 'starting' });
+    expect(issue.hasIssue()).toBe(true);
+    expect(issue.getIssue()?.notification.heading?.text).toBe(
+      'Home Assistant is starting',
+    );
   });
 
   it('should return true for isFullCardIssue', () => {
@@ -115,9 +118,7 @@ describe('ConnectionIssue', () => {
 
   it('should clear the issue after reset', () => {
     const issue = new ConnectionIssue();
-    const hass = createHASS();
-    hass.connected = false;
-    issue.detectDynamic({ hass });
+    issue.detectDynamic({ hassReadiness: 'disconnected' });
     expect(issue.hasIssue()).toBe(true);
 
     issue.reset();

@@ -210,6 +210,14 @@ export class FakeHASS {
    */
   public setConnected(connected: boolean): void {
     this._connected = connected;
+
+    // The real frontend keeps the pre-disconnect `hass.config` until its own
+    // `get_config` resolves after the socket returns. Mint a fresh object
+    // here to models that behavior.
+    if (connected) {
+      this._config = createConfig(this._config.state);
+    }
+
     this._renew();
   }
 

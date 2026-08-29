@@ -166,7 +166,10 @@ export class CardController
     // camera-trigger handler that writes back to ConditionStateManager, fanning
     // out to automations that still read a stale `hass`.
     this._hassManager.addListener((hass) =>
-      this._conditionStateManager.setState({ hass }),
+      this._conditionStateManager.setState({
+        hass,
+        hassReadiness: this._hassManager.getReadiness(),
+      }),
     );
 
     host.addController(this);

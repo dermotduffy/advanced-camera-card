@@ -8,6 +8,7 @@ import {
 } from '../../../src/card-controller/initialization/initialization-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { sideLoadHomeAssistantElements } from '../../../src/ha/side-load-ha-elements.js';
+import type { HomeAssistant } from '../../../src/ha/types';
 import { loadLanguages } from '../../../src/localize/localize';
 import type { Initializer } from '../../../src/utils/initializer/initializer';
 import { createConfig } from '../../config/test-utils';
@@ -15,6 +16,15 @@ import { createCardAPI, createHASS } from '../../test-utils';
 
 vi.mock('../../../src/localize/localize.js');
 vi.mock('../../../src/ha/side-load-ha-elements.js');
+
+const setupHASSMocks = (
+  api: ReturnType<typeof createCardAPI>,
+  hass: HomeAssistant,
+  ready = true,
+): void => {
+  vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+  vi.mocked(api.getHASSManager().isReady).mockReturnValue(ready);
+};
 
 // An API that passes the whole start predicate, checked both when an attempt is
 // queued and again when it runs.
@@ -26,7 +36,7 @@ const createReadyAPI = (): ReturnType<typeof createCardAPI> => {
   const hass = createHASS();
   hass.connected = true;
   hass.config.state = STATE_RUNNING;
-  vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+  setupHASSMocks(api, hass);
   vi.mocked(api.getIssueManager().getStateManager().hasFullCardIssue).mockReturnValue(
     false,
   );
@@ -78,7 +88,7 @@ describe('InitializationManager', () => {
     it('should handle without config', async () => {
       const api = createCardAPI();
       const manager = new InitializationManager(api);
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      setupHASSMocks(api, createHASS());
 
       await manager.initializeMandatory();
       expect(manager.getSessionManager().wasEverInitialized()).toBeFalsy();
@@ -88,7 +98,7 @@ describe('InitializationManager', () => {
       const api = createReadyAPI();
       const hass = createHASS();
       hass.config.state = STATE_STARTING;
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      setupHASSMocks(api, hass, false);
 
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
@@ -709,7 +719,7 @@ describe('InitializationManager', () => {
       const hass = createHASS();
       hass.connected = true;
       hass.config.state = STATE_STARTING;
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      setupHASSMocks(api, hass, false);
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
 
