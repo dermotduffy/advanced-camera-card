@@ -92,9 +92,10 @@ export interface Issue {
   // retries bypass it. Defaults to needsRetry() when not implemented.
   canRetryNow?(): boolean;
 
-  // Called by the manager when a retry is due. Returns true to stop the retry
-  // loop (exclusive), false to allow subsequent issues to also retry.
-  retry?(): boolean;
+  // Called by the manager when a retry is due. `force` marks a retry the user
+  // asked for by hand. Returns true to stop the retry loop (exclusive), false
+  // to allow subsequent issues to also retry.
+  retry?(force?: boolean): boolean;
 
   // Optional user-initiated fix. Not called by the issue infrastructure --
   // callers (e.g. notification control actions) invoke this directly.
