@@ -10,3 +10,14 @@ ha-icon-button {
   /* Buttons can always be clicked */
   pointer-events: auto;
 }
+
+// The card's icon wrapper is slotted into the button label's plain <span>,
+// where an inline-block rides the text baseline and leaves the font's
+// descender space underneath it: the span grows taller than the icon, the
+// button's flex layout centers the span, and the icon lands high by half the
+// descent (1px under Roboto, ~2px under system fonts, e.g. on iOS). Block
+// layout has no baseline, so the span shrinks to exactly the icon. Slotted
+// Home Assistant icons avoid the same trap via `--ha-icon-display` above.
+ha-icon-button advanced-camera-card-icon {
+  display: block;
+}
