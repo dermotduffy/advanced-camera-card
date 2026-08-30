@@ -10,3 +10,9 @@ ha-icon-button {
   /* Buttons can always be clicked */
   pointer-events: auto;
 }
+
+ha-icon-button advanced-camera-card-icon {
+  // Inline-level boxes sit on a line of text, where the button label's font
+  // reserves space below the line and pushes the icon off-center.
+  display: block;
+}
