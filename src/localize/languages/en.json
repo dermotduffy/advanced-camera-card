@@ -406,7 +406,8 @@
         }
       },
       "timeline": {
-        "clustering_threshold": "Number of events before clustering (0=no clustering)",
+        "clustering_threshold": "Clustering threshold",
+        "show_folders": "Show folders",
         "show_recordings": "Show recordings",
         "style": "Timeline style",
         "styles": {

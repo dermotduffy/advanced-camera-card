@@ -1071,6 +1071,88 @@ describe('UnifiedQueryBuilder', () => {
 
       expect(query).toBeNull();
     });
+    it('should include folder queries if the camera config specifies folders', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({ media: { folders: ['folder1', 'folder2'] } }),
+      );
+
+      foldersManager.getFolder.mockImplementation((id) =>
+        id ? createFolder({ id }) : null,
+      );
+      foldersManager.getDefaultQueryParameters.mockImplementation((folder) =>
+        createFolderQueryParams(folder, [{ id: 'some-path-id' }]),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+      const nodes = query.getNodes();
+      
+      // Should have 1 event query (default camera behavior) + 2 folder queries
+      expect(nodes).toHaveLength(3);
+      
+      const folderNodes = query.getFolderQueries();
+      expect(folderNodes).toHaveLength(2);
+      expect(folderNodes[0].folder.id).toBe('folder1');
+      expect(folderNodes[1].folder.id).toBe('folder2');
+    });
+
+    it('should include folder queries if global folders specify the camera', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(createCameraConfig({}));
+
+      const mockFolders = new Map([
+        ['folder1', createFolder({ id: 'folder1', cameras: ['camera.office', 'other'] })],
+        ['folder2', createFolder({ id: 'folder2', cameras: ['camera.office'] })],
+        ['folder3', createFolder({ id: 'folder3', cameras: ['other'] })],
+      ]);
+
+      foldersManager.getFolders.mockReturnValue(mockFolders.entries());
+      foldersManager.getFolder.mockImplementation((id) =>
+        id ? mockFolders.get(id) ?? null : null,
+      );
+      foldersManager.getDefaultQueryParameters.mockImplementation((folder) =>
+        createFolderQueryParams(folder, [{ id: 'some-path-id' }]),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+      const nodes = query.getNodes();
+      
+      // Should have 1 event query (default camera behavior) + 2 folder queries (folder1, folder2)
+      expect(nodes).toHaveLength(3);
+      
+      const folderNodes = query.getFolderQueries();
+      expect(folderNodes).toHaveLength(2);
+      expect(folderNodes[0].folder.id).toBe('folder1');
+      expect(folderNodes[1].folder.id).toBe('folder2');
+    });
+
+    it('should not include folder queries if includeFolders is false', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({ media: { folders: ['folder1', 'folder2'] } }),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery(undefined, { includeFolders: false });
+
+      assert(query);
+      const nodes = query.getNodes();
+      
+      // Should only have 1 event query (default camera behavior)
+      expect(nodes).toHaveLength(1);
+      
+      const folderNodes = query.getFolderQueries();
+      expect(folderNodes).toHaveLength(0);
+    });
   });
 
   describe('buildMediaQuery', () => {

@@ -63,6 +63,11 @@ export const getTimelineCoreSchema = (options?: {
       selector: { boolean: {} },
     },
     {
+      name: 'show_folders',
+      label: localize('config.common.timeline.show_folders'),
+      selector: { boolean: {} },
+    },
+    {
       name: 'format',
       type: 'expandable',
       title: localize('config.common.controls.timeline.format.editor_label'),

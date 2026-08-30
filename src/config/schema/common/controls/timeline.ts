@@ -4,6 +4,7 @@ export const timelineCoreConfigDefault = {
   clustering_threshold: 3,
   window_seconds: 60 * 60,
   show_recordings: true,
+  show_folders: true,
   style: 'stack' as const,
   format: {
     '24h': true,
@@ -32,6 +33,10 @@ export const timelineCoreConfigSchema = z.object({
     .boolean()
     .optional()
     .default(timelineCoreConfigDefault.show_recordings),
+  show_folders: z
+    .boolean()
+    .optional()
+    .default(timelineCoreConfigDefault.show_folders),
   style: z.enum(['stack', 'ribbon']).optional().default(timelineCoreConfigDefault.style),
   format: timelineFormatSchema.optional().default(timelineCoreConfigDefault.format),
 });

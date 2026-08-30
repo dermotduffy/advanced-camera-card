@@ -26,6 +26,7 @@ interface MediaQueryBuildOptions extends QueryFilters {
 
 interface QueryFiltersOptions extends QueryFilters {
   limit?: number;
+  includeFolders?: boolean;
 }
 
 type MediaType = 'events' | 'recordings' | 'reviews' | 'folder';
@@ -335,6 +336,21 @@ export class UnifiedQueryBuilder {
     const query = new UnifiedQuery();
     for (const cameraID of cameraIDs) {
       this._addNode(query, this._buildDefaultCameraQueryNodes(cameraID, options));
+      if (options?.includeFolders !== false) {
+        const mediaConfig = this._cameraManager.getStore().getCameraConfig(cameraID)?.media;
+        let folderIDs = mediaConfig?.folders;
+        if (!folderIDs) {
+          folderIDs = [];
+          for (const [id, folder] of this._foldersManager.getFolders()) {
+            if (folder.cameras?.includes(cameraID)) {
+              folderIDs.push(id);
+            }
+          }
+        }
+        for (const folderID of folderIDs) {
+          this._addNode(query, this._buildFolderQueryNode(folderID, options));
+        }
+      }
     }
     return query.hasNodes() ? query : null;
   }

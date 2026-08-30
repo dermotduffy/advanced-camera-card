@@ -141,7 +141,13 @@ export class ViewQueryExecutor {
         break;
       case 'timeline':
         // Timeline view always queries all cameras with media capabilities.
-        viewModifiers.push(...(await executeQuery(builder.buildDefaultCameraQuery())));
+        viewModifiers.push(
+          ...(await executeQuery(
+            builder.buildDefaultCameraQuery(undefined, {
+              includeFolders: config.timeline.show_folders,
+            }),
+          )),
+        );
         break;
       case 'gallery':
       case 'media':
