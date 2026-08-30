@@ -19,6 +19,7 @@ import {
   createUnansweredMediaURL,
   getTestMediaRequestCount,
   useTestMedia,
+  waitForTestMediaRequestCount,
 } from '../../../browser/test-media';
 import {
   CAMERA_ENTITY,
@@ -446,7 +447,8 @@ describe('MediaUnavailableIssue', () => {
       cameras: [createStillImageCameraConfig(CAMERA_ENTITY, mediaURL)],
     });
 
-    await card.waitForSelector('img');
+    await waitForTestMediaRequestCount(mediaURL, 1);
+
     await card.advanceSeconds(MEDIA_LOADING_TIMEOUT_SECONDS);
     expect(isIssueReported(card)).toBe(true);
 
@@ -460,6 +462,8 @@ describe('MediaUnavailableIssue', () => {
     // Past the grace period the attempt has had long enough, and the next retry
     // replaces it.
     await card.advanceSeconds(retrySeconds + 1);
+    await waitForTestMediaRequestCount(mediaURL, 2);
+
     expect(getTestMediaRequestCount(mediaURL)).toBeGreaterThan(1);
   });
 

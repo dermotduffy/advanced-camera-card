@@ -14,6 +14,10 @@ const TEST_MEDIA_PATH = '/test-media';
 // page runs one test file, so nothing here is shared with another file.
 const requestCounts = new Map<string, number>();
 
+// Tests waiting for a token to reach a request count, resolved by the worker
+// below as it counts.
+const requestWaiters = new Map<string, { count: number; resolve: () => void }[]>();
+
 // Whether this page's tests asked for the worker. Recorded so that a URL only
 // the worker can answer cannot be built without it.
 let inUse = false;
@@ -75,13 +79,47 @@ export const createUnansweredMediaURL = (): string => createTestMediaURL([]);
 export const createStallingMediaURL = (filename?: string): string =>
   createTestMediaURL([HTTP_OK], false, filename);
 
+const getToken = (url: string): string | null =>
+  new URL(url, window.location.href).searchParams.get('token');
+
 /**
  * How many requests a media URL has been asked for, so a test can count what
  * the card actually fetched rather than only what it displayed.
  */
 export const getTestMediaRequestCount = (url: string): number => {
-  const token = new URL(url, window.location.href).searchParams.get('token');
+  const token = getToken(url);
   return (token ? requestCounts.get(token) : null) ?? 0;
+};
+
+/**
+ * Wait until a media URL has been asked for the given number of times.
+ *
+ * A request is put on the page by the browser and answered by a service worker
+ * on a thread of its own, so how long it takes to be counted is real time that
+ * running the card's fake clock forward does not cover.
+ */
+export const waitForTestMediaRequestCount = async (
+  url: string,
+  count: number,
+): Promise<void> => {
+  const token = getToken(url);
+  if (!token) {
+    throw new Error(
+      'Requests are only counted for a media URL created by this file, ' +
+        'e.g. createUnansweredMediaURL().',
+    );
+  }
+
+  if (getTestMediaRequestCount(url) >= count) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    requestWaiters.set(token, [
+      ...(requestWaiters.get(token) ?? []),
+      { count, resolve },
+    ]);
+  });
 };
 
 /**
@@ -120,7 +158,17 @@ const worker = setupWorker(
       .map(Number);
 
     const answered = requestCounts.get(token) ?? 0;
-    requestCounts.set(token, answered + 1);
+    const counted = answered + 1;
+    requestCounts.set(token, counted);
+
+    const waiters = requestWaiters.get(token) ?? [];
+    requestWaiters.set(
+      token,
+      waiters.filter((waiter) => waiter.count > counted),
+    );
+    waiters
+      .filter((waiter) => waiter.count <= counted)
+      .forEach((waiter) => waiter.resolve());
 
     const isPastEnd = answered >= responses.length;
     if (isPastEnd && url.searchParams.get('repeat') !== 'true') {
