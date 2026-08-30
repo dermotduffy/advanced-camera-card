@@ -57,6 +57,14 @@ const showNotification = async (card: MountedCard): Promise<HTMLElement> => {
   return await card.waitForSelector<HTMLElement>('.notification');
 };
 
+const dismissNotification = async (card: MountedCard): Promise<void> => {
+  await pressKey('Escape');
+  await card.waitForRender(
+    () => (deepQuery(card.card, '.notification') ? null : true),
+    'the notification to be removed',
+  );
+};
+
 describe('NotificationPopupController', () => {
   it('should keep the notification open when its own text is pressed', async () => {
     const card = await mount();
@@ -132,13 +140,27 @@ describe('NotificationPopupController', () => {
     await showNotification(card);
     expect(getFocusedElement()).not.toBe(elsewhere);
 
-    await pressKey('Escape');
-    await card.waitForRender(
-      () => (deepQuery(card.card, '.notification') ? null : true),
-      'the notification to be removed',
-    );
+    await dismissNotification(card);
 
     expect(getFocusedElement()).toBe(elsewhere);
+  });
+
+  it('should return focus without a visible focus ring', async () => {
+    const card = await mount();
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
+
+    const elsewhere = document.createElement('button');
+    document.body.appendChild(elsewhere);
+
+    // Focused as a pointer press leaves it: with no ring, which is the state
+    // the return of focus must not change.
+    elsewhere.focus({ focusVisible: false });
+
+    await showNotification(card);
+    await dismissNotification(card);
+
+    expect(getFocusedElement()).toBe(elsewhere);
+    expect(elsewhere.matches(':focus-visible')).toBe(false);
   });
 
   it('should activate a notification control from the keyboard', async () => {

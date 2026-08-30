@@ -7,14 +7,6 @@ import type { CardKeyboardStateAPI, KeysState } from './types';
 
 const KEY_STATES = ['down', 'up'] as const;
 
-// The `focusVisible` option is part of the focus specification and shipped in
-// evergreen browsers, but is not yet in the bundled TypeScript DOM types.
-declare global {
-  interface FocusOptions {
-    focusVisible?: boolean;
-  }
-}
-
 export class KeyboardStateManager {
   private _api: CardKeyboardStateAPI;
   private _state: KeysState = {};

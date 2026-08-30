@@ -232,6 +232,19 @@ describe('KeyboardStateManager', () => {
     await card.console.waitForMessage(KEY_MESSAGE);
   });
 
+  it('should not draw a focus indicator when it takes focus', async () => {
+    const card = await mountCard();
+
+    await clickMedia(card);
+
+    expect(getFocusedElement()).toBe(card.card);
+
+    // Focus taken by script counts as keyboard-driven, and the browser rings
+    // the whole card for it: a bright border around a card the user only
+    // pressed.
+    expect(card.card.matches(':focus-visible')).toBe(false);
+  });
+
   it('should not scroll the page when it takes focus', async () => {
     // Well below the window, so the card is out of sight until the page is
     // scrolled to it.

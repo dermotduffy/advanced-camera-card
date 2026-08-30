@@ -133,6 +133,22 @@ describe('NotificationPopupController', () => {
       expect(document.activeElement).toBe(before);
     });
 
+    it('should return focus without a visible focus ring', () => {
+      const before = document.createElement('button');
+      document.body.appendChild(before);
+      before.focus();
+      const focus = vi.spyOn(before, 'focus');
+
+      const popup = createFocusablePopup();
+      const { controller } = create(() => popup);
+      controller.hostUpdated();
+      popup.remove();
+
+      controller.hostDisconnected();
+
+      expect(focus).toHaveBeenCalledWith({ focusVisible: false });
+    });
+
     it('should leave focus alone when something else has taken it', () => {
       const before = document.createElement('button');
       document.body.appendChild(before);
