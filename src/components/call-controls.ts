@@ -23,6 +23,8 @@ import {
 import { hasPopOutAnimationEnded } from '../utils/animation.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 
+import './icon.js';
+
 /**
  * The on-screen overlay shown during a two-way audio call: a centered pill
  * whose contents depend on call state. Pre-answer (inbound ringing) shows
@@ -215,7 +217,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
           }
         }}
       >
-        <ha-icon icon=${icon}></ha-icon>
+        <advanced-camera-card-icon .icon=${{ icon }}></advanced-camera-card-icon>
       </ha-icon-button>
     `;
   }
