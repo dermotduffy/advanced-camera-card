@@ -74,6 +74,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         .stateWatcher=${this.stateWatcher}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .viewFilterCameraID=${cameraID}
+        .autoHeight=${!cameraID}
         .liveConfig=${this.liveConfig}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}

@@ -18,13 +18,14 @@ const CAMERA_ENTITIES = [CAMERA_ENTITY, 'camera.two', 'camera.three'];
 const CELL_RATIO_PARTS = [16, 9];
 const CELL_RATIO = CELL_RATIO_PARTS[0] / CELL_RATIO_PARTS[1];
 
-// How many frames a wait may take before the grid is called unsettled. Frames
+// How many frames a wait may take before the grid is called stuck. Frames
 // rather than time, so a slow machine gets proportionally more patience.
-const SETTLE_FRAME_BUDGET = 600;
+const STUCK_FRAME_BUDGET = 600;
 
-// How many frames to allow the carousels' debounced height cap to arrive
-// after the grid has settled.
-const CAP_ARM_FRAME_BUDGET = 60;
+// How many consecutive frames of unchanged geometry mean the grid has stopped
+// moving. Any change restarts the count, so work the cells defer is waited out
+// however late it lands.
+const QUIET_FRAME_COUNT = 20;
 
 // How many frames to watch a selection transition for intermediate states. The
 // regression this guards against parked the selected cell at the wrong height
@@ -75,65 +76,59 @@ const getExpectedCellHeight = (cell: HTMLElement, width: number): number => {
   return (width - horizontal) / CELL_RATIO + vertical;
 };
 
-const isCellSettled = (cell: HTMLElement): boolean => {
+const isCellAtRatio = (cell: HTMLElement): boolean => {
   const rect = cell.getBoundingClientRect();
   return (
     rect.width > 0 && Math.abs(rect.height - getExpectedCellHeight(cell, rect.width)) < 2
   );
 };
 
-// Cell geometry can settle without a further DOM mutation, so this polls
-// frames rather than waiting on the card to render something. Before the grid
-// controller applies column sizes, every cell briefly spans the full width at
-// the configured ratio, so a settled grid also requires the selected cell to
-// be the only wide one.
-const waitForSettledGrid = async (card: MountedCard): Promise<HTMLElement[]> => {
-  for (let frame = 0; frame < SETTLE_FRAME_BUDGET; frame++) {
-    const cells = getCells(card);
-    const selected = cells.filter((cell) => cell.hasAttribute('selected'));
-    if (
-      cells.length === CAMERA_ENTITIES.length &&
-      selected.length === 1 &&
-      cells.every(isCellSettled) &&
-      cells.every(
-        (cell) =>
-          cell === selected[0] ||
-          cell.getBoundingClientRect().width < selected[0].getBoundingClientRect().width,
-      )
-    ) {
-      return cells;
+const getGeometry = (card: MountedCard): string =>
+  getCells(card)
+    .map((cell) => {
+      const rect = cell.getBoundingClientRect();
+      return `${cell.getAttribute('grid-id')}:${rect.width}x${rect.height}`;
+    })
+    .join(' ');
+
+// Wait for the cells to stop changing size. Geometry can change with no DOM
+// mutation, so this polls frames rather than waiting on the card to render.
+const waitForQuietGrid = async (card: MountedCard): Promise<HTMLElement[]> => {
+  let previous: string | null = null;
+  let quietFrames = 0;
+
+  for (let frame = 0; frame < STUCK_FRAME_BUDGET; frame++) {
+    const geometry = getGeometry(card);
+    quietFrames = geometry === previous ? quietFrames + 1 : 0;
+    previous = geometry;
+
+    if (quietFrames >= QUIET_FRAME_COUNT) {
+      return getCells(card);
     }
     await nextFrame();
   }
-  throw new Error('The grid cells never settled at the configured ratio');
+  throw new Error('The grid cells never stopped changing size');
 };
 
 describe('AdvancedCameraCardLiveGrid', () => {
   it('should apply the height of a newly selected cell in the same pass as its width', async () => {
     const card = await mountGrid();
-    await waitForSettledGrid(card);
+    const cells = await waitForQuietGrid(card);
+    expect(cells).toHaveLength(CAMERA_ENTITIES.length);
+    expect(cells.every(isCellAtRatio)).toBe(true);
 
     const selected = getCell(card, CAMERA_ENTITY);
     const target = getCell(card, 'camera.two');
     assert(selected && target);
 
-    // A carousel caps its own height with a debounced inline `max-height`
-    // (see media-height-controller.ts), which is what once held a newly
-    // selected cell at its old height. Let that cap arrive before selecting,
-    // so the transition under test is the one a user performs on a
-    // long-settled grid. Should the cap mechanism ever disappear, there is
-    // nothing to arm and this wait simply runs out.
-    for (let frame = 0; frame < CAP_ARM_FRAME_BUDGET; frame++) {
-      if (getCells(card).every((cell) => cell.style.maxHeight !== '')) {
-        break;
-      }
-      await nextFrame();
-    }
-
-    // Thresholds derived from the two settled sizes rather than constants, so
+    // Thresholds derived from the two laid out sizes rather than constants, so
     // a changed gutter or border width does not invalidate the test.
     const selectedWidth = selected.getBoundingClientRect().width;
     const unselectedRect = target.getBoundingClientRect();
+
+    // Every cell spans the full width until the grid controller applies column
+    // sizes, so a quiet grid is not necessarily a laid out one.
+    expect(unselectedRect.width).toBeLessThan(selectedWidth);
     const wideThreshold = (selectedWidth + unselectedRect.width) / 2;
     const shortThreshold =
       (getExpectedCellHeight(target, selectedWidth) + unselectedRect.height) / 2;
@@ -162,5 +157,11 @@ describe('AdvancedCameraCardLiveGrid', () => {
     expect(
       Math.abs(finalRect.height - getExpectedCellHeight(target, finalRect.width)),
     ).toBeLessThan(2);
+
+    // Outside a grid a carousel caps its own height with an inline
+    // `max-height`. A grid cell must not carry that cap.
+    expect(getCells(card).map((cell) => cell.style.maxHeight)).toEqual(
+      CAMERA_ENTITIES.map(() => ''),
+    );
   });
 });
