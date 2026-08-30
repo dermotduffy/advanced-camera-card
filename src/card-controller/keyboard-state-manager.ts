@@ -7,6 +7,14 @@ import type { CardKeyboardStateAPI, KeysState } from './types';
 
 const KEY_STATES = ['down', 'up'] as const;
 
+// The `focusVisible` option is part of the focus specification and shipped in
+// evergreen browsers, but is not yet in the bundled TypeScript DOM types.
+declare global {
+  interface FocusOptions {
+    focusVisible?: boolean;
+  }
+}
+
 export class KeyboardStateManager {
   private _api: CardKeyboardStateAPI;
   private _state: KeysState = {};
@@ -142,8 +150,12 @@ export class KeyboardStateManager {
       return;
     }
 
-    // Taking focus must not scroll the dashboard to bring the card into view.
-    element.focus({ preventScroll: true });
+    // Taking focus must not scroll the dashboard to bring the card into view,
+    // nor summon the browser's focus ring: script-initiated focus counts as
+    // keyboard-like and would draw the ring around the entire card on a plain
+    // pointer press. Tabbing to the card does not pass through here, so
+    // keyboard users keep their ring.
+    element.focus({ preventScroll: true, focusVisible: false });
   };
 
   private _handleBlur = (ev: FocusEvent): void => {
