@@ -909,7 +909,7 @@
         "entity_unavailable": "Camera entity unavailable",
         "not_loading": "Media not loading",
         "playback_error": "Playback error",
-        "server_error": "Streaming server error",
+        "server_error": "Media server error",
         "stalled": "Stream stalled",
         "unsupported": "Stream not supported"
       },

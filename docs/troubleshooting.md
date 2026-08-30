@@ -85,12 +85,20 @@ appears in the status bar. The card retries automatically with a back-off (and
 the notification offers a manual retry button). A live stream additionally
 reconnects on its own once its camera becomes available again.
 
+A retry rebuilds the media from scratch, discarding the prior attempt. Media
+that is merely loading slowly has not failed -- it is still loading -- so
+restarting it would throw away the very attempt that may be about to succeed. A
+camera reported as **Media not loading** is therefore left running for at least
+30 seconds after that message appears before the card rebuilds it, unlike media
+that has _actually_ failed, which is rebuilt as soon as the schedule allows. The
+manual retry button rebuilds immediately regardless.
+
 Reported reasons why media may be unavailable:
 
 | Reason                        | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Camera entity unavailable** | The camera's `camera_entity` reported `unavailable` in Home Assistant, e.g. the camera or its integration (such as Frigate) restarted, or the camera lost power or network. A short grace period is allowed before this is reported, and the card recovers automatically once the entity returns. Set [`always_error_if_entity_unavailable`](./configuration/cameras/README.md?id=cameras) to report it immediately instead. |
-| **Media not loading**         | The media did not finish loading within the expected time: a slow or failed initial load. Applies to live streams, the viewer, and image views.                                                                                                                                                                                                                                                                              |
+| **Media not loading**         | The media did not finish loading within the expected time: a slow or failed initial load. Applies to live streams, the viewer, and image views. Nothing has necessarily failed yet, so the card keeps waiting on the existing load attempt already underway rather than restarting it immediately.                                                                                                                           |
 | **Playback error**            | The live provider reported an error while trying to play the stream.                                                                                                                                                                                                                                                                                                                                                         |
 | **Stream stalled**            | The stream loaded and was playing, but stopped delivering new frames with no error raised (a silent freeze). The card notices the lack of progress and reconnects.                                                                                                                                                                                                                                                           |
 

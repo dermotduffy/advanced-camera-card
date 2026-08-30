@@ -1,6 +1,7 @@
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RETRY_EXPONENTIAL_BASE_SECONDS } from '../../../../src/card-controller/issues/issue-manager';
+import { MEDIA_UNAVAILABLE_REASONS } from '../../../../src/card-controller/issues/issues/media-unavailable';
 import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../../src/components-lib/live/liveness/detectors/entity-availability';
 import { MEDIA_LOADING_TIMEOUT_SECONDS } from '../../../../src/components-lib/media-load-watchdog-controller';
 import { FRAME_STALL_SECONDS } from '../../../../src/components-lib/media-player/frame-stall-watchdog';
@@ -437,6 +438,31 @@ describe('MediaUnavailableIssue', () => {
     expect(isIssueReported(card)).toBe(true);
   });
 
+  it('should wait out the grace period before rebuilding a slow camera', async () => {
+    const retrySeconds = 5;
+    const mediaURL = createUnansweredMediaURL();
+    const card = await mountCard({
+      view: { issues: { retry_seconds: retrySeconds } },
+      cameras: [createStillImageCameraConfig(CAMERA_ENTITY, mediaURL)],
+    });
+
+    await card.waitForSelector('img');
+    await card.advanceSeconds(MEDIA_LOADING_TIMEOUT_SECONDS);
+    expect(isIssueReported(card)).toBe(true);
+
+    // Several retries fall due during the grace period, but rebuilding would
+    // discard a load that may still complete.
+    await card.advanceSeconds(
+      MEDIA_UNAVAILABLE_REASONS.not_loading.rebuildGraceSeconds - 1,
+    );
+    expect(getTestMediaRequestCount(mediaURL)).toBe(1);
+
+    // Past the grace period the attempt has had long enough, and the next retry
+    // replaces it.
+    await card.advanceSeconds(retrySeconds + 1);
+    expect(getTestMediaRequestCount(mediaURL)).toBeGreaterThan(1);
+  });
+
   it('should keep retrying a camera that is still broken', async () => {
     // Must use the real clock: fake time moves the card's timers instantly, so
     // a request would never get a chance to answer between one retry and the
@@ -470,12 +496,14 @@ describe('MediaUnavailableIssue', () => {
     expect(isLiveMediaShowing(card.card)).toBe(true);
 
     // Exactly the two attempts that failed, so the retry ran once rather than
-    // spinning until something happened to work.
+    // spinning until something happened to work. A refused request is reported
+    // as a server error rather than a slow load, which is what allows it to be
+    // retried without waiting.
     expect(
       card.events
         .getEntries('advanced-camera-card:issue:trigger')
         .map((entry) => getIssueReason(entry.detail)),
-    ).toEqual(['not_loading', 'not_loading']);
+    ).toEqual(['server_error', 'server_error']);
   });
 
   it('should re-attempt when the retry control is used', async () => {

@@ -1,3 +1,4 @@
+import { add } from 'date-fns';
 import type { IssueResolveContext, IssueTriggerContext } from 'issue';
 
 import type {
@@ -58,25 +59,43 @@ declare module 'issue' {
 interface TargetError {
   reason: MediaUnavailableIssueReason;
   description?: string;
+
+  // The earliest the card should rebuild this target's media. Carried forward
+  // across repeat reports of the same failure, and refreshed when a rebuild
+  // starts a new attempt.
+  rebuildNotBefore: Date;
 }
 
-// The per-cause presentation (localization key + icon), shared by the
-// notification metadata and the reconnecting placeholder so each cause is
+// The per-cause presentation (localization key + icon) and handling, shared by
+// the notification metadata and the reconnecting placeholder so each cause is
 // described in exactly one place. `resetOnLoad` means a media load will reset
-// this issue reason.
+// this issue reason. `rebuildGraceSeconds` is how long the media is left alone
+// before the card rebuilds it: media that has failed has nothing to protect and
+// is rebuilt at once, so only a load still in progress asks for any.
 export const MEDIA_UNAVAILABLE_REASONS: Record<
   MediaUnavailableIssueReason,
-  { localizationKey: string; icon: string; resetOnLoad: boolean }
+  {
+    localizationKey: string;
+    icon: string;
+    resetOnLoad: boolean;
+    rebuildGraceSeconds: number;
+  }
 > = {
   entity_unavailable: {
     localizationKey: 'issues.media_unavailable.reasons.entity_unavailable',
     icon: 'mdi:cctv-off',
     resetOnLoad: false,
+    rebuildGraceSeconds: 0,
   },
   not_loading: {
     localizationKey: 'issues.media_unavailable.reasons.not_loading',
     icon: 'mdi:progress-helper',
     resetOnLoad: true,
+    // A load that has not arrived yet has not necessarily failed: the provider is
+    // mounted and still trying, so rebuilding it destroys an attempt that may be
+    // about to succeed. Hold a rebuild off for at least this long, three load
+    // windows, to give that attempt time to finish.
+    rebuildGraceSeconds: 30,
   },
   playback_error: {
     localizationKey: 'issues.media_unavailable.reasons.playback_error',
@@ -84,16 +103,19 @@ export const MEDIA_UNAVAILABLE_REASONS: Record<
 
     // A player can load media and still fail to play it.
     resetOnLoad: false,
+    rebuildGraceSeconds: 0,
   },
   server_error: {
     localizationKey: 'issues.media_unavailable.reasons.server_error',
     icon: 'mdi:server-network-off',
     resetOnLoad: true,
+    rebuildGraceSeconds: 0,
   },
   stalled: {
     localizationKey: 'issues.media_unavailable.reasons.stalled',
     icon: 'mdi:motion-pause',
     resetOnLoad: false,
+    rebuildGraceSeconds: 0,
   },
   unsupported: {
     localizationKey: 'issues.media_unavailable.reasons.unsupported',
@@ -102,6 +124,7 @@ export const MEDIA_UNAVAILABLE_REASONS: Record<
     // Substitute pictures are never announced as loaded media, so a load means
     // the requested media was delivered in some supported way after all.
     resetOnLoad: true,
+    rebuildGraceSeconds: 0,
   },
 };
 
@@ -127,10 +150,28 @@ export class MediaUnavailableIssue implements Issue {
   // =========================================================================
 
   public trigger(context: IssueTriggerContext['media_unavailable']): void {
+    // A target already failing this same way keeps the deadline it was given,
+    // so repeat reports of one failure cannot push a rebuild out indefinitely.
+    const existing = this._erroredTargets.get(context.targetID);
     this._erroredTargets.set(context.targetID, {
       reason: context.reason,
       description: context.description,
+      rebuildNotBefore:
+        existing?.reason === context.reason
+          ? existing.rebuildNotBefore
+          : this._getRebuildDeadline(context.reason),
     });
+  }
+
+  private _getRebuildDeadline(reason: MediaUnavailableIssueReason): Date {
+    return add(new Date(), {
+      seconds: MEDIA_UNAVAILABLE_REASONS[reason].rebuildGraceSeconds,
+    });
+  }
+
+  // Whether this target's media has waited long enough to be rebuilt.
+  private _isRebuildDue(error: TargetError): boolean {
+    return new Date() >= error.rebuildNotBefore;
   }
 
   public resolve(context: IssueResolveContext['media_unavailable']): void {
@@ -236,8 +277,21 @@ export class MediaUnavailableIssue implements Issue {
     return this.hasIssue();
   }
 
-  public retry(): boolean {
-    const retryTargets = this._getDisplayedErrors();
+  // False while everything on screen is still within its grace period, so the
+  // manager treats the moment as one where nothing was attempted rather than as
+  // a failed attempt that should lengthen the wait for the next one.
+  public canRetryNow(): boolean {
+    return [...this._getDisplayedErrors().values()].some((error) =>
+      this._isRebuildDue(error),
+    );
+  }
+
+  public retry(force?: boolean): boolean {
+    const retryTargets = new Map(
+      [...this._getDisplayedErrors()].filter(
+        ([, error]) => force || this._isRebuildDue(error),
+      ),
+    );
     if (!retryTargets.size) {
       return false;
     }
@@ -248,6 +302,10 @@ export class MediaUnavailableIssue implements Issue {
     const mediaEpoch = { ...(view?.context?.mediaEpoch ?? {}) };
     for (const id of retryTargets.keys()) {
       mediaEpoch[id] = (mediaEpoch[id] ?? 0) + 1;
+    }
+
+    for (const error of retryTargets.values()) {
+      error.rebuildNotBefore = this._getRebuildDeadline(error.reason);
     }
 
     // Intentionally keep _erroredTargets in place. The issue stays visible

@@ -841,8 +841,8 @@ describe('IssueManager', () => {
     });
   });
 
-  describe('in-flight retry', () => {
-    it('should hold the backoff and not arm a timer while a retry is in flight', () => {
+  describe('when an issue cannot retry yet', () => {
+    it('should not retry while one is in flight without exponentially backing off', () => {
       vi.spyOn(Math, 'random').mockReturnValue(0.5);
       const api = createCardAPI();
       const config = createConfig();
@@ -872,8 +872,8 @@ describe('IssueManager', () => {
       expect(issue.retry).toHaveBeenCalledTimes(1);
 
       // The attempt is now in flight: the problem is still unresolved
-      // (needsRetry) but cannot be retried right now (canRetryNow). The running
-      // timer is canceled and no further attempt fires, however long we wait.
+      // (needsRetry) but cannot be retried right now (canRetryNow). No further
+      // attempt fires, however long we wait.
       canRetryNow.mockReturnValue(false);
       manager.evaluate();
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
@@ -889,6 +889,39 @@ describe('IssueManager', () => {
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
       expect(issue.retry).toHaveBeenCalledTimes(2);
+    });
+
+    it('should retry on its own once the issue becomes retryable', () => {
+      const api = createCardAPI();
+      const config = createConfig();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue({
+        ...config,
+        view: {
+          ...config.view,
+          issues: { interaction_mode: 'all', retry_seconds: 'auto' },
+        },
+      });
+      const manager = new IssueManager(api);
+
+      const canRetryNow = vi.fn().mockReturnValue(false);
+      const issue = createIssue('media_unavailable', {
+        hasIssue: vi.fn().mockReturnValue(true),
+        needsRetry: vi.fn().mockReturnValue(true),
+        canRetryNow,
+        retry: vi.fn().mockReturnValue(false),
+      });
+      manager.addIssue(issue);
+
+      manager.evaluate();
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
+      expect(issue.retry).not.toHaveBeenCalled();
+
+      canRetryNow.mockReturnValue(true);
+
+      // Deliberately no evaluate() here: nothing on the card has changed.
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 1000);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
     });
   });
 

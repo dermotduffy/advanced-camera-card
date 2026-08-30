@@ -537,7 +537,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 this._imageLoadError = true;
               }
 
-              this._dispatchError('not_loading');
+              this._dispatchError('server_error');
             }}
           />
         `
