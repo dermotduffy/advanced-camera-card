@@ -14,6 +14,7 @@ import {
   getFocusedElement,
   holdKey,
   pressKey,
+  pressTab,
   releaseKey,
 } from '../browser/dom';
 import {
@@ -243,6 +244,18 @@ describe('KeyboardStateManager', () => {
     // the whole card for it: a bright border around a card the user only
     // pressed.
     expect(card.card.matches(':focus-visible')).toBe(false);
+  });
+
+  it('should draw a focus indicator when it is reached with the keyboard', async () => {
+    const card = await mountCard();
+
+    await pressTab();
+
+    expect(getFocusedElement()).toBe(card.card);
+
+    // The card is in the tab order, and a user who arrives on it that way needs
+    // to be able to see where they are.
+    expect(card.card.matches(':focus-visible')).toBe(true);
   });
 
   it('should not scroll the page when it takes focus', async () => {
