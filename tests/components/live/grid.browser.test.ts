@@ -53,7 +53,15 @@ const mountGrid = async (): Promise<MountedCard> =>
       ...GRID_CONFIG,
     }),
     createGenericCameraHASS({ cameras: CAMERA_ENTITIES.slice(1) }),
-    { width: '600px' },
+    {
+      width: '600px',
+
+      // A cell resize can resize the grid host and vice versa, and a browser
+      // reports each round it has to defer as an uncaught error. How many
+      // rounds that takes follows the browser's frame scheduling, not the card,
+      // so it cannot be counted, only tolerated.
+      toleratedConsoleErrors: [/ResizeObserver loop completed/],
+    },
   );
 
 const nextFrame = async (): Promise<void> =>

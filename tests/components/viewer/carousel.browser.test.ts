@@ -226,4 +226,25 @@ describe('AdvancedCameraCardViewerCarousel', () => {
     await card.waitForSelector('advanced-camera-card-gallery');
     expect(deepQuery(card.card, 'advanced-camera-card-viewer-carousel')).toBeNull();
   });
+
+  it('should cap its own height to fit the media it shows', async () => {
+    const card = await mountViewer();
+
+    const carousel = deepQuery<HTMLElement>(
+      card.card,
+      'advanced-camera-card-viewer-carousel',
+    );
+    assert(carousel);
+
+    await card.waitForRender(
+      () => carousel.style.maxHeight || null,
+      'the carousel capping its own height',
+    );
+
+    // Outside a grid the carousel fills the card, so the cap is what gives the
+    // card the height of its media rather than of whatever contains it.
+    expect(parseFloat(carousel.style.maxHeight)).toBe(
+      carousel.getBoundingClientRect().height,
+    );
+  });
 });
