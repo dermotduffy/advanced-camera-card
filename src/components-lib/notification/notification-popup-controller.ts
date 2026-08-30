@@ -55,7 +55,7 @@ export class NotificationPopupController implements ReactiveController {
       this._elementFocusedBeforePopup instanceof HTMLElement &&
       document.activeElement === document.body
     ) {
-      this._elementFocusedBeforePopup.focus();
+      this._elementFocusedBeforePopup.focus({ focusVisible: false });
     }
     this._elementFocusedBeforePopup = null;
   }

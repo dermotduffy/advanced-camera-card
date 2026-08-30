@@ -243,13 +243,13 @@ describe('KeyboardStateManager', () => {
     });
   });
 
-  it('should take focus on pointerdown', () => {
+  it('should take focus on pointerdown without a visible focus ring', () => {
     const { element } = createManager();
     const focus = vi.spyOn(element, 'focus');
 
     element.dispatchEvent(new Event('pointerdown'));
 
-    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true, focusVisible: false });
   });
 
   it('should not take focus on pointerdown when focus is already within the card', () => {
