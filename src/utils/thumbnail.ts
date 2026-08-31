@@ -1,7 +1,10 @@
 import { Task } from '@lit/task';
 import type { ReactiveControllerHost } from 'lit';
 
+import { isMediaSourceID } from '../ha/media-source';
+import { resolveMedia } from '../ha/resolved-media';
 import type { HomeAssistant } from '../ha/types';
+import { AdvancedCameraCardError } from '../types';
 
 // See: https://github.com/sindresorhus/is-absolute-url
 // Scheme: https://tools.ietf.org/html/rfc3986#section-3.1
@@ -9,15 +12,25 @@ import type { HomeAssistant } from '../ha/types';
 const ABSOLUTE_URL_REGEX = /^[a-zA-Z][a-zA-Z\d+\-.]*?:/;
 
 /**
- * Fetch a thumbnail URL and return a data URL.
+ * Fetch a thumbnail and return a data URL.
  * @param hass Home Assistant object.
- * @param thumbnailURL The thumbnail URL.
+ * @param thumbnail A thumbnail URL, or the Home Assistant media source ID of an
+ * image.
  * @returns A base64 encoded data URL for the thumbnail.
  */
 const fetchThumbnail = async (
   hass: HomeAssistant,
-  thumbnailURL: string,
+  thumbnail: string,
 ): Promise<string | null> => {
+  // A media source ID is tested for first, as it would otherwise be taken for
+  // an absolute URL.
+  const thumbnailURL = isMediaSourceID(thumbnail)
+    ? (await resolveMedia(hass, thumbnail))?.url
+    : thumbnail;
+  if (!thumbnailURL) {
+    throw new AdvancedCameraCardError(`Could not resolve thumbnail: ${thumbnail}`);
+  }
+
   if (thumbnailURL.startsWith('data:') || thumbnailURL.match(ABSOLUTE_URL_REGEX)) {
     return thumbnailURL;
   }

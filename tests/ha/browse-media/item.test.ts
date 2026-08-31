@@ -149,6 +149,20 @@ describe('BrowseMediaEventViewMedia', () => {
     expect(viewMedia.getThumbnail()).toEqual('thumbnail.jpg');
   });
 
+  it('should prefer the thumbnail from metadata', () => {
+    const browseMedia = createRichBrowseMedia({
+      thumbnail: 'thumbnail.jpg',
+      _metadata: {
+        thumbnailOverride: 'media-source://media_source/local/folder/clip.jpg',
+      },
+    });
+
+    const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
+    expect(viewMedia.getThumbnail()).toEqual(
+      'media-source://media_source/local/folder/clip.jpg',
+    );
+  });
+
   describe('should get what', () => {
     it('should get what from metadata', () => {
       const browseMedia = createRichBrowseMedia({
@@ -279,6 +293,31 @@ describe('BrowseMediaEventViewMedia', () => {
         browseMedia,
       );
       expect(viewMedia.getIcon()).toBeNull();
+    });
+  });
+
+  describe('should set thumbnail', () => {
+    it('should set thumbnail reported by Home Assistant', () => {
+      const browseMedia = createRichBrowseMedia({
+        thumbnail: 'thumbnail.jpg',
+      });
+
+      const viewFolder = new BrowseMediaViewFolder(createFolder(), [], browseMedia);
+      expect(viewFolder.getThumbnail()).toBe('thumbnail.jpg');
+      expect(viewFolder.isThumbnailConfigured()).toBe(false);
+    });
+
+    it('should prefer the thumbnail from metadata', () => {
+      const browseMedia = createRichBrowseMedia({
+        thumbnail: 'thumbnail.jpg',
+        _metadata: {
+          thumbnailOverride: 'media-source://folder/2026-08-28.jpg',
+        },
+      });
+
+      const viewFolder = new BrowseMediaViewFolder(createFolder(), [], browseMedia);
+      expect(viewFolder.getThumbnail()).toBe('media-source://folder/2026-08-28.jpg');
+      expect(viewFolder.isThumbnailConfigured()).toBe(true);
     });
   });
 });

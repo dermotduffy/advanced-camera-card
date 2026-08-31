@@ -89,7 +89,7 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
     return startTime ? formatDateAndTime(startTime) : this._browseMedia.title;
   }
   public getThumbnail(): string | null {
-    return this._browseMedia.thumbnail;
+    return this._browseMedia._metadata?.thumbnailOverride ?? this._browseMedia.thumbnail;
   }
   public getIcon(): string | null {
     return this._icon;
@@ -123,7 +123,8 @@ export class BrowseMediaViewFolder extends ViewFolder {
       id: browseMedia.media_content_id,
       icon: getIcon(browseMedia.children_media_class ?? browseMedia.media_class),
       title: browseMedia.title,
-      thumbnail: browseMedia.thumbnail,
+      thumbnail: browseMedia._metadata?.thumbnailOverride ?? browseMedia.thumbnail,
+      isThumbnailConfigured: !!browseMedia._metadata?.thumbnailOverride,
     });
     this._browseMedia = browseMedia;
   }

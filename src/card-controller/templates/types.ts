@@ -10,6 +10,7 @@ export interface TemplateAdvancedCameraCardState {
 }
 
 export interface TemplateMediaData {
+  id: string;
   title: string;
   is_folder: boolean;
 }

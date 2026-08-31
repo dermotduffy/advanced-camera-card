@@ -194,5 +194,19 @@ describe('ThumbnailFeatureController', () => {
       expect(controller.getThumbnail()).toBe('https://card.camera/thumbnail.jpg');
       expect(controller.getThumbnailClass()).toBe('placeholder');
     });
+
+    it('should not set placeholder thumbnail for a configured folder thumbnail', () => {
+      const controller = new ThumbnailFeatureController();
+      const folder = new ViewFolder(createFolder(), [], {
+        title: 'Test Folder',
+        thumbnail: 'https://card.camera/thumbnail.jpg',
+        isThumbnailConfigured: true,
+      });
+
+      controller.calculate(null, folder, false);
+
+      expect(controller.getThumbnail()).toBe('https://card.camera/thumbnail.jpg');
+      expect(controller.getThumbnailClass()).toBeNull();
+    });
   });
 });

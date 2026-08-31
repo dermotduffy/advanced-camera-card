@@ -4,7 +4,6 @@ import type { NonEmptyTuple } from 'type-fest';
 import type { ConditionState } from '../../../condition-trigger/conditions/types';
 import {
   folderTypeSchema,
-  HA_MEDIA_SOURCE_ROOT,
   type FolderConfig,
   type HAFolderConfig,
   type HAFolderPathComponent,
@@ -23,6 +22,7 @@ import {
   type BrowseMediaTarget,
 } from '../../../ha/browse-media/walker';
 import { getMediaDownloadPath } from '../../../ha/download';
+import { HA_MEDIA_SOURCE_ROOT } from '../../../ha/media-source';
 import type { HomeAssistant } from '../../../ha/types';
 import { QuerySource } from '../../../query-source.js';
 import type { Endpoint } from '../../../types';
@@ -39,12 +39,14 @@ import type {
 } from '../types';
 import { MediaMatcher } from './media-matcher';
 import { MetadataGenerator } from './metadata-generator.js';
+import { ThumbnailMetadataGenerator } from './thumbnail-metadata-generator';
 
 export class HAFoldersEngine implements FoldersEngine {
   private _browseMediaManager: BrowseMediaWalker;
   private _cache = new BrowseMediaCache<BrowseMediaMetadata>();
 
   private _metadataGenerator: MetadataGenerator;
+  private _thumbnailMetadataGenerator: ThumbnailMetadataGenerator;
   private _mediaMatcher: MediaMatcher;
 
   public constructor(
@@ -52,11 +54,15 @@ export class HAFoldersEngine implements FoldersEngine {
     options?: {
       browseMediaManager?: BrowseMediaWalker;
       metadataGenerator?: MetadataGenerator;
+      thumbnailMetadataGenerator?: ThumbnailMetadataGenerator;
       mediaMatcher?: MediaMatcher;
     },
   ) {
     this._browseMediaManager = options?.browseMediaManager ?? new BrowseMediaWalker();
     this._metadataGenerator = options?.metadataGenerator ?? new MetadataGenerator();
+    this._thumbnailMetadataGenerator =
+      options?.thumbnailMetadataGenerator ??
+      new ThumbnailMetadataGenerator(templateRenderer);
     this._mediaMatcher = options?.mediaMatcher ?? new MediaMatcher(templateRenderer);
   }
 
@@ -172,6 +178,12 @@ export class HAFoldersEngine implements FoldersEngine {
           targets,
           metadataGenerator: (media, parent) =>
             this._metadataGenerator.generate(media, parent, nextComponent?.ha?.parsers),
+          childrenMetadataUpdater: (children) =>
+            this._thumbnailMetadataGenerator.generate(
+              hass,
+              children,
+              nextComponent?.ha?.parsers,
+            ),
 
           ...(nextComponent && {
             matcher: (media) =>
@@ -196,7 +208,11 @@ export class HAFoldersEngine implements FoldersEngine {
       },
     );
 
-    return getViewItemsFromBrowseMediaArray(browseMedia, {
+    // Remove media that exists as thumbnails of *other* media.
+    const results =
+      this._thumbnailMetadataGenerator.removeThumbnailsOfOtherMedia(browseMedia);
+
+    return getViewItemsFromBrowseMediaArray(results, {
       folder: query.folder,
       path: query.path,
     });

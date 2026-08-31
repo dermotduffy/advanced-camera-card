@@ -3,6 +3,7 @@ import type { ReactiveControllerHost } from 'lit';
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
+import { resolveMedia } from '../../src/ha/resolved-media';
 import {
   createFetchThumbnailTask,
   type FetchThumbnailTaskArgs,
@@ -10,6 +11,7 @@ import {
 import { createHASS, flushPromises } from '../test-utils';
 
 vi.mock('@lit/task');
+vi.mock('../../src/ha/resolved-media');
 
 // The Task constructor accepts either (host, config) or (host, taskFunction,
 // argsFunction). When the tests read the constructor arguments back from the
@@ -271,5 +273,79 @@ describe('thumbnail utilities', () => {
 
     const args2 = options2.args();
     expect(args2).toEqual([false, undefined]);
+  });
+});
+
+describe('media source thumbnails', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should resolve a media source ID before fetching', async () => {
+    const host = mock<ReactiveControllerHost>();
+    const hass = createHASS();
+    const thumbnail = 'media-source://media_source/local/folder/clip.jpg';
+    const dataURL = 'data:image/jpeg;base64,encoded';
+
+    vi.mocked(resolveMedia).mockResolvedValue({
+      url: '/media/local/folder/clip.jpg',
+      mime_type: 'image/jpeg',
+    });
+
+    const mockResponse = mock<Response>();
+    Object.defineProperty(mockResponse, 'ok', { value: true });
+    mockResponse.blob.mockResolvedValue(new Blob(['test'], { type: 'image/jpeg' }));
+    vi.mocked(hass.fetchWithAuth).mockResolvedValue(mockResponse);
+
+    const mockFileReader = mock<FileReader>({ result: dataURL });
+    vi.stubGlobal(
+      'FileReader',
+      vi.fn(function () {
+        return mockFileReader;
+      }),
+    );
+
+    createFetchThumbnailTask(
+      host,
+      () => hass,
+      () => thumbnail,
+    );
+    const call = vi.mocked(Task).mock.calls[0];
+    assert(call);
+
+    const options = call[1];
+    assert(isTaskConfig(options));
+    const runPromise = options.task([true, thumbnail], createTaskFunctionOptions());
+
+    await flushPromises();
+    mockFileReader.onload?.(mock<ProgressEvent<FileReader>>());
+
+    expect(await runPromise).toBe(dataURL);
+    expect(resolveMedia).toHaveBeenCalledWith(hass, thumbnail);
+    expect(hass.fetchWithAuth).toHaveBeenCalledWith('/media/local/folder/clip.jpg');
+  });
+
+  it('should throw when a media source ID cannot be resolved', async () => {
+    const host = mock<ReactiveControllerHost>();
+    const hass = createHASS();
+    const thumbnail = 'media-source://media_source/local/folder/does-not-exist.jpg';
+
+    vi.mocked(resolveMedia).mockResolvedValue(null);
+
+    createFetchThumbnailTask(
+      host,
+      () => hass,
+      () => thumbnail,
+    );
+    const call = vi.mocked(Task).mock.calls[0];
+    assert(call);
+
+    const options = call[1];
+    assert(isTaskConfig(options));
+
+    await expect(
+      options.task([true, thumbnail], createTaskFunctionOptions()),
+    ).rejects.toThrow(/Could not resolve thumbnail/);
+    expect(hass.fetchWithAuth).not.toHaveBeenCalled();
   });
 });

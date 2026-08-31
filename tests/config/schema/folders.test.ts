@@ -127,3 +127,24 @@ describe('should be able to re-parse a folder', () => {
     expect(parsedFolder_2).toEqual([expectedFolder]);
   });
 });
+
+describe('thumbnail parser', () => {
+  it('should reject both a regexp and a value template', () => {
+    expect(
+      foldersConfigSchema.safeParse([
+        {
+          type: 'ha',
+          ha: {
+            path: [
+              {
+                parsers: [
+                  { type: 'thumbnail', regexp: '.*', value_template: '{{ 1 }}' },
+                ],
+              },
+            ],
+          },
+        },
+      ]).success,
+    ).toBe(false);
+  });
+});

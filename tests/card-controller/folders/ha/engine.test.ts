@@ -1,4 +1,13 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  afterEach,
+  assert,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 import { HAFoldersEngine } from '../../../../src/card-controller/folders/ha/engine';
 import type { FolderQuery } from '../../../../src/card-controller/folders/types';
@@ -21,7 +30,10 @@ describe('HAFoldersEngine', () => {
   const templateManager = new TemplateManager();
 
   afterEach(() => {
-    vi.clearAllMocks();
+    // Reset rather than clear, as tests queue browse responses with
+    // mockResolvedValueOnce and a test that matches nothing leaves some
+    // unconsumed.
+    vi.resetAllMocks();
   });
 
   describe('getItemCapabilities', () => {
@@ -330,6 +342,45 @@ describe('HAFoldersEngine', () => {
         const results = await engine.expandFolder(createHASS(), query);
         expect(results?.length).toBe(expectedMatches);
       });
+    });
+
+    it('should give media a thumbnail from a sibling image', async () => {
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: { type: 'ha', id: 'test' },
+        path: [
+          { ha: { id: 'media-source://id' } },
+          { ha: { parsers: [{ type: 'thumbnail' }] } },
+        ],
+      };
+
+      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(
+        createBrowseMedia({
+          media_content_id: 'media-source://id',
+          can_expand: true,
+          children: [
+            createBrowseMedia({
+              media_content_id: 'media-source://id/clip.mp4',
+              title: 'clip.mp4',
+            }),
+            createBrowseMedia({
+              media_content_id: 'media-source://id/clip.jpg',
+              title: 'clip.jpg',
+              media_class: 'image',
+            }),
+          ],
+        }),
+      );
+
+      const engine = new HAFoldersEngine(templateManager);
+      const results = await engine.expandFolder(createHASS(), query);
+
+      expect(results?.length).toBe(1);
+
+      const item = results?.[0];
+      assert(item instanceof ViewMedia);
+      expect(item.getContentID()).toBe('media-source://id/clip.mp4');
+      expect(item.getThumbnail()).toBe('media-source://id/clip.jpg');
     });
   });
 

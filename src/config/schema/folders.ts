@@ -1,11 +1,10 @@
 import type { NonEmptyTuple } from 'type-fest';
 import { z } from 'zod';
 
+import { HA_MEDIA_SOURCE_ROOT } from '../../ha/media-source';
 import { AdvancedCameraCardError } from '../../types';
 import { isTruthy } from '../../utils/basic';
 import { regexSchema } from './common/regex';
-
-export const HA_MEDIA_SOURCE_ROOT = 'media-source://';
 
 export const folderTypeSchema = z.enum(['ha']);
 export type FolderType = z.infer<typeof folderTypeSchema>;
@@ -20,13 +19,29 @@ const startdateParserSchema = z.object({
   format: z.string().optional(),
   regexp: regexSchema.optional(),
 });
+export type StartDateParser = z.infer<typeof startdateParserSchema>;
+
 // Simple alias date -> startdate.
 const dateParserSchema = startdateParserSchema.extend({
   type: z.literal('date'),
 });
+export type DateParser = z.infer<typeof dateParserSchema>;
+
+const thumbnailParserSchema = z
+  .object({
+    type: z.literal('thumbnail'),
+    regexp: regexSchema.optional(),
+    value_template: z.string().optional(),
+  })
+  .refine((parser) => !parser.regexp || !parser.value_template, {
+    message: 'Only one of regexp or value_template may be specified',
+  });
+export type ThumbnailParser = z.infer<typeof thumbnailParserSchema>;
+
 const parserSchema = z.discriminatedUnion('type', [
   dateParserSchema,
   startdateParserSchema,
+  thumbnailParserSchema,
 ]);
 export type Parser = z.infer<typeof parserSchema>;
 

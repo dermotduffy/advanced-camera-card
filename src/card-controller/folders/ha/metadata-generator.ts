@@ -1,7 +1,11 @@
 import type parser from 'any-date-parser';
 import { parse } from 'date-fns';
 
-import type { Parser } from '../../../config/schema/folders';
+import type {
+  DateParser,
+  Parser,
+  StartDateParser,
+} from '../../../config/schema/folders';
 import type {
   BrowseMedia,
   BrowseMediaMetadata,
@@ -10,6 +14,9 @@ import type {
 import { isValidDate } from '../../../utils/basic';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import { REGEXP_GROUP_VALUE_KEY } from './types';
+
+const isDateParser = (parser: Parser): parser is DateParser | StartDateParser =>
+  parser.type === 'date' || parser.type === 'startdate';
 
 export class MetadataGenerator {
   private _anyDateParser: typeof parser | null = null;
@@ -21,11 +28,7 @@ export class MetadataGenerator {
 
     // Dynamically import the any-date-parser only if we have a parser that
     // requires it, in order to save on bundle size.
-    if (
-      parsers?.some(
-        (parser) => ['date', 'startdate'].includes(parser.type) && !parser.format,
-      )
-    ) {
+    if (parsers?.some((parser) => isDateParser(parser) && !parser.format)) {
       this._anyDateParser = (await import('any-date-parser')).default;
     }
   }
@@ -41,6 +44,10 @@ export class MetadataGenerator {
     };
 
     for (const parser of parsers ?? []) {
+      if (!isDateParser(parser)) {
+        continue;
+      }
+
       const valueToParse = parser.regexp
         ? regexpExtract(parser.regexp, media.title, {
             groupName: REGEXP_GROUP_VALUE_KEY,
@@ -49,20 +56,23 @@ export class MetadataGenerator {
       if (!valueToParse) {
         continue;
       }
-      if (parser.type === 'startdate' || parser.type === 'date') {
-        metadata.startDate =
-          this._parseDate(
-            parser,
-            valueToParse,
-            metadata.startDate ?? parent?._metadata?.startDate,
-          ) ?? undefined;
-      }
+
+      metadata.startDate =
+        this._parseDate(
+          parser,
+          valueToParse,
+          metadata.startDate ?? parent?._metadata?.startDate,
+        ) ?? undefined;
     }
 
     return Object.keys(metadata).length > 0 ? metadata : null;
   }
 
-  private _parseDate(parser: Parser, src: string, base?: Date): Date | undefined {
+  private _parseDate(
+    parser: DateParser | StartDateParser,
+    src: string,
+    base?: Date,
+  ): Date | undefined {
     if (parser.format) {
       return this._parseFormattedDate(parser.format, src, base);
     }

@@ -78,14 +78,16 @@ export class ThumbnailFeatureController {
       this._thumbnail = thumbnail;
       this._icon = null;
       // Treat as a placeholder (centered, contain-fit) when either the URL
-      // looks brand-like, or the item is a folder. The folder check is
-      // necessary because HA's media browser often returns folder thumbnails
-      // as local/proxy URLs that don't match isBrandUrl, even though they
-      // visually represent integration logos.
+      // looks brand-like, or Home Assistant reported the thumbnail for a
+      // folder. The folder check is necessary because HA's media browser often
+      // returns folder thumbnails as local/proxy URLs that don't match
+      // isBrandUrl, even though they visually represent integration logos. A
+      // thumbnail set by the folder configuration (via the thumbnail parser) is
+      // an image of the folder contents, and so is not a placeholder.
+      const isFolderLogo =
+        ViewItemClassifier.isFolder(item) && !item.isThumbnailConfigured();
       this._thumbnailClass =
-        isBrandUrl(thumbnail) || ViewItemClassifier.isFolder(item)
-          ? 'placeholder'
-          : null;
+        isBrandUrl(thumbnail) || isFolderLogo ? 'placeholder' : null;
     } else {
       this._thumbnail = null;
       this._thumbnailClass = null;

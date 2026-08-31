@@ -17,6 +17,8 @@ type RichMetadataGenerator<M> = (
   parent?: RichBrowseMedia<M>,
 ) => M | null;
 
+type ChildrenMetadataUpdater<M> = (children: RichBrowseMedia<M>[]) => void;
+
 export type BrowseMediaTarget<M = undefined> = string | RichBrowseMedia<M>;
 type RichBrowseMediaPredicate<M> = (media: RichBrowseMedia<M>) => boolean;
 
@@ -27,9 +29,13 @@ export interface BrowseMediaStep<M = undefined> {
   // How many children to process concurrently. Default is infinite.
   concurrency?: number;
 
-  // All children of the target have the metadata generator applied to them
-  // first.
+  // Creates the metadata for each child of the target, before matching.
   metadataGenerator?: RichMetadataGenerator<M>;
+
+  // Called with all the children of the target once each has been given its
+  // metadata, and before matching. It may modify the metadata of those
+  // children, for metadata that requires comparing them to one another.
+  childrenMetadataUpdater?: ChildrenMetadataUpdater<M>;
 
   // If those children pass this matcher, then they will be included in the
   // output.
@@ -85,6 +91,7 @@ export class BrowseMediaWalker {
           await this._browseMedia(hass, target, {
             cache: options?.cache,
             metadataGenerator: step.metadataGenerator,
+            childrenMetadataUpdater: step.childrenMetadataUpdater,
           }),
       );
 
@@ -118,6 +125,7 @@ export class BrowseMediaWalker {
     options?: {
       cache?: BrowseMediaCache<M>;
       metadataGenerator?: RichMetadataGenerator<M>;
+      childrenMetadataUpdater?: ChildrenMetadataUpdater<M>;
     },
   ): Promise<RichBrowseMedia<M>> {
     const mediaContentID = typeof target === 'object' ? target.media_content_id : target;
@@ -145,6 +153,8 @@ export class BrowseMediaWalker {
           ) ?? undefined;
       }
     }
+
+    options?.childrenMetadataUpdater?.(browseMedia.children ?? []);
 
     if (options?.cache) {
       options.cache.set(

@@ -471,4 +471,69 @@ describe('BrowseMediaWalker', () => {
     expect(result).toContainEqual(child_1);
     expect(result).toContainEqual(child_2);
   });
+
+  describe('should update metadata for children', async () => {
+    it('should call the children metadata updater with all children', async () => {
+      const children = [
+        createBrowseMedia({ media_content_id: 'media/child-1' }),
+        createBrowseMedia({ media_content_id: 'media/child-2' }),
+      ];
+      const parent = createBrowseMedia({
+        media_content_id: 'media/parent',
+        children,
+      });
+
+      vi.mocked(homeAssistantWSRequest).mockResolvedValue(parent);
+
+      const cache = new BrowseMediaCache<TestMetadata>();
+      const steps: BrowseMediaStep<TestMetadata>[] = [
+        {
+          targets: ['media/parent'],
+          metadataGenerator: () => ({ custom: 'foo' }),
+          childrenMetadataUpdater: (children) => {
+            for (const child of children) {
+              child._metadata = {
+                custom: `${child._metadata?.custom}-${child.media_content_id}`,
+              };
+            }
+          },
+        },
+      ];
+
+      const walker = new BrowseMediaWalker();
+      const result = await walker.walk(createHASS(), steps, { cache });
+
+      expect(result.map((media) => media._metadata)).toEqual([
+        { custom: 'foo-media/child-1' },
+        { custom: 'foo-media/child-2' },
+      ]);
+
+      // The cached parent has the updated metadata.
+      expect(cache.get('media/parent')?.children?.[0]?._metadata).toEqual({
+        custom: 'foo-media/child-1',
+      });
+    });
+
+    it('should call the children metadata updater without children', async () => {
+      const parent = createBrowseMedia({
+        media_content_id: 'media/parent',
+        children: null,
+      });
+
+      vi.mocked(homeAssistantWSRequest).mockResolvedValue(parent);
+
+      const childrenMetadataUpdater = vi.fn();
+      const steps: BrowseMediaStep<TestMetadata>[] = [
+        {
+          targets: ['media/parent'],
+          childrenMetadataUpdater,
+        },
+      ];
+
+      const walker = new BrowseMediaWalker();
+      await walker.walk(createHASS(), steps);
+
+      expect(childrenMetadataUpdater).toHaveBeenCalledWith([]);
+    });
+  });
 });

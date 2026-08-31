@@ -237,12 +237,19 @@ describe('TemplateManager', () => {
 
       const result = manager.renderRecursively(
         hass,
-        'Title: {{ acc.media.title }}, Folder: {{ acc.media.is_folder }}',
+        'ID: {{ acc.media.id }}, Title: {{ acc.media.title }}, ' +
+          'Folder: {{ acc.media.is_folder }}',
         {
-          mediaData: { title: 'Test Media', is_folder: false },
+          mediaData: {
+            id: 'media-source://media_source/local/test.mp4',
+            title: 'Test Media',
+            is_folder: false,
+          },
         },
       );
-      expect(result).toBe('Title: Test Media, Folder: false');
+      expect(result).toBe(
+        'ID: media-source://media_source/local/test.mp4, Title: Test Media, Folder: false',
+      );
     });
 
     it('should render with combined context options', async () => {
@@ -255,7 +262,11 @@ describe('TemplateManager', () => {
         '{{ acc.camera }} - {{ acc.media.title }}',
         {
           conditionState: { camera: 'camera.office' },
-          mediaData: { title: 'My Video', is_folder: false },
+          mediaData: {
+            id: 'media-source://media_source/local/my-video.mp4',
+            title: 'My Video',
+            is_folder: false,
+          },
         },
       );
       expect(result).toBe('camera.office - My Video');
