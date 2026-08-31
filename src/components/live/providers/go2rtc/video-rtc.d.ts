@@ -22,7 +22,7 @@ export class VideoRTC extends HTMLElement {
 
   oninit(): void;
   send(value: unknown): void;
-  onpcvideo(ev: Event): void;
+  onpcvideo(video2: HTMLVideoElement, pc: RTCPeerConnection): void;
   onconnect(): void;
   ondisconnect(): void;
   onclose(): void;
