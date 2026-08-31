@@ -2157,6 +2157,43 @@ describe('FrigateCameraManagerEngine', () => {
       expect(seekTime).toBe(15 * 60);
     });
 
+    it('should get seek time for padded Frigate review media', async () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      const startTime = new Date('2026-03-14T20:15:00Z');
+      const media = new FrigateReviewViewMedia(
+        'camera-1',
+        createFrigateReview({
+          camera: 'camera-1',
+          start_time: startTime.getTime() / 1000,
+          end_time: new Date('2026-03-14T20:45:00Z').getTime() / 1000,
+        }),
+        'content-id',
+        'thumbnail',
+      );
+
+      vi.mocked(getRecordingSegments).mockResolvedValue([
+        {
+          start_time: new Date('2026-03-14T20:00:00Z').getTime() / 1000,
+          end_time: new Date('2026-03-14T21:00:00Z').getTime() / 1000,
+          id: 'segment-1',
+        },
+      ]);
+
+      const seekTime = await createEngine().getMediaSeekTime(
+        createHASS(),
+        store,
+        media,
+        media.getUsableStartTime(),
+      );
+
+      // Five seconds of context before the review starts at 15 minutes.
+      expect(seekTime).toBe(15 * 60 - 5);
+    });
+
     it('should get zero seek time for clip media when seeking to start', async () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },

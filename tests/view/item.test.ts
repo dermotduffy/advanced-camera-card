@@ -17,6 +17,7 @@ describe('ViewMedia', () => {
     expect(media.getMediaType()).toBe('clip');
     expect(media.getID()).toBeNull();
     expect(media.getStartTime()).toBeNull();
+    expect(media.getUsableStartTime()).toBeNull();
     expect(media.getEndTime()).toBeNull();
     expect(media.getUsableEndTime()).toBeNull();
     expect(media.inProgress()).toBeNull();
@@ -59,6 +60,13 @@ describe('ViewMedia', () => {
     });
     expect(media.includesTime(new Date('2023-08-08T17:30:30'))).toBeTruthy();
     expect(media.includesTime(new Date('2023-08-08T18:00:00'))).toBeFalsy();
+  });
+
+  it('should use the media start time as the usable start time by default', () => {
+    const startTime = new Date('2023-08-08T17:00:00');
+    const media = new TestViewMedia({ startTime });
+
+    expect(media.getUsableStartTime()).toEqual(startTime);
   });
 
   it('should correctly get usable end time for in-progress event', () => {

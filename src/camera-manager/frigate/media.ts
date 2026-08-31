@@ -1,4 +1,4 @@
-import { fromUnixTime } from 'date-fns';
+import { fromUnixTime, startOfHour, subSeconds } from 'date-fns';
 import { isEqual } from 'lodash-es';
 
 import type { CameraConfig } from '../../config/schema/cameras';
@@ -23,6 +23,8 @@ import {
   getReviewThumbnailURL,
   getReviewTitle,
 } from './util';
+
+const FRIGATE_REVIEW_PADDING_SECONDS = 5;
 
 export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   private _event: FrigateEvent;
@@ -173,6 +175,12 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
   }
   public getStartTime(): Date {
     return fromUnixTime(this._review.start_time);
+  }
+  public getUsableStartTime(): Date {
+    const startTime = this.getStartTime();
+    const paddedStartTime = subSeconds(startTime, FRIGATE_REVIEW_PADDING_SECONDS);
+    const recordingStartTime = startOfHour(startTime);
+    return paddedStartTime < recordingStartTime ? recordingStartTime : paddedStartTime;
   }
   public getEndTime(): Date | null {
     return this._review.end_time ? fromUnixTime(this._review.end_time) : null;

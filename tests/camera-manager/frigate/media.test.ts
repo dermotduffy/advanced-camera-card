@@ -426,6 +426,24 @@ describe('FrigateReviewViewMedia', () => {
     expect(media.getStartTime()).toEqual(new Date(1683395000 * 1000));
   });
 
+  it('should include five seconds of pre-review playback', () => {
+    const review = createFrigateReview({
+      start_time: new Date('2026-03-14T20:15:00Z').getTime() / 1000,
+    });
+    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+
+    expect(media.getUsableStartTime()).toEqual(new Date('2026-03-14T20:14:55Z'));
+  });
+
+  it('should not pad before the start of the review recording hour', () => {
+    const review = createFrigateReview({
+      start_time: new Date('2026-03-14T20:00:03Z').getTime() / 1000,
+    });
+    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+
+    expect(media.getUsableStartTime()).toEqual(new Date('2026-03-14T20:00:00Z'));
+  });
+
   it('should get end time', () => {
     const review = createFrigateReview({
       end_time: 1683397124,

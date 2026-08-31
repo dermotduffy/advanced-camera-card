@@ -747,7 +747,7 @@ export class CameraManager {
   }
 
   public async getMediaSeekTime(media: ViewMedia, target: Date): Promise<number | null> {
-    const startTime = media.getStartTime();
+    const startTime = media.getUsableStartTime();
     const endTime = media.getEndTime();
     const engine = this._store.getEngineForMedia(media);
     const hass = this._api.getHASSManager().getHASS();

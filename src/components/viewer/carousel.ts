@@ -445,7 +445,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
 
     const view = this.viewManagerEpoch?.manager.getView();
-    const seek = view?.context?.mediaViewer?.seek ?? selectedMedia.getStartTime();
+    const seek = view?.context?.mediaViewer?.seek ?? selectedMedia.getUsableStartTime();
 
     if (!seek) {
       return;

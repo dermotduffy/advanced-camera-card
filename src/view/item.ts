@@ -42,6 +42,9 @@ export class ViewMedia {
   public getStartTime(): Date | null {
     return null;
   }
+  public getUsableStartTime(): Date | null {
+    return this.getStartTime();
+  }
   public getEndTime(): Date | null {
     return null;
   }
@@ -73,7 +76,7 @@ export class ViewMedia {
     return null;
   }
   public includesTime(seek: Date): boolean {
-    const startTime = this.getStartTime();
+    const startTime = this.getUsableStartTime();
     const endTime = this.getUsableEndTime();
     return !!startTime && !!endTime && seek >= startTime && seek <= endTime;
   }
