@@ -19,6 +19,23 @@ const isThumbnailParser = (parser: Parser): parser is ThumbnailParser =>
 const isImage = (media: BrowseMedia): boolean =>
   !media.can_expand && media.media_class === MEDIA_CLASS_IMAGE;
 
+// The value media must share to be matched to one another.
+const getMatchingValue = (
+  media: BrowseMedia,
+  parser: ThumbnailParser,
+): string | null => {
+  if (parser.regexp) {
+    return regexpExtract(parser.regexp, media.title, {
+      groupName: REGEXP_GROUP_VALUE_KEY,
+    });
+  }
+
+  // A folder title has no file extension to remove.
+  return media.can_expand
+    ? media.title
+    : media.title.replace(TITLE_EXTENSION_REGEXP, '');
+};
+
 export class ThumbnailMetadataGenerator {
   private _templateRenderer: TemplateRenderer;
 
@@ -26,9 +43,8 @@ export class ThumbnailMetadataGenerator {
     this._templateRenderer = templateRenderer;
   }
 
-  // Find the thumbnail of each of the given media and folders, which requires
-  // comparing what is in the same folder to one another. The metadata of what
-  // is given is modified in place.
+  // Find the thumbnail of each of the given siblings. Their metadata is
+  // modified in place.
   public generate(
     hass: HomeAssistant,
     siblings: RichBrowseMedia<BrowseMediaMetadata>[],
@@ -80,8 +96,9 @@ export class ThumbnailMetadataGenerator {
       const thumbnail = this._templateRenderer.renderRecursively(hass, valueTemplate, {
         mediaData: getTemplateMediaData(item),
       });
-      if (typeof thumbnail === 'string' && thumbnail.length) {
-        this._setThumbnailOverride(item, thumbnail);
+      const trimmedThumbnail = typeof thumbnail === 'string' ? thumbnail.trim() : '';
+      if (trimmedThumbnail) {
+        this._setThumbnailOverride(item, trimmedThumbnail);
       }
     }
   }
@@ -94,13 +111,16 @@ export class ThumbnailMetadataGenerator {
     // titles.
     const groups = new Map<string, RichBrowseMedia<BrowseMediaMetadata>[]>();
     for (const item of siblings) {
-      const key = parser.regexp
-        ? regexpExtract(parser.regexp, item.title, {
-            groupName: REGEXP_GROUP_VALUE_KEY,
-          })
-        : item.title.replace(TITLE_EXTENSION_REGEXP, '');
-      if (key) {
-        groups.set(key, [...(groups.get(key) ?? []), item]);
+      const key = getMatchingValue(item, parser);
+      if (!key) {
+        continue;
+      }
+
+      const group = groups.get(key);
+      if (group) {
+        group.push(item);
+      } else {
+        groups.set(key, [item]);
       }
     }
 

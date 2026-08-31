@@ -148,6 +148,17 @@ describe('ThumbnailMetadataGenerator', () => {
     });
   });
 
+  it('should not remove a file extension from a folder title', () => {
+    const generator = new ThumbnailMetadataGenerator(mock<TemplateRenderer>());
+    const children = [createFolder('2026.08'), createImage('2026.08.jpg')];
+
+    generator.generate(createHASS(), children, [{ type: 'thumbnail' }]);
+
+    expect(children[0]._metadata).toEqual({
+      thumbnailOverride: 'media-source://folder/2026.08.jpg',
+    });
+  });
+
   it('should not use a folder as a thumbnail', () => {
     const generator = new ThumbnailMetadataGenerator(mock<TemplateRenderer>());
 
@@ -235,6 +246,19 @@ describe('ThumbnailMetadataGenerator', () => {
 
       generator.generate(createHASS(), children, [
         { type: 'thumbnail', value_template: '{{ 1 == 2 }}' },
+      ]);
+
+      expect(children[0]._metadata).toEqual({});
+    });
+
+    it('should ignore a template that renders only whitespace', () => {
+      const templateRenderer = mock<TemplateRenderer>();
+      templateRenderer.renderRecursively.mockReturnValue('\n  ');
+      const generator = new ThumbnailMetadataGenerator(templateRenderer);
+      const children = [createMedia('clip.mp4')];
+
+      generator.generate(createHASS(), children, [
+        { type: 'thumbnail', value_template: '{% if false %}x{% endif %}' },
       ]);
 
       expect(children[0]._metadata).toEqual({});

@@ -508,10 +508,35 @@ describe('BrowseMediaWalker', () => {
         { custom: 'foo-media/child-2' },
       ]);
 
-      // The cached parent has the updated metadata.
-      expect(cache.get('media/parent')?.children?.[0]?._metadata).toEqual({
-        custom: 'foo-media/child-1',
+      // The cache holds only what Home Assistant returned.
+      expect(cache.get('media/parent')?.children?.[0]?._metadata).toBeUndefined();
+    });
+
+    it('should generate metadata for a walk that hits the cache', async () => {
+      const parent = createBrowseMedia({
+        media_content_id: 'media/parent',
+        children: [createBrowseMedia({ media_content_id: 'media/child' })],
       });
+
+      vi.mocked(homeAssistantWSRequest).mockResolvedValue(parent);
+
+      const cache = new BrowseMediaCache<TestMetadata>();
+      const walker = new BrowseMediaWalker();
+
+      const first = await walker.walk(
+        createHASS(),
+        [{ targets: ['media/parent'], metadataGenerator: () => ({ custom: 'first' }) }],
+        { cache },
+      );
+      const second = await walker.walk(
+        createHASS(),
+        [{ targets: ['media/parent'], metadataGenerator: () => ({ custom: 'second' }) }],
+        { cache },
+      );
+
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
+      expect(first[0]?._metadata).toEqual({ custom: 'first' });
+      expect(second[0]?._metadata).toEqual({ custom: 'second' });
     });
 
     it('should call the children metadata updater without children', async () => {

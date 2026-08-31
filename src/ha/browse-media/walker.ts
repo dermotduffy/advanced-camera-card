@@ -1,5 +1,5 @@
 import { add } from 'date-fns';
-import { chunk } from 'lodash-es';
+import { chunk, cloneDeep } from 'lodash-es';
 
 import { allPromises } from '../../utils/basic';
 import type { HomeAssistant } from '../types';
@@ -129,20 +129,33 @@ export class BrowseMediaWalker {
     },
   ): Promise<RichBrowseMedia<M>> {
     const mediaContentID = typeof target === 'object' ? target.media_content_id : target;
-    const cachedResult = options?.cache ? options.cache.get(mediaContentID) : null;
-    if (cachedResult) {
-      return cachedResult;
-    }
+    const cachedResponse = options?.cache ? options.cache.get(mediaContentID) : null;
 
     const request = {
       type: 'media_source/browse_media',
       media_content_id: mediaContentID,
     };
-    const browseMedia = await homeAssistantWSRequest<RichBrowseMedia<M>>(
-      hass,
-      browseMediaSchema,
-      request,
-    );
+    const response =
+      cachedResponse ??
+      (await homeAssistantWSRequest<RichBrowseMedia<M>>(
+        hass,
+        browseMediaSchema,
+        request,
+      ));
+
+    if (!cachedResponse && options?.cache) {
+      options.cache.set(
+        mediaContentID,
+        response,
+        add(new Date(), { seconds: BROWSE_MEDIA_CACHE_SECONDS }),
+      );
+    }
+
+    // The cache holds only what Home Assistant returned, so that a walk with
+    // different parsers to the one that populated it generates its own
+    // metadata. That metadata is written to a clone to keep it out of the
+    // cache.
+    const browseMedia = cloneDeep(response);
 
     if (options?.metadataGenerator) {
       for (const child of browseMedia.children ?? []) {
@@ -156,13 +169,6 @@ export class BrowseMediaWalker {
 
     options?.childrenMetadataUpdater?.(browseMedia.children ?? []);
 
-    if (options?.cache) {
-      options.cache.set(
-        mediaContentID,
-        browseMedia,
-        add(new Date(), { seconds: BROWSE_MEDIA_CACHE_SECONDS }),
-      );
-    }
     return browseMedia;
   }
 }

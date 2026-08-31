@@ -182,7 +182,8 @@ type: thumbnail
 
 If neither `regexp` nor `value_template` is specified, media in the same folder
 is matched by title with the final file extension removed, e.g. `front-door.mp4`
-is matched with `front-door.jpg`.
+is matched with `front-door.jpg`. A folder is matched by its whole title, as it
+has no file extension to remove.
 
 Multiple `thumbnail` parsers may be specified. Each is applied in turn to media
 that does not yet have a thumbnail, so a later parser acts as a fallback for
