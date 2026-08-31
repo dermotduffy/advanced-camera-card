@@ -1,12 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 // ====================================================================
 // ** Keep modifications to this file to a minimum **
 //
-// Type checking is disabled since this is a modified copy-and-paste of
-// underlying render() function, but the rest of the class source it not
-// available as compilation time.
+// This is a modified copy-and-paste of the underlying render() function.
+// The base class is only registered at runtime, so the members this file
+// uses from it are declared in ./types.ts.
 // ====================================================================
 
 import {
@@ -16,8 +13,9 @@ import {
   unsafeCSS,
   type CSSResultGroup,
   type PropertyValues,
+  type TemplateResult,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { property } from 'lit/decorators.js';
 
 import { HA_CAMERA_STREAM_MUTE_CHANGE_EVENT } from '../components-lib/live/ha-stream-mute-controller.js';
 import {
@@ -28,6 +26,7 @@ import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-
 
 import '../components/image-player.js';
 
+import type { HomeAssistant } from '../ha/types.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss?inline';
 import type {
   MediaLoadedInfo,
@@ -39,6 +38,13 @@ import { onAbort } from '../utils/abort-signal.js';
 
 import './ha-hls-player.js';
 import './ha-web-rtc-player.js';
+
+import type {
+  AdvancedCameraCardHaCameraStreamElement,
+  CameraEntity,
+  ConstructableHaCameraStream,
+  HaStream,
+} from './types.js';
 
 // A failure reported by one of the inner players. Its existence is the failure;
 // `error` carries whatever the player knew about it. `dispatched` records
@@ -64,14 +70,18 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
   const STREAM_TYPE_HLS = 'hls';
   const STREAM_TYPE_WEB_RTC = 'web_rtc';
   const STREAM_TYPE_MJPEG = 'mjpeg';
-  type StreamType = STREAM_TYPE_HLS | STREAM_TYPE_WEB_RTC | STREAM_TYPE_MJPEG;
+  type StreamType =
+    | typeof STREAM_TYPE_HLS
+    | typeof STREAM_TYPE_WEB_RTC
+    | typeof STREAM_TYPE_MJPEG;
 
-  @customElement('advanced-camera-card-ha-camera-stream')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class AdvancedCameraCardHaCameraStream
-    extends customElements.get('ha-camera-stream')
-    implements MediaPlayer
-  {
+  const HaCameraStream = customElements.get(
+    'ha-camera-stream',
+  ) as ConstructableHaCameraStream;
+
+  class AdvancedCameraCardHaCameraStream extends HaCameraStream implements MediaPlayer {
+    public declare hass?: HomeAssistant;
+
     @property({ attribute: false })
     public targetID?: string;
 
@@ -80,7 +90,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
     // independently -- we suppress those at this boundary (`stopPropagation` in
     // `_captureInnerLoad`), cache the latest per type, and republish the
     // visible one's info via our own source controller in `updated()`.
-    private _mediaLoadedInfoPerStream: Record<StreamType, MediaLoadedInfo> = {};
+    private _mediaLoadedInfoPerStream: Partial<Record<StreamType, MediaLoadedInfo>> = {};
     private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(
       this,
       {
@@ -185,7 +195,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
       this.requestUpdate();
     }
 
-    protected _renderStream(stream: Stream) {
+    protected _renderStream(stream: HaStream): TemplateResult | typeof nothing {
       if (!this.stateObj) {
         return nothing;
       }
@@ -301,7 +311,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
     // clears their errors), so previously-recorded failures no longer describe
     // what is playing and must not suppress a fresh one.
     private _discardErrorsOnEntityChange(changedProps: PropertyValues): void {
-      const previousStateObj = changedProps.get('stateObj');
+      const previousStateObj: CameraEntity | undefined = changedProps.get('stateObj');
       if (!previousStateObj || previousStateObj.entity_id === this.stateObj?.entity_id) {
         return;
       }
@@ -339,10 +349,15 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
       ];
     }
   }
+
+  customElements.define(
+    'advanced-camera-card-ha-camera-stream',
+    AdvancedCameraCardHaCameraStream,
+  );
 });
 
 declare global {
   interface HTMLElementTagNameMap {
-    'advanced-camera-card-ha-camera-stream': AdvancedCameraCardHaCameraStream;
+    'advanced-camera-card-ha-camera-stream': AdvancedCameraCardHaCameraStreamElement;
   }
 }
