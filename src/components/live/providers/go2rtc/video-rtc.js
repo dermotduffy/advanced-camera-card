@@ -714,7 +714,7 @@ export class VideoRTC extends HTMLElement {
           .map((tr) => tr.receiver.track);
         /** @type {HTMLVideoElement} */
         const video2 = document.createElement('video');
-        video2.addEventListener('loadeddata', () => this.onpcvideo(video2), {
+        video2.addEventListener('loadeddata', () => this.onpcvideo(video2, pc), {
           once: true,
         });
         video2.srcObject = new MediaStream(tracks);
@@ -814,9 +814,13 @@ export class VideoRTC extends HTMLElement {
 
   /**
    * @param video2 {HTMLVideoElement}
+   * @param pc {RTCPeerConnection} The peer connection the video came from.
    */
-  onpcvideo(video2) {
-    if (this.pc) {
+  onpcvideo(video2, pc) {
+    // The first frame of video arrives asynchronously, so the peer connection
+    // that produced it may already have been closed and replaced (e.g. by a
+    // reconnect).
+    if (this.pc === pc) {
       // Video+Audio > Video, H265 > H264, Video > Audio, WebRTC > MSE
       let rtcPriority = 0,
         msePriority = 0;
@@ -825,7 +829,7 @@ export class VideoRTC extends HTMLElement {
       const stream = video2.srcObject;
       if (stream.getVideoTracks().length > 0) {
         // not the best, but a pretty simple way to check a codec
-        const isH265Supported = this.pc.remoteDescription.sdp.includes('H265/90000');
+        const isH265Supported = pc.remoteDescription.sdp.includes('H265/90000');
         rtcPriority += isH265Supported ? 0x240 : 0x220;
       }
       if (stream.getAudioTracks().length > 0) rtcPriority += 0x102;
@@ -847,10 +851,8 @@ export class VideoRTC extends HTMLElement {
         }
       } else {
         this.pcState = WebSocket.CLOSED;
-        if (this.pc) {
-          this.pc.close();
-          this.pc = null;
-        }
+        pc.close();
+        this.pc = null;
       }
     }
 
