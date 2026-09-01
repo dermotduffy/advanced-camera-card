@@ -51,7 +51,7 @@ export type NotificationActionConfig = z.infer<
   advanced_camera_card_action: 'notification';
   notification: Notification;
 };
-const notificationActionConfigSchema: z.ZodSchema<NotificationActionConfig> =
+const notificationActionConfigSchema: z.ZodType<NotificationActionConfig> =
   advancedCameraCardCustomActionsBaseSchema.extend({
     advanced_camera_card_action: z.literal('notification'),
     notification: z.lazy(() => notificationSchema),
@@ -64,7 +64,7 @@ export type StatusBarActionConfig = z.infer<
   status_bar_action: 'add' | 'remove' | 'reset';
   items?: StatusBarItem[];
 };
-export const statusBarActionConfigSchema: z.ZodSchema<StatusBarActionConfig> =
+export const statusBarActionConfigSchema: z.ZodType<StatusBarActionConfig> =
   advancedCameraCardCustomActionsBaseSchema.extend({
     advanced_camera_card_action: z.literal('status_bar'),
     status_bar_action: z.enum(['add', 'remove', 'reset']),
@@ -110,7 +110,7 @@ export type IfActionConfig = z.infer<typeof actionBaseSchema> & {
   then: ActionConfig[];
   else?: ActionConfig[];
 };
-const ifActionConfigSchema: z.ZodSchema<IfActionConfig> = actionBaseSchema.extend({
+const ifActionConfigSchema: z.ZodType<IfActionConfig> = actionBaseSchema.extend({
   if: preprocessToArray(conditionSchema.array()),
   then: preprocessToArray(z.lazy(() => actionConfigSchema).array()),
   else: preprocessToArray(z.lazy(() => actionConfigSchema).array()).optional(),

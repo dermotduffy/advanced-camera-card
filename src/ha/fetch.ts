@@ -1,4 +1,4 @@
-import type { ZodSchema } from 'zod';
+import type { ZodType } from 'zod';
 
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError, type Endpoint } from '../types';
@@ -18,7 +18,7 @@ import type { HomeAssistant } from './types';
 export const homeAssistantSignAndFetch = async <T>(
   hass: HomeAssistant,
   endpoint: Endpoint,
-  schema: ZodSchema<T>,
+  schema: ZodType<T>,
   options?: {
     timeoutSeconds?: number;
   },

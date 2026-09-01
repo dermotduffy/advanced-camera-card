@@ -5,5 +5,5 @@ export const integrationManifestSchema = z
     domain: z.string(),
     version: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type IntegrationManifest = z.infer<typeof integrationManifestSchema>;
