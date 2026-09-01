@@ -2127,8 +2127,8 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createStore([{ cameraID: 'camera-1', config }]);
 
-      const startTime = new Date('2026-03-14T20:15:00Z');
-      const endTime = new Date('2026-03-14T20:45:00Z');
+      const startTime = new Date('2026-03-14T20:15:00');
+      const endTime = new Date('2026-03-14T20:45:00');
       const media = new TestViewMedia({
         mediaType: ViewMediaType.Review,
         cameraID: 'camera-1',
@@ -2138,8 +2138,8 @@ describe('FrigateCameraManagerEngine', () => {
 
       const segments = [
         {
-          start_time: new Date('2026-03-14T20:00:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T21:00:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:00:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T21:00:00').getTime() / 1000,
           id: 'segment-1',
         },
       ];
@@ -2387,8 +2387,8 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createStore([{ cameraID: 'camera-1', config }]);
 
-      const startTime = new Date('2026-03-14T20:00:00Z');
-      const endTime = new Date('2026-03-14T20:30:00Z');
+      const startTime = new Date('2026-03-14T20:00:00');
+      const endTime = new Date('2026-03-14T20:30:00');
       const media = new TestViewMedia({
         mediaType: ViewMediaType.Recording,
         cameraID: 'camera-1',
@@ -2399,13 +2399,13 @@ describe('FrigateCameraManagerEngine', () => {
       // Two 10-minute segments with a gap.
       const segments = [
         {
-          start_time: new Date('2026-03-14T20:00:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T20:10:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:00:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T20:10:00').getTime() / 1000,
           id: 'seg-1',
         },
         {
-          start_time: new Date('2026-03-14T20:20:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T20:30:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:20:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T20:30:00').getTime() / 1000,
           id: 'seg-2',
         },
       ];
@@ -2416,7 +2416,7 @@ describe('FrigateCameraManagerEngine', () => {
         createHASS(),
         store,
         media,
-        new Date('2026-03-14T20:25:00Z'),
+        new Date('2026-03-14T20:25:00'),
       );
 
       // 10 min from first segment + 5 min from second segment = 15 min.
@@ -2429,8 +2429,8 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createStore([{ cameraID: 'camera-1', config }]);
 
-      const startTime = new Date('2026-03-14T20:15:00Z');
-      const endTime = new Date('2026-03-14T20:45:00Z');
+      const startTime = new Date('2026-03-14T20:15:00');
+      const endTime = new Date('2026-03-14T20:45:00');
       const media = new TestViewMedia({
         mediaType: ViewMediaType.Recording,
         cameraID: 'camera-1',
@@ -2440,8 +2440,8 @@ describe('FrigateCameraManagerEngine', () => {
 
       const segments = [
         {
-          start_time: new Date('2026-03-14T20:00:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T21:00:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:00:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T21:00:00').getTime() / 1000,
           id: 'segment-1',
         },
       ];
@@ -2453,7 +2453,7 @@ describe('FrigateCameraManagerEngine', () => {
         createHASS(),
         store,
         media,
-        new Date('2026-03-14T20:30:00Z'),
+        new Date('2026-03-14T20:30:00'),
       );
 
       // 30 minutes from start of hour.
