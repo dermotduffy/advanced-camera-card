@@ -28,7 +28,7 @@ type CompositeCondition = z.infer<typeof conditionBaseSchema> & {
 
 // https://www.home-assistant.io/docs/scripts/conditions/#or-condition
 type OrCondition = CompositeCondition & { condition: 'or' };
-const orConditionSchema: z.ZodSchema<OrCondition> = conditionBaseSchema.extend({
+const orConditionSchema: z.ZodType<OrCondition> = conditionBaseSchema.extend({
   condition: z.literal('or'),
 
   // HA requires the `conditions` key but allows an empty list, and accepts a
@@ -38,7 +38,7 @@ const orConditionSchema: z.ZodSchema<OrCondition> = conditionBaseSchema.extend({
 
 // https://www.home-assistant.io/docs/scripts/conditions/#and-condition
 type AndCondition = CompositeCondition & { condition: 'and' };
-const andConditionSchema: z.ZodSchema<AndCondition> = conditionBaseSchema.extend({
+const andConditionSchema: z.ZodType<AndCondition> = conditionBaseSchema.extend({
   condition: z.literal('and'),
 
   // HA requires the `conditions` key but allows an empty list, and accepts a
@@ -48,7 +48,7 @@ const andConditionSchema: z.ZodSchema<AndCondition> = conditionBaseSchema.extend
 
 // https://www.home-assistant.io/docs/scripts/conditions/#not-condition
 type NotCondition = CompositeCondition & { condition: 'not' };
-const notConditionSchema: z.ZodSchema<NotCondition> = conditionBaseSchema.extend({
+const notConditionSchema: z.ZodType<NotCondition> = conditionBaseSchema.extend({
   condition: z.literal('not'),
 
   // HA requires the `conditions` key but allows an empty list, and accepts a

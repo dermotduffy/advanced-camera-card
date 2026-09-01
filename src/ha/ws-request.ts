@@ -1,5 +1,5 @@
 import type { MessageBase } from 'home-assistant-js-websocket';
-import type { ZodSchema } from 'zod';
+import type { ZodType } from 'zod';
 
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError } from '../types';
@@ -14,7 +14,7 @@ import type { HomeAssistant } from './types';
  */
 export async function homeAssistantWSRequest<T>(
   hass: HomeAssistant,
-  schema: ZodSchema<T>,
+  schema: ZodType<T>,
   request: MessageBase,
   passthrough = false,
 ): Promise<T> {

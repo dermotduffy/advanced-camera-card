@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import tsParser from '@typescript-eslint/parser';
+import vitest from '@vitest/eslint-plugin';
 import { defineConfig } from 'eslint/config';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -96,13 +97,10 @@ export default defineConfig([
     },
   },
 
-  // A fire-and-forget promise must be marked with `void` to show it is deliberate.
-  // To know which calls return a promise, this rule needs type information, so the
-  // `project` option below runs the TypeScript type-checker over source while linting.
-  // That makes linting source slower. Tests are excluded: they leave promises unawaited
-  // freely.
+  // The rules below need type information, so the `projectService` option runs the
+  // TypeScript type-checker while linting. That makes linting slower.
   {
-    files: ['src/**/*.ts'],
+    files: ['{scripts,src,tests}/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -111,7 +109,29 @@ export default defineConfig([
       },
     },
     rules: {
+      // A deprecation is a JSDoc `@deprecated` tag on the declaration, which is only
+      // visible to the type-checker.
+      '@typescript-eslint/no-deprecated': 'error',
+    },
+  },
+
+  // A fire-and-forget promise must be marked with `void` to show it is deliberate.
+  // Tests are excluded: they leave promises unawaited freely.
+  {
+    files: ['src/**/*.ts'],
+    rules: {
       '@typescript-eslint/no-floating-promises': 'error',
+    },
+  },
+
+  // The vitest matcher aliases (`toBeCalled`, `toThrowError`, ...) are deprecated in
+  // favor of their full names. `@typescript-eslint/no-deprecated` above reports them as
+  // well, but this rule names the replacement and can fix it automatically.
+  {
+    files: ['tests/**/*.ts'],
+    plugins: { vitest },
+    rules: {
+      'vitest/no-alias-methods': 'error',
     },
   },
 ]);

@@ -1616,7 +1616,9 @@ describe('CameraTriggersManager', () => {
 
       expect(result).toBeFalsy();
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
     });
 
     it('should target the startup action at a camera that has the trigger capability', async () => {
