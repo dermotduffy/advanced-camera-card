@@ -113,6 +113,24 @@ export const dispatchPointerDown = (element: Element): void => {
 };
 
 /**
+ * The element painted on top at a point, looking inside shadow roots.
+ * `document.elementFromPoint` answers with the outermost custom element over
+ * the point rather than the element within it that was drawn there, so each
+ * shadow root is asked in turn what it holds at the same point.
+ */
+export const getElementAtPoint = (x: number, y: number): Element | null => {
+  let element = document.elementFromPoint(x, y);
+  while (element?.shadowRoot) {
+    const within = element.shadowRoot.elementFromPoint(x, y);
+    if (!within || within === element) {
+      break;
+    }
+    element = within;
+  }
+  return element;
+};
+
+/**
  * The element that actually has focus. `document.activeElement` names the
  * outermost shadow host in the way, since focus is reported per tree.
  */
