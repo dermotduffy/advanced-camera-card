@@ -52,8 +52,6 @@ export interface DownloadHelpers {
 export interface FoldersEngine {
   getDefaultQueryParameters(folder: FolderConfig): FolderQuery | null;
 
-  generateChildFolderQuery(query: FolderQuery, folder: ViewFolder): FolderQuery | null;
-
   expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,

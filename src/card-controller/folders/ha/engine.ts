@@ -1,5 +1,4 @@
 import { sub } from 'date-fns';
-import { findLastIndex } from 'lodash-es';
 import type { NonEmptyTuple } from 'type-fest';
 
 import type { ConditionState } from '../../../condition-trigger/conditions/types';
@@ -26,7 +25,7 @@ import { HA_MEDIA_SOURCE_ROOT } from '../../../ha/media-source';
 import type { HomeAssistant } from '../../../ha/types';
 import { QuerySource } from '../../../query-source.js';
 import type { Endpoint } from '../../../types';
-import type { ViewFolder, ViewItem } from '../../../view/item';
+import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../../view/types';
 import type { TemplateRenderer } from '../../templates';
@@ -41,16 +40,29 @@ import { MediaMatcher } from './media-matcher';
 import { MetadataGenerator } from './metadata-generator.js';
 import { ThumbnailMetadataGenerator } from './thumbnail-metadata-generator';
 
-// The media a path component points the walk at: a folder the user navigated
-// into or a media source id written in the configuration.
-const getBrowseTarget = (
-  component: FolderPathComponent,
-): BrowseMediaTarget<BrowseMediaMetadata> | null => {
-  const folderBrowseMedia =
-    component.folder instanceof BrowseMediaViewFolder
-      ? component.folder.getBrowseMedia()
-      : null;
-  return folderBrowseMedia ?? component.ha?.id ?? null;
+interface WalkPlan {
+  // Where the walk starts browsing.
+  start: BrowseMediaTarget<BrowseMediaMetadata>;
+
+  // What to match and parse at each level below the start, one entry per level.
+  levels: FolderPathComponent[];
+}
+
+// Find the deepest component that identifies a folder to browse: a folder the
+// user clicked, or a media source id from the configuration.
+const getWalkPlan = (path: readonly FolderPathComponent[]): WalkPlan | null => {
+  for (let index = path.length - 1; index >= 0; index--) {
+    const component = path[index];
+
+    if (component.folder instanceof BrowseMediaViewFolder) {
+      return { start: component.folder.getBrowseMedia(), levels: path.slice(index + 1) };
+    }
+    if (component.ha?.id) {
+      return { start: component.ha.id, levels: path.slice(index + 1) };
+    }
+  }
+
+  return null;
 };
 
 export class HAFoldersEngine implements FoldersEngine {
@@ -147,56 +159,45 @@ export class HAFoldersEngine implements FoldersEngine {
       return null;
     }
 
-    const pathComponents = [...query.path];
-
-    // The walk starts at the last component with a fully qualified browse
-    // target: the deepest folder the user has navigated into, or the deepest id
-    // in the configuration.
-    const browseTargets = pathComponents.map(getBrowseTarget);
-    const startIndex = findLastIndex(browseTargets, (target) => target !== null);
-
-    // findLastIndex returns -1 when no component has a target, leaving the walk
-    // nowhere to start.
-    const start = browseTargets[startIndex] ?? null;
-    if (start === null) {
+    const plan = getWalkPlan(query.path);
+    if (!plan) {
       return null;
     }
-
-    pathComponents.splice(0, startIndex + 1);
+    const { start, levels } = plan;
 
     await this._metadataGenerator.prepare(
-      pathComponents.flatMap((component) => component.ha?.parsers ?? []),
+      levels.flatMap((level) => level.ha?.parsers ?? []),
     );
 
-    // Generate a walk step, optionally matching against the next path component
-    // (if any), otherwise just returning all the media at this level.
+    // Generate a walk step, optionally matching against the next level (if
+    // any), otherwise just returning all the media at this level.
     const generateStep = (
       targets: BrowseMediaTarget<BrowseMediaMetadata>[],
     ): BrowseMediaStep<BrowseMediaMetadata>[] => {
-      const nextComponent = pathComponents.shift();
+      const nextLevel = levels.shift();
 
       return [
         {
           targets,
           metadataGenerator: (media, parent) =>
-            this._metadataGenerator.generate(media, parent, nextComponent?.ha?.parsers),
+            this._metadataGenerator.generate(media, parent, nextLevel?.ha?.parsers),
           childrenMetadataUpdater: (children) =>
             this._thumbnailMetadataGenerator.generate(
               hass,
               children,
-              nextComponent?.ha?.parsers,
+              nextLevel?.ha?.parsers,
             ),
 
-          ...(nextComponent && {
+          ...(nextLevel && {
             matcher: (media) =>
               this._mediaMatcher.match(hass, media, {
-                matchers: nextComponent.ha?.matchers,
-                // Set foldersOnly to true if there are more stages in the path,
-                // as by definition only folders can be matched at this point.
-                foldersOnly: pathComponents.length > 0,
+                matchers: nextLevel.ha?.matchers,
+                // Set foldersOnly to true if there are more levels to walk, as
+                // by definition only folders can be matched at this point.
+                foldersOnly: levels.length > 0,
                 conditionState,
               }),
-            advance: (targets) => (pathComponents.length ? generateStep(targets) : []),
+            advance: (targets) => (levels.length ? generateStep(targets) : []),
           }),
         },
       ];
@@ -218,29 +219,6 @@ export class HAFoldersEngine implements FoldersEngine {
       folder: query.folder,
       path: query.path,
     });
-  }
-
-  public generateChildFolderQuery(
-    query: FolderQuery,
-    folder: ViewFolder,
-  ): FolderQuery | null {
-    const id = folder.getID();
-    if (query.folder.type !== folderTypeSchema.enum.ha || !id) {
-      return null;
-    }
-
-    // Get the full configured path to find parsers/matchers for this depth.
-    const fullPath = this._getDefaultPathComponents(query.folder.ha);
-    const nextConfiguredComponent = fullPath[query.path.length];
-
-    // Use the configured component's parsers/matchers if available, otherwise
-    // just use the ID from the folder.
-    const ha = nextConfiguredComponent?.ha ?? { id };
-
-    return {
-      ...query,
-      path: [...query.path, { folder, ha }],
-    };
   }
 
   public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {

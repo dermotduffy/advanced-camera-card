@@ -4,14 +4,10 @@ import { mock } from 'vitest-mock-extended';
 import type { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import type { FolderQuery } from '../../../src/card-controller/folders/types';
-import type {
-  FolderConfig,
-  FolderConfigWithoutID,
-} from '../../../src/config/schema/folders';
+import type { FolderConfigWithoutID } from '../../../src/config/schema/folders';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
 import type { Endpoint } from '../../../src/types';
-import { ViewFolder } from '../../../src/view/item';
 import type { ViewItemCapabilities } from '../../../src/view/types';
 import { createCardAPI, createFolder, createHASS } from '../../test-utils';
 import { TestViewMedia } from '../../view/test-utils';
@@ -165,26 +161,6 @@ describe('FoldersManager', () => {
     it('should get non-existent folder', () => {
       const manager = new FoldersManager(createCardAPI());
       expect(manager.getFolder('NON-EXISTENT')).toBeNull();
-    });
-  });
-
-  describe('generateChildFolderQuery', () => {
-    it('should generate child folder query', () => {
-      const folder: FolderConfig = createFolder();
-      const query: FolderQuery = {
-        source: QuerySource.Folder,
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-      const viewFolder = new ViewFolder(folder, []);
-
-      const executor = mock<FoldersExecutor>();
-      vi.mocked(executor.generateChildFolderQuery).mockReturnValue(query);
-
-      const manager = new FoldersManager(createCardAPI(), executor);
-
-      expect(manager.generateChildFolderQuery(query, viewFolder)).toEqual(query);
-      expect(executor.generateChildFolderQuery).toHaveBeenCalledWith(query, viewFolder);
     });
   });
 

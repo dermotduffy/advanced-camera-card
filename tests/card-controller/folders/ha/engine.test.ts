@@ -110,6 +110,17 @@ describe('HAFoldersEngine', () => {
         path: [{ ha: { id: 'media-source://' } }],
       });
     });
+
+    it('should start at the media source root when no path is configured', () => {
+      const folder: FolderConfig = { type: 'ha', id: 'test' };
+      const engine = new HAFoldersEngine(templateManager);
+
+      expect(engine.getDefaultQueryParameters(folder)).toEqual({
+        source: QuerySource.Folder,
+        folder,
+        path: [{ ha: { id: 'media-source://' } }],
+      });
+    });
   });
 
   describe('should expand folder', () => {
@@ -267,6 +278,72 @@ describe('HAFoldersEngine', () => {
           { ha: { id: LANDING } },
           { ha: { parsers: [{ type: 'thumbnail' }] } },
           { folder: new BrowseMediaViewFolder(createFolder(), [], dayBrowseMedia) },
+        ],
+      };
+
+      const engine = new HAFoldersEngine(templateManager);
+      const results = await engine.expandFolder(createHASS(), query);
+
+      expect(results?.map((item) => item.getTitle())).toEqual(['one.mp4']);
+    });
+
+    it('should browse the deepest configured id in the path', async () => {
+      const LANDING = 'media-source://media_source/local/Landing';
+      const DAY = `${LANDING}/2026-08-28`;
+      const IMAGES = `${LANDING}/images`;
+
+      const tree: Record<string, BrowseMedia> = {
+        [LANDING]: createBrowseMedia({
+          media_content_id: LANDING,
+          can_expand: true,
+          children: [
+            createBrowseMedia({
+              media_content_id: DAY,
+              title: '2026-08-28',
+              can_expand: true,
+            }),
+            createBrowseMedia({
+              media_content_id: IMAGES,
+              title: 'images',
+              can_expand: true,
+            }),
+          ],
+        }),
+        [DAY]: createBrowseMedia({
+          media_content_id: DAY,
+          can_expand: true,
+          children: [
+            createBrowseMedia({ media_content_id: `${DAY}/one.mp4`, title: 'one.mp4' }),
+          ],
+        }),
+        [IMAGES]: createBrowseMedia({
+          media_content_id: IMAGES,
+          can_expand: true,
+          children: [
+            createBrowseMedia({
+              media_content_id: `${IMAGES}/2026-08-28.jpg`,
+              title: '2026-08-28.jpg',
+            }),
+          ],
+        }),
+      };
+
+      vi.mocked(homeAssistantWSRequest).mockImplementation(
+        async (_hass, _schema, request) => {
+          const mediaContentID: unknown = request.media_content_id;
+          return typeof mediaContentID === 'string' ? tree[mediaContentID] : null;
+        },
+      );
+
+      // An id deeper in the path is where the walk starts, so the components
+      // before it are never browsed.
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: { type: 'ha', id: 'test' },
+        path: [
+          { ha: { id: LANDING } },
+          { ha: { parsers: [{ type: 'thumbnail' }] } },
+          { ha: { id: DAY } },
         ],
       };
 
@@ -452,88 +529,6 @@ describe('HAFoldersEngine', () => {
       assert(item instanceof ViewMedia);
       expect(item.getContentID()).toBe('media-source://id/clip.mp4');
       expect(item.getThumbnail()).toBe('media-source://id/clip.jpg');
-    });
-  });
-
-  describe('generateChildFolderQuery', () => {
-    it('should return null if folder type is not ha', () => {
-      const engine = new HAFoldersEngine(templateManager);
-      const query: FolderQuery = {
-        source: QuerySource.Folder,
-        folder: { type: 'other' } as unknown as FolderConfig,
-        path: [{ ha: { id: 'root' } }],
-      };
-      const folder = new ViewFolder(createFolder(), []);
-
-      expect(engine.generateChildFolderQuery(query, folder)).toBeNull();
-    });
-
-    it('should return null if folder has no id', () => {
-      const engine = new HAFoldersEngine(templateManager);
-      const query: FolderQuery = {
-        source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
-        path: [{ ha: { id: 'root' } }],
-      };
-      const folder = new ViewFolder(createFolder(), [], { id: '' });
-
-      expect(engine.generateChildFolderQuery(query, folder)).toBeNull();
-    });
-
-    it('should extend query with configured component', () => {
-      const engine = new HAFoldersEngine(templateManager);
-      const folderConfig: FolderConfig = {
-        type: 'ha',
-        id: 'test',
-        ha: {
-          path: [{ id: 'child', matchers: [{ type: 'title', title: 'foo' }] }],
-        },
-      };
-      const query: FolderQuery = {
-        source: QuerySource.Folder,
-        folder: folderConfig,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-      const folder = new ViewFolder(createFolder(), [], { id: 'child' });
-
-      const result = engine.generateChildFolderQuery(query, folder);
-
-      expect(result).toEqual({
-        source: QuerySource.Folder,
-        folder: folderConfig,
-        path: [
-          { ha: { id: 'media-source://' } },
-          {
-            folder,
-            ha: { id: 'child', matchers: [{ type: 'title', title: 'foo' }] },
-          },
-        ],
-      });
-    });
-
-    it('should extend query with default component when no configuration exists', () => {
-      const engine = new HAFoldersEngine(templateManager);
-      const folderConfig: FolderConfig = { type: 'ha', id: 'test' };
-      const query: FolderQuery = {
-        source: QuerySource.Folder,
-        folder: folderConfig,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-      const folder = new ViewFolder(createFolder(), [], { id: 'child' });
-
-      const result = engine.generateChildFolderQuery(query, folder);
-
-      expect(result).toEqual({
-        source: QuerySource.Folder,
-        folder: folderConfig,
-        path: [
-          { ha: { id: 'media-source://' } },
-          {
-            folder,
-            ha: { id: 'child' },
-          },
-        ],
-      });
     });
   });
 
