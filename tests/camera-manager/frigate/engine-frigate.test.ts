@@ -2163,13 +2163,13 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createStore([{ cameraID: 'camera-1', config }]);
 
-      const startTime = new Date('2026-03-14T20:15:00Z');
+      const startTime = new Date('2026-03-14T20:15:00');
       const media = new FrigateReviewViewMedia(
         'camera-1',
         createFrigateReview({
           camera: 'camera-1',
           start_time: startTime.getTime() / 1000,
-          end_time: new Date('2026-03-14T20:45:00Z').getTime() / 1000,
+          end_time: new Date('2026-03-14T20:45:00').getTime() / 1000,
         }),
         'content-id',
         'thumbnail',
@@ -2177,8 +2177,8 @@ describe('FrigateCameraManagerEngine', () => {
 
       vi.mocked(getRecordingSegments).mockResolvedValue([
         {
-          start_time: new Date('2026-03-14T20:00:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T21:00:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:00:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T21:00:00').getTime() / 1000,
           id: 'segment-1',
         },
       ]);
@@ -2187,7 +2187,7 @@ describe('FrigateCameraManagerEngine', () => {
         createHASS(),
         store,
         media,
-        media.getUsableStartTime(),
+        media.getPlaybackStartTime(),
       );
 
       // Five seconds of context before the review starts at 15 minutes.

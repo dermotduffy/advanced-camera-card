@@ -905,7 +905,7 @@ export class FrigateCameraManagerEngine
     target: Date,
     engineOptions?: EngineOptions,
   ): Promise<number | null> {
-    const mediaStart = media.getUsableStartTime();
+    const mediaStart = media.getStartTime();
     const mediaEnd = media.getEndTime();
     const cameraID = media.getCameraID();
     const mediaType = media.getMediaType();

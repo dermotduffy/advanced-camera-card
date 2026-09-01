@@ -428,20 +428,31 @@ describe('FrigateReviewViewMedia', () => {
 
   it('should include five seconds of pre-review playback', () => {
     const review = createFrigateReview({
-      start_time: new Date('2026-03-14T20:15:00Z').getTime() / 1000,
+      start_time: new Date('2026-03-14T20:15:00').getTime() / 1000,
     });
     const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
 
-    expect(media.getUsableStartTime()).toEqual(new Date('2026-03-14T20:14:55Z'));
+    expect(media.getPlaybackStartTime()).toEqual(new Date('2026-03-14T20:14:55'));
   });
 
   it('should not pad before the start of the review recording hour', () => {
     const review = createFrigateReview({
-      start_time: new Date('2026-03-14T20:00:03Z').getTime() / 1000,
+      start_time: new Date('2026-03-14T20:00:03').getTime() / 1000,
     });
     const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
 
-    expect(media.getUsableStartTime()).toEqual(new Date('2026-03-14T20:00:00Z'));
+    expect(media.getPlaybackStartTime()).toEqual(new Date('2026-03-14T20:00:00'));
+  });
+
+  it('should not include a time before the review starts', () => {
+    const review = createFrigateReview({
+      start_time: new Date('2026-03-14T20:15:00').getTime() / 1000,
+      end_time: new Date('2026-03-14T20:45:00').getTime() / 1000,
+    });
+    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+
+    expect(media.includesTime(new Date('2026-03-14T20:15:00'))).toBeTruthy();
+    expect(media.includesTime(new Date('2026-03-14T20:14:56'))).toBeFalsy();
   });
 
   it('should get end time', () => {

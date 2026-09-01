@@ -445,18 +445,26 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
 
     const view = this.viewManagerEpoch?.manager.getView();
-    const seek = view?.context?.mediaViewer?.seek ?? selectedMedia.getUsableStartTime();
+    const requestedSeek = view?.context?.mediaViewer?.seek ?? null;
+    const seek = requestedSeek ?? selectedMedia.getPlaybackStartTime();
 
     if (!seek) {
       return;
     }
 
-    const seekTimeInMedia = selectedMedia.includesTime(seek);
+    // The media supplies its own playback start time (via
+    // `getPlaybackStartTime()`). Only a seek time set on the view can be
+    // considered falling outside the media.
+    const seekTimeInMedia = !requestedSeek || selectedMedia.includesTime(requestedSeek);
     this.toggleAttribute('unseekable', !seekTimeInMedia);
     if (!seekTimeInMedia && !mediaPlayerController.playback?.isPaused()) {
       void mediaPlayerController.playback?.pause();
     } else if (seekTimeInMedia && mediaPlayerController.playback?.isPaused()) {
       void mediaPlayerController.playback?.play();
+    }
+
+    if (!seekTimeInMedia) {
+      return;
     }
 
     const seekTime =
