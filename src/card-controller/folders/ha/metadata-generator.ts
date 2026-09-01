@@ -1,5 +1,6 @@
 import type parser from 'any-date-parser';
 import { parse } from 'date-fns';
+import { omit } from 'lodash-es';
 
 import type {
   DateParser,
@@ -38,10 +39,7 @@ export class MetadataGenerator {
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
     parsers?: Parser[],
   ): BrowseMediaMetadata | null {
-    // Always propagate metadata from parent to children.
-    const metadata: BrowseMediaMetadata = {
-      ...parent?._metadata,
-    };
+    const metadata = this._getInheritedMetadata(parent?._metadata);
 
     for (const parser of parsers ?? []) {
       if (!isDateParser(parser)) {
@@ -66,6 +64,14 @@ export class MetadataGenerator {
     }
 
     return Object.keys(metadata).length > 0 ? metadata : null;
+  }
+
+  private _getInheritedMetadata(
+    parentMetadata?: BrowseMediaMetadata,
+  ): BrowseMediaMetadata {
+    // Thumbnail is not passed down: a picture of a folder is not a picture of
+    // each file within it.
+    return omit(parentMetadata, 'thumbnailOverride');
   }
 
   private _parseDate(

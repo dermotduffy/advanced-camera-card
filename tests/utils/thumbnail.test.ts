@@ -325,6 +325,63 @@ describe('media source thumbnails', () => {
     expect(hass.fetchWithAuth).toHaveBeenCalledWith('/media/local/folder/clip.jpg');
   });
 
+  it('should throw when a media source ID is not an image', async () => {
+    const host = mock<ReactiveControllerHost>();
+    const hass = createHASS();
+    const thumbnail = 'media-source://media_source/local/folder/clip.mp4';
+
+    vi.mocked(resolveMedia).mockResolvedValue({
+      url: '/media/local/folder/clip.mp4',
+      mime_type: 'video/mp4',
+    });
+
+    createFetchThumbnailTask(
+      host,
+      () => hass,
+      () => thumbnail,
+    );
+    const call = vi.mocked(Task).mock.calls[0];
+    assert(call);
+
+    const options = call[1];
+    assert(isTaskConfig(options));
+
+    await expect(
+      options.task([true, thumbnail], createTaskFunctionOptions()),
+    ).rejects.toThrow(/Thumbnail is not an image/);
+
+    // The media is refused before it is downloaded.
+    expect(hass.fetchWithAuth).not.toHaveBeenCalled();
+  });
+
+  it('should throw when the fetched thumbnail is not an image', async () => {
+    const host = mock<ReactiveControllerHost>();
+    const hass = createHASS();
+    const thumbnailURL = '/api/thumb.jpg';
+
+    const mockResponse = mock<Response>();
+    Object.defineProperty(mockResponse, 'ok', { value: true });
+    mockResponse.blob.mockResolvedValue(
+      new Blob(['<html></html>'], { type: 'text/html' }),
+    );
+    vi.mocked(hass.fetchWithAuth).mockResolvedValue(mockResponse);
+
+    createFetchThumbnailTask(
+      host,
+      () => hass,
+      () => thumbnailURL,
+    );
+    const call = vi.mocked(Task).mock.calls[0];
+    assert(call);
+
+    const options = call[1];
+    assert(isTaskConfig(options));
+
+    await expect(
+      options.task([true, thumbnailURL], createTaskFunctionOptions()),
+    ).rejects.toThrow(/Thumbnail is not an image/);
+  });
+
   it('should throw when a media source ID cannot be resolved', async () => {
     const host = mock<ReactiveControllerHost>();
     const hass = createHASS();

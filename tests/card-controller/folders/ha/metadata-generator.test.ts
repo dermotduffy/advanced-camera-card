@@ -151,6 +151,26 @@ describe('MetadataGenerator', () => {
             ])?.startDate,
           ).toEqual(new Date(2025, 4, 26, 22, 42));
         });
+
+        it('should not incorporate a parent thumbnail', async () => {
+          const parentBrowseMedia = createRichBrowseMedia({
+            title: '2025-05-26',
+            _metadata: {
+              thumbnailOverride: 'media-source://media_source/local/2025-05-26.jpg',
+            },
+          });
+          const childBrowseMedia = createBrowseMedia({
+            title: '22:42',
+          });
+          const generator = new MetadataGenerator();
+          await generator.prepare([formatlessDateParser]);
+
+          expect(
+            generator.generate(childBrowseMedia, parentBrowseMedia, [
+              formatlessDateParser,
+            ])?.thumbnailOverride,
+          ).toBeUndefined();
+        });
       });
 
       describe('should generate date metadata with a date format', () => {

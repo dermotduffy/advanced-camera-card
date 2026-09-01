@@ -1,4 +1,5 @@
 import { sub } from 'date-fns';
+import { findLastIndex } from 'lodash-es';
 import type { NonEmptyTuple } from 'type-fest';
 
 import type { ConditionState } from '../../../condition-trigger/conditions/types';
@@ -14,7 +15,6 @@ import {
   BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMediaCache,
   type BrowseMediaMetadata,
-  type RichBrowseMedia,
 } from '../../../ha/browse-media/types';
 import {
   BrowseMediaWalker,
@@ -40,6 +40,18 @@ import type {
 import { MediaMatcher } from './media-matcher';
 import { MetadataGenerator } from './metadata-generator.js';
 import { ThumbnailMetadataGenerator } from './thumbnail-metadata-generator';
+
+// The media a path component points the walk at: a folder the user navigated
+// into or a media source id written in the configuration.
+const getBrowseTarget = (
+  component: FolderPathComponent,
+): BrowseMediaTarget<BrowseMediaMetadata> | null => {
+  const folderBrowseMedia =
+    component.folder instanceof BrowseMediaViewFolder
+      ? component.folder.getBrowseMedia()
+      : null;
+  return folderBrowseMedia ?? component.ha?.id ?? null;
+};
 
 export class HAFoldersEngine implements FoldersEngine {
   private _browseMediaManager: BrowseMediaWalker;
@@ -137,30 +149,20 @@ export class HAFoldersEngine implements FoldersEngine {
 
     const pathComponents = [...query.path];
 
-    // Search through the path components from the start to find the last
-    // component with a precise media source id, which is where the queries
-    // start (and may drill down from).
-    let start: string | RichBrowseMedia<BrowseMediaMetadata> | null = null;
-    while (pathComponents.length > 0) {
-      const folderBrowseMedia =
-        pathComponents[0]?.folder instanceof BrowseMediaViewFolder
-          ? pathComponents[0].folder.getBrowseMedia()
-          : null;
+    // The walk starts at the last component with a fully qualified browse
+    // target: the deepest folder the user has navigated into, or the deepest id
+    // in the configuration.
+    const browseTargets = pathComponents.map(getBrowseTarget);
+    const startIndex = findLastIndex(browseTargets, (target) => target !== null);
 
-      const validStart = folderBrowseMedia ?? pathComponents[0]?.ha?.id ?? null;
-      if (validStart) {
-        start = validStart;
-        pathComponents.shift();
-      } else {
-        break;
-      }
-    }
-
-    // If no media source id is found, return null, as there is no "starting
-    // query".
+    // findLastIndex returns -1 when no component has a target, leaving the walk
+    // nowhere to start.
+    const start = browseTargets[startIndex] ?? null;
     if (start === null) {
       return null;
     }
+
+    pathComponents.splice(0, startIndex + 1);
 
     await this._metadataGenerator.prepare(
       pathComponents.flatMap((component) => component.ha?.parsers ?? []),

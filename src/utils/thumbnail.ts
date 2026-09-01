@@ -11,6 +11,29 @@ import { AdvancedCameraCardError } from '../types';
 // Absolute URL: https://tools.ietf.org/html/rfc3986#section-4.3
 const ABSOLUTE_URL_REGEX = /^[a-zA-Z][a-zA-Z\d+\-.]*?:/;
 
+const IMAGE_MIME_TYPE_PREFIX = 'image/';
+
+/**
+ * The URL of an image a media source ID refers to. May throw.
+ */
+const resolveImageURL = async (
+  hass: HomeAssistant,
+  thumbnail: string,
+): Promise<string> => {
+  const resolved = await resolveMedia(hass, thumbnail);
+  if (!resolved) {
+    throw new AdvancedCameraCardError(`Could not resolve thumbnail: ${thumbnail}`);
+  }
+
+  if (!resolved.mime_type.startsWith(IMAGE_MIME_TYPE_PREFIX)) {
+    throw new AdvancedCameraCardError(
+      `Thumbnail is not an image: ${thumbnail} (${resolved.mime_type})`,
+    );
+  }
+
+  return resolved.url;
+};
+
 /**
  * Fetch a thumbnail and return a data URL.
  * @param hass Home Assistant object.
@@ -22,14 +45,9 @@ const fetchThumbnail = async (
   hass: HomeAssistant,
   thumbnail: string,
 ): Promise<string | null> => {
-  // A media source ID is tested for first, as it would otherwise be taken for
-  // an absolute URL.
   const thumbnailURL = isMediaSourceID(thumbnail)
-    ? (await resolveMedia(hass, thumbnail))?.url
+    ? await resolveImageURL(hass, thumbnail)
     : thumbnail;
-  if (!thumbnailURL) {
-    throw new AdvancedCameraCardError(`Could not resolve thumbnail: ${thumbnail}`);
-  }
 
   if (thumbnailURL.startsWith('data:') || thumbnailURL.match(ABSOLUTE_URL_REGEX)) {
     return thumbnailURL;
@@ -43,6 +61,14 @@ const fetchThumbnail = async (
     throw new Error(response.statusText);
   }
   const blob = await response.blob();
+
+  // Ensure the data returned is actually an image, and not a redirect/error.
+  if (blob.type && !blob.type.startsWith(IMAGE_MIME_TYPE_PREFIX)) {
+    throw new AdvancedCameraCardError(
+      `Thumbnail is not an image: ${thumbnail} (${blob.type})`,
+    );
+  }
+
   return new Promise<string | null>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {

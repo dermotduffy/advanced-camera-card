@@ -14,7 +14,10 @@ import type { FolderQuery } from '../../../../src/card-controller/folders/types'
 import { TemplateManager } from '../../../../src/card-controller/templates';
 import type { FolderConfig, Matcher } from '../../../../src/config/schema/folders';
 import { BrowseMediaViewFolder } from '../../../../src/ha/browse-media/item';
-import { browseMediaSchema } from '../../../../src/ha/browse-media/types';
+import {
+  browseMediaSchema,
+  type BrowseMedia,
+} from '../../../../src/ha/browse-media/types';
 import { getMediaDownloadPath } from '../../../../src/ha/download';
 import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';
 import { QuerySource } from '../../../../src/query-source';
@@ -203,6 +206,74 @@ describe('HAFoldersEngine', () => {
       // Expanding the folder again should use the cache.
       await engine.expandFolder(createHASS(), query);
       expect(homeAssistantWSRequest).toHaveBeenCalledTimes(2);
+    });
+
+    it('should browse only the folder that was navigated into', async () => {
+      const LANDING = 'media-source://media_source/local/Landing';
+      const DAY = `${LANDING}/2026-08-28`;
+      const IMAGES = `${LANDING}/images`;
+
+      const dayBrowseMedia = createBrowseMedia({
+        media_content_id: DAY,
+        title: '2026-08-28',
+        can_expand: true,
+      });
+
+      const tree: Record<string, BrowseMedia> = {
+        [LANDING]: createBrowseMedia({
+          media_content_id: LANDING,
+          can_expand: true,
+          children: [
+            dayBrowseMedia,
+            createBrowseMedia({
+              media_content_id: IMAGES,
+              title: 'images',
+              can_expand: true,
+            }),
+          ],
+        }),
+        [DAY]: createBrowseMedia({
+          media_content_id: DAY,
+          can_expand: true,
+          children: [
+            createBrowseMedia({ media_content_id: `${DAY}/one.mp4`, title: 'one.mp4' }),
+          ],
+        }),
+        [IMAGES]: createBrowseMedia({
+          media_content_id: IMAGES,
+          can_expand: true,
+          children: [
+            createBrowseMedia({
+              media_content_id: `${IMAGES}/2026-08-28.jpg`,
+              title: '2026-08-28.jpg',
+            }),
+          ],
+        }),
+      };
+
+      vi.mocked(homeAssistantWSRequest).mockImplementation(
+        async (_hass, _schema, request) => {
+          const mediaContentID: unknown = request.media_content_id;
+          return typeof mediaContentID === 'string' ? tree[mediaContentID] : null;
+        },
+      );
+
+      // The path after the user clicks into the `2026-08-28` folder, which is
+      // added after the parser component that found it.
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: { type: 'ha', id: 'test' },
+        path: [
+          { ha: { id: LANDING } },
+          { ha: { parsers: [{ type: 'thumbnail' }] } },
+          { folder: new BrowseMediaViewFolder(createFolder(), [], dayBrowseMedia) },
+        ],
+      };
+
+      const engine = new HAFoldersEngine(templateManager);
+      const results = await engine.expandFolder(createHASS(), query);
+
+      expect(results?.map((item) => item.getTitle())).toEqual(['one.mp4']);
     });
 
     it('should use id from browsemedia in folder in query', async () => {

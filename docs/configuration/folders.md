@@ -204,7 +204,7 @@ media an earlier one did not match.
 > A `value_template` may render the media source ID of _any_ Home Assistant media,
 > so thumbnails may be kept in an entirely separate directory to the media they
 > depict if desired. That directory must be under a [Home Assistant media
-> directory](https://www.home-assistant.io/more-info/local-media/setup-media/#using-custom-folders).
+> directory](https://www.home-assistant.io/more-info/local-media/setup-media/#using-custom-folders). Resulting media must be an image.
 
 ###### Thumbnail examples
 
