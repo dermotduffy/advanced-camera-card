@@ -10,7 +10,7 @@ import type { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './ty
 // Regexp directly from:
 // https://github.com/home-assistant/core/blob/dev/homeassistant/helpers/condition.py
 const INPUT_ENTITY_ID =
-  /^input_(?:select|text|number|boolean|datetime)\.(?!.+__)(?!_)[\da-z_]+(?<!_)$/;
+  /^input_(?:select|text|number|boolean|datetime)\.(?!.+__)[\da-z](?:[\da-z_]*[\da-z])?$/;
 
 const isInputHelperName = (value: unknown): value is string =>
   typeof value === 'string' && INPUT_ENTITY_ID.test(value);

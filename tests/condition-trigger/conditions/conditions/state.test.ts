@@ -712,6 +712,32 @@ describe('state condition', () => {
     ).toBeFalsy();
   });
 
+  it.each([
+    ['input_text.expected', true],
+    ['input_text.a_1', true],
+    ['input_text._expected', false],
+    ['input_text.expected_', false],
+    ['input_text.expected__name', false],
+  ])('should only resolve valid input helper IDs (%s)', (expected, resolves) => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: 'binary_sensor.foo',
+        state: expected,
+      },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'armed' }),
+          [expected]: createStateEntity({ state: 'armed' }),
+        }),
+      }).result,
+    ).toBe(resolves);
+  });
+
   it('should compare an input helper by its state, not its literal name', () => {
     // HA replaces the helper name with its state, so the literal name never
     // matches (resolved-value-only).
