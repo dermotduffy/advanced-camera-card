@@ -155,8 +155,8 @@ elements:
     conditions:
       - condition: state
         entity: light.office_main_lights
-        state: on
-        state_not: off
+        state: 'on'
+        state_not: 'off'
       - condition: numeric_state
         entity: sensor.light_level
         above: 20
