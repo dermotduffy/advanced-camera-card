@@ -272,7 +272,6 @@ elements:
     entity: input_select.kitchen_scene
     icon: mdi:lamps
     options:
-    items:
       scene.kitchen_cooking_scene:
         enabled: true
         icon: mdi:chef-hat
@@ -307,7 +306,8 @@ elements:
       - condition: expand
         expand: true
       - condition: camera
-        cameras: camera.front_door
+        cameras:
+          - camera.front_door
       - condition: media_loaded
         media_loaded: true
       - condition: display_mode
@@ -322,8 +322,8 @@ elements:
         connected: true
       - condition: state
         entity: light.office_main_lights
-        state: on
-        state_not: off
+        state: 'on'
+        state_not: 'off'
       - condition: numeric_state
         entity: sensor.light_level
         above: 20

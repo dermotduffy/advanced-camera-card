@@ -478,7 +478,7 @@ cameras:
     cast:
       method: standard
     dimensions:
-      aspect_ratio: 16:9
+      aspect_ratio: '16:9'
       layout:
         fit: contain
         position:
@@ -535,27 +535,26 @@ cameras:
         device: '048123'
         cmd: up
       # Equivalent continuous short form (only `down` shown)
-      service: service.send_command
-      data_up_start:
+      data_start_down:
         device: '048123'
         cmd: down
         phase: start
-      data_up_stop:
+      data_end_down:
         device: '048123'
         cmd: down
         phase: stop
       presets:
         # Preset using long form.
         armchair:
-        action: perform-action
-        perform_action: service.of_your_choice
+          action: perform-action
+          perform_action: service.of_your_choice
           data:
             device: '048123'
             cmd: preset
             preset: armchair
         # Preset using short form.
         service: service.of_your_choice
-        window:
+        data_window:
           device: '048123'
           cmd: preset
           preset: window
@@ -570,19 +569,24 @@ cameras:
     capabilities:
       disable_except:
         - clips
+        - remote-control-entity
         - favorite-events
         - favorite-recordings
         - live
         - menu
         - ptz
         - recordings
+        - reviews
         - seek
         - snapshots
         - substream
-        - trigger
         - 2-way-audio
+        - trigger
       disable:
         # Capabilities to selectively disable.
+        - substream
+      force:
+        - 2-way-audio
   - camera_entity: camera.rotated
     dimensions:
       rotation: 90
