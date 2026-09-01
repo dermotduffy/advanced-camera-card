@@ -16,6 +16,9 @@
   // So that absolute sidedrawer is relative to this host.
   position: relative;
 
+  // Do not paint tools over other surfaces (e.g. thumbnail drawer).
+  isolation: isolate;
+
   background-color: var(--advanced-camera-card-timeline-background);
 }
 
@@ -200,16 +203,27 @@ div.vis-tooltip {
 
 .timeline-tools {
   display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
   position: absolute;
   right: 0px;
   bottom: 0px;
+  padding: 2px 5px;
+
   color: var(--advanced-camera-card-timeline-tool-color);
+
+  // The tools sit over the bottom of the timeline, where visjs draws the time
+  // axis labels. A near-opaque background keeps the icons legible.
+  background-color: color-mix(
+    in oklab,
+    var(--advanced-camera-card-timeline-background),
+    transparent 20%
+  );
+  border-top-left-radius: var(--advanced-camera-card-border-radius-final);
+
   z-index: 10;
 }
 .timeline-tools * {
-  margin: 2px 5px;
   cursor: pointer;
-}
-.timeline-tools *:last-child {
-  margin-right: 10px;
 }
