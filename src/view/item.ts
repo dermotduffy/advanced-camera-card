@@ -42,6 +42,9 @@ export class ViewMedia {
   public getStartTime(): Date | null {
     return null;
   }
+  public getPlaybackStartTime(): Date | null {
+    return this.getStartTime();
+  }
   public getEndTime(): Date | null {
     return null;
   }

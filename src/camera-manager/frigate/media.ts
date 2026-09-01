@@ -1,4 +1,4 @@
-import { fromUnixTime } from 'date-fns';
+import { fromUnixTime, startOfHour, subSeconds } from 'date-fns';
 import { isEqual } from 'lodash-es';
 
 import type { CameraConfig } from '../../config/schema/cameras';
@@ -23,6 +23,12 @@ import {
   getReviewThumbnailURL,
   getReviewTitle,
 } from './util';
+
+// A review starts at the moment of detection, so playback without padding opens
+// with the subject already in frame. Five seconds matches the padding the
+// Frigate integration applies to event clips:
+// https://github.com/blakeblackshear/frigate-hass-integration/blob/v5.15.4/custom_components/frigate/const.py#L71
+const FRIGATE_REVIEW_PADDING_SECONDS = 5;
 
 export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   private _event: FrigateEvent;
@@ -173,6 +179,15 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
   }
   public getStartTime(): Date {
     return fromUnixTime(this._review.start_time);
+  }
+  public getPlaybackStartTime(): Date {
+    const startTime = this.getStartTime();
+    const paddedStartTime = subSeconds(startTime, FRIGATE_REVIEW_PADDING_SECONDS);
+    const recordingStartTime = startOfHour(startTime);
+
+    // Frigate stores recordings in one-hour files, so ensure the padding never
+    // reaches back past the start of the hour that contains the review.
+    return paddedStartTime < recordingStartTime ? recordingStartTime : paddedStartTime;
   }
   public getEndTime(): Date | null {
     return this._review.end_time ? fromUnixTime(this._review.end_time) : null;
