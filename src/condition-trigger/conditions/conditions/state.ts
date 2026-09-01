@@ -7,8 +7,11 @@ import type { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './ty
 // Home Assistant resolves an expected value that names an `input_*` helper to
 // that helper's current state (its Lovelace state-condition behavior), on both
 // the state and the attribute path; only these helper domains are resolved.
-// Regexp directly from:
+// Matches the same entity IDs as the regexp in Home Assistant:
 // https://github.com/home-assistant/core/blob/dev/homeassistant/helpers/condition.py
+// That regexp rejects a trailing `_` with a lookbehind, which Safari before
+// 16.4 fails to parse (taking the whole card down), so the leading and trailing
+// character are spelled out here instead.
 const INPUT_ENTITY_ID =
   /^input_(?:select|text|number|boolean|datetime)\.(?!.+__)[\da-z](?:[\da-z_]*[\da-z])?$/;
 
