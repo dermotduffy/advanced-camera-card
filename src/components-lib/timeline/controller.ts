@@ -40,7 +40,11 @@ import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 import { mergeViewContext } from '../../view/view';
-import { TimelineDataSource, type AdvancedCameraCardTimelineItem } from './source';
+import {
+  canMediaBeShownAsTimelineItem,
+  TimelineDataSource,
+  type AdvancedCameraCardTimelineItem,
+} from './source';
 import type {
   ExtendedTimeline,
   TimelineItemClickAction,
@@ -327,26 +331,7 @@ export class TimelineController {
       return;
     }
 
-    const view = this._viewManagerEpoch?.manager.getView();
-    const panMode = this.getEffectivePanMode();
-    const targetBarOn =
-      this.shouldSupportSeeking() &&
-      (panMode === 'seek' ||
-        ((panMode === 'seek-in-camera' || panMode === 'seek-in-media') &&
-          this._timeline.getSelection().some((id) => {
-            const item = this._source?.dataset?.get(id);
-            return (
-              panMode !== 'seek-in-camera' ||
-                item?.media?.getCameraID() === view?.camera,
-              item &&
-                item.start &&
-                item.end &&
-                targetTime.getTime() >= item.start &&
-                targetTime.getTime() <= item.end
-            );
-          })));
-
-    if (targetBarOn) {
+    if (this.shouldSupportSeeking() && this.getEffectivePanMode() !== 'pan') {
       if (!this._targetBarVisible) {
         this._timeline?.addCustomTime(targetTime, TIMELINE_TARGET_BAR_ID);
         this._targetBarVisible = true;
@@ -574,8 +559,8 @@ export class TimelineController {
         .selectResultIfFound((media) => media.getID() === id, criteria);
       const selectedItem = newResults?.getSelectedResult();
       const context: ViewContext = mergeViewContext(this._getTimelineContext(), {
-        ...(ViewItemClassifier.isEvent(selectedItem) &&
-          // Only attempt to seek if the event has a real end time, otherwise
+        ...(canMediaBeShownAsTimelineItem(selectedItem) &&
+          // Only attempt to seek if the media has a real end time, otherwise
           // the viewer cannot actually seek there and shows the unseekable
           // message.
           selectedItem.getEndTime() && { mediaViewer: { seek: properties.time } }),
@@ -875,7 +860,7 @@ export class TimelineController {
         ...(view.isGrid() && { allCameras: true }),
       }) ?? []
     )
-      .filter((media) => ViewItemClassifier.isEvent(media))
+      .filter((media) => canMediaBeShownAsTimelineItem(media))
       .map((media) => media.getID())
       .filter(isTruthy);
   }
