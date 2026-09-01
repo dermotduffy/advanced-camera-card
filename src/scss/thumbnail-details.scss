@@ -31,12 +31,17 @@ div {
   align-items: center;
   gap: 5px;
 
-  container-type: normal;
-  font-size: 0.95cqh;
+  // `cqh` resolves against the nearest ancestor with `container-type: size`.
+  // `normal` explicitly makes this element *not* a container and nothing else in
+  // the card establishes one, so these lengths fell back to the viewport: text
+  // shrank to a few pixels in a narrow carousel and grew unbounded on large
+  // displays. Size against the thumbnail itself, which is what the container
+  // units were reaching for.
+  font-size: calc(var(--advanced-camera-card-thumbnail-size) * 0.152);
 
   &.heading {
     font-weight: bold;
-    font-size: 1cqh;
+    font-size: calc(var(--advanced-camera-card-thumbnail-size) * 0.16);
   }
 
   span {
