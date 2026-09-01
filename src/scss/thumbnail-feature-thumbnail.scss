@@ -30,9 +30,12 @@ img {
   object-fit: cover;
 }
 
-// Placeholder images (brand logos, folder icons) are not previews of content,
-// so they should be shown in full rather than cropped to fill a square.
-:host(.placeholder) img {
+// Both are shown whole rather than cropped. A placeholder (a brand logo, a
+// folder icon) is not a preview of content. Text leaves a thumbnail only half
+// the tile (a box twice as wide as it is tall), which would crop away half of
+// the image otherwise.
+:host(.placeholder) img,
+:host(.has-text) img {
   object-fit: contain;
 }
 

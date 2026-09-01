@@ -63,6 +63,8 @@ export class ViewMedia {
   public getDescription(): string | null {
     return null;
   }
+
+  // Returns a URL, or the Home Assistant media source ID of an image.
   public getThumbnail(): string | null {
     return null;
   }
@@ -130,6 +132,10 @@ interface ViewFolderParameters {
   id?: string | null;
   title?: string | null;
   thumbnail?: string | null;
+
+  // Whether the folder configuration chose the thumbnail (rather than Home
+  // Assistant reporting it).
+  isThumbnailConfigured?: boolean;
 }
 
 export class ViewFolder {
@@ -140,6 +146,7 @@ export class ViewFolder {
   private _id: string | null;
   private _title: string | null;
   private _thumbnail: string | null;
+  private _isThumbnailConfigured: boolean;
 
   constructor(
     folder: FolderConfig,
@@ -153,6 +160,7 @@ export class ViewFolder {
     this._id = params?.id ?? null;
     this._title = params?.title ?? null;
     this._thumbnail = params?.thumbnail ?? null;
+    this._isThumbnailConfigured = params?.isThumbnailConfigured ?? false;
   }
 
   public getFolder(): FolderConfig {
@@ -172,6 +180,9 @@ export class ViewFolder {
   }
   public getThumbnail(): string | null {
     return this._thumbnail;
+  }
+  public isThumbnailConfigured(): boolean {
+    return this._isThumbnailConfigured;
   }
   public getIcon(): string | null {
     return this._icon;

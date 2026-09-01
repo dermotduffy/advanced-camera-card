@@ -8,6 +8,7 @@ import {
 } from 'home-assistant-js-websocket';
 import { mock } from 'vitest-mock-extended';
 
+import type { BrowseMedia } from '../../src/ha/browse-media/types';
 import type { Entity } from '../../src/ha/registry/entity/types';
 import type { HomeAssistant, ResolvedMedia } from '../../src/ha/types';
 import { createRegistryEntity, createStateEntity } from '../test-utils';
@@ -111,6 +112,7 @@ export class FakeHASS {
   private _handlers = new Map<string, WSCommandHandler>();
   private _pathHandlers: { pattern: RegExp; handler: PathHandler }[] = [];
   private _mediaSources: { pattern: RegExp; handler: MediaSourceHandler }[] = [];
+  private _browsableMedia = new Map<string, BrowseMedia>();
   private _commandLog: MessageBase[] = [];
   private _openEventSubscriptions = 0;
 
@@ -155,6 +157,13 @@ export class FakeHASS {
    */
   public registerMediaSource(pattern: RegExp, handler: MediaSourceHandler): void {
     this._mediaSources.push({ pattern, handler });
+  }
+
+  /**
+   * Register what browsing a media content ID returns.
+   */
+  public registerBrowsableMedia(media: BrowseMedia): void {
+    this._browsableMedia.set(media.media_content_id, media);
   }
 
   /**
@@ -278,10 +287,25 @@ export class FakeHASS {
     this.registerCommand('media_source/resolve_media', (message) =>
       this._resolveMedia(message),
     );
+    this.registerCommand('media_source/browse_media', (message) =>
+      this._browseMedia(message),
+    );
 
     // Not a card command: `ha-nunjucks` fetches the label registry once when a
     // template first renders.
     this.registerCommand('config/label_registry/list', () => []);
+  }
+
+  private _browseMedia(message: MessageBase): BrowseMedia {
+    const contentID: unknown = message['media_content_id'];
+    const media =
+      typeof contentID === 'string' ? this._browsableMedia.get(contentID) : null;
+    if (!media) {
+      throw new Error(
+        `FakeHASS has no browsable media for: ${JSON.stringify(contentID)}`,
+      );
+    }
+    return media;
   }
 
   private async _resolveMedia(message: MessageBase): Promise<ResolvedMedia> {

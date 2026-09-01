@@ -138,6 +138,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       placeholder: true,
     };
 
+    const thumbnail = this._controller.getThumbnail();
     const thumbnailClass = this._controller.getThumbnailClass();
     const thumbnailClasses = classMap({
       ...(thumbnailClass && { [thumbnailClass]: true }),
@@ -146,11 +147,11 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
 
     return html`
       <div class=${classMap({ media: true, 'has-text': hasText })}>
-        ${this._controller.getThumbnail()
+        ${thumbnail
           ? html` <advanced-camera-card-thumbnail-feature-thumbnail
               class="${thumbnailClasses}"
               .hass=${this.hass}
-              .thumbnail=${this._controller.getThumbnail()}
+              .thumbnail=${thumbnail}
               aria-label=${this.item?.getTitle() ?? ''}
               title=${this.item?.getTitle() ?? ''}
             ></advanced-camera-card-thumbnail-feature-thumbnail>`

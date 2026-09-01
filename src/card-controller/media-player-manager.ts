@@ -1,5 +1,6 @@
 import type { CameraConfig } from '../config/schema/cameras';
 import type { AdvancedCameraCardConfig } from '../config/schema/types';
+import { isMediaSourceID } from '../ha/media-source';
 import type { Entity } from '../ha/registry/entity/types';
 import { supportsFeature } from '../ha/supports-feature';
 import { errorToConsole } from '../utils/basic';
@@ -197,7 +198,10 @@ export class MediaPlayerManager {
       media_content_type: ViewItemClassifier.isVideo(media) ? 'video' : 'image',
       extra: {
         ...(title && { title: title }),
-        ...(thumbnail && { thumb: thumbnail }),
+
+        // Home Assistant resolves a media source ID for media_content_id
+        // (above), but passes extra through to the media player untouched.
+        ...(thumbnail && !isMediaSourceID(thumbnail) && { thumb: thumbnail }),
       },
     });
   }

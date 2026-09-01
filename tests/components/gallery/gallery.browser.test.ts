@@ -2,6 +2,7 @@ import { assert, describe, expect, it } from 'vitest';
 
 import type { FrigateEvent } from '../../../src/camera-manager/frigate/types';
 import type { PartialAdvancedCameraCardConfig } from '../../../src/config/types';
+import type { BrowseMedia } from '../../../src/ha/browse-media/types';
 import { deepQuery } from '../../browser/dom';
 import {
   createFrigateCameraDescription,
@@ -11,6 +12,11 @@ import {
   FakeFrigate,
   mountCardWithFrigate,
 } from '../../browser/fake-frigate';
+import {
+  CLIP_FIXTURE_FILENAME,
+  createFixtureURL,
+  SNAPSHOT_FIXTURE_FILENAME,
+} from '../../browser/fixtures';
 import { MountedCardFactory, type MountedCard } from '../../browser/mounted-card';
 import {
   clickThumbnail,
@@ -179,5 +185,208 @@ describe('AdvancedCameraCardGallery', () => {
     // The gallery still renders, so a missing filter is not a missing gallery.
     expect(deepQuery(card.card, 'advanced-camera-card-gallery')).not.toBeNull();
     expect(deepQuery(card.card, 'advanced-camera-card-media-filter')).toBeNull();
+  });
+});
+
+describe('AdvancedCameraCardGallery with a folder', () => {
+  const FOLDER_ID = 'media-source://media_source/local/front-door';
+
+  // What Home Assistant's local media source resolves an image to.
+  const IMAGE_PATH = '/media/local/front-door/clip.jpg';
+
+  const createFolderMedia = (title: string, mediaClass: string): BrowseMedia => ({
+    title,
+    media_class: mediaClass,
+    media_content_type: mediaClass,
+    media_content_id: `${FOLDER_ID}/${title}`,
+    can_play: true,
+    can_expand: false,
+    thumbnail: null,
+    children: null,
+  });
+
+  // A folder holding a clip and the image a user generated for it, which is
+  // what the `thumbnail` parser exists to pair up.
+  const mountFolderCard = async (): Promise<MountedCard> => {
+    const hass = createCameraHASS([createFrigateCameraDescription()]);
+
+    hass.registerBrowsableMedia({
+      title: 'front-door',
+      media_class: 'directory',
+      media_content_type: 'directory',
+      media_content_id: FOLDER_ID,
+      can_play: false,
+      can_expand: true,
+      thumbnail: null,
+      children: [
+        createFolderMedia('clip.mp4', 'video'),
+        createFolderMedia('clip.jpg', 'image'),
+      ],
+    });
+
+    hass.registerMediaSource(/clip\.jpg$/, async () => ({
+      url: IMAGE_PATH,
+      mime_type: 'image/png',
+    }));
+    hass.registerMediaSource(/clip\.mp4$/, async () => ({
+      url: createFixtureURL(CLIP_FIXTURE_FILENAME),
+      mime_type: 'video/webm',
+    }));
+    hass.registerPath(
+      new RegExp(`^${IMAGE_PATH}$`),
+      async () => await fetch(createFixtureURL(SNAPSHOT_FIXTURE_FILENAME)),
+    );
+
+    return await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        view: { default: 'folders' },
+        folders: [
+          {
+            type: 'ha',
+            ha: {
+              path: [{ id: FOLDER_ID }, { parsers: [{ type: 'thumbnail' }] }],
+            },
+          },
+        ],
+      }),
+      hass,
+    );
+  };
+
+  const mountCardThumbnailedWithItsOwnClip = async (): Promise<MountedCard> => {
+    const hass = createCameraHASS([createFrigateCameraDescription()]);
+
+    hass.registerBrowsableMedia({
+      title: 'front-door',
+      media_class: 'directory',
+      media_content_type: 'directory',
+      media_content_id: FOLDER_ID,
+      can_play: false,
+      can_expand: true,
+      thumbnail: null,
+      children: [createFolderMedia('clip.mp4', 'video')],
+    });
+
+    hass.registerMediaSource(/clip\.mp4$/, async () => ({
+      url: createFixtureURL(CLIP_FIXTURE_FILENAME),
+      mime_type: 'video/webm',
+    }));
+
+    return await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        view: { default: 'folders' },
+        folders: [
+          {
+            type: 'ha',
+            ha: {
+              path: [
+                { id: FOLDER_ID },
+                {
+                  parsers: [
+                    {
+                      type: 'thumbnail',
+
+                      // A template that renders the media's own ID (this is
+                      // equivalent to a `replace` that matches nothing, so is a
+                      // likely common failure mode).
+                      value_template: '{{ acc.media.id }}',
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      hass,
+    );
+  };
+
+  it('should not use media that is not an image as a thumbnail', async () => {
+    const card = await mountCardThumbnailedWithItsOwnClip();
+
+    await waitForThumbnails(card, 2);
+    await card.console.waitForMessage(/Thumbnail is not an image/, { level: 'warn' });
+
+    expect(deepQuery<HTMLImageElement>(card.card, 'img')).toBeNull();
+  });
+
+  const mountCardWithAThumbnailedFolder = async (): Promise<MountedCard> => {
+    const hass = createCameraHASS([createFrigateCameraDescription()]);
+
+    hass.registerBrowsableMedia({
+      title: 'front-door',
+      media_class: 'directory',
+      media_content_type: 'directory',
+      media_content_id: FOLDER_ID,
+      can_play: false,
+      can_expand: true,
+      thumbnail: null,
+      children: [
+        {
+          ...createFolderMedia('2026-08-28', 'directory'),
+          can_play: false,
+          can_expand: true,
+        },
+        createFolderMedia('2026-08-28.jpg', 'image'),
+      ],
+    });
+
+    hass.registerMediaSource(/\.jpg$/, async () => ({
+      url: IMAGE_PATH,
+      mime_type: 'image/png',
+    }));
+    hass.registerPath(
+      new RegExp(`^${IMAGE_PATH}$`),
+      async () => await fetch(createFixtureURL(SNAPSHOT_FIXTURE_FILENAME)),
+    );
+
+    return await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        view: { default: 'folders' },
+        folders: [
+          {
+            type: 'ha',
+            ha: { path: [{ id: FOLDER_ID }, { parsers: [{ type: 'thumbnail' }] }] },
+          },
+        ],
+      }),
+      hass,
+    );
+  };
+
+  it('should show a folder picture in full rather than cropped', async () => {
+    const card = await mountCardWithAThumbnailedFolder();
+
+    // The folder and the tile that navigates "up".
+    await waitForThumbnails(card, 2);
+    const picture = await card.waitForRender(
+      () =>
+        getThumbnails(card.card)
+          .map((tile) => deepQuery<HTMLImageElement>(tile, 'img'))
+          .find((image) => !!image) ?? null,
+      'the folder picture',
+    );
+
+    expect(getComputedStyle(picture).objectFit).toBe('contain');
+  });
+
+  it('should show folder media with a matching image as its thumbnail', async () => {
+    const card = await mountFolderCard();
+
+    // The gallery renders a tile for navigating out of the folder as well as
+    // one per media, so the clip and that tile are the two expected here. A
+    // third would mean the thumbnail image was incorrectly shown in its own
+    // right rather than being used as the clip's thumbnail.
+    await waitForThumbnails(card, 2);
+    expect(getThumbnails(card.card)).toHaveLength(2);
+
+    // A thumbnail that never arrives is drawn as an icon. The expected
+    // thumbnail would be a data URL.
+    const image = await card.waitForRender(
+      () => deepQuery<HTMLImageElement>(card.card, 'img'),
+      'the thumbnail picture',
+    );
+    expect(image.src).toMatch(/^data:image\/png;base64,/);
   });
 });

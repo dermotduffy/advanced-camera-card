@@ -44,15 +44,17 @@ accesses Advanced Camera Card state.
 
 ### Media Matching
 
-If templates are used for [Folder Media Matching](./folders.md?id=matchers) an
+If templates are used for [Folder Media Matching](./folders.md?id=matchers) or
+for the [folder `thumbnail` parser](./folders.md?id=parser-thumbnail) an
 additional `media` variable is available with these properties:
 
 Media template values must be prefixed with `acc.media`.
 
-| Template    | Replaced with                                                                     |
-| ----------- | --------------------------------------------------------------------------------- |
-| `title`     | The media title being matched.                                                    |
-| `is_folder` | Whether the media item is a folder that may be expanded (vs a single media item). |
+| Template    | Replaced with                                                                                                  |
+| ----------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`        | The Home Assistant media source ID of the media, e.g. `media-source://media_source/local/front-door/clip.mp4`. |
+| `title`     | The media title being matched.                                                                                 |
+| `is_folder` | Whether the media item is a folder that may be expanded (vs a single media item).                              |
 
 ### Triggers
 

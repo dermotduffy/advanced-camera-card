@@ -177,6 +177,19 @@ describe('MediaMatcher', () => {
         expect(mediaMatcher.match(createHASS(), media, { matchers })).toBe(true);
       });
 
+      it('should return true when template reads the id media value', () => {
+        const mediaMatcher = new MediaMatcher(templateManager);
+        const media = createMediaItem('Test File');
+
+        const matchers: Matcher[] = [
+          {
+            type: 'template',
+            value_template: '{{ acc.media.id == "image_Test_File" }}',
+          },
+        ];
+        expect(mediaMatcher.match(createHASS(), media, { matchers })).toBe(true);
+      });
+
       it('should return true when template reads the is_folder media value', () => {
         const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Test Folder', true, 'directory');

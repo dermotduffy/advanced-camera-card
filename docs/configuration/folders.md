@@ -106,10 +106,10 @@ type: or
 # [...]
 ```
 
-| Parameter | Description                                                  |
-| --------- | ------------------------------------------------------------ |
-| `type`    | Must be `or`.                                                |
-| `matches` | An array of other matchers only one of which needs to match. |
+| Parameter  | Description                                                  |
+| ---------- | ------------------------------------------------------------ |
+| `type`     | Must be `or`.                                                |
+| `matchers` | An array of other matchers only one of which needs to match. |
 
 ##### Matcher: `template`
 
@@ -161,6 +161,75 @@ type: date
 | `type`    | Must be `date` or `startdate`.                                                                                                                                                                                                                                                                              |
 | `format`  | A [`date-fns` format string](https://date-fns.org/docs/parse). If unspecified, [`any-date-parser`](https://www.npmjs.com/package/any-date-parser) is used to parse a date and/or time which covers many common cases. In the event of missing or inaccurate metadata, specifying a precise format may help. |
 | `regexp`  | An optional regular expression to first match the title against before parsing. May be used to match against a subset of the string, see [tip below](#regular-expression-matching).                                                                                                                         |
+
+##### Parser `thumbnail`
+
+Sets the thumbnail of a media item to an image elsewhere in your Home Assistant
+media. Home Assistant, nor this card, will _generate_ thumbnails for media
+files, but this parser allows the use of pre-existing thumbnails to be used in
+the card gallery.
+
+```yaml
+type: thumbnail
+# [...]
+```
+
+| Parameter        | Description                                                                                                                                                                                                                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`           | Must be `thumbnail`.                                                                                                                                                                                                                                                                |
+| `regexp`         | An optional regular expression that extracts a value from the media title. An image whose title yields the same value as another media item in the same folder becomes that item's thumbnail. May not be used with `value_template`. See [tip below](#regular-expression-matching). |
+| `value_template` | An optional [template](./templates.md?id=media-matching) that renders the Home Assistant media source ID, or a URL, of this media's thumbnail. May not be used with `regexp`.                                                                                                       |
+
+If neither `regexp` nor `value_template` is specified, media in the same folder
+is matched by title with the final file extension removed, e.g. `front-door.mp4`
+is matched with `front-door.jpg`. A folder is matched by its whole title, as it
+has no file extension to remove.
+
+Multiple `thumbnail` parsers may be specified. Each is applied in turn to media
+that does not yet have a thumbnail, so a later parser acts as a fallback for
+media an earlier one did not match.
+
+> [!NOTE]
+> Folders may be given thumbnails in the same way as media, e.g. a folder named
+> `2026-08-28` is matched with an image named `2026-08-28.jpg` in the same
+> parent folder.
+
+> [!WARNING]
+> The card does not resize thumbnails, so whatever image is configured is fetched
+> at its full size. Images are only fetched as they scroll into view, but a
+> gallery of full-size photographs will still be substantially slower to load
+> than one of small purpose-made thumbnails.
+
+> [!TIP]
+> A `value_template` may render the media source ID of _any_ Home Assistant media,
+> so thumbnails may be kept in an entirely separate directory to the media they
+> depict if desired. That directory must be under a [Home Assistant media
+> directory](https://www.home-assistant.io/more-info/local-media/setup-media/#using-custom-folders). Resulting media must be an image.
+
+###### Thumbnail examples
+
+An image alongside the media it depicts, e.g. `front-door.mp4` and
+`front-door.jpg`:
+
+```yaml
+parsers:
+  - type: thumbnail
+```
+
+Thumbnails in a separate directory tree that mirrors the media, e.g.
+`my_media/2026-08-28/front-door.mp4` and
+`my_thumbnails/2026-08-28/front-door.jpg`:
+
+```yaml
+parsers:
+  - type: thumbnail
+    value_template: >-
+      {{ acc.media.id | replace('/my_media/', '/my_thumbnails/') |
+      regex_replace('\.[^.]+$', '.jpg') }}
+```
+
+See [Folder Thumbnails](../examples.md?id=folder-thumbnails) for additional
+examples.
 
 ## Advanced
 
@@ -396,6 +465,11 @@ folders:
             - type: startdate
               format: HH:mm:ss
               regexp: 'File (?<value>.*)'
+            - type: thumbnail
+              regexp: '^(?<value>.+?)(?:_thumb)?\.[^.]+$'
+            - type: thumbnail
+              value_template: >-
+                {{ acc.media.id | regex_replace('\.[^.]+$', '.jpg') }}
   - type: ha
     ha:
       path:

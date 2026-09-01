@@ -139,43 +139,6 @@ describe('FoldersExecutor', () => {
     });
   });
 
-  describe('generateChildFolderQuery', () => {
-    it('should generate child folder query', () => {
-      const folder: FolderConfig = createFolder();
-      const query: FolderQuery = {
-        source: QuerySource.Folder,
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-      const viewFolder = new ViewFolder(folder, []);
-
-      const haFolderEngine = mock<HAFoldersEngine>();
-      haFolderEngine.generateChildFolderQuery.mockReturnValue(query);
-      const executor = new FoldersExecutor(templateManager, { ha: haFolderEngine });
-
-      expect(executor.generateChildFolderQuery(query, viewFolder)).toEqual(query);
-      expect(haFolderEngine.generateChildFolderQuery).toHaveBeenCalledWith(
-        query,
-        viewFolder,
-      );
-    });
-
-    it('should return null for non-existent folder engine', () => {
-      const folder: FolderConfig = {
-        type: 'UNKNOWN',
-      } as unknown as FolderConfig;
-      const query: FolderQuery = {
-        source: QuerySource.Folder,
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-      const viewFolder = new ViewFolder(folder, []);
-      const executor = new FoldersExecutor(templateManager);
-
-      expect(executor.generateChildFolderQuery(query, viewFolder)).toBeNull();
-    });
-  });
-
   describe('expandFolder', () => {
     it('should reject folders of the wrong type', async () => {
       const query = {
