@@ -5,6 +5,8 @@
 const HOME_ASSISTANT_THEME = `
   html {
     --ha-font-family-body: Roboto, Noto, sans-serif;
+    --ha-font-size-scale: 1;
+    --ha-font-size-m: calc(14px * var(--ha-font-size-scale));
 
     --primary-text-color: #141414;
     --secondary-text-color: #5e5e5e;
