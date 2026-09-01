@@ -15,7 +15,12 @@ import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import type { FolderConfig } from '../../config/schema/folders';
 import { errorToConsole } from '../../utils/basic.js';
-import type { ViewItem, ViewMedia } from '../../view/item';
+import type {
+  EventViewMedia,
+  ReviewViewMedia,
+  ViewItem,
+  ViewMedia,
+} from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder';
@@ -61,6 +66,13 @@ interface AdvancedCameraCardGroup {
   id: string;
   content: string;
 }
+
+// Events and reviews each get their own timeline item. Recordings do not: they
+// are drawn as the timeline background.
+export const canMediaBeShownAsTimelineItem = (
+  media?: ViewItem | null,
+): media is EventViewMedia | ReviewViewMedia =>
+  ViewItemClassifier.isEvent(media) || ViewItemClassifier.isReview(media);
 
 export class TimelineDataSource {
   private _cameraManager: CameraManager;
@@ -176,7 +188,7 @@ export class TimelineDataSource {
     const data: AdvancedCameraCardTimelineItem[] = [];
 
     for (const media of mediaArray ?? []) {
-      if (!ViewItemClassifier.isEvent(media) && !ViewItemClassifier.isReview(media)) {
+      if (!canMediaBeShownAsTimelineItem(media)) {
         continue;
       }
 
