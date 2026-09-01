@@ -21,7 +21,14 @@
 
   overflow: hidden;
 
-  --mdc-icon-size: 16px;
+  // Match the body text of the dashboard the card sits on, including any font
+  // scaling the user has set there. This is also the basis each row's `em`
+  // resolves against.
+  font-size: var(--ha-font-size-m, 14px);
+
+  // Pin the line height the rows inherit, so a Home Assistant change cannot
+  // alter how many details fit in the panel.
+  line-height: normal;
 }
 
 div {
@@ -31,12 +38,16 @@ div {
   align-items: center;
   gap: 5px;
 
-  container-type: normal;
-  font-size: 0.95cqh;
+  // Icons match the text on their own row, so this belongs on the rows rather
+  // than on `:host`.
+  --mdc-icon-size: 1em;
+
+  &:not(.heading) {
+    font-size: 0.8em;
+  }
 
   &.heading {
     font-weight: bold;
-    font-size: 1cqh;
   }
 
   span {
