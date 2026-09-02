@@ -1,20 +1,30 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 
 // The card imports the timeline component lazily, and `card.waitForSelector`
 // cannot see an element that arrives that way. Directly import instead.
 import '../../src/components/timeline';
 
+import type { FrigateReview } from '../../src/camera-manager/frigate/types';
 import type { AdvancedCameraCardDrawer } from '../../src/components/drawer';
 import type { AdvancedCameraCardTimelineCore } from '../../src/components/timeline-core';
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
-import { deepQuery, getElementAtPoint } from '../browser/dom';
+import { deepQuery, deepQueryAll, getElementAtPoint } from '../browser/dom';
 import {
+  createFrigateCameraDescription,
   createTestFrigateEvent,
+  createTestFrigateReview,
   EVENT_TIME_NEWER,
+  FakeFrigate,
   mountCardWithFrigate,
 } from '../browser/fake-frigate';
-import type { MountedCard } from '../browser/mounted-card';
-import { clickThumbnail, waitForThumbnails } from '../browser/test-utils';
+import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
+import {
+  clickThumbnail,
+  createCameraHASS,
+  createStillImageCardConfig,
+  RESIZE_LOOP_CONSOLE_ERROR,
+  waitForThumbnails,
+} from '../browser/test-utils';
 
 // Titles the pan control carries (in the order clicking cycles through them).
 const PAN_MODE_TITLES = [
@@ -40,6 +50,27 @@ const mountCardWithTimeline = async (
       config,
     )
   ).card;
+
+const getRecentTime = (secondsAgo: number): number =>
+  Math.floor(new Date().getTime() / 1000) - secondsAgo;
+
+const mountCardWithReviews = async (
+  reviews: FrigateReview[],
+  config?: PartialAdvancedCameraCardConfig,
+): Promise<MountedCard> => {
+  const hass = createCameraHASS([createFrigateCameraDescription()]);
+  const frigate = new FakeFrigate(hass);
+  frigate.setReviews(reviews);
+
+  return await MountedCardFactory.createFromSource(
+    createStillImageCardConfig({ view: { default: 'timeline' }, ...config }),
+    hass,
+    {
+      // The timeline resizes itself as it lays itself out.
+      toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR],
+    },
+  );
+};
 
 describe('AdvancedCameraCardTimelineCore', () => {
   it('should draw the timeline tools on a background of their own', async () => {
@@ -116,5 +147,150 @@ describe('AdvancedCameraCardTimelineCore', () => {
 
     // Verify the tools are now hidden by the drawer.
     expect(getElementAtPoint(x, y)).not.toBe(tools);
+  });
+
+  describe('review severity', () => {
+    const mountCardWithSeverities = async (
+      config?: PartialAdvancedCameraCardConfig,
+    ): Promise<MountedCard> =>
+      await mountCardWithReviews(
+        [
+          createTestFrigateReview('alert', getRecentTime(600), { severity: 'alert' }),
+          createTestFrigateReview('detection', getRecentTime(1200), {
+            severity: 'detection',
+          }),
+        ],
+        config,
+      );
+
+    const HIGH_SEVERITY_ITEM = ".vis-item[data-severity='high']";
+
+    interface PaintedItem {
+      severity: string | null;
+      color: string;
+    }
+
+    const resolveBackgroundColors = (root: Element, values: string[]): string[] => {
+      const probe = document.createElement('div');
+      root.append(probe);
+
+      const colors = values.map((value) => {
+        probe.style.backgroundColor = value;
+        return getComputedStyle(probe).backgroundColor;
+      });
+      probe.remove();
+
+      return colors;
+    };
+
+    it('should mark each item with the severity of its review', async () => {
+      const card = await mountCardWithSeverities();
+
+      const severities = await card.waitForRender(() => {
+        const items = deepQueryAll(card.card, '.vis-item');
+        return items.length === 2
+          ? items.map((item) => item.getAttribute('data-severity'))
+          : null;
+      }, 'the timeline items');
+
+      expect(severities.sort()).toEqual(['high', 'medium']);
+    });
+
+    it('should color each item by the severity of its review', async () => {
+      const card = await mountCardWithSeverities();
+
+      // Measuring one item forces layout, which makes the timeline redraw and
+      // replace its items, so measuring the next one can land on an element
+      // that has already left the page and reports no color. Measure them all
+      // again until every one of them answers.
+      const painted = await card.waitForRender<PaintedItem[]>(() => {
+        const measured = deepQueryAll(card.card, '.vis-item[data-severity]').map(
+          (item) => ({
+            severity: item.getAttribute('data-severity'),
+            color: getComputedStyle(item).backgroundColor,
+          }),
+        );
+        return measured.length === 2 && measured.every((item) => item.color)
+          ? measured
+          : null;
+      }, 'the colored timeline items');
+
+      const timeline = deepQuery(card.card, '.vis-timeline');
+      assert(timeline);
+
+      expect(painted.map((item) => item.color)).toEqual(
+        resolveBackgroundColors(
+          timeline,
+          painted.map(
+            (item) =>
+              `var(--advanced-camera-card-timeline-item-severity-${item.severity}-color)`,
+          ),
+        ),
+      );
+    });
+
+    it('should draw a selected review in its severity color with a ring', async () => {
+      const card = await mountCardWithSeverities({
+        view: { default: 'reviews' },
+        media_viewer: { controls: { timeline: { mode: 'below' } } },
+      });
+
+      // Frigate hands back its newest review first, which is the alert one.
+      await waitForThumbnails(card, 2);
+      await clickThumbnail(card.card, 0);
+
+      const item = await card.waitForRender(
+        () => deepQuery<HTMLElement>(card.card, `${HIGH_SEVERITY_ITEM}.vis-selected`),
+        'the selected timeline item',
+      );
+
+      const timeline = deepQuery(card.card, '.vis-timeline');
+      assert(timeline);
+      const highColor = 'var(--advanced-camera-card-timeline-item-severity-high-color)';
+      const [severityColor, ringColor] = resolveBackgroundColors(timeline, [
+        highColor,
+        `color-mix(in oklab, ${highColor}, black 20%)`,
+      ]);
+
+      // Ensure "glows" are instant for testing purposes.
+      item.style.transition = 'none';
+      const style = getComputedStyle(item);
+
+      expect(style.backgroundColor).toEqual(severityColor);
+      expect(style.borderColor).toEqual(severityColor);
+      expect(style.boxShadow).toContain(severityColor);
+
+      expect(style.outlineWidth).toEqual('1px');
+      expect(style.outlineColor).toEqual(ringColor);
+
+      // The ring marking it as selected is a darker shade of the item's own
+      // color, so it never reads as one of the severity colors.
+      expect(ringColor).not.toEqual(severityColor);
+    });
+  });
+
+  describe('clustering', () => {
+    it('should cluster review items rather than stacking them up', async () => {
+      // Ten reviews inside one minute, well past the threshold of three.
+      const card = await mountCardWithReviews(
+        [...Array(10).keys()].map((n) =>
+          createTestFrigateReview(`review-${n}`, getRecentTime(600 + n * 5)),
+        ),
+        { timeline: { style: 'stack', clustering_threshold: 3 } },
+      );
+
+      const drawn = await card.waitForRender(() => {
+        const items = deepQueryAll(card.card, '.vis-item:not(.vis-background)');
+        return items.length
+          ? {
+              items: items.length,
+              clusters: deepQueryAll(card.card, '.vis-cluster').length,
+            }
+          : null;
+      }, 'the timeline items');
+
+      expect(drawn.clusters).toBeGreaterThan(0);
+      expect(drawn.items).toBeLessThan(10);
+    });
   });
 });

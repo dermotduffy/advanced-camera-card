@@ -117,10 +117,6 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
   public getWhere(): string[] | null {
     return this._where;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public isGroupableWith(_that: EventViewMedia): boolean {
-    return false;
-  }
   public getSeverity(): Severity | null {
     return this._severity;
   }

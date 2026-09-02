@@ -29,6 +29,7 @@ import {
   getBlockNotificationText,
   getStatusBarItem,
   isLiveMediaShowing,
+  RESIZE_LOOP_CONSOLE_ERROR,
   waitUntilObservedVisible,
   type CameraHASSOptions,
   type GenericCameraHASSOptions,
@@ -124,13 +125,8 @@ const mountCardGrid = async (
       ...(options?.entities && { entities: options.entities }),
 
       // The grid observes both its own size and its cells', so a cell resize
-      // can resize the host and vice versa. Chromium reports each round it has
-      // to defer as an uncaught error. How many rounds that takes follows the
-      // browser's frame scheduling, not the card: measured anywhere between
-      // none and three for the same test. So it cannot be counted, only
-      // tolerated, and only for the grid: anywhere else it would mean
-      // something new.
-      toleratedConsoleErrors: [/ResizeObserver loop completed/],
+      // can resize the host and vice versa.
+      toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR],
     },
   );
 

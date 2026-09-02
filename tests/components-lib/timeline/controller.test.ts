@@ -10,6 +10,7 @@ import type {
   ViewManagerInterface,
 } from '../../../src/card-controller/view/types';
 import { TimelineController } from '../../../src/components-lib/timeline/controller';
+import type { AdvancedCameraCardTimelineItem } from '../../../src/components-lib/timeline/source';
 import type {
   ExtendedTimeline,
   TimelineRangeChange,
@@ -50,11 +51,12 @@ customElements.define(
 
 const createTimelineConfig = (
   panMode: TimelinePanMode,
+  style: 'ribbon' | 'stack' = 'ribbon',
 ): TimelineCoreComponentConfig => ({
   clustering_threshold: 3,
   window_seconds: 60 * 60,
   show_recordings: false,
-  style: 'ribbon',
+  style,
   format: { '24h': true },
   pan_mode: panMode,
 });
@@ -70,6 +72,7 @@ const createHarness = async (options?: {
   panMode?: TimelinePanMode;
   media?: ViewMedia[];
   mini?: boolean;
+  style?: 'ribbon' | 'stack';
 }): Promise<TestHarness> => {
   stubMatchMedia().mockReturnValue({ matches: true });
 
@@ -108,7 +111,7 @@ const createHarness = async (options?: {
     cameraManager: cameraManager,
     foldersManager: mock<FoldersManager>(),
     conditionStateManager: mock<ConditionStateManagerReadonlyInterface>(),
-    timelineConfig: createTimelineConfig(options?.panMode ?? 'pan'),
+    timelineConfig: createTimelineConfig(options?.panMode ?? 'pan', options?.style),
     mini: options?.mini ?? true,
     query,
   });
@@ -137,6 +140,15 @@ const createHarness = async (options?: {
     },
   };
 };
+
+const createEventMedia = (options?: { id?: string }): TestViewMedia =>
+  new TestViewMedia({
+    mediaType: ViewMediaType.Clip,
+    cameraID: CAMERA_ID,
+    id: options?.id ?? 'event-1',
+    startTime: add(WINDOW.start, { minutes: 29 }),
+    endTime: add(WINDOW.start, { minutes: 31 }),
+  });
 
 const createReviewMedia = (options?: {
   id?: string;
@@ -170,6 +182,119 @@ const dragTimeline = (harness: TestHarness, pointerTime: Date): void => {
 describe('TimelineController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('should render the item severity as a data attribute', async () => {
+    await createHarness();
+
+    const options = timelineConstructor.mock.calls[0]?.at(-1);
+
+    expect(options).toEqual(expect.objectContaining({ dataAttributes: ['severity'] }));
+  });
+
+  describe('should decide what can be clustered', () => {
+    const createItem = (
+      media: ViewMedia,
+      type: 'range' | 'background' = 'range',
+    ): AdvancedCameraCardTimelineItem => ({
+      id: media.getID() ?? '',
+      group: CAMERA_ID,
+      content: '',
+      start: WINDOW.start.getTime(),
+      type,
+      media,
+      query: new UnifiedQuery(),
+    });
+
+    const getCriteria = async (
+      media?: ViewMedia[],
+    ): Promise<
+      (
+        first: AdvancedCameraCardTimelineItem,
+        second: AdvancedCameraCardTimelineItem,
+      ) => boolean
+    > => {
+      await createHarness({ style: 'stack', media });
+      return timelineConstructor.mock.calls[0]?.at(-1).cluster.clusterCriteria;
+    };
+
+    it('should cluster two reviews', async () => {
+      const criteria = await getCriteria();
+
+      expect(
+        criteria(
+          createItem(createReviewMedia({ id: 'review-1' })),
+          createItem(createReviewMedia({ id: 'review-2' })),
+        ),
+      ).toBe(true);
+    });
+
+    it('should not cluster a review with an event', async () => {
+      const criteria = await getCriteria();
+
+      expect(
+        criteria(createItem(createReviewMedia()), createItem(createEventMedia())),
+      ).toBe(false);
+    });
+
+    it('should cluster two events', async () => {
+      const criteria = await getCriteria();
+
+      expect(
+        criteria(
+          createItem(createEventMedia({ id: 'event-1' })),
+          createItem(createEventMedia({ id: 'event-2' })),
+        ),
+      ).toBe(true);
+    });
+
+    it('should not cluster a recording', async () => {
+      const criteria = await getCriteria();
+
+      expect(
+        criteria(
+          createItem(createReviewMedia({ id: 'review-1' }), 'background'),
+          createItem(createReviewMedia({ id: 'review-2' }), 'background'),
+        ),
+      ).toBe(false);
+    });
+
+    it('should not cluster an item with a recording', async () => {
+      const criteria = await getCriteria();
+
+      expect(
+        criteria(
+          createItem(createReviewMedia({ id: 'review-1' })),
+          createItem(createReviewMedia({ id: 'review-2' }), 'background'),
+        ),
+      ).toBe(false);
+    });
+
+    it('should not cluster the selected item', async () => {
+      const selected = createReviewMedia({ id: 'review-1' });
+      const criteria = await getCriteria([selected]);
+
+      expect(
+        criteria(
+          createItem(selected),
+          createItem(createReviewMedia({ id: 'review-2' })),
+        ),
+      ).toBe(false);
+    });
+
+    it('should not cluster an item that carries no media', async () => {
+      const criteria = await getCriteria();
+      const withoutMedia: AdvancedCameraCardTimelineItem = {
+        id: 'no-media',
+        group: CAMERA_ID,
+        content: '',
+        start: WINDOW.start.getTime(),
+        type: 'range',
+      };
+
+      expect(criteria(withoutMedia, createItem(createReviewMedia()))).toBe(false);
+      expect(criteria(createItem(createReviewMedia()), withoutMedia)).toBe(false);
+    });
   });
 
   describe('should set the target bar during a drag', () => {

@@ -121,6 +121,12 @@ export const createStillImageCardConfig = (
 // What an initialized card writes, as the pattern the console is searched for.
 export const CARD_INITIALIZED_MESSAGE = /card initialized/;
 
+// A resize the browser had to defer, which it reports as an uncaught error. How
+// many it defers follows its own frame scheduling rather than the card: the
+// same test has been measured producing anywhere between none and three.
+// Tolerate it only where something is known to resize in rounds.
+export const RESIZE_LOOP_CONSOLE_ERROR = /ResizeObserver loop completed/;
+
 /**
  * An automation that reports every time the card finishes initializing. A card
  * announces nothing else when it is ready to be acted on, and it initializes
