@@ -23,22 +23,12 @@ export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionCon
       return;
     }
 
-    const results = await Promise.all([
-      toggleReviewed(
-        item,
-        api.getViewItemManager(),
-        viewManager.getEpoch(),
-        getReviewedQueryFilterFromQuery(view?.query, item),
-      ),
-      api.getEffectsManager().startEffect('check', {
-        duration: 0.4,
-        fadeIn: false,
-      }),
-    ]);
-
-    // Trigger UI update to refresh menu icon state
-    if (results[0]) {
-      api.getCardElementManager().update();
-    }
+    await toggleReviewed(
+      api.getCardElementManager().getElement(),
+      item,
+      api.getViewItemManager(),
+      viewManager.getEpoch(),
+      getReviewedQueryFilterFromQuery(view?.query, item),
+    );
   }
 }
