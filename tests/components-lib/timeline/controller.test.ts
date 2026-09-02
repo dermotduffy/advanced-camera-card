@@ -172,6 +172,14 @@ describe('TimelineController', () => {
     vi.clearAllMocks();
   });
 
+  it('should render the item severity as a data attribute', async () => {
+    await createHarness();
+
+    const options = timelineConstructor.mock.calls[0]?.at(-1);
+
+    expect(options).toEqual(expect.objectContaining({ dataAttributes: ['severity'] }));
+  });
+
   describe('should set the target bar during a drag', () => {
     // The time the pointer is pressed at. dragTimeline() leaves the window where
     // it was, so the controller places the target bar at this same time.

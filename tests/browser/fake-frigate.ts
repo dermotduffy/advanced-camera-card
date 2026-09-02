@@ -1,11 +1,18 @@
 import { fromUnixTime } from 'date-fns';
 import type { MessageBase } from 'home-assistant-js-websocket';
 
-import type { NativeFrigateEventQuery } from '../../src/camera-manager/frigate/requests';
-import type { EventSummary, FrigateEvent } from '../../src/camera-manager/frigate/types';
+import type {
+  NativeFrigateEventQuery,
+  NativeFrigateReviewQuery,
+} from '../../src/camera-manager/frigate/requests';
+import type {
+  EventSummary,
+  FrigateEvent,
+  FrigateReview,
+} from '../../src/camera-manager/frigate/types';
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
 import type { ResolvedMedia } from '../../src/ha/types';
-import { createFrigateEvent } from '../test-utils';
+import { createFrigateEvent, createFrigateReview } from '../test-utils';
 import type { FakeHASS, WSCommandHandler } from './fake-hass';
 import {
   CLIP_FIXTURE_FILENAME,
@@ -52,6 +59,7 @@ export const EVENT_TIME_OLDER = 1754300000;
 export const EVENT_TIME_NEWER = 1754310000;
 
 const EVENT_DURATION_SECONDS = 10;
+const REVIEW_DURATION_SECONDS = 10;
 
 export const createTestFrigateEvent = (
   id: string,
@@ -64,6 +72,19 @@ export const createTestFrigateEvent = (
     start_time: startTime,
     end_time: startTime + EVENT_DURATION_SECONDS,
     ...event,
+  });
+
+export const createTestFrigateReview = (
+  id: string,
+  startTime: number,
+  review?: Partial<FrigateReview>,
+): FrigateReview =>
+  createFrigateReview({
+    camera: getTestFrigateCameraName(CAMERA_ENTITY),
+    id,
+    start_time: startTime,
+    end_time: startTime + REVIEW_DURATION_SECONDS,
+    ...review,
   });
 
 export interface CardWithFrigate {
@@ -106,6 +127,8 @@ const isStringArray = (value: unknown): value is string[] =>
 const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
 
 const isNumber = (value: unknown): value is number => typeof value === 'number';
+
+const isString = (value: unknown): value is string => typeof value === 'string';
 
 // Read a request parameter, refusing a value of the wrong type.
 const readParameter = <T>(
@@ -202,7 +225,6 @@ const readEventQuery = (message: MessageBase): EventQuery => {
   };
 };
 
-// Whether an event is one the request asked for.
 const matchesEventQuery = (event: FrigateEvent, query: EventQuery): boolean =>
   (!query.cameras || query.cameras.includes(event.camera)) &&
   (!query.labels || query.labels.includes(event.label)) &&
@@ -217,6 +239,40 @@ const matchesEventQuery = (event: FrigateEvent, query: EventQuery): boolean =>
   (!query.has_clip || event.has_clip) &&
   (!query.has_snapshot || event.has_snapshot);
 
+type ReviewQuery = Omit<NativeFrigateReviewQuery, 'instance_id'>;
+
+const readReviewQuery = (message: MessageBase): ReviewQuery => {
+  const getList = (name: string): string[] | undefined =>
+    readParameter(message, name, isStringArray, 'a list of strings');
+  const getCount = (name: string): number | undefined =>
+    readParameter(message, name, isNumber, 'a number');
+
+  return {
+    cameras: getList('cameras'),
+    labels: getList('labels'),
+    zones: getList('zones'),
+    severity: readParameter(message, 'severity', isString, 'a string'),
+    after: getCount('after'),
+    before: getCount('before'),
+    limit: getCount('limit'),
+    reviewed: readParameter(message, 'reviewed', isBoolean, 'true or false'),
+  };
+};
+
+const matchesReviewQuery = (review: FrigateReview, query: ReviewQuery): boolean =>
+  (!query.cameras || query.cameras.includes(review.camera)) &&
+  (!query.labels ||
+    query.labels.some((label) => review.data.objects?.includes(label))) &&
+  (!query.zones || query.zones.some((zone) => review.data.zones?.includes(zone))) &&
+  (query.severity === undefined || query.severity === review.severity) &&
+  // A review that began before the period and was still running when it started
+  // counts as falling within it.
+  (query.after === undefined || (review.end_time ?? Infinity) >= query.after) &&
+  (query.before === undefined || review.start_time <= query.before) &&
+  // Frigate uses `reviewed: false` to ask for only the reviews nobody has looked
+  // at yet.
+  (query.reviewed !== false || !review.has_been_reviewed);
+
 /**
  * A Frigate instance behind a `FakeHASS`. Holds the events a test wants a camera
  * to have detected, and answers what the card asks about them.
@@ -225,6 +281,7 @@ const matchesEventQuery = (event: FrigateEvent, query: EventQuery): boolean =>
  */
 export class FakeFrigate {
   private _events: FrigateEvent[] = [];
+  private _reviews: FrigateReview[] = [];
   private _mediaURLs = new Map<string, string>();
   private _thumbnailFailureStatus: number | null = null;
 
@@ -263,9 +320,6 @@ export class FakeFrigate {
       this._answerAsFrigate(['after', 'before', 'camera'], () => []),
     );
 
-    // Fake Frigate has no review items and cannot be given any. The live view
-    // asks for them on startup, so leaving this unanswered would raise a media
-    // query issue on every card.
     hass.registerCommand(
       'frigate/reviews/get',
       this._answerAsFrigate(
@@ -279,7 +333,7 @@ export class FakeFrigate {
           'severity',
           'zones',
         ],
-        () => [],
+        (message) => this._queryReviews(message),
       ),
     );
     hass.registerCommand(
@@ -303,6 +357,14 @@ export class FakeFrigate {
   /**
    * Set the URL for a media item.
    */
+  /**
+   * The reviews this Frigate instance has. Held newest first (as Frigate
+   * returns them).
+   */
+  public setReviews(reviews: FrigateReview[]): void {
+    this._reviews = [...reviews].sort((a, b) => b.start_time - a.start_time);
+  }
+
   public setMediaURL(eventID: string, mediaType: FrigateMediaType, url: string): void {
     this._mediaURLs.set(this._getMediaKey(eventID, mediaType), url);
   }
@@ -339,6 +401,13 @@ export class FakeFrigate {
 
   private _getEvent(eventID: string): FrigateEvent | null {
     return this._events.find((event) => event.id === eventID) ?? null;
+  }
+
+  private _queryReviews(message: MessageBase): FrigateReview[] {
+    const query = readReviewQuery(message);
+    const matching = this._reviews.filter((review) => matchesReviewQuery(review, query));
+
+    return query.limit === undefined ? matching : matching.slice(0, query.limit);
   }
 
   private _queryEvents(message: MessageBase): FrigateEvent[] {

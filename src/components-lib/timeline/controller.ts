@@ -994,6 +994,9 @@ export class TimelineController {
           }
         : // Timeline type information is incorrect requiring this 'as'.
           (false as unknown as TimelineOptionsCluster),
+
+      dataAttributes: ['severity'],
+
       minHeight: '100%',
       maxHeight: '100%',
       zoomMax: 1 * 24 * 60 * 60 * 1000,

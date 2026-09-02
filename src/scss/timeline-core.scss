@@ -63,10 +63,14 @@ div.timeline {
   height: 6px;
 }
 .vis-item {
-  border-color: var(--advanced-camera-card-timeline-item-color);
+  --advanced-camera-card-timeline-item-current-color: var(
+    --advanced-camera-card-timeline-item-color
+  );
+
   background: none;
+  border-color: var(--advanced-camera-card-timeline-item-current-color);
+  background-color: var(--advanced-camera-card-timeline-item-current-color);
   color: var(--advanced-camera-card-timeline-text-color);
-  background-color: var(--advanced-camera-card-timeline-item-color);
 
   transition:
     background-color ease-in-out 1s,
@@ -74,23 +78,32 @@ div.timeline {
     box-shadow ease-in-out 1s;
 }
 .vis-item[data-severity='high'] {
-  border-color: var(--advanced-camera-card-timeline-item-severity-high-color);
-  background-color: var(--advanced-camera-card-timeline-item-severity-high-color);
+  --advanced-camera-card-timeline-item-current-color: var(
+    --advanced-camera-card-timeline-item-severity-high-color
+  );
 }
 .vis-item[data-severity='medium'] {
-  border-color: var(--advanced-camera-card-timeline-item-severity-medium-color);
-  background-color: var(--advanced-camera-card-timeline-item-severity-medium-color);
+  --advanced-camera-card-timeline-item-current-color: var(
+    --advanced-camera-card-timeline-item-severity-medium-color
+  );
 }
 .vis-item[data-severity='low'] {
-  border-color: var(--advanced-camera-card-timeline-item-severity-low-color);
-  background-color: var(--advanced-camera-card-timeline-item-severity-low-color);
+  --advanced-camera-card-timeline-item-current-color: var(
+    --advanced-camera-card-timeline-item-severity-low-color
+  );
 }
 .vis-item.vis-selected {
-  border-color: var(--advanced-camera-card-active-color);
-  background-color: var(--advanced-camera-card-active-color);
+  border-color: var(--advanced-camera-card-timeline-item-current-color);
+  background-color: var(--advanced-camera-card-timeline-item-current-color);
+  outline: 1px solid
+    color-mix(
+      in oklab,
+      var(--advanced-camera-card-timeline-item-current-color),
+      black 20%
+    );
   box-shadow: var(
     --advanced-camera-card-box-shadow-override,
-    0px 0px 5px 1px var(--advanced-camera-card-active-color)
+    0px 0px 5px 1px var(--advanced-camera-card-timeline-item-current-color)
   );
 }
 .vis-item.vis-background {

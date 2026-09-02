@@ -8,6 +8,7 @@ import {
   createGenericCameraHASS,
   createStillImageCameraConfig,
   createStillImageCardConfig,
+  RESIZE_LOOP_CONSOLE_ERROR,
 } from '../../browser/test-utils';
 
 // Enough cameras to fill a 2-column grid beyond a single row.
@@ -56,11 +57,9 @@ const mountGrid = async (): Promise<MountedCard> =>
     {
       width: '600px',
 
-      // A cell resize can resize the grid host and vice versa, and a browser
-      // reports each round it has to defer as an uncaught error. How many
-      // rounds that takes follows the browser's frame scheduling, not the card,
-      // so it cannot be counted, only tolerated.
-      toleratedConsoleErrors: [/ResizeObserver loop completed/],
+      // The grid observes both its own size and its cells', so a cell resize
+      // can resize the host and vice versa.
+      toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR],
     },
   );
 

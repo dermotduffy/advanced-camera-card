@@ -23,6 +23,10 @@ const HOME_ASSISTANT_THEME = `
     --success-color: #43a047;
     --info-color: #039be5;
 
+    --ha-color-fill-danger-loud-resting: #dc3146;
+    --ha-color-fill-warning-loud-resting: #ff9342;
+    --ha-color-fill-neutral-loud-resting: #5e5e5e;
+
     --rgb-primary-color: 0, 154, 199;
     --rgb-primary-text-color: 33, 33, 33;
     --rgb-secondary-text-color: 114, 114, 114;
