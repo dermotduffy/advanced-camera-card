@@ -261,66 +261,6 @@ describe('FrigateEventViewMedia', () => {
     );
     expect(media.getTags()).toBeNull();
   });
-
-  it('should be groupable with same type and criteria', () => {
-    const media1 = new FrigateEventViewMedia(
-      ViewMediaType.Clip,
-      'camera',
-      createFrigateEvent({
-        label: 'person',
-        zones: ['yard'],
-      }),
-      'c1',
-      't1',
-    );
-    const media2 = new FrigateEventViewMedia(
-      ViewMediaType.Clip,
-      'camera',
-      createFrigateEvent({
-        label: 'person',
-        zones: ['yard'],
-      }),
-      'c2',
-      't2',
-    );
-    expect(media1.isGroupableWith(media2)).toBe(true);
-  });
-
-  it('should not be groupable with different type', () => {
-    const media1 = new FrigateEventViewMedia(
-      ViewMediaType.Clip,
-      'camera',
-      createFrigateEvent({ label: 'person' }),
-      'c1',
-      't1',
-    );
-    const media2 = new FrigateEventViewMedia(
-      ViewMediaType.Snapshot,
-      'camera',
-      createFrigateEvent({ label: 'person' }),
-      'c2',
-      't2',
-    );
-    expect(media1.isGroupableWith(media2)).toBe(false);
-  });
-
-  it('should not be groupable with different label', () => {
-    const media1 = new FrigateEventViewMedia(
-      ViewMediaType.Clip,
-      'camera',
-      createFrigateEvent({ label: 'person' }),
-      'c1',
-      't1',
-    );
-    const media2 = new FrigateEventViewMedia(
-      ViewMediaType.Clip,
-      'camera',
-      createFrigateEvent({ label: 'car' }),
-      'c2',
-      't2',
-    );
-    expect(media1.isGroupableWith(media2)).toBe(false);
-  });
 });
 
 describe('FrigateRecordingViewMedia', () => {

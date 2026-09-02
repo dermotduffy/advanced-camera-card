@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { isEqual } from 'lodash-es';
 
 import type { FolderPathComponent } from '../../card-controller/folders/types';
 import type { FolderConfig } from '../../config/schema/folders';
@@ -102,12 +101,6 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
   }
   public getTags(): string[] | null {
     return null;
-  }
-  public isGroupableWith(that: EventViewMedia): boolean {
-    return (
-      this.getMediaType() === that.getMediaType() &&
-      isEqual(this.getWhat(), that.getWhat())
-    );
   }
 }
 

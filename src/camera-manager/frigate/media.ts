@@ -1,5 +1,4 @@
 import { fromUnixTime, startOfHour, subSeconds } from 'date-fns';
-import { isEqual } from 'lodash-es';
 
 import type { CameraConfig } from '../../config/schema/cameras';
 import type { Severity } from '../../severity';
@@ -99,13 +98,6 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   }
   public getTags(): string[] | null {
     return this._subLabels;
-  }
-  public isGroupableWith(that: EventViewMedia): boolean {
-    return (
-      this.getMediaType() === that.getMediaType() &&
-      isEqual(this.getWhere(), that.getWhere()) &&
-      isEqual(this.getWhat(), that.getWhat())
-    );
   }
 }
 

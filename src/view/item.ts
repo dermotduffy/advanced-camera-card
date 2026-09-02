@@ -114,7 +114,6 @@ export interface EventViewMedia extends ViewMedia {
   getScore(): number | null;
   getWhat(): string[] | null;
   getTags(): string[] | null;
-  isGroupableWith(that: EventViewMedia): boolean;
 }
 
 export interface RecordingViewMedia extends ViewMedia {

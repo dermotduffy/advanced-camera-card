@@ -949,6 +949,32 @@ export class TimelineController {
     };
   }
 
+  private _canCluster(first: TimelineItem, second: TimelineItem): boolean {
+    const selectedIDs = this._getAllSelectedMediaIDsFromView();
+    const firstMedia = (<AdvancedCameraCardTimelineItem>first).media;
+    const secondMedia = (<AdvancedCameraCardTimelineItem>second).media;
+
+    // Never include the currently selected item in a cluster.
+    if (
+      first.type === 'background' ||
+      first.type !== second.type ||
+      selectedIDs.includes(first.id) ||
+      selectedIDs.includes(second.id) ||
+      !firstMedia ||
+      !secondMedia
+    ) {
+      return false;
+    }
+
+    // Events cluster with events and reviews with reviews.
+    return (
+      (ViewItemClassifier.isEvent(firstMedia) &&
+        ViewItemClassifier.isEvent(secondMedia)) ||
+      (ViewItemClassifier.isReview(firstMedia) &&
+        ViewItemClassifier.isReview(secondMedia))
+    );
+  }
+
   private _getOptions(): TimelineOptions | null {
     if (!this._timelineConfig) {
       return null;
@@ -971,26 +997,7 @@ export class TimelineController {
             // created, also does not appear to work as expected.
             maxItems: this._timelineConfig.clustering_threshold,
 
-            clusterCriteria: (first: TimelineItem, second: TimelineItem): boolean => {
-              const selectedIDs = this._getAllSelectedMediaIDsFromView();
-              const firstMedia = (<AdvancedCameraCardTimelineItem>first).media;
-              const secondMedia = (<AdvancedCameraCardTimelineItem>second).media;
-
-              // Never include the currently selected item in a cluster, and
-              // never group different object types together (e.g. person and
-              // car).
-              return (
-                first.type !== 'background' &&
-                first.type === second.type &&
-                !selectedIDs.includes(first.id) &&
-                !selectedIDs.includes(second.id) &&
-                !!firstMedia &&
-                !!secondMedia &&
-                ViewItemClassifier.isEvent(firstMedia) &&
-                ViewItemClassifier.isEvent(secondMedia) &&
-                firstMedia.isGroupableWith(secondMedia)
-              );
-            },
+            clusterCriteria: this._canCluster.bind(this),
           }
         : // Timeline type information is incorrect requiring this 'as'.
           (false as unknown as TimelineOptionsCluster),
