@@ -1,0 +1,28 @@
+# The oldest release of each browser the card supports. Matching user-facing
+# documentation in `docs/README.md`
+
+# Chrome (March 2023)
+chrome >= 111
+
+# Edge (March 2023)
+edge >= 111
+
+# Firefox (May 2023)
+firefox >= 113
+
+# Opera (March 2023)
+opera >= 97
+
+# Safari (March 2023)
+safari >= 16.4
+
+# Safari on iOS and iPadOS (March 2023)
+ios_saf >= 16.4
+
+# Samsung Internet (July 2023), built on Chromium 111
+samsung >= 22
+
+# caniuse tracks only the newest release of the below.
+last 1 and_chr version
+last 1 and_ff version
+last 1 op_mob version

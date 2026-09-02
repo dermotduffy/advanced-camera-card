@@ -11,6 +11,8 @@
   translate: -50% -50%;
 
   user-select: none;
+  -webkit-user-select: none;
+
   pointer-events: none;
 
   will-change: transform, opacity;

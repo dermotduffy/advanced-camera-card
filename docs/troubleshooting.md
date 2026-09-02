@@ -1,5 +1,21 @@
 # Troubleshooting
 
+## Supported Browsers
+
+The card supports these browsers versions or newer:
+
+| Browser                                                                                                                          | Minimum version | Released   |
+| -------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------- |
+| ![Chrome](images/browsers/chrome_16x16.png 'Google Chrome :no-zoom :class=browser-icon') Chrome                                  | `111`           | March 2023 |
+| ![Edge](images/browsers/edge_16x16.png 'Microsoft Edge :no-zoom :class=browser-icon') Edge                                       | `111`           | March 2023 |
+| ![Firefox](images/browsers/firefox_16x16.png 'Mozilla Firefox :no-zoom :class=browser-icon') Firefox                             | `113`           | May 2023   |
+| ![Opera](images/browsers/opera_16x16.png 'Opera :no-zoom :class=browser-icon') Opera                                             | `97`            | March 2023 |
+| ![Safari](images/browsers/safari_16x16.png 'Safari :no-zoom :class=browser-icon') Safari (macOS)                                 | `16.4`          | March 2023 |
+| ![Safari](images/browsers/safari-ios_16x16.png 'Safari on iOS :no-zoom :class=browser-icon') Safari (iOS / iPadOS)               | `16.4`          | March 2023 |
+| ![Samsung Internet](images/browsers/samsung-internet_16x16.png 'Samsung Internet :no-zoom :class=browser-icon') Samsung Internet | `22`            | July 2023  |
+
+Older browsers may work to varying degrees, however no official support is offered.
+
 ## Highlighted Issues
 
 ### Legacy dashboard resource detected
@@ -208,9 +224,11 @@ your Home Assistant log as there may be more information in there.
 
 This is usually a sign that the card is not correctly installed (i.e. the
 browser cannot find the Javascript). In cases where it works in some browsers /
-devices but not in others it may simply be an old browser / webview that does
-not support modern Javascript (this is occasionally seen on old Android
-hardware). In this latter case, you are out of luck.
+devices but not in others, check the browser against [the versions the card
+supports](#supported-browsers): an older browser cannot read the
+card's Javascript at all, so the card never registers itself. This is seen on
+old Android hardware and on iPhones and iPads that Apple no longer updates. In
+this latter case, you are out of luck.
 
 ### `double_tap` does not work in Android
 

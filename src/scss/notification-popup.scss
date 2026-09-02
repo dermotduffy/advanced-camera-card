@@ -41,9 +41,23 @@
   padding-right: 48px;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
+
   scrollbar-color: var(--advanced-camera-card-notification-popup-scrollbar-color)
     transparent;
+  scrollbar-width: thin;
+  // `scrollbar-width` above is respected by Firefox only. Despite the name, the
+  // prefixed selector covers every other supported browser.
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--advanced-camera-card-notification-popup-scrollbar-color);
+    border-radius: 4px;
+  }
+
   user-select: text;
   -webkit-user-select: text;
 
@@ -98,7 +112,7 @@
   // When there are no interactive controls (spinner-only case) drop the pill
   // chrome so the spinner looks like as a status indicator, not a clickable
   // button.
-  &:not(:has(.control)) {
+  &.spinner-only {
     padding: 0;
     background: none;
   }
