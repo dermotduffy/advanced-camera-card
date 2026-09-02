@@ -4,6 +4,7 @@ import { assert, describe, expect, it } from 'vitest';
 // cannot see an element that arrives that way. Directly import instead.
 import '../../src/components/timeline';
 
+import type { FrigateReview } from '../../src/camera-manager/frigate/types';
 import type { AdvancedCameraCardDrawer } from '../../src/components/drawer';
 import type { AdvancedCameraCardTimelineCore } from '../../src/components/timeline-core';
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
@@ -49,6 +50,27 @@ const mountCardWithTimeline = async (
       config,
     )
   ).card;
+
+const getRecentTime = (secondsAgo: number): number =>
+  Math.floor(new Date().getTime() / 1000) - secondsAgo;
+
+const mountCardWithReviews = async (
+  reviews: FrigateReview[],
+  config?: PartialAdvancedCameraCardConfig,
+): Promise<MountedCard> => {
+  const hass = createCameraHASS([createFrigateCameraDescription()]);
+  const frigate = new FakeFrigate(hass);
+  frigate.setReviews(reviews);
+
+  return await MountedCardFactory.createFromSource(
+    createStillImageCardConfig({ view: { default: 'timeline' }, ...config }),
+    hass,
+    {
+      // The timeline resizes itself as it lays itself out.
+      toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR],
+    },
+  );
+};
 
 describe('AdvancedCameraCardTimelineCore', () => {
   it('should draw the timeline tools on a background of their own', async () => {
@@ -128,31 +150,18 @@ describe('AdvancedCameraCardTimelineCore', () => {
   });
 
   describe('review severity', () => {
-    const getRecentTime = (secondsAgo: number): number =>
-      Math.floor(new Date().getTime() / 1000) - secondsAgo;
-
-    const mountCardWithReviews = async (
+    const mountCardWithSeverities = async (
       config?: PartialAdvancedCameraCardConfig,
-    ): Promise<MountedCard> => {
-      const hass = createCameraHASS([createFrigateCameraDescription()]);
-      const frigate = new FakeFrigate(hass);
-
-      frigate.setReviews([
-        createTestFrigateReview('alert', getRecentTime(600), { severity: 'alert' }),
-        createTestFrigateReview('detection', getRecentTime(1200), {
-          severity: 'detection',
-        }),
-      ]);
-
-      return await MountedCardFactory.createFromSource(
-        createStillImageCardConfig({ view: { default: 'timeline' }, ...config }),
-        hass,
-        {
-          // The timeline resizes itself as it lays itself out.
-          toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR],
-        },
+    ): Promise<MountedCard> =>
+      await mountCardWithReviews(
+        [
+          createTestFrigateReview('alert', getRecentTime(600), { severity: 'alert' }),
+          createTestFrigateReview('detection', getRecentTime(1200), {
+            severity: 'detection',
+          }),
+        ],
+        config,
       );
-    };
 
     const HIGH_SEVERITY_ITEM = ".vis-item[data-severity='high']";
 
@@ -175,7 +184,7 @@ describe('AdvancedCameraCardTimelineCore', () => {
     };
 
     it('should mark each item with the severity of its review', async () => {
-      const card = await mountCardWithReviews();
+      const card = await mountCardWithSeverities();
 
       const severities = await card.waitForRender(() => {
         const items = deepQueryAll(card.card, '.vis-item');
@@ -188,7 +197,7 @@ describe('AdvancedCameraCardTimelineCore', () => {
     });
 
     it('should color each item by the severity of its review', async () => {
-      const card = await mountCardWithReviews();
+      const card = await mountCardWithSeverities();
 
       // Measuring one item forces layout, which makes the timeline redraw and
       // replace its items, so measuring the next one can land on an element
@@ -221,7 +230,7 @@ describe('AdvancedCameraCardTimelineCore', () => {
     });
 
     it('should draw a selected review in its severity color with a ring', async () => {
-      const card = await mountCardWithReviews({
+      const card = await mountCardWithSeverities({
         view: { default: 'reviews' },
         media_viewer: { controls: { timeline: { mode: 'below' } } },
       });
@@ -257,6 +266,31 @@ describe('AdvancedCameraCardTimelineCore', () => {
       // The ring marking it as selected is a darker shade of the item's own
       // color, so it never reads as one of the severity colors.
       expect(ringColor).not.toEqual(severityColor);
+    });
+  });
+
+  describe('clustering', () => {
+    it('should cluster review items rather than stacking them up', async () => {
+      // Ten reviews inside one minute, well past the threshold of three.
+      const card = await mountCardWithReviews(
+        [...Array(10).keys()].map((n) =>
+          createTestFrigateReview(`review-${n}`, getRecentTime(600 + n * 5)),
+        ),
+        { timeline: { style: 'stack', clustering_threshold: 3 } },
+      );
+
+      const drawn = await card.waitForRender(() => {
+        const items = deepQueryAll(card.card, '.vis-item:not(.vis-background)');
+        return items.length
+          ? {
+              items: items.length,
+              clusters: deepQueryAll(card.card, '.vis-cluster').length,
+            }
+          : null;
+      }, 'the timeline items');
+
+      expect(drawn.clusters).toBeGreaterThan(0);
+      expect(drawn.items).toBeLessThan(10);
     });
   });
 });
