@@ -11,18 +11,22 @@
   mask-image: $gradient;
 }
 
-// Each assigner is one row of the columns its parent grid defines (label,
-// buttons, assigned keys), so the rows align like a table across components.
+// The assigner draws no box of its own, so its three children land directly in
+// the columns its parent grid defines (label, buttons, assigned keys) to get a
+// table like alignment.
 :host {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
+  display: contents;
+}
+
+div.label,
+div.buttons,
+div.key-row {
+  display: flex;
   align-items: center;
 
-  // Values match other HA editor components. A minimum rather than a fixed
-  // height: a long key combination may wrap onto multiple lines.
-  padding: 10px;
   min-height: 56px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   box-sizing: border-box;
 }
 
@@ -47,18 +51,11 @@ advanced-camera-card-icon {
 }
 
 div.label {
-  margin-left: 4px;
-}
-
-div.buttons {
-  display: flex;
-  align-items: center;
+  // 4px of its own, plus 10px the row takes from the panel edge.
+  margin-left: 14px;
 }
 
 div.key-row {
-  display: flex;
-  align-items: center;
-
   // A long key combination wraps rather than overflowing the row. When even a
   // single key is wider than the row (a very narrow editor), wrapping cannot
   // help, so the overflow is clipped and faded out at the edge rather than
@@ -71,6 +68,8 @@ div.key-row {
 
   padding-left: 10px;
   padding-right: 10px;
+
+  margin-right: 10px;
 }
 
 div.key {

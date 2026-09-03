@@ -12,7 +12,7 @@ Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Advanced Camer
 
 - Click `Download this repository with HACS`.
 
-See [Advanced Installation](advanced-installation.md) for other installation resources, or [Rolling Back](./rolling-back.md) to rollback to prior versions.
+See [Advanced Installation](advanced-installation.md) for other installation resources, [Rolling Back](./rolling-back.md) to rollback to prior versions, or [Supported Browsers](./troubleshooting.md?id=supported-browsers) for the browsers the card officially supports.
 
 ## Adding your card
 

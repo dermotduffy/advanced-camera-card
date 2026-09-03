@@ -32,7 +32,14 @@
 
   // A container that cannot usefully be scrolled can set this to 'hidden'.
   overflow-y: var(--advanced-camera-card-notification-block-overflow-y, auto);
+
   scrollbar-width: thin;
+  // `scrollbar-width` above is respected by Firefox only. Despite the name, the
+  // prefixed selector covers every other supported browser.
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
   text-align: center;
 }
 
@@ -58,7 +65,7 @@
     // When there are no interactive controls (spinner-only case, e.g.
     // Connection / Starting full-card notifications) drop the pill chrome so
     // the spinner looks like a status indicator, not a clickable button.
-    &:not(:has(.control)) {
+    &.spinner-only {
       padding: 0;
       background: none;
     }

@@ -6,6 +6,7 @@ import {
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { handleControlAction } from '../../components-lib/notification/action.js';
@@ -58,7 +59,9 @@ export class AdvancedCameraCardNotification extends LitElement {
         @animationend=${this._popupController.handleAnimationEnd}
       >
         ${controls.length || in_progress
-          ? html`<div class="controls">
+          ? html`<div
+              class=${classMap({ controls: true, 'spinner-only': !controls.length })}
+            >
               ${in_progress
                 ? html`<div class="spinner" title=${localize('common.in_progress')}>
                     <ha-spinner indeterminate size="tiny"></ha-spinner>

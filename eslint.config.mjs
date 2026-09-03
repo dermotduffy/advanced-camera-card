@@ -50,6 +50,8 @@ const noEmDash = {
 
 export default defineConfig([
   {
+    files: ['{scripts,src,tests}/**/*.ts'],
+
     extends: compat.extends('plugin:@typescript-eslint/recommended', 'prettier'),
 
     languageOptions: {
