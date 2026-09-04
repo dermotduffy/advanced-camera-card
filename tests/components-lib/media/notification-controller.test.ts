@@ -399,6 +399,9 @@ describe('MediaNotificationController', () => {
       const viewManagerEpoch = mock<ViewManagerEpoch>();
       const cardAPI = createCardAPI();
       viewManagerEpoch.manager = cardAPI.getViewManager();
+      vi.mocked(cardAPI.getCardElementManager().getElement).mockReturnValue(
+        mock<HTMLElement>(),
+      );
       const viewItemManager = mock<ViewItemManager>();
 
       const context = {

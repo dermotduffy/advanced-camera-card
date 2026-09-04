@@ -127,6 +127,11 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       : null;
     const shouldShowReviewControl = this.show_review_control && isReviewed !== null;
 
+    const reviewClasses = {
+      review: true,
+      reviewed: !!isReviewed,
+    };
+
     const shouldShowInfoControl =
       this.show_info_control && ViewItemClassifier.isMedia(this.item);
 
@@ -164,7 +169,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       </div>
       ${shouldShowReviewControl
         ? html`<advanced-camera-card-icon
-            class="review"
+            class="${classMap(reviewClasses)}"
             title=${isReviewed
               ? localize('common.set_reviews.unreviewed')
               : localize('common.set_reviews.reviewed')}
@@ -176,6 +181,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
               if (
                 this.item &&
                 (await toggleReviewed(
+                  this,
                   this.item,
                   this.viewItemManager,
                   this.viewManagerEpoch,

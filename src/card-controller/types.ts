@@ -166,6 +166,7 @@ export interface CardElementAPI {
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
+  getEffectsManager(): EffectsManagerInterface;
   getExpandManager(): ExpandManager;
   getFullscreenManager(): FullscreenManager;
   getInitializationManager(): InitializationManager;

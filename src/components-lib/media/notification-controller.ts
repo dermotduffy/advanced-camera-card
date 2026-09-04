@@ -240,6 +240,7 @@ export class MediaNotificationController {
         actions: {
           tap_action: createInternalCallbackAction(async (api) => {
             const success = await toggleReviewed(
+              api.getCardElementManager().getElement(),
               item,
               context.viewItemManager,
               context.viewManagerEpoch,

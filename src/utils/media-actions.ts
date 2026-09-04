@@ -4,8 +4,10 @@ import type { ViewManagerEpoch } from '../card-controller/view/types';
 import type { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { errorToConsole } from './basic';
+import { fireAdvancedCameraCardEvent } from './fire-advanced-camera-card-event';
 
 export async function toggleReviewed(
+  host: HTMLElement,
   item: ViewItem,
   viewItemManager?: ViewItemManager,
   viewManagerEpoch?: ViewManagerEpoch,
@@ -40,6 +42,10 @@ export async function toggleReviewed(
       });
     }
   }
+
+  // Provide visual feedback on review.
+  fireAdvancedCameraCardEvent<ViewItem>(host, 'media:reviewed', item);
+
   return true;
 }
 

@@ -263,6 +263,14 @@ export class CardElementManager {
   }
 
   private _handleMediaReviewed = (ev: CustomEvent<ViewItem>): void => {
+    this._api
+      .getEffectsManager()
+      .startEffect('check', {
+        duration: 0.4,
+        fadeIn: false,
+      })
+      .catch(() => {});
+
     // If the selected media item has a change of review status, update the card
     // (e.g. for the menu).
     if (
