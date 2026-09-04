@@ -39,10 +39,7 @@ export class AdvancedCameraCardIcon extends LitElement {
         this.icon.entity,
       );
       if (stateObj) {
-        // As a special case, need to pass in a color in order for the state
-        // color to be overridden.
         return html`<state-badge
-          .color="${this.style.color ?? undefined}"
           .stateColor=${this.icon.stateColor ?? true}
           .hass=${this.hass}
           .stateObj=${stateObj}

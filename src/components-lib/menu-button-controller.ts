@@ -129,14 +129,17 @@ export class MenuButtonController {
       this._getFoldersButton(config, foldersManager, options?.view),
 
       ...this._dynamicMenuButtons.map((button) => ({
-        style: this._getStyleFromActions(
-          config,
-          cameraManager,
-          foldersManager,
-          button,
-          options,
-        ),
         ...button,
+        style: this._getStyle(
+          button,
+          this._getStyleFromActions(
+            config,
+            cameraManager,
+            foldersManager,
+            button,
+            options,
+          ),
+        ),
       })),
     ].filter(isTruthy);
 
@@ -219,10 +222,14 @@ export class MenuButtonController {
         // then use a button not a menu to toggle.
         return {
           icon: 'mdi:video-input-component',
-          style:
-            substreamAwareCameraID !== view.camera ? this._getEmphasizedStyle() : {},
           title: localize('config.menu.buttons.substreams'),
           ...config.menu.buttons.substreams,
+          style: this._getStyle(
+            config.menu.buttons.substreams,
+            substreamAwareCameraID !== view.camera
+              ? this._getEmphasizedStyle()
+              : undefined,
+          ),
           type: 'custom:advanced-camera-card-menu-icon',
           tap_action: hasSubstream(view)
             ? createSubstreamOffAction()
@@ -245,9 +252,13 @@ export class MenuButtonController {
         return {
           icon: 'mdi:video-input-component',
           title: localize('config.menu.buttons.substreams'),
-          style:
-            substreamAwareCameraID !== view.camera ? this._getEmphasizedStyle() : {},
           ...config.menu.buttons.substreams,
+          style: this._getStyle(
+            config.menu.buttons.substreams,
+            substreamAwareCameraID !== view.camera
+              ? this._getEmphasizedStyle()
+              : undefined,
+          ),
           type: 'custom:advanced-camera-card-menu-submenu',
           items: menuItems,
         };
@@ -268,7 +279,10 @@ export class MenuButtonController {
           ...config.menu.buttons.live,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.live'),
-          style: view?.is('live') ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.live,
+            view?.is('live') ? this._getEmphasizedStyle() : undefined,
+          ),
           tap_action: createViewAction('live'),
         }
       : null;
@@ -286,7 +300,10 @@ export class MenuButtonController {
           ...config.menu.buttons.clips,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.clips'),
-          style: view?.is('clips') ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.clips,
+            view?.is('clips') ? this._getEmphasizedStyle() : undefined,
+          ),
           tap_action: createViewAction('clips'),
           hold_action: createViewAction('clip'),
         }
@@ -305,7 +322,10 @@ export class MenuButtonController {
           ...config.menu.buttons.snapshots,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.snapshots'),
-          style: view?.is('snapshots') ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.snapshots,
+            view?.is('snapshots') ? this._getEmphasizedStyle() : undefined,
+          ),
           tap_action: createViewAction('snapshots'),
           hold_action: createViewAction('snapshot'),
         }
@@ -324,7 +344,10 @@ export class MenuButtonController {
           ...config.menu.buttons.recordings,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.recordings'),
-          style: view?.is('recordings') ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.recordings,
+            view?.is('recordings') ? this._getEmphasizedStyle() : undefined,
+          ),
           tap_action: createViewAction('recordings'),
           hold_action: createViewAction('recording'),
         }
@@ -343,7 +366,10 @@ export class MenuButtonController {
           ...config.menu.buttons.reviews,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.reviews'),
-          style: view?.is('reviews') ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.reviews,
+            view?.is('reviews') ? this._getEmphasizedStyle() : undefined,
+          ),
           tap_action: createViewAction('reviews'),
           hold_action: createViewAction('review'),
         }
@@ -362,7 +388,10 @@ export class MenuButtonController {
           ...config.menu.buttons.gallery,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.gallery'),
-          style: view?.is('gallery') ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.gallery,
+            view?.is('gallery') ? this._getEmphasizedStyle() : undefined,
+          ),
           tap_action: createViewAction('gallery'),
           hold_action: createViewAction('media'),
         }
@@ -381,7 +410,10 @@ export class MenuButtonController {
           ...config.menu.buttons.image,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.image'),
-          style: view?.is('image') ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.image,
+            view?.is('image') ? this._getEmphasizedStyle() : undefined,
+          ),
           tap_action: createViewAction('image'),
         }
       : null;
@@ -399,7 +431,10 @@ export class MenuButtonController {
           ...config.menu.buttons.timeline,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.timeline'),
-          style: view?.is('timeline') ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.timeline,
+            view?.is('timeline') ? this._getEmphasizedStyle() : undefined,
+          ),
           tap_action: createViewAction('timeline'),
         }
       : null;
@@ -469,7 +504,10 @@ export class MenuButtonController {
         ? localize('common.set_reviews.unreviewed')
         : localize('common.set_reviews.reviewed'),
       tap_action: createSetReviewAction(),
-      style: isReviewed ? this._getEmphasizedStyle() : {},
+      style: this._getStyle(
+        config.menu.buttons.set_review,
+        isReviewed ? this._getEmphasizedStyle() : undefined,
+      ),
     };
   }
 
@@ -518,12 +556,15 @@ export class MenuButtonController {
         title: ringing
           ? localize('config.live.controls.call.answer')
           : localize('config.live.controls.call.end'),
-        style: ringing
-          ? this._getPulsingStyle(
-              'var(--advanced-camera-card-menu-button-positive-color)',
-            )
-          : this._getEmphasizedStyle(true),
         ...config.menu.buttons.call,
+        style: this._getStyle(
+          config.menu.buttons.call,
+          ringing
+            ? this._getPulsingStyle(
+                'var(--advanced-camera-card-menu-button-positive-color)',
+              )
+            : this._getEmphasizedStyle(true),
+        ),
         type: 'custom:advanced-camera-card-menu-icon',
         tap_action: ringing ? createCallAnswerAction() : createCallEndAction(),
         // While ringing, tap answers and hold rejects.
@@ -600,7 +641,10 @@ export class MenuButtonController {
         ...config.menu.buttons.microphone,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.microphone'),
-        style: unavailable || muted ? {} : this._getEmphasizedStyle(true),
+        style: this._getStyle(
+          config.menu.buttons.microphone,
+          unavailable || muted ? undefined : this._getEmphasizedStyle(true),
+        ),
         ...(!unavailable &&
           buttonType === 'momentary' && {
             start_tap_action: createGeneralAction('microphone_unmute'),
@@ -627,7 +671,10 @@ export class MenuButtonController {
       type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.expand'),
       tap_action: createGeneralAction('expand'),
-      style: inExpandedMode ? this._getEmphasizedStyle() : {},
+      style: this._getStyle(
+        config.menu.buttons.expand,
+        inExpandedMode ? this._getEmphasizedStyle() : undefined,
+      ),
     };
   }
 
@@ -643,7 +690,10 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.fullscreen'),
           tap_action: createGeneralAction('fullscreen'),
-          style: inFullscreen ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.fullscreen,
+            inFullscreen ? this._getEmphasizedStyle() : undefined,
+          ),
         }
       : null;
   }
@@ -662,7 +712,10 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.pip'),
           tap_action: createGeneralAction('pip'),
-          style: inPIP ? this._getEmphasizedStyle() : {},
+          style: this._getStyle(
+            config.menu.buttons.pip,
+            inPIP ? this._getEmphasizedStyle() : undefined,
+          ),
         }
       : null;
   }
@@ -792,7 +845,10 @@ export class MenuButtonController {
       return {
         icon: isGrid ? 'mdi:grid-off' : 'mdi:grid',
         ...config.menu.buttons.display_mode,
-        style: isGrid ? this._getEmphasizedStyle() : {},
+        style: this._getStyle(
+          config.menu.buttons.display_mode,
+          isGrid ? this._getEmphasizedStyle() : undefined,
+        ),
         type: 'custom:advanced-camera-card-menu-icon',
         title: isGrid
           ? localize('display_modes.single')
@@ -831,7 +887,10 @@ export class MenuButtonController {
       return {
         icon: 'mdi:pan',
         ...config.menu.buttons.ptz_controls,
-        style: isOn ? this._getEmphasizedStyle() : {},
+        style: this._getStyle(
+          config.menu.buttons.ptz_controls,
+          isOn ? this._getEmphasizedStyle() : undefined,
+        ),
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.ptz_controls'),
         tap_action: createPTZControlsAction({ enabled: !isOn }),
@@ -891,7 +950,10 @@ export class MenuButtonController {
         ...config.menu.buttons.folders,
         type: 'custom:advanced-camera-card-menu-icon',
         title: folder.title ?? localize('config.menu.buttons.folders'),
-        style: isSelected ? this._getEmphasizedStyle() : {},
+        style: this._getStyle(
+          config.menu.buttons.folders,
+          isSelected ? this._getEmphasizedStyle() : undefined,
+        ),
         tap_action: createViewAction('folders'),
         hold_action: createViewAction('folder'),
       };
@@ -917,8 +979,26 @@ export class MenuButtonController {
       type: 'custom:advanced-camera-card-menu-submenu',
       title: localize('config.menu.buttons.folders'),
       items: submenuItems,
-      style: view?.isAnyFolderView() ? this._getEmphasizedStyle() : {},
+      style: this._getStyle(
+        config.menu.buttons.folders,
+        view?.isAnyFolderView() ? this._getEmphasizedStyle() : undefined,
+      ),
     };
+  }
+
+  /**
+   * Get the style a menu button renders with: the style the user configured for
+   * it, with the style for its current state taking precedence over any
+   * property both of them set.
+   * @param buttonConfig The user's configuration for the button.
+   * @param stateStyle The style for the button's current state, if it has one.
+   * @returns A StyleInfo.
+   */
+  private _getStyle(
+    buttonConfig: { style?: StyleInfo },
+    stateStyle?: StyleInfo,
+  ): StyleInfo {
+    return { ...buttonConfig.style, ...stateStyle };
   }
 
   /**

@@ -141,7 +141,6 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
       <ha-icon-button style="${style}" .label=${title || ''}>
         <advanced-camera-card-icon
           ?allow-override-non-active-styles=${true}
-          style="${style}"
           title=${title || ''}
           .hass=${this.hass}
           .icon=${this._generatedIcon}

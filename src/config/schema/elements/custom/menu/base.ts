@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { MENU_PRIORITY_DEFAULT, MENU_PRIORITY_MAX } from '../../../common/const';
+import { styleSchema } from '../../../common/style';
 
 export const menuBaseSchema = z.object({
   enabled: z.boolean().default(true).optional(),
@@ -15,4 +16,5 @@ export const menuBaseSchema = z.object({
   icon: z.string().optional(),
   state_color: z.boolean().default(true).optional(),
   permanent: z.boolean().default(false).optional(),
+  style: styleSchema.optional(),
 });

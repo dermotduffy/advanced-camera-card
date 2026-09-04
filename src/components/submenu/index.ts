@@ -73,6 +73,7 @@ export class AdvancedCameraCardSubmenu extends LitElement {
           .icon=${{
             icon: item.icon,
             entity: item.entity,
+            stateColor: item.state_color,
           }}
           style="${style}"
         ></advanced-camera-card-icon>

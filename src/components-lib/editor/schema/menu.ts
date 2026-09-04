@@ -147,6 +147,11 @@ const getMenuButtonSchema = (
         selector: { boolean: {} },
       },
     ]),
+    {
+      name: 'style',
+      label: localize('config.menu.buttons.style'),
+      selector: { object: {} },
+    },
     ...extraSchema,
   ],
 });

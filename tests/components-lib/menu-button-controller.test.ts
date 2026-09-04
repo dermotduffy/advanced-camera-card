@@ -2976,4 +2976,137 @@ describe('MenuButtonController', () => {
 
     expect(buttons).toBeDefined();
   });
+
+  describe('should style buttons', () => {
+    it('should use the configured style when the button has no state style', () => {
+      const buttons = calculateButtons(controller, {
+        config: createConfig({
+          menu: { buttons: { live: { style: { color: 'green' } } } },
+        }),
+        view: createView({ view: 'clips' }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:cctv',
+          style: { color: 'green' },
+        }),
+      );
+    });
+
+    it('should let the state style override a configured property', () => {
+      const buttons = calculateButtons(controller, {
+        config: createConfig({
+          menu: {
+            buttons: { live: { style: { color: 'green', background: 'blue' } } },
+          },
+        }),
+        view: createView({ view: 'live' }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:cctv',
+          style: {
+            background: 'blue',
+            color: 'var(--advanced-camera-card-menu-button-active-color)',
+          },
+        }),
+      );
+    });
+
+    it('should let a pulsing state style override a configured property', () => {
+      const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+
+      const buttons = calculateButtons(controller, {
+        config: createConfig({
+          menu: {
+            buttons: {
+              microphone: { style: { color: 'green', background: 'blue' } },
+            },
+          },
+        }),
+        cameraManager,
+        microphoneManager,
+        callManager,
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:microphone',
+          style: {
+            animation: 'pulse 3s infinite',
+            background: 'blue',
+            color: 'var(--advanced-camera-card-menu-button-critical-color)',
+          },
+        }),
+      );
+    });
+
+    it('should let the state style override a configured property of a submenu button', () => {
+      const foldersManager = mock<FoldersManager>();
+      foldersManager.hasFolders.mockReturnValue(true);
+      foldersManager.getFolders.mockReturnValue(
+        new Map([
+          ['folder-0', createFolder({ id: 'folder-0' })],
+          ['folder-1', createFolder({ id: 'folder-1' })],
+        ]).entries(),
+      );
+
+      const buttons = calculateButtons(controller, {
+        config: createConfig({
+          menu: {
+            buttons: { folders: { style: { color: 'green', background: 'blue' } } },
+          },
+        }),
+        foldersManager,
+        view: createView({ view: 'folders' }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:folder-multiple',
+          style: {
+            background: 'blue',
+            color: 'var(--advanced-camera-card-menu-button-active-color)',
+          },
+        }),
+      );
+    });
+
+    it('should let the state style override a configured property of a dynamic button', () => {
+      const button: MenuItem = {
+        ...dynamicButton,
+        style: { color: 'green', background: 'blue' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
+      };
+      controller.addDynamicMenuButton(button);
+
+      const buttons = calculateButtons(controller, {
+        view: createView({ view: 'clips' }),
+      });
+
+      expect(buttons).toContainEqual({
+        ...button,
+        style: {
+          background: 'blue',
+          color: 'var(--advanced-camera-card-menu-button-active-color)',
+        },
+      });
+    });
+  });
 });

@@ -101,7 +101,10 @@ export class AdvancedCameraCardMenu extends LitElement {
         ? getEntityTitle(this.hass, button.entity)
         : button.title;
 
+    const style = button.style ?? {};
+
     return html` <ha-icon-button
+      style="${styleMap(style)}"
       .actionHandler=${actionHandler({
         hasHold: hasAction(button.hold_action),
         hasDoubleClick: hasAction(button.double_tap_action),
@@ -113,7 +116,6 @@ export class AdvancedCameraCardMenu extends LitElement {
     >
       <advanced-camera-card-icon
         ?allow-override-non-active-styles=${true}
-        style="${styleMap(button.style || {})}"
         .hass=${this.hass}
         .icon=${{
           icon: button.icon,

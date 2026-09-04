@@ -578,6 +578,7 @@
         "set_review": "Set review status",
         "snapshots": "Snapshots",
         "state_color": "Color by entity state",
+        "style": "CSS style",
         "substreams": "Substream(s)",
         "timeline": "Timeline",
         "type": "Button type",
