@@ -84,6 +84,10 @@ export const createTestFrigateReview = (
     id,
     start_time: startTime,
     end_time: startTime + REVIEW_DURATION_SECONDS,
+
+    // Served by `_serveThumbnail`, which strips the prefix Frigate puts on
+    // every stored path.
+    thumb_path: `/media/frigate/thumbnail/${id}`,
     ...review,
   });
 
@@ -93,15 +97,18 @@ export interface CardWithFrigate {
 }
 
 /**
- * A card whose camera is Frigate's, with the given events already detected.
+ * A card whose camera is Frigate's, with the given events already detected and
+ * the given review items already raised.
  */
 export const mountCardWithFrigate = async (
   events: FrigateEvent[],
   config?: PartialAdvancedCameraCardConfig,
+  reviews?: FrigateReview[],
 ): Promise<CardWithFrigate> => {
   const hass = createCameraHASS([createFrigateCameraDescription()]);
   const frigate = new FakeFrigate(hass);
   frigate.setEvents(events);
+  frigate.setReviews(reviews ?? []);
 
   const card = await MountedCardFactory.createFromSource(
     createStillImageCardConfig(config),
@@ -116,10 +123,10 @@ export const mountCardWithFrigate = async (
 const EVENT_CONTENT_ID =
   /^media-source:\/\/frigate\/(?<clientID>[^/]+)\/event\/(?<mediaType>[^/]+)\/(?<camera>[^/]+)\/(?<eventID>[^/]+)$/;
 
-// An event's thumbnail, as `getEventThumbnailURL` asks for it:
+// An event's or a review's thumbnail, as `getEventThumbnailURL` and
+// `getReviewThumbnailURL` ask for them:
 // /api/frigate/<client>/thumbnail/<id>
-const THUMBNAIL_PATH =
-  /^\/api\/frigate\/(?<clientID>[^/]+)\/thumbnail\/(?<eventID>[^/]+)$/;
+const THUMBNAIL_PATH = /^\/api\/frigate\/(?<clientID>[^/]+)\/thumbnail\/(?<id>[^/]+)$/;
 
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((entry) => typeof entry === 'string');
@@ -337,6 +344,14 @@ export class FakeFrigate {
       ),
     );
     hass.registerCommand(
+      'frigate/reviews/viewed',
+      this._answerAsFrigate(
+        ['ids', 'viewed'],
+        (message) => this._setReviewsViewed(message),
+        false,
+      ),
+    );
+    hass.registerCommand(
       'frigate/ptz/info',
       this._answerAsFrigate(['camera'], () => ({})),
     );
@@ -377,12 +392,16 @@ export class FakeFrigate {
   }
 
   // Answer a command addressed to this instance, refusing one meant for
-  // another. Frigate answers with JSON.
+  // another. The integration asks Frigate for most endpoints with
+  // `decode_json=False` and hands the raw JSON string on for the card to parse;
+  // the few it decodes itself arrive as an object, which `encodeJSON: false`
+  // models.
   private _answerAsFrigate(
     parameters: string[],
     handler: (message: MessageBase) => unknown,
+    encodeJSON = true,
   ): WSCommandHandler {
-    return (message: MessageBase): string => {
+    return (message: MessageBase): unknown => {
       const instanceID: unknown = message['instance_id'];
       if (instanceID !== FRIGATE_CLIENT_ID) {
         throw new Error(
@@ -391,7 +410,8 @@ export class FakeFrigate {
       }
       requireKnownParameters(message, ['instance_id', ...parameters]);
 
-      return JSON.stringify(handler(message));
+      const result = handler(message);
+      return encodeJSON ? JSON.stringify(result) : result;
     };
   }
 
@@ -403,11 +423,35 @@ export class FakeFrigate {
     return this._events.find((event) => event.id === eventID) ?? null;
   }
 
+  private _getReview(reviewID: string): FrigateReview | null {
+    return this._reviews.find((review) => review.id === reviewID) ?? null;
+  }
+
   private _queryReviews(message: MessageBase): FrigateReview[] {
     const query = readReviewQuery(message);
     const matching = this._reviews.filter((review) => matchesReviewQuery(review, query));
 
     return query.limit === undefined ? matching : matching.slice(0, query.limit);
+  }
+
+  // Mark reviews as reviewed, which Frigate calls 'viewed'. The card sends this
+  // when the user presses a review control.
+  private _setReviewsViewed(message: MessageBase): {
+    success: boolean;
+    message: string;
+  } {
+    const ids = readParameter(message, 'ids', isStringArray, 'a list of strings') ?? [];
+    const viewed = readParameter(message, 'viewed', isBoolean, 'true or false') ?? true;
+
+    for (const id of ids) {
+      const review = this._getReview(id);
+      if (!review) {
+        throw new Error(`FakeFrigate has no such review: ${id}`);
+      }
+      review.has_been_reviewed = viewed;
+    }
+
+    return { success: true, message: '' };
   }
 
   private _queryEvents(message: MessageBase): FrigateEvent[] {
@@ -465,11 +509,13 @@ export class FakeFrigate {
 
   private async _serveThumbnail(path: string): Promise<Response> {
     const groups = THUMBNAIL_PATH.exec(path)?.groups;
+    const id = groups?.['id'];
 
     if (
       !groups ||
+      !id ||
       groups['clientID'] !== FRIGATE_CLIENT_ID ||
-      !this._getEvent(groups['eventID'])
+      (!this._getEvent(id) && !this._getReview(id))
     ) {
       throw new Error(`FakeFrigate has no thumbnail at: ${path}`);
     }
