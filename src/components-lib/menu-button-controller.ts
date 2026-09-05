@@ -987,9 +987,8 @@ export class MenuButtonController {
   }
 
   /**
-   * Get the style a menu button renders with: the style the user configured for
-   * it, with the style for its current state taking precedence over any
-   * property both of them set.
+   * Get the style a menu button renders with: the configured style takes
+   * precedence.
    * @param buttonConfig The user's configuration for the button.
    * @param stateStyle The style for the button's current state, if it has one.
    * @returns A StyleInfo.
@@ -998,7 +997,7 @@ export class MenuButtonController {
     buttonConfig: { style?: StyleInfo },
     stateStyle?: StyleInfo,
   ): StyleInfo {
-    return { ...buttonConfig.style, ...stateStyle };
+    return { ...stateStyle, ...buttonConfig.style };
   }
 
   /**

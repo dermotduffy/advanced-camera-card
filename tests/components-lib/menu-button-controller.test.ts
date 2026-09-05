@@ -2994,7 +2994,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('should let the state style override a configured property', () => {
+    it('should let a configured style override the state style', () => {
       const buttons = calculateButtons(controller, {
         config: createConfig({
           menu: {
@@ -3009,13 +3009,13 @@ describe('MenuButtonController', () => {
           icon: 'mdi:cctv',
           style: {
             background: 'blue',
-            color: 'var(--advanced-camera-card-menu-button-active-color)',
+            color: 'green',
           },
         }),
       );
     });
 
-    it('should let a pulsing state style override a configured property', () => {
+    it('should keep a pulsing animation with a configured color', () => {
       const microphoneManager = mock<MicrophoneManager>();
       const callManager = mock<CallManager>();
       vi.mocked(callManager.isActive).mockReturnValue(true);
@@ -3051,13 +3051,13 @@ describe('MenuButtonController', () => {
           style: {
             animation: 'pulse 3s infinite',
             background: 'blue',
-            color: 'var(--advanced-camera-card-menu-button-critical-color)',
+            color: 'green',
           },
         }),
       );
     });
 
-    it('should let the state style override a configured property of a submenu button', () => {
+    it('should let a configured property override the state style of a submenu button', () => {
       const foldersManager = mock<FoldersManager>();
       foldersManager.hasFolders.mockReturnValue(true);
       foldersManager.getFolders.mockReturnValue(
@@ -3082,13 +3082,13 @@ describe('MenuButtonController', () => {
           icon: 'mdi:folder-multiple',
           style: {
             background: 'blue',
-            color: 'var(--advanced-camera-card-menu-button-active-color)',
+            color: 'green',
           },
         }),
       );
     });
 
-    it('should let the state style override a configured property of a dynamic button', () => {
+    it('should let a configured property override the state style of a dynamic button', () => {
       const button: MenuItem = {
         ...dynamicButton,
         style: { color: 'green', background: 'blue' },
@@ -3104,7 +3104,7 @@ describe('MenuButtonController', () => {
         ...button,
         style: {
           background: 'blue',
-          color: 'var(--advanced-camera-card-menu-button-active-color)',
+          color: 'green',
         },
       });
     });

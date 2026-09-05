@@ -584,7 +584,7 @@ export class MountedCard {
    * Click a control by the name the user sees on it, waiting for it to appear.
    */
   public async clickControl(name: string): Promise<void> {
-    const control = await this._findControl(name);
+    const control = await this.findControl(name);
 
     await clickElement(control);
   }
@@ -598,7 +598,7 @@ export class MountedCard {
    * them stops part way through a press.
    */
   public async holdControl(name: string): Promise<void> {
-    const control = await this._findControl(name);
+    const control = await this.findControl(name);
 
     // Composed as well as bubbling: a real press crosses the shadow boundaries
     // between a control and whatever is listening above it.
@@ -629,7 +629,10 @@ export class MountedCard {
     await clickElement(control);
   }
 
-  private async _findControl(name: string): Promise<HTMLElement> {
+  /**
+   * Find a control.
+   */
+  public async findControl(name: string): Promise<HTMLElement> {
     return await this.waitForRender(() => {
       const found = deepQueryAll(this.card, '*').find(
         (element) =>

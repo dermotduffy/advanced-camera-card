@@ -21,6 +21,7 @@ import menuStyle from '../scss/menu.scss?inline';
 import type { Interaction } from '../types.js';
 import { hasAction } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
+import { getStyleColor } from '../utils/style.js';
 import type { SubmenuInteraction } from './submenu/types.js';
 
 import './icon.js';
@@ -121,6 +122,7 @@ export class AdvancedCameraCardMenu extends LitElement {
           icon: button.icon,
           entity: button.entity,
           stateColor: button.state_color,
+          color: getStyleColor(style) ?? undefined,
           fallback: 'mdi:gesture-tap-button',
         }}
       ></advanced-camera-card-icon>

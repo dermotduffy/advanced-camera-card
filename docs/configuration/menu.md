@@ -80,25 +80,18 @@ menu:
         color: green
 ```
 
-CSS declarations to apply to the button, in the same way [picture element
+CSS declarations apply to the button, in the same way [picture element
 `style`](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object)
 works in Home Assistant (e.g. `background`, `border` and `opacity` style the
 whole button, not just the icon). The icon inherits `color` from the button, but
 not its size: the button and its icon are both sized by
 [`button_size`](#menu).
 
-#### Styling precedence
+A user configured `style` always wins. When not specified the card chooses the
+styling.
 
-Several inputs are used to define a menu button color. Where two of them set the
-same CSS property, the higher row of this table wins. Home Assistant itself uses
-a similar order:
-
-| Colored by                                                                                                                                                                    | Applied to | To change or disable it                                                                                                                                                                                          |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The state of the button's `entity`, for a button that has one (e.g. a [`menu-state-icon`](elements/custom/README.md?id=menu-state-icon) element)                              | The icon   | `state_color: false` on the button                                                                                                                                                                               |
-| The button being active or needing attention: the current view, an active `fullscreen`, `expand`, `pip` or `ptz_controls`, an in-progress `call`, a transmitting `microphone` | The button | `--advanced-camera-card-menu-button-active-color`, `--advanced-camera-card-menu-button-critical-color` and `--advanced-camera-card-menu-button-positive-color` in [`view.theme.overrides`](view.md?id=overrides) |
-| `style`                                                                                                                                                                       | The button | &mdash;                                                                                                                                                                                                          |
-| The card theme                                                                                                                                                                | The button | `--advanced-camera-card-menu-button-inactive-color` and `--advanced-camera-card-menu-button-background` in [`view.theme.overrides`](view.md?id=overrides)                                                        |
+To change colors for every button instead of styling just one, consider setting
+[`view.theme.overrides`](view.md?id=overrides).
 
 ### Additional options: `microphone`
 

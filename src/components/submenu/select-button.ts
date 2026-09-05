@@ -22,6 +22,7 @@ import type { EntityRegistryManager } from '../../ha/registry/entity/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss?inline';
 import { createSelectOptionAction, hasAction } from '../../utils/action.js';
+import { getStyleColor } from '../../utils/style.js';
 
 import '../icon.js';
 import './index.js';
@@ -123,6 +124,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
       entity: entityID,
       fallback: 'mdi:format-list-bulleted',
       stateColor: this.submenuSelect.state_color,
+      color: getStyleColor(this.submenuSelect.style) ?? undefined,
     };
   }
 

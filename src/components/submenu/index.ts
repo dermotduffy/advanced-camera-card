@@ -18,6 +18,7 @@ import {
   stopEventFromActivatingCardWideActions,
 } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
+import { getStyleColor } from '../../utils/style.js';
 
 import '../icon.js';
 
@@ -74,6 +75,7 @@ export class AdvancedCameraCardSubmenu extends LitElement {
             icon: item.icon,
             entity: item.entity,
             stateColor: item.state_color,
+            color: getStyleColor(item.style) ?? undefined,
           }}
           style="${style}"
         ></advanced-camera-card-icon>
