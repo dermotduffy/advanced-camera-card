@@ -1,0 +1,987 @@
+{
+  "actions": {
+    "abort": "Prerušená akcia",
+    "confirmation": "Naozaj chcete vykonať túto akciu?"
+  },
+  "common": {
+    "advanced_camera_card": "Advanced Camera Card",
+    "advanced_camera_card_description": "Pokročilá karta fotoaparátu",
+    "close": "Zavrieť",
+    "event": "Udalosť",
+    "folder": "Priečinok",
+    "in_progress": "Prebieha...",
+    "no_media": "Žiadne médium na zobrazenie",
+    "retry": "Skúste to znova",
+    "set_reviews": {
+      "reviewed": "Označiť ako skontrolované",
+      "unreviewed": "Označiť ako neskontrolované"
+    },
+    "severities": {
+      "high": "Vysoká",
+      "low": "Nízka",
+      "medium": "Stredná"
+    },
+    "severity": "Závažnosť",
+    "up": "Hore"
+  },
+  "config": {
+    "cameras": {
+      "always_error_if_entity_unavailable": "Nedostupnosť entity vždy berte ako chybu",
+      "camera_entity": "Entita fotoaparátu",
+      "capabilities": {
+        "capabilities": {
+          "2-way-audio": "2-pásmový zvuk",
+          "clips": "Klipy",
+          "favorite-events": "Obľúbené udalosti",
+          "favorite-recordings": "Obľúbené nahrávky",
+          "live": "Naživo",
+          "menu": "Menu",
+          "ptz": "PTZ",
+          "recordings": "Nahrávky",
+          "remote-control-entity": "Entita diaľkového ovládania",
+          "reviews": "Recenzie",
+          "seek": "Hľadanie",
+          "snapshots": "Snímky",
+          "substream": "Substream",
+          "trigger": "Spúšťač"
+        },
+        "disable": "Zakázať",
+        "disable_except": "Zakázať okrem",
+        "editor_label": "Schopnosti",
+        "force": "sila"
+      },
+      "cast": {
+        "dashboard": {
+          "dashboard_path": "Cesta k palubnej doske",
+          "editor_label": "Dashboard",
+          "view_path": "Zobraziť cestu"
+        },
+        "editor_label": "Casting",
+        "method": "Cast metóda",
+        "methods": {
+          "dashboard": "Dashboard",
+          "standard": "Štandardné"
+        }
+      },
+      "dependencies": {
+        "all_cameras": "Zobrazovať udalosti pre všetky kamery s touto kamerou",
+        "cameras": "Zobrazte udalosti pre konkrétne kamery pomocou tejto kamery",
+        "editor_label": "Závislosti"
+      },
+      "dimensions": {
+        "aspect_ratio": "Statický pomer strán",
+        "editor_label": "Rozmery",
+        "layout": {
+          "editor_label": "Rozloženie fotoaparátu",
+          "fit": "Rozloženie prispôsobené",
+          "fits": {
+            "contain": "Médium je zabalené/zabalené v poštovej schránke",
+            "cover": "Médium sa proporcionálne roztiahne, aby zakrylo kartu",
+            "fill": "Médium je natiahnuté, aby zaplnilo kartu"
+          },
+          "pan": {
+            "editor_label": "Rozloženie Pan",
+            "x": "Horizontálne %",
+            "y": "vertikálne %"
+          },
+          "position": {
+            "editor_label": "Poloha krytu rozloženia",
+            "x": "Horizontálne %",
+            "y": "vertikálne %"
+          },
+          "view_box": {
+            "bottom": "Spodná vložka %",
+            "editor_label": "Pole zobrazenia rozloženia",
+            "left": "Ľavá vložka %",
+            "right": "Pravá vložka %",
+            "top": "Najvyššie vložené %"
+          },
+          "zoom": "Faktor priblíženia"
+        },
+        "rotation": "Rotácia",
+        "rotations": {
+          "0": "žiadne",
+          "90": "90° v smere hodinových ručičiek",
+          "180": "180° v smere hodinových ručičiek",
+          "270": "270° v smere hodinových ručičiek"
+        }
+      },
+      "engine": "Systém fotoaparátu",
+      "engines": {
+        "auto": "Automaticky",
+        "editor_label": "Engine",
+        "frigate": "Frigate",
+        "generic": "Generic",
+        "motioneye": "MotionEye",
+        "reolink": "Reolink",
+        "tplink": "TP-Link"
+      },
+      "frigate": {
+        "camera_name": "Názov kamery frigate (automaticky zistený z entity)",
+        "client_id": "ID klienta frigate (pre >1 server frigate)",
+        "editor_label": "Frigate",
+        "labels": "Štítky frigate/filtre objektov",
+        "url": "Adresa URL fregatného servera",
+        "zones": "Frigate zóny"
+      },
+      "go2rtc": {
+        "editor_label": "go2rtc",
+        "metadata_fetch_timeout_seconds": "Časový limit načítania metadát v sekundách",
+        "modes": {
+          "editor_label": "režimy go2rtc",
+          "mjpeg": "Motion JPEG (MJPEG)",
+          "mp4": "MPEG-4 (MP4)",
+          "mse": "Rozšírenia zdroja médií (MSE)",
+          "webrtc": "Webová komunikácia v reálnom čase (WebRTC)"
+        },
+        "stream": "Názov streamu",
+        "url": "URL"
+      },
+      "icon": "Ikona (automaticky zistená)",
+      "id": "Jedinečné ID pre túto kameru na tejto karte",
+      "image": {
+        "editor_label": "Obrázok",
+        "refresh_seconds": "Sekundy medzi obnovami živého obrazu (0=nikdy)",
+        "url": "Webová adresa obrázka, ktorá sa má použiť namiesto snímky entity fotoaparátu"
+      },
+      "live_provider": "Poskytovateľ živého náhľadu pre túto kameru",
+      "live_provider_options": {
+        "editor_label": "Živý poskytovateľ"
+      },
+      "live_providers": {
+        "auto": "Automaticky",
+        "go2rtc": "go2rtc",
+        "go2rtc-experimental": "go2rtc (experimentálna implementácia)",
+        "ha": "Stream videa Home Assistant (t. j. HLS, LL-HLS, WebRTC cez HA)",
+        "image": "Obrázok",
+        "jsmpeg": "JSMpeg",
+        "webrtc-card": "Karta WebRTC (t. j. karta WebRTC od AlexxIT)"
+      },
+      "media": {
+        "editor_label": "Médiá",
+        "events_type": "Podtyp udalostí",
+        "folders": "ID priečinkov",
+        "reviewed": "Filter stavu kontroly",
+        "revieweds": {
+          "all": "Všetky (skontrolované aj neskontrolované)",
+          "reviewed": "Iba skontrolované",
+          "unreviewed": "Iba nerecenzované"
+        },
+        "type": "Predvolený typ"
+      },
+      "motioneye": {
+        "editor_label": "MotionEye",
+        "images": {
+          "directory_pattern": "Vzor adresára",
+          "editor_label": "Obrázky",
+          "file_pattern": "Vzor súboru"
+        },
+        "movies": {
+          "directory_pattern": "Vzor adresára",
+          "editor_label": "Filmy",
+          "file_pattern": "Vzor súboru"
+        },
+        "url": "Adresa URL používateľského rozhrania MotionEye"
+      },
+      "proxy": {
+        "editor_label": "Proxying",
+        "live": "Naživo",
+        "media": "Médiá"
+      },
+      "reolink": {
+        "editor_label": "Reolink",
+        "media_resolution": {
+          "editor_label": "Rozlíšenie médií",
+          "high": "Vysoké rozlíšenie",
+          "low": "Nízke rozlíšenie"
+        },
+        "url": "Reolink URL adresa používateľského rozhrania"
+      },
+      "title": "Názov (automaticky zistený)",
+      "triggers": {
+        "doorbell": "Spustite automatickým rozpoznaním entít udalosti zvončeka",
+        "editor_label": "Spúšťače",
+        "entities": "Spustenie od iných subjektov",
+        "events": {
+          "add_new_event": "Pridať spúšťač udalosti",
+          "editor_label": "Udalosti domáceho asistenta",
+          "event_data": "Filter údajov udalostí",
+          "event_type": "Typ udalosti"
+        },
+        "media_events": {
+          "clips": "Udalosti s novými klipmi",
+          "editor_label": "Spustiť mediálne udalosti",
+          "events": "Všetky udalosti",
+          "snapshots": "Udalosti s novými snímkami"
+        },
+        "motion": "Spustite automatickou detekciou snímača pohybu",
+        "occupancy": "Spustite automatickým rozpoznaním snímača obsadenosti",
+        "reviews": {
+          "description": "Spustite pri aktualizáciách popisu",
+          "editor_label": "Kontrola spúšťačov"
+        }
+      },
+      "webrtc_card": {
+        "editor_label": "Karta WebRTC",
+        "entity": "Entita kartovej kamery WebRTC",
+        "url": "Webová adresa fotoaparátu karty WebRTC"
+      }
+    },
+    "common": {
+      "auto_hide_conditions": {
+        "call": "Počas obojsmerného zvukového hovoru",
+        "casting": "Počas vysielania"
+      },
+      "controls": {
+        "builtin": "Vstavané ovládacie prvky videa",
+        "filter": {
+          "editor_label": "Filter médií",
+          "mode": "Režim filtra",
+          "modes": {
+            "left": "Filter médií v zásuvke naľavo",
+            "none": "Žiadny mediálny filter",
+            "right": "Filter médií v zásuvke napravo"
+          }
+        },
+        "next_previous": {
+          "auto_hide": "Automaticky skryť",
+          "editor_label": "Ďalší a predchádzajúci",
+          "size": "Veľkosť v pixeloch",
+          "style": "štýl",
+          "styles": {
+            "chevrons": "Chevróny",
+            "icons": "ikony",
+            "none": "žiadne",
+            "thumbnails": "Miniatúry"
+          }
+        },
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Skryť domov a predvoľby",
+          "hide_pan_tilt": "Skryť posúvanie a nakláňanie",
+          "hide_type": "Skryť prepínač typu",
+          "hide_zoom": "Skryť priblíženie",
+          "mode": "Režim",
+          "modes": {
+            "auto": "Automaticky",
+            "off": "Vypnuté",
+            "on": "Zapnuté"
+          },
+          "orientation": "Orientácia",
+          "orientations": {
+            "horizontal": "Horizontálne",
+            "vertical": "Vertikálne"
+          },
+          "position": "pozícia",
+          "positions": {
+            "bottom-left": "Vľavo dole",
+            "bottom-right": "Vpravo dole",
+            "top-left": "Vľavo hore",
+            "top-right": "Vpravo hore"
+          },
+          "type": "Predvolený typ",
+          "types": {
+            "buttons": "Tlačidlá",
+            "gestures": "Gestá"
+          }
+        },
+        "thumbnails": {
+          "editor_label": "Miniatúry",
+          "mode": "Režim",
+          "modes": {
+            "above": "Vyššie",
+            "below": "Nižšie",
+            "left": "Ľavá zásuvka",
+            "none": "žiadne",
+            "right": "Pravá zásuvka"
+          },
+          "show_details": "Zobraziť podrobnosti",
+          "show_download_control": "Zobraziť ovládanie sťahovania",
+          "show_favorite_control": "Zobraziť obľúbený ovládací prvok",
+          "show_info_control": "Zobraziť ovládací prvok informácií",
+          "show_review_control": "Zobraziť kontrolu kontroly",
+          "show_timeline_control": "Zobraziť ovládanie časovej osi",
+          "size": "Veľkosť v pixeloch"
+        },
+        "timeline": {
+          "editor_label": "Mini časová os",
+          "format": {
+            "24h": "Použite 24-hodinové hodiny",
+            "editor_label": "Formát času a dátumu"
+          },
+          "mode": "Režim",
+          "modes": {
+            "above": "Vyššie",
+            "below": "Nižšie",
+            "none": "žiadne"
+          },
+          "pan_mode": "Predvolený režim posúvania",
+          "pan_modes": {
+            "pan": "Pan",
+            "seek": "Pan vyhľadáva vo všetkých médiách",
+            "seek-in-camera": "Pan vyhľadáva iba vo vybranej kamere",
+            "seek-in-media": "Pan vyhľadáva iba vo vybranom mediálnom súbore"
+          }
+        },
+        "wheel": "Rolovacie koliesko posúva mediálny karusel"
+      },
+      "display": {
+        "editor_label": "Displej",
+        "grid_columns": "Presné stĺpce mriežky",
+        "grid_max_columns": "Maximálny počet stĺpcov mriežky",
+        "grid_selected_position": "Pozícia vybraného média v mriežke",
+        "grid_selected_positions": {
+          "default": "Vybraná položka je v predvolenej polohe",
+          "first": "Vybraná položka je prvá v mriežke",
+          "last": "Vybraná položka je posledná v mriežke"
+        },
+        "grid_selected_width_factor": "Zväčšite šírku vybratého média o tento faktor",
+        "mode": "Režim"
+      },
+      "events_media_types": {
+        "all": "Všetky",
+        "clips": "Klipy",
+        "snapshots": "Snímky"
+      },
+      "image": {
+        "entity": "Entita na použitie s režimom entity",
+        "entity_parameters": "Parametre dopytu pridané do adries URL obrázkov založených na entitách (napr. width=1920&height=1080)",
+        "mode": "Režim obrazu",
+        "modes": {
+          "auto": "Automaticky vybrané na základe konfigurácie",
+          "camera": "Snímka kamery Home Assistant entity kamery",
+          "default": "Predvolený vložený obrázok",
+          "entity": "Entita s atribútom entity_picture",
+          "screensaver": "Náhodný obrázok",
+          "url": "Ľubovoľný obrázok určený adresou URL"
+        },
+        "proxy": {
+          "editor_label": "Obrázok proxy"
+        },
+        "refresh_seconds": "Sekundy medzi obnoveniami (0=nikdy)",
+        "url": "Adresa URL statického obrázka"
+      },
+      "interaction_modes": {
+        "active": "Iba pri aktívnej interakcii",
+        "all": "Vždy bez ohľadu na interakciu",
+        "inactive": "Iba keď neinteraguje"
+      },
+      "media_action_conditions": {
+        "call_mute": "Na konci hovoru",
+        "call_unmute": "Pri odpovedaní na hovor",
+        "hidden": "Pri skrytí prehliadača/karty",
+        "microphone_mute": "Vypnutie mikrofónu",
+        "microphone_unmute": "Zapnutie mikrofónu",
+        "selected": "Pri výbere",
+        "unselected": "Pri zrušení výberu",
+        "visible": "Vo viditeľnosti prehliadača/karty"
+      },
+      "media_types": {
+        "auto": "Automaticky",
+        "events": "Udalosti",
+        "folder": "Priečinok",
+        "recordings": "Nahrávky",
+        "reviews": "Recenzie"
+      },
+      "proxy": {
+        "dynamic": "Dynamický",
+        "modes": {
+          "auto": "Automaticky",
+          "false": "Zakázané",
+          "true": "Povolené"
+        },
+        "ssl_ciphers": {
+          "auto": "Automaticky",
+          "default": "Predvolené",
+          "editor_label": "SSL šifry",
+          "insecure": "Neistý",
+          "intermediate": "Stredne pokročilý",
+          "modern": "Moderné"
+        },
+        "ssl_verification": {
+          "auto": "Automaticky",
+          "editor_label": "Overenie SSL",
+          "false": "Zakázané",
+          "true": "Povolené"
+        }
+      },
+      "timeline": {
+        "clustering_threshold": "Počet udalostí pred zhlukovaním (0=žiadne zoskupovanie)",
+        "show_recordings": "Zobraziť nahrávky",
+        "style": "Štýl časovej osi",
+        "styles": {
+          "ribbon": "Udalosti na jednej stužkovej",
+          "stack": "Skladané a zoskupené udalosti"
+        },
+        "window_seconds": "Predvolená dĺžka okna časovej osi v sekundách"
+      },
+      "transition_effects": {
+        "none": "Žiadny prechod",
+        "slide": "Prechod snímky"
+      }
+    },
+    "dimensions": {
+      "aspect_ratio": "Pomer (napr. „16:9“)",
+      "aspect_ratio_mode": "Režim pomeru strán",
+      "aspect_ratio_modes": {
+        "dynamic": "Dynamický",
+        "static": "Statické",
+        "unconstrained": "Neobmedzený"
+      },
+      "height": "Výška karty v jednotkách CSS (napr. „500 pixelov“)"
+    },
+    "editor": {
+      "mode": "Úplný editor"
+    },
+    "folders": {
+      "ha": {
+        "editor_label": "Možnosti priečinka médií Home Assistant",
+        "path_info": "V textovom editore je k dispozícii ďalšia funkcia priraďovania cesty",
+        "url": "Adresa URL priečinka médií"
+      },
+      "icon": "Ikona",
+      "id": "Jedinečné ID",
+      "title": "Názov",
+      "type": "Typ",
+      "types": {
+        "ha": "Priečinok médií Home Assistant"
+      }
+    },
+    "image": {
+      "zoomable": "Možnosť priblíženia/posúvania"
+    },
+    "live": {
+      "auto_mute": "Automaticky stlmiť živé kamery",
+      "auto_pause": "Automaticky pozastaviť živé kamery",
+      "auto_play": "Automaticky prehrávať živé kamery",
+      "auto_unmute": "Automaticky zapnite živé kamery",
+      "controls": {
+        "call": {
+          "answer": "Prijmite hovor",
+          "button_size": "Veľkosť tlačidla na ovládanie hovoru",
+          "editor_label": "Obojsmerný zvukový hovor",
+          "enabled": "Zobraziť ovládacie prvky hovorov na obrazovke",
+          "end": "Ukončite obojsmerný zvukový hovor",
+          "lock": "Uzamknutie používateľského rozhrania počas aktívneho hovoru",
+          "mute_audio": "Stlmiť zvuk",
+          "mute_microphone": "Stlmiť mikrofón",
+          "reject": "Odmietnuť hovor",
+          "ringtone": {
+            "editor_label": "Vyzváňací tón",
+            "repeat": "Opakovanie tónu zvonenia na prichádzajúci hovor (0=neurčité)",
+            "type": "Typ",
+            "types": {
+              "arpeggio": "Arpeggio",
+              "chime": "Zvonkohra",
+              "custom": "Vlastná adresa URL zvuku",
+              "melody": "Melódia",
+              "none": "žiadne",
+              "westminster": "Westminster"
+            },
+            "url": "Vlastná adresa URL"
+          },
+          "start": "Spustite obojsmerný zvukový hovor",
+          "unanswered_timeout_seconds": "Sekundy pred ukončením neprijatých prichádzajúcich hovorov (0=nikdy)",
+          "unmute_audio": "Zapnúť zvuk",
+          "unmute_microphone": "Zapnúť mikrofón"
+        },
+        "editor_label": "Živé ovládacie prvky"
+      },
+      "draggable": "Preťahovateľné",
+      "lazy_load": "Živé kamery sú lenivo načítané",
+      "lazy_unload": "Živé kamery sú lenivo vyložené",
+      "microphone": {
+        "always_connected": "Vždy majte pripojený mikrofón",
+        "audio_processing": {
+          "auto_gain_control": "Automatické ovládanie zisku",
+          "channel_count": "Počet kanálov (1=mono)",
+          "echo_cancellation": "Zrušenie ozveny",
+          "editor_label": "Spracovanie zvuku",
+          "modes": {
+            "auto": "Automaticky",
+            "false": "Zakázané",
+            "true": "Povolené"
+          },
+          "noise_suppression": "Potlačenie hluku"
+        },
+        "auto_mute": "Automaticky stlmiť mikrofón",
+        "auto_unmute": "Automaticky zrušiť stlmenie mikrofónu",
+        "editor_label": "Mikrofón",
+        "mute_after_microphone_mute_seconds": "Sekundy po stlmení mikrofónu pred stlmením prichádzajúceho zvuku"
+      },
+      "preload": "Predbežne načítať živé zobrazenie na pozadí",
+      "show_image_during_load": "Počas načítavania priameho prenosu zobraziť statický obrázok",
+      "transition_effect": "Živý prechodový efekt kamery",
+      "zoomable": "Zoomable/Panable"
+    },
+    "media_viewer": {
+      "auto_mute": "Automaticky stlmiť médiá",
+      "auto_pause": "Automaticky pozastaviť médiá",
+      "auto_play": "Automaticky prehrávať médiá",
+      "auto_unmute": "Automaticky zapnúť zvuk médií",
+      "controls": {
+        "editor_label": "Ovládacie prvky prehliadača médií"
+      },
+      "draggable": "Preťahovateľné",
+      "lazy_load": "Médiá aplikácie Media Viewer sú v karuseli vložené lenivo",
+      "snapshot_click_plays_clip": "Kliknutím na snímku sa prehrá súvisiaci klip",
+      "transition_effect": "Efekt prechodu Media Viewer",
+      "zoomable": "Zoomable/Panable"
+    },
+    "menu": {
+      "alignment": "Zarovnanie",
+      "alignments": {
+        "bottom": "Spodná časť",
+        "left": "Vľavo",
+        "right": "Správne",
+        "top": "Hore"
+      },
+      "auto_hide": "Podmienky automatického skrývania",
+      "button_size": "Veľkosť tlačidla v pixeloch",
+      "buttons": {
+        "alignment": "Zarovnanie",
+        "alignments": {
+          "matching": "Zhoda",
+          "opposing": "oponujúce"
+        },
+        "call": "Hovor / Obojsmerný zvuk",
+        "camera_ui": "Používateľské rozhranie fotoaparátu",
+        "cameras": "Fotoaparáty",
+        "clips": "Klipy",
+        "display_mode": "Režim zobrazenia",
+        "download": "Stiahnuť",
+        "editor_label": "Tlačidlá ponuky",
+        "enabled": "Povolené",
+        "expand": "Rozbaliť",
+        "folders": "Priečinky",
+        "fullscreen": "Celá obrazovka",
+        "gallery": "Galéria",
+        "icon": "Ikona",
+        "image": "Obrázok",
+        "inert": "Neinteraktívne",
+        "info": "Info",
+        "iris": "Iris / Default View / Unhide menu",
+        "live": "Naživo",
+        "media": "Médiá",
+        "media_player": "Odoslať do prehrávača médií",
+        "microphone": "Mikrofón",
+        "mute": "Stlmiť / Zapnúť zvuk",
+        "permanent": "Zobraziť, keď je ponuka skrytá",
+        "pip": "Obraz v obraze",
+        "play": "Prehrať / Pozastaviť",
+        "priority": "Priorita",
+        "ptz_controls": "Zobraziť ovládacie prvky PTZ",
+        "ptz_home": "Domov PTZ",
+        "recordings": "Nahrávky",
+        "reviews": "Recenzie",
+        "screenshot": "Snímka obrazovky",
+        "set_review": "Nastavte stav kontroly",
+        "snapshots": "Snímky",
+        "state_color": "Farba podľa stavu entity",
+        "substreams": "Podprúdy",
+        "timeline": "Časová os",
+        "type": "Typ tlačidla",
+        "types": {
+          "momentary": "Momentálne",
+          "toggle": "Prepnúť"
+        }
+      },
+      "position": "pozícia",
+      "positions": {
+        "bottom": "Spodná časť",
+        "left": "Vľavo",
+        "right": "Správne",
+        "top": "Hore"
+      },
+      "style": "štýl",
+      "styles": {
+        "hidden": "Skryté",
+        "hover": "Umiestnite kurzor myši",
+        "hover-card": "Umiestnite kurzor myši (na celú kartu)",
+        "none": "žiadne",
+        "outside": "Vonku",
+        "overlay": "Prekrytie"
+      }
+    },
+    "overrides": {
+      "info": "Podmienené prepísania sú aktívne a môžu nahradiť tu uvedené hodnoty. "
+    },
+    "performance": {
+      "features": {
+        "animated_progress_indicator": "Animovaný pokrok",
+        "card_loading_effects": "Načítavacie efekty",
+        "card_loading_indicator": "Indikátor načítania",
+        "editor_label": "Možnosti funkcií",
+        "max_simultaneous_engine_requests": "Požiadavky na paralelný motor",
+        "media_chunk_size": "Veľkosť mediálneho bloku"
+      },
+      "style": {
+        "border_radius": "Krivky",
+        "box_shadow": "Tiene",
+        "editor_label": "Možnosti štýlu"
+      },
+      "warning": "Je aktívny profil nízkeho výkonu: predvolené nastavenia sú optimalizované na zníženie zaťaženia"
+    },
+    "profiles": {
+      "casting": "Casting",
+      "doorbell": "Zvonček",
+      "editor_label": "Konfiguračné profily",
+      "low-performance": "Nízky výkon",
+      "scrubbing": "Čistenie videa"
+    },
+    "remote_control": {
+      "entities": {
+        "camera": "Vstup Vyberte entitu na ovládanie kamery",
+        "camera_priorities": {
+          "card": "kard",
+          "entity": "Entita"
+        },
+        "camera_priority": "Ktorý výber fotoaparátu má prednosť",
+        "editor_label": "Diaľkové riadiace entity"
+      }
+    },
+    "status_bar": {
+      "auto_hide": "Podmienky automatického skrývania",
+      "height": "Výška v pixeloch",
+      "items": {
+        "enabled": "Povolené",
+        "engine": "Motor fotoaparátu",
+        "issues": "Problémy",
+        "permanent": "Ponechá zobrazenú lištu",
+        "priority": "Priorita",
+        "resolution": "Rozlíšenie",
+        "severity": "Závažnosť",
+        "technology": "Technológia",
+        "title": "Názov"
+      },
+      "popup_seconds": "Vyskakovacie sekundy",
+      "position": "pozícia",
+      "positions": {
+        "bottom": "Spodná časť",
+        "top": "Hore"
+      },
+      "style": "štýl",
+      "styles": {
+        "hover": "Umiestnite kurzor myši",
+        "hover-card": "Umiestnite kurzor myši (na celú kartu)",
+        "none": "žiadne",
+        "outside": "Vonku",
+        "overlay": "Prekrytie",
+        "popup": "Popup"
+      }
+    },
+    "view": {
+      "camera_select": "Výber zobrazenia na fotoaparáte",
+      "default": "Predvolené zobrazenie",
+      "default_cycle_camera": "Cyklujte medzi kamerami, keď sa aktualizuje predvolené zobrazenie",
+      "default_reset": {
+        "after_interaction": "Po ukončení interakcie používateľa sa obnoví predvolené zobrazenie",
+        "editor_label": "Predvolené správanie obnovenia zobrazenia",
+        "entities": "Obnovte predvolené zobrazenie pri zmene stavu entity",
+        "every_seconds": "Obnoviť predvolené zobrazenie každých X sekúnd (0=nikdy)",
+        "interaction_mode": "Ako sa správa predvolený reset, keď má karta ľudskú interakciu"
+      },
+      "dim": "Stlmiť, keď žiadna interakcia",
+      "interaction_seconds": "Sekundy nečinnosti pred ukončením stavu interakcie (0=nikdy)",
+      "issues": {
+        "editor_label": "Problémy/Chyby",
+        "interaction_mode": "Ako sa správajú automatické pokusy, keď má karta ľudskú interakciu",
+        "retry_seconds": "!!!>>> Unexpected token '<', \"<html lang\"... is not valid JSON <<<!!!"
+      },
+      "keyboard_shortcuts": {
+        "editor_label": "Klávesové skratky",
+        "enabled": "Klávesové skratky sú povolené",
+        "ptz_down": "PTZ dole",
+        "ptz_home": "Domov PTZ",
+        "ptz_left": "PTZ vľavo",
+        "ptz_right": "PTZ Vpravo",
+        "ptz_up": "PTZ hore",
+        "ptz_zoom_in": "PTZ Priblížiť",
+        "ptz_zoom_out": "PTZ Oddialiť"
+      },
+      "theme": {
+        "themes": {
+          "dark": "Tmavý",
+          "editor_label": "Témy",
+          "ha": "Domáci asistent",
+          "light": "Svetlo",
+          "traditional": "Tradičné"
+        }
+      },
+      "triggers": {
+        "actions": {
+          "editor_label": "Spustiť akcie",
+          "interaction_mode": "Ako zvládnuť akcie, keď má karta ľudskú interakciu",
+          "trigger": "Spúšťač",
+          "triggers": {
+            "call": "Začať hovor",
+            "default": "Predvolené zobrazenie",
+            "live": "Živý náhľad",
+            "media": "Mediálny pohľad",
+            "none": "žiadne",
+            "update": "Aktualizovať zobrazenie"
+          },
+          "untrigger": "Untrigger",
+          "untriggers": {
+            "call": "Ukončiť hovor",
+            "default": "Predvolené zobrazenie",
+            "none": "žiadne"
+          }
+        },
+        "editor_label": "Spúšťacie správanie",
+        "event_hold_seconds": "Sekundy na podržanie chvíľkového spustenia (napr. stlačenie zvončeka, udalosť HA autobusu) viditeľné pred oneskorením spustenia po skončení",
+        "filter_selected_camera": "Spúšť len na vybranom fotoaparáte",
+        "show_trigger_status": "Pri spustení zobraziť pulzujúci okraj",
+        "untrigger_delay_seconds": "Sekundové oneskorenie po zmene stavu spustenia pred zrušením spustenia",
+        "untrigger_force_seconds": "Sekundy pred vynúteným spustením"
+      },
+      "views": {
+        "auto": "Automaticky",
+        "clip": "Najnovší klip",
+        "clips": "Galéria klipov",
+        "current": "Aktuálne zobrazenie",
+        "diagnostics": "Diagnostika",
+        "folder": "Priečinkové médiá",
+        "folders": "Galéria priečinkov",
+        "gallery": "Predvolená galéria médií",
+        "image": "Statický obrázok",
+        "live": "Živý náhľad",
+        "media": "Najnovšia predvolená mediálna položka",
+        "recording": "Najnovšia nahrávka",
+        "recordings": "Galéria nahrávok",
+        "review": "Najnovšie médiá na recenziu",
+        "reviews": "Galéria recenzií",
+        "snapshot": "Najnovšia snímka",
+        "snapshots": "Galéria snímok",
+        "timeline": "Zobrazenie časovej osi"
+      }
+    }
+  },
+  "display_modes": {
+    "grid": "Zobraziť prehliadač médií pre každú kameru v mriežke",
+    "single": "Zobraziť prehliadač jednotlivých médií"
+  },
+  "editor": {
+    "add_new_camera": "Pridajte fotoaparát",
+    "back": "Späť",
+    "edit": "Upraviť",
+    "add_new_folder": "Pridať priečinok",
+    "camera": "Fotoaparát",
+    "cameras": "Fotoaparáty",
+    "cameras_secondary": "Aké kamery vykresliť na tejto karte",
+    "delete": "Odstrániť",
+    "dimensions": "Rozmery",
+    "dimensions_secondary": "Rozmery a tvar karty",
+    "docs": "Dokumentácia",
+    "folders": "Priečinky",
+    "folders_secondary": "Aké priečinky sa majú vykresliť na tejto karte",
+    "image": "Obrázok",
+    "image_secondary": "Možnosti zobrazenia statického obrázka",
+    "live": "Naživo",
+    "live_secondary": "Možnosti živého zobrazenia kamery",
+    "media_gallery": "Galéria médií",
+    "media_gallery_secondary": "Možnosti galérie médií",
+    "media_viewer": "Prehliadač médií",
+    "media_viewer_secondary": "Prehliadač pre statické médiá",
+    "menu": "Menu",
+    "menu_secondary": "Možnosti vzhľadu a prostredia ponuky",
+    "performance": "Výkon",
+    "performance_secondary": "Možnosti výkonu karty",
+    "profiles": "Profily",
+    "profiles_secondary": "Vyberte vopred nakonfigurované sady predvolených nastavení",
+    "remote_control": "Diaľkové ovládanie",
+    "remote_control_secondary": "Možnosti diaľkového ovládania karty",
+    "simple_coverage": "Táto karta má nastavenia, ktoré jednoduchý editor nezobrazuje. ",
+    "status_bar": "Stavový riadok",
+    "status_bar_secondary": "Možnosti vzhľadu a prostredia stavového riadka",
+    "timeline": "Časová os",
+    "timeline_secondary": "Možnosti časovej osi udalosti",
+    "toggle_diagnostics": "Prepnúť diagnostiku",
+    "upgrade": "Inovovať",
+    "upgrade_available": "K dispozícii je automatická aktualizácia konfigurácie karty",
+    "view": "Zobraziť",
+    "view_secondary": "Čo by mala karta zobrazovať a ako to ukázať"
+  },
+  "elements": {
+    "ptz": {
+      "down": "Dole",
+      "home": "Domov",
+      "left": "Vľavo",
+      "presets": "Predvoľby",
+      "right": "Správne",
+      "type": "Typ PTZ",
+      "up": "Hore",
+      "zoom_in": "Priblížiť",
+      "zoom_out": "Oddialiť"
+    }
+  },
+  "error": {
+    "awaiting_live": "Čaká sa na načítanie živého prenosu",
+    "awaiting_media": "Čaká sa na načítanie média",
+    "call_camera_unreachable": "Pre obojsmerný zvuk nebolo možné dosiahnuť fotoaparát.",
+    "call_invalid_target": "Požadovanú kameru alebo stream nie je možné zavolať.",
+    "call_microphone_failed": "Váš mikrofón sa nepodarilo pripojiť.",
+    "call_microphone_forbidden": "Prístup k mikrofónu bol pre túto stránku odmietnutý. ",
+    "call_microphone_unsupported": "Prístup k mikrofónu nie je v tomto prehliadači dostupný (napr. vyžaduje HTTPS).",
+    "call_no_two_way_audio": "Tento fotoaparát nepodporuje obojsmerný zvuk.",
+    "call_unavailable_heading": "Obojsmerný zvuk nie je k dispozícii",
+    "camera_initialization": "Inicializácia fotoaparátu zlyhala",
+    "camera_initialization_reolink": "Nepodarilo sa inicializovať fotoaparát Reolink",
+    "configuration_error": "Chyba konfigurácie",
+    "could_not_create_elements": "Nepodarilo sa vytvoriť prvky obrázka",
+    "diagnostics": "Diagnostika karty. ",
+    "download_failed": "Sťahovanie zlyhalo",
+    "download_no_media": "Žiadne médiá na stiahnutie",
+    "download_sign_failed": "Nepodarilo sa podpísať adresu URL média na stiahnutie",
+    "duplicate_camera_id": "Duplicitné ID kamery pre nasledujúcu kameru, použite parameter 'id' na jedinečnú identifikáciu kamier",
+    "duplicate_folder_id": "Duplicitné ID priečinka pre nasledujúci priečinok, použite parameter 'id' na jedinečnú identifikáciu priečinkov",
+    "empty_response": "Prijatá prázdna odpoveď od domáceho asistenta na žiadosť",
+    "failed_fetch": "Nepodarilo sa načítať adresu URL",
+    "failed_proxy": "Nepodarilo sa použiť proxy cez Home Assistant",
+    "failed_response": "Nepodarilo sa prijať odpoveď od domáceho asistenta na žiadosť",
+    "failed_retain": "Udalosť sa nepodarilo uložiť",
+    "failed_sign": "Nepodarilo sa podpísať webovú adresu domáceho asistenta",
+    "fetching_diagnostics": "Načítava sa diagnostika",
+    "home_assistant_elements_load_failed": "Nepodarilo sa načítať požadované prvky Home Assistant",
+    "image_load_error": "Nepodarilo sa načítať obrázok",
+    "invalid_configuration": "Neplatná konfigurácia",
+    "invalid_configuration_no_hint": "Nie je k dispozícii žiadny tip na umiestnenie (chybný alebo chýbajúci typ?)",
+    "invalid_configuration_override": "Neplatná konfigurácia prepísania",
+    "invalid_elements_config": "Neplatná konfigurácia prvkov obrázka",
+    "invalid_response": "Prijatá neplatná odpoveď od domáceho asistenta na žiadosť",
+    "jsmpeg_no_player": "Nepodarilo sa spustiť prehrávač JSMPEG",
+    "live_camera_no_endpoint": "Nepodarilo sa získať koncový bod kamery pre tohto živého poskytovateľa (neúplná konfigurácia?)",
+    "live_camera_not_found": "Konfigurovaná kamera_entita sa nenašla",
+    "microphone_not_supported": "Tento prehliadač nepodporuje mikrofón",
+    "no_camera_engine": "Nepodarilo sa určiť vhodný motor pre fotoaparát",
+    "no_camera_entity": "Nepodarilo sa nájsť entitu fotoaparátu",
+    "no_camera_for_image": "Žiadna kamera nakonfigurovaná pre režim obrazu kamery",
+    "no_camera_id": "Nepodarilo sa určiť ID kamery pre nasledujúcu kameru, možno bude potrebné manuálne nastaviť parameter 'id'",
+    "no_camera_or_media_for_timeline": "Pre časovú os nie je k dispozícii žiadna kamera ani médium",
+    "no_live_camera": "Parameter camera_entity musí byť nastavený a platný pre tohto živého poskytovateľa",
+    "too_many_automations": "Príliš veľa vnorených automatizačných hovorov, skontrolujte, či sa v konfigurácii nenachádzajú slučky",
+    "troubleshooting": "Skontrolujte riešenie problémov",
+    "upgrade_available": "K dispozícii je automatická aktualizácia konfigurácie karty, navštívte editor vizuálnych kariet",
+    "webrtc_card_reported_error": "Karta WebRTC nahlásila chybu",
+    "webrtc_card_waiting": "Čaká sa na načítanie karty WebRTC..."
+  },
+  "issues": {
+    "config_error": {
+      "heading": "Chyba konfigurácie"
+    },
+    "config_upgrade": {
+      "heading": "K dispozícii je aktualizácia konfigurácie",
+      "text": "K dispozícii je aktualizácia konfigurácie. "
+    },
+    "config_upgrade_failure": {
+      "heading": "Konfiguráciu nebolo možné úplne inovovať",
+      "text": "Automatická inovácia konfigurácie nebola úspešne dokončená. "
+    },
+    "connection": {
+      "lost": {
+        "heading": "Spojenie sa stratilo",
+        "text": "Pripojenie k Asistentovi domácnosti sa stratilo"
+      },
+      "starting": {
+        "heading": "Spúšťa sa Home Assistant",
+        "text": "Čaká sa na dokončenie spustenia Home Assistant"
+      }
+    },
+    "event_subscription": {
+      "heading": "Odbery udalostí Home Assistant",
+      "text": "Karta sa nemohla prihlásiť na odber jedného alebo viacerých typov udalostí domáceho asistenta a bude to skúšať znova"
+    },
+    "initialization": {
+      "heading": "Inicializácia zlyhala"
+    },
+    "legacy_resource": {
+      "heading": "Zistil sa starý zdroj hlavného panela",
+      "remove": "Odstráňte starý zdroj",
+      "text_both": "Starý zdroj „frigate-hass-card.js“ je stále zaregistrovaný. Odstráňte ho ručne alebo kliknutím na ikonu odstránenia ho odstráňte automaticky. ",
+      "text_only_legacy": "Starý zdroj „fregata-hass-card.js“ musí byť nahradený zdrojom „advanced-camera-card.js“. "
+    },
+    "media_query": {
+      "heading": "Mediálny dopyt zlyhal"
+    },
+    "media_unavailable": {
+      "heading": "Médiá sú nedostupné",
+      "reasons": {
+        "entity_unavailable": "Entita fotoaparátu nie je k dispozícii",
+        "not_loading": "Médium sa nenačítava",
+        "playback_error": "Chyba prehrávania",
+        "server_error": "Chyba mediálneho servera",
+        "stalled": "Stream sa zastavil",
+        "unsupported": "Stream nie je podporovaný"
+      },
+      "text": "Médium momentálne nie je dostupné. "
+    },
+    "troubleshooting_guide": "Sprievodca riešením problémov",
+    "view_incompatible": {
+      "heading": "Zobrazenie nie je podporované",
+      "text": "Vybraná kamera alebo médium nepodporujú toto zobrazenie"
+    }
+  },
+  "key_assigner": {
+    "assign": "Priradiť",
+    "modifiers": {
+      "alt": "Alt",
+      "ctrl": "Ctrl",
+      "meta": "Meta",
+      "shift": "Shift"
+    },
+    "unassign": "Zrušiť pridelenie"
+  },
+  "media_filter": {
+    "camera": "Fotoaparát",
+    "favorite": "Obľúbené",
+    "media_type": "Typ média",
+    "media_types": {
+      "clips": "Klipy",
+      "recordings": "Nahrávky",
+      "reviews": "Recenzie",
+      "snapshots": "Snímky"
+    },
+    "not_favorite": "Nie Obľúbené",
+    "not_reviewed": "Nerecenzované",
+    "reviewed": "Skontrolované",
+    "select_camera": "Vybrať fotoaparát...",
+    "select_favorite": "Vybrať obľúbené...",
+    "select_media_type": "Vyberte typ média...",
+    "select_reviewed": "Vybrať recenzované...",
+    "select_severity": "Vyberte závažnosť...",
+    "select_tag": "Vybrať značku...",
+    "select_what": "Vyberte čo...",
+    "select_when": "Vyberte, kedy...",
+    "select_where": "Vyberte, kde...",
+    "tag": "Tag",
+    "what": "Čo?",
+    "when": "Kedy",
+    "whens": {
+      "custom": "Vlastné",
+      "past_month": "Minulý mesiac",
+      "past_week": "Minulý týždeň",
+      "today": "Dnes",
+      "yesterday": "včera"
+    },
+    "where": "Kde"
+  },
+  "media_viewer": {
+    "unseekable": "Čas vyhľadávania sa v médiách nenašiel"
+  },
+  "thumbnail": {
+    "camera": "Fotoaparát",
+    "download": "Stiahnite si médiá",
+    "duration": "Trvanie",
+    "no_thumbnail": "Nie je k dispozícii žiadna miniatúra",
+    "retain_indefinitely": "Uchovávajte médiá na neurčito",
+    "seek": "Hľadaj",
+    "start": "Štart",
+    "tag": "Tag",
+    "timeline": "Pozrite si médiá na časovej osi",
+    "title": "Názov",
+    "where": "Kde"
+  },
+  "timeline": {
+    "select_date": "Vyberte dátum"
+  }
+}
