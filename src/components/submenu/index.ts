@@ -18,7 +18,7 @@ import {
   stopEventFromActivatingCardWideActions,
 } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
-import { getStyleColor } from '../../utils/style.js';
+import { getStyleColor, getStyleWithStateIconColor } from '../../utils/style.js';
 
 import '../icon.js';
 
@@ -41,7 +41,7 @@ export class AdvancedCameraCardSubmenu extends LitElement {
     }
 
     const title = item.title ?? getEntityTitle(this.hass, item.entity);
-    const style = styleMap(item.style || {});
+    const style = styleMap(getStyleWithStateIconColor(item.style));
     const inert =
       !!this.lockManagerEpoch?.locked &&
       this.lockManagerEpoch.manager.areAllActionsBlocked(item);

@@ -6,7 +6,6 @@ import {
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { styleMap } from 'lit/directives/style-map.js';
 
 import { IconController } from '../components-lib/icon-controller';
 import type { InternalIcon } from '../config/schema/common/icon.js';
@@ -40,14 +39,9 @@ export class AdvancedCameraCardIcon extends LitElement {
         this.icon.entity,
       );
       if (stateObj) {
-        // As a special case, need to pass in a color in order for the state
-        // color to be overridden. `state-badge` uses the color it is given only
-        // while the entity is active, and the property below sets it for every
-        // other state.
+        // A configured color takes precedence over the color Home Assistant
+        // gives the icon for its entity state.
         return html`<state-badge
-          style=${styleMap(
-            this.icon.color ? { '--state-icon-color': this.icon.color } : {},
-          )}
           .color="${this.icon.color}"
           .stateColor=${this.icon.stateColor ?? true}
           .hass=${this.hass}

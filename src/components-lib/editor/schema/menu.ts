@@ -148,9 +148,17 @@ const getMenuButtonSchema = (
       },
     ]),
     {
-      name: 'style',
-      label: localize('config.menu.buttons.style'),
-      selector: { object: {} },
+      type: 'expandable',
+      title: localize('config.menu.buttons.style'),
+      icon: 'mdi:palette',
+      docPath: ['menu', 'buttons'],
+      schema: [
+        {
+          name: 'style',
+          label: localize('config.menu.buttons.style'),
+          selector: { object: {} },
+        },
+      ],
     },
     ...extraSchema,
   ],
