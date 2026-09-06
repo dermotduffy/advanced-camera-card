@@ -10,6 +10,7 @@ import {
   getRecordingMediaContentID,
   getRecordingTitle,
   getReviewMediaContentID,
+  getReviewPlaybackStartTime,
   getReviewSeverity,
   getReviewThumbnailURL,
   getReviewTitle,
@@ -119,10 +120,24 @@ describe('getRecordingMediaContentID', () => {
         'clientid',
         'kitchen',
         createFrigateRecording({
-          startTime: new Date('2023-04-29T14:00:00'),
+          startTime: new Date('2023-04-29T18:00:00Z'),
         }),
+        'America/New_York',
       ),
     ).toBe('media-source://frigate/clientid/recordings/kitchen/2023-04-29/14');
+  });
+
+  it('should get recording content ID in the given timezone', () => {
+    expect(
+      getRecordingMediaContentID(
+        'clientid',
+        'kitchen',
+        createFrigateRecording({
+          startTime: new Date('2023-04-29T18:00:00Z'),
+        }),
+        'America/Chicago',
+      ),
+    ).toBe('media-source://frigate/clientid/recordings/kitchen/2023-04-29/13');
   });
 });
 
@@ -258,10 +273,67 @@ describe('getReviewMediaContentID', () => {
         'clientid',
         'kitchen',
         createFrigateReview({
-          start_time: new Date('2023-04-29T14:00:00').getTime() / 1000,
+          start_time: new Date('2023-04-29T18:00:00Z').getTime() / 1000,
         }),
+        'America/New_York',
       ),
     ).toBe('media-source://frigate/clientid/recordings/kitchen/2023-04-29/14');
+  });
+
+  it('should get review content ID in the given timezone', () => {
+    expect(
+      getReviewMediaContentID(
+        'clientid',
+        'kitchen',
+        createFrigateReview({
+          start_time: new Date('2023-04-29T18:00:00Z').getTime() / 1000,
+        }),
+        'America/Chicago',
+      ),
+    ).toBe('media-source://frigate/clientid/recordings/kitchen/2023-04-29/13');
+  });
+});
+
+describe('getReviewPlaybackStartTime', () => {
+  it('should include five seconds of pre-review playback', () => {
+    expect(
+      getReviewPlaybackStartTime(
+        createFrigateReview({
+          start_time: new Date('2026-03-14T20:15:00Z').getTime() / 1000,
+        }),
+        'UTC',
+      ),
+    ).toEqual(new Date('2026-03-14T20:14:55Z'));
+  });
+
+  it('should not pad before the start of the review recording hour', () => {
+    expect(
+      getReviewPlaybackStartTime(
+        createFrigateReview({
+          start_time: new Date('2026-03-14T20:00:03Z').getTime() / 1000,
+        }),
+        'UTC',
+      ),
+    ).toEqual(new Date('2026-03-14T20:00:00Z'));
+  });
+
+  it('should find the start of the hour in the given timezone', () => {
+    const review = createFrigateReview({
+      start_time: new Date('2026-03-14T18:30:03Z').getTime() / 1000,
+    });
+
+    // 18:30:03 UTC is 00:00:03 in Kolkata (UTC+5:30), so the padding is clamped
+    // to the start of that hour rather than reaching back into the previous
+    // recording.
+    expect(getReviewPlaybackStartTime(review, 'Asia/Kolkata')).toEqual(
+      new Date('2026-03-14T18:30:00Z'),
+    );
+
+    // In UTC the same instant is 30 minutes into the hour, leaving room for the
+    // full padding.
+    expect(getReviewPlaybackStartTime(review, 'UTC')).toEqual(
+      new Date('2026-03-14T18:29:58Z'),
+    );
   });
 });
 

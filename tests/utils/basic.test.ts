@@ -9,7 +9,6 @@ import {
   arrayMove,
   aspectRatioToStyle,
   contentsChanged,
-  dayToDate,
   desparsifyArrays,
   errorToConsole,
   forceReflow,
@@ -25,6 +24,7 @@ import {
   isSuperset,
   isTruthy,
   isValidDate,
+  isValidDay,
   prettifyTitle,
   recursivelyMergeObjectsConcatenatingArraysUniquely,
   recursivelyMergeObjectsNotArrays,
@@ -250,12 +250,6 @@ describe('allPromises', () => {
   });
 });
 
-describe('dayToDate', () => {
-  it('should return correct date', () => {
-    expect(dayToDate('2023-04-14')).toEqual(new Date(2023, 3, 14));
-  });
-});
-
 describe('isSuperset', () => {
   it('should return is a superset', () => {
     expect(isSuperset(new Set([1, 2, 3, 4]), new Set([2, 3]))).toBeTruthy();
@@ -271,6 +265,20 @@ describe('isValidDate', () => {
   });
   it('should be invalid date', () => {
     expect(isValidDate(new Date('moo'))).toBeFalsy();
+  });
+});
+
+describe('isValidDay', () => {
+  it('should accept a day that exists', () => {
+    expect(isValidDay('2023-05-06')).toBeTruthy();
+  });
+
+  it('should reject a day past the end of its month', () => {
+    expect(isValidDay('2023-02-31')).toBeFalsy();
+  });
+
+  it('should reject a month that does not exist', () => {
+    expect(isValidDay('2023-13-01')).toBeFalsy();
   });
 });
 

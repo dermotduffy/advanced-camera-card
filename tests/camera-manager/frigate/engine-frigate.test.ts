@@ -24,6 +24,7 @@ import {
 } from '../../../src/camera-manager/frigate/requests';
 import type {
   FrigateEventQueryResults,
+  FrigateRecording,
   FrigateRecordingQueryResults,
   FrigateReviewQueryResults,
 } from '../../../src/camera-manager/frigate/types';
@@ -638,6 +639,7 @@ describe('FrigateCameraManagerEngine', () => {
         createFrigateReview(),
         'content-id',
         'thumb',
+        new Date(),
       );
       vi.mocked(setReviewsReviewed).mockResolvedValue();
 
@@ -1146,7 +1148,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
-          day: new Date('2026-03-14'),
+          day: '2026-03-14',
           events: 5,
           hours: [{ hour: 20, duration: 3600, events: 5 }],
         },
@@ -1166,18 +1168,71 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.recordings[0].events).toBe(5);
     });
 
+    it('should resolve recording hours in the Home Assistant timezone', async () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      const getFirstRecording = async (timeZone: string): Promise<FrigateRecording> => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
+
+        vi.mocked(getRecordingsSummary).mockResolvedValue([
+          {
+            day: '2026-03-14',
+            events: 5,
+            hours: [{ hour: 20, duration: 3600, events: 5 }],
+          },
+        ]);
+
+        const result = await createEngine().getRecordings(hass, store, {
+          type: QueryType.Recording,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+        });
+
+        assert(result);
+        const queryResult = [...result.values()][0];
+        assert(
+          FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(queryResult),
+        );
+        return queryResult.recordings[0];
+      };
+
+      // The same summary hour resolves to a different instant per timezone.
+      expect(await getFirstRecording('America/Chicago')).toEqual(
+        expect.objectContaining({
+          startTime: new Date('2026-03-15T01:00:00.000Z'),
+          endTime: new Date('2026-03-15T01:59:59.999Z'),
+        }),
+      );
+      expect(await getFirstRecording('America/New_York')).toEqual(
+        expect.objectContaining({
+          startTime: new Date('2026-03-15T00:00:00.000Z'),
+          endTime: new Date('2026-03-15T00:59:59.999Z'),
+        }),
+      );
+
+      // Frigate buckets its summary with a separate minute offset, so hours in
+      // a timezone offset by 30 minutes start on the half hour.
+      expect(await getFirstRecording('Asia/Kolkata')).toEqual(
+        expect.objectContaining({
+          startTime: new Date('2026-03-14T14:30:00.000Z'),
+          endTime: new Date('2026-03-14T15:29:59.999Z'),
+        }),
+      );
+    });
+
     it('should filter recordings by date range', async () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
       const store = createStore([{ cameraID: 'camera-1', config }]);
 
-      // Use a fixed local-timezone day to avoid UTC/local mismatch.
-      const day = new Date(2026, 2, 14, 0, 0, 0);
-
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
-          day: day,
+          day: '2026-03-14',
           events: 10,
           hours: [
             { hour: 10, duration: 3600, events: 3 },
@@ -1204,6 +1259,38 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.recordings[0].events).toBe(4);
     });
 
+    it('should include recordings that only overlap the query range', async () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const hass = createHASS();
+      hass.config.time_zone = 'Asia/Kolkata';
+
+      vi.mocked(getRecordingsSummary).mockResolvedValue([
+        {
+          day: '2026-03-14',
+          events: 5,
+          hours: [{ hour: 20, duration: 3600, events: 5 }],
+        },
+      ]);
+
+      // The recording spans 14:30 to 15:30, so a query for the whole 14:00 hour
+      // contains neither its start nor its end.
+      const result = await createEngine().getRecordings(hass, store, {
+        type: QueryType.Recording,
+        source: QuerySource.Camera,
+        cameraIDs: new Set(['camera-1']),
+        start: new Date('2026-03-14T14:00:00.000Z'),
+        end: new Date('2026-03-14T14:59:59.999Z'),
+      });
+
+      assert(result);
+      const queryResult = [...result.values()][0];
+      assert(FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(queryResult));
+      expect(queryResult.recordings).toHaveLength(1);
+    });
+
     it('should limit recordings', async () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
@@ -1212,7 +1299,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
-          day: new Date('2026-03-14'),
+          day: '2026-03-14',
           events: 6,
           hours: [
             { hour: 10, duration: 3600, events: 2 },
@@ -1894,6 +1981,50 @@ describe('FrigateCameraManagerEngine', () => {
       expect(result[0]).toBeInstanceOf(FrigateRecordingViewMedia);
     });
 
+    it('should generate recording content IDs in the Home Assistant timezone', () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+        camera_entity: 'camera.office',
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const recording = createFrigateRecording({
+        cameraID: 'camera-1',
+        startTime: new Date('2026-08-30T19:19:00Z'),
+      });
+
+      const getContentID = (timeZone: string): string | null => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
+
+        const result = createEngine().generateMediaFromRecordings(
+          hass,
+          store,
+          {
+            type: QueryType.Recording,
+            source: QuerySource.Camera,
+            cameraIDs: new Set(['camera-1']),
+          },
+          {
+            type: QueryResultsType.Recording,
+            engine: Engine.Frigate,
+            instanceID: 'client-1',
+            recordings: [recording],
+          } as FrigateRecordingQueryResults,
+        );
+
+        assert(result);
+        return result[0].getContentID();
+      };
+
+      // 19:19 UTC is 14:19 in Chicago and 15:19 in New York.
+      expect(getContentID('America/Chicago')).toBe(
+        'media-source://frigate/client-1/recordings/camera-1/2026-08-30/14',
+      );
+      expect(getContentID('America/New_York')).toBe(
+        'media-source://frigate/client-1/recordings/camera-1/2026-08-30/15',
+      );
+    });
+
     it('should skip birdseye camera recordings', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
@@ -1999,6 +2130,49 @@ describe('FrigateCameraManagerEngine', () => {
       assert(result);
       expect(result).toHaveLength(1);
       expect(result[0]).toBeInstanceOf(FrigateReviewViewMedia);
+    });
+
+    it('should generate review content IDs in the Home Assistant timezone', () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const review = createFrigateReview({
+        camera: 'camera-1',
+        start_time: new Date('2026-08-30T19:19:00Z').getTime() / 1000,
+      });
+
+      const getContentID = (timeZone: string): string | null => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
+
+        const result = createEngine().generateMediaFromReviews(
+          hass,
+          store,
+          {
+            type: QueryType.Review,
+            source: QuerySource.Camera,
+            cameraIDs: new Set(['camera-1']),
+          },
+          {
+            type: QueryResultsType.Review,
+            engine: Engine.Frigate,
+            instanceID: 'client-1',
+            reviews: [review],
+          } as FrigateReviewQueryResults,
+        );
+
+        assert(result);
+        return result[0].getContentID();
+      };
+
+      // 19:19 UTC is 14:19 in Chicago and 15:19 in New York.
+      expect(getContentID('America/Chicago')).toBe(
+        'media-source://frigate/client-1/recordings/camera-1/2026-08-30/14',
+      );
+      expect(getContentID('America/New_York')).toBe(
+        'media-source://frigate/client-1/recordings/camera-1/2026-08-30/15',
+      );
     });
 
     it('should skip reviews for birdseye cameras', () => {
@@ -2157,6 +2331,44 @@ describe('FrigateCameraManagerEngine', () => {
       expect(seekTime).toBe(15 * 60);
     });
 
+    it('should use Home Assistant timezone hour boundaries for review media', async () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      const startTime = new Date('2026-03-14T18:43:00Z');
+      const media = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        cameraID: 'camera-1',
+        startTime,
+        endTime: new Date('2026-03-14T18:45:00Z'),
+      });
+
+      // The segment spans both candidate hour starts, so the seek offset is
+      // decided by which hour boundary the engine picks.
+      vi.mocked(getRecordingSegments).mockResolvedValue([
+        {
+          start_time: new Date('2026-03-14T18:00:00Z').getTime() / 1000,
+          end_time: new Date('2026-03-14T19:30:00Z').getTime() / 1000,
+          id: 'segment-1',
+        },
+      ]);
+
+      const getSeekTime = async (timeZone: string): Promise<number | null> => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
+        return await createEngine().getMediaSeekTime(hass, store, media, startTime);
+      };
+
+      // 18:43 UTC is 00:13 in Kolkata (UTC+5:30), so the hour starts at 18:30
+      // UTC and the target is 13 minutes into it.
+      expect(await getSeekTime('Asia/Kolkata')).toBe(13 * 60);
+
+      // In UTC the same hour starts at 18:00, putting the target 43 minutes in.
+      expect(await getSeekTime('UTC')).toBe(43 * 60);
+    });
+
     it('should get seek time for padded Frigate review media', async () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
@@ -2173,6 +2385,7 @@ describe('FrigateCameraManagerEngine', () => {
         }),
         'content-id',
         'thumbnail',
+        new Date('2026-03-14T20:14:55'),
       );
 
       vi.mocked(getRecordingSegments).mockResolvedValue([
@@ -2616,25 +2829,34 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createStore([{ cameraID: 'camera-1', config }]);
 
-      vi.mocked(getEventSummary).mockResolvedValue([]);
-      vi.mocked(getRecordingsSummary).mockResolvedValue([
-        {
-          day: new Date('2026-03-14'),
-          events: 3,
-          hours: [{ hour: 10, duration: 3600, events: 3 }],
-        },
-      ]);
+      const getDays = async (timeZone: string, hour: number): Promise<Set<string>> => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
 
-      const result = await createEngine().getMediaMetadata(createHASS(), store, {
-        type: QueryType.MediaMetadata,
-        cameraIDs: new Set(['camera-1']),
-      });
+        vi.mocked(getEventSummary).mockResolvedValue([]);
+        vi.mocked(getRecordingsSummary).mockResolvedValue([
+          {
+            day: '2026-03-01',
+            events: 3,
+            hours: [{ hour, duration: 3600, events: 3 }],
+          },
+        ]);
 
-      assert(result);
-      const queryResult = [...result.values()][0];
-      expect(queryResult.metadata.days).toBeDefined();
-      assert(queryResult.metadata.days);
-      expect(queryResult.metadata.days.size).toBeGreaterThan(0);
+        const result = await createEngine().getMediaMetadata(hass, store, {
+          type: QueryType.MediaMetadata,
+          cameraIDs: new Set(['camera-1']),
+        });
+
+        assert(result);
+        const days = [...result.values()][0].metadata.days;
+        assert(days);
+        return days;
+      };
+
+      // Hour 0 in Kolkata and hour 23 in Los Angeles both land on a different
+      // UTC day, in opposite directions.
+      expect(await getDays('Asia/Kolkata', 0)).toEqual(new Set(['2026-03-01']));
+      expect(await getDays('America/Los_Angeles', 23)).toEqual(new Set(['2026-03-01']));
     });
 
     it('should skip events from non-configured cameras', async () => {
@@ -2927,7 +3149,7 @@ describe('FrigateCameraManagerEngine', () => {
       ]);
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
-          day: new Date(2026, 2, 14, 0, 0, 0),
+          day: '2026-03-14',
           events: 1,
           hours: [{ hour: 20, duration: 3600, events: 1 }],
         },

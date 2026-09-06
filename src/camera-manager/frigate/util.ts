@@ -1,12 +1,21 @@
+import { fromUnixTime, subSeconds } from 'date-fns';
+
 import type { CameraConfig } from '../../config/schema/cameras';
 import type { Severity } from '../../severity';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
+import { getDayHourInTimeZone, startOfHourInTimeZone } from '../../utils/timezone';
 import type {
   FrigateEvent,
   FrigateRecording,
   FrigateReview,
   FrigateReviewSeverity,
 } from './types';
+
+// A review starts at the moment of detection, so playback without padding opens
+// with the subject already in frame. Five seconds matches the padding the
+// Frigate integration applies to event clips:
+// https://github.com/blakeblackshear/frigate-hass-integration/blob/v5.15.4/custom_components/frigate/const.py#L71
+const FRIGATE_REVIEW_PADDING_SECONDS = 5;
 
 /**
  * Given an event generate a title.
@@ -61,20 +70,25 @@ export const getEventMediaContentID = (
 
 /**
  * Build a recording media content ID from a start time.
+ * @param timeZone The timezone the Frigate integration resolves the day and
+ * hour in.
  */
 const buildRecordingMediaContentID = (
   clientId: string,
   cameraName: string,
   startTime: Date,
-): string =>
-  [
+  timeZone: string,
+): string => {
+  const dayHour = getDayHourInTimeZone(startTime, timeZone);
+  return [
     'media-source://frigate',
     clientId,
     'recordings',
     cameraName,
-    `${startTime.getFullYear()}-${String(startTime.getMonth() + 1).padStart(2, '0')}-${String(startTime.getDate()).padStart(2, '0')}`,
-    String(startTime.getHours()).padStart(2, '0'),
+    dayHour.day,
+    String(dayHour.hour).padStart(2, '0'),
   ].join('/');
+};
 
 /**
  * Generate a recording media content ID.
@@ -83,7 +97,9 @@ export const getRecordingMediaContentID = (
   clientId: string,
   cameraName: string,
   recording: FrigateRecording,
-): string => buildRecordingMediaContentID(clientId, cameraName, recording.startTime);
+  timeZone: string,
+): string =>
+  buildRecordingMediaContentID(clientId, cameraName, recording.startTime, timeZone);
 
 /**
  * Get a recording ID for internal de-duping.
@@ -143,8 +159,32 @@ export const getReviewMediaContentID = (
   clientId: string,
   cameraName: string,
   review: FrigateReview,
+  timeZone: string,
 ): string =>
-  buildRecordingMediaContentID(clientId, cameraName, new Date(review.start_time * 1000));
+  buildRecordingMediaContentID(
+    clientId,
+    cameraName,
+    new Date(review.start_time * 1000),
+    timeZone,
+  );
+
+/**
+ * Get the time playback of a review should start at.
+ * @param timeZone The timezone the Frigate integration resolves the day and
+ * hour in.
+ */
+export const getReviewPlaybackStartTime = (
+  review: FrigateReview,
+  timeZone: string,
+): Date => {
+  const startTime = fromUnixTime(review.start_time);
+  const paddedStartTime = subSeconds(startTime, FRIGATE_REVIEW_PADDING_SECONDS);
+  const recordingStartTime = startOfHourInTimeZone(startTime, timeZone);
+
+  // Frigate stores recordings in one-hour files, so ensure the padding never
+  // reaches back past the start of the hour that contains the review.
+  return paddedStartTime < recordingStartTime ? recordingStartTime : paddedStartTime;
+};
 
 /**
  * Get a thumbnail URL for a review.

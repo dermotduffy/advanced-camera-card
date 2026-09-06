@@ -82,6 +82,9 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   }
   hass.config.components = [];
 
+  // Most Home Assistant instances share the browser's timezone.
+  hass.config.time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   // Default to a fully-started HA so existing tests that don't care about
   // startup state still represent a "ready" instance.
   hass.config.state = STATE_RUNNING;

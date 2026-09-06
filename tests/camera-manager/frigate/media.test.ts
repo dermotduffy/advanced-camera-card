@@ -354,7 +354,13 @@ describe('FrigateRecordingViewMedia', () => {
 describe('FrigateReviewViewMedia', () => {
   it('should get ID', () => {
     const review = createFrigateReview({ id: 'rev-1' });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getID()).toBe('rev-1');
   });
 
@@ -362,26 +368,26 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       start_time: 1683395000,
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getStartTime()).toEqual(new Date(1683395000 * 1000));
   });
 
-  it('should include five seconds of pre-review playback', () => {
-    const review = createFrigateReview({
-      start_time: new Date('2026-03-14T20:15:00').getTime() / 1000,
-    });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+  it('should get playback start time', () => {
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      createFrigateReview(),
+      'content_id',
+      'thumb',
+      new Date('2026-03-14T20:14:55Z'),
+    );
 
-    expect(media.getPlaybackStartTime()).toEqual(new Date('2026-03-14T20:14:55'));
-  });
-
-  it('should not pad before the start of the review recording hour', () => {
-    const review = createFrigateReview({
-      start_time: new Date('2026-03-14T20:00:03').getTime() / 1000,
-    });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
-
-    expect(media.getPlaybackStartTime()).toEqual(new Date('2026-03-14T20:00:00'));
+    expect(media.getPlaybackStartTime()).toEqual(new Date('2026-03-14T20:14:55Z'));
   });
 
   it('should not include a time before the review starts', () => {
@@ -389,7 +395,13 @@ describe('FrigateReviewViewMedia', () => {
       start_time: new Date('2026-03-14T20:15:00').getTime() / 1000,
       end_time: new Date('2026-03-14T20:45:00').getTime() / 1000,
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
 
     expect(media.includesTime(new Date('2026-03-14T20:15:00'))).toBeTruthy();
     expect(media.includesTime(new Date('2026-03-14T20:14:56'))).toBeFalsy();
@@ -399,19 +411,37 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       end_time: 1683397124,
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getEndTime()).toEqual(new Date(1683397124 * 1000));
   });
 
   it('should get null end time when null', () => {
     const review = createFrigateReview({ end_time: null });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getEndTime()).toBeNull();
   });
 
   it('should report in progress when no end time', () => {
     const review = createFrigateReview({ end_time: null });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.inProgress()).toBe(true);
   });
 
@@ -419,7 +449,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       end_time: 1683397124,
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.inProgress()).toBe(false);
   });
 
@@ -429,6 +465,7 @@ describe('FrigateReviewViewMedia', () => {
       createFrigateReview(),
       'my-content',
       'thumb',
+      new Date(),
     );
     expect(media.getContentID()).toBe('my-content');
   });
@@ -441,7 +478,13 @@ describe('FrigateReviewViewMedia', () => {
         metadata: { title: 'Metadata Title' },
       },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getTitle()).toBe('Metadata Title');
   });
 
@@ -449,7 +492,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       data: { objects: ['person'], zones: [] },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getTitle()).toBe('Person');
   });
 
@@ -464,7 +513,13 @@ describe('FrigateReviewViewMedia', () => {
         },
       },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getDescription()).toBe('A person walking');
   });
 
@@ -479,7 +534,13 @@ describe('FrigateReviewViewMedia', () => {
         },
       },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getDescription()).toBe('Short summary text');
   });
 
@@ -487,7 +548,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       data: { objects: [], zones: [] },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getDescription()).toBeNull();
   });
 
@@ -497,6 +564,7 @@ describe('FrigateReviewViewMedia', () => {
       createFrigateReview(),
       'content_id',
       'my-thumb',
+      new Date(),
     );
     expect(media.getThumbnail()).toBe('my-thumb');
   });
@@ -507,6 +575,7 @@ describe('FrigateReviewViewMedia', () => {
       createFrigateReview(),
       'content_id',
       null,
+      new Date(),
     );
     expect(media.getThumbnail()).toBeNull();
   });
@@ -515,7 +584,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       severity: 'alert',
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getSeverity()).toBe('high');
   });
 
@@ -523,7 +598,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       severity: 'detection',
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getSeverity()).toBe('medium');
   });
 
@@ -531,7 +612,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       has_been_reviewed: true,
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.isReviewed()).toBe(true);
   });
 
@@ -541,6 +628,7 @@ describe('FrigateReviewViewMedia', () => {
       createFrigateReview({ has_been_reviewed: false }),
       'content_id',
       'thumb',
+      new Date(),
     );
     media.setReviewed(true);
     expect(media.isReviewed()).toBe(true);
@@ -550,7 +638,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       data: { objects: ['person', 'car'], zones: [] },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getWhat()).toEqual(['person', 'car']);
   });
 
@@ -558,7 +652,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       data: { zones: [] },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getWhat()).toBeNull();
   });
 
@@ -566,7 +666,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       data: { objects: [], zones: ['front_yard'] },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getWhere()).toEqual(['front_yard']);
   });
 
@@ -574,7 +680,13 @@ describe('FrigateReviewViewMedia', () => {
     const review = createFrigateReview({
       data: { objects: [], zones: [] },
     });
-    const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
+    const media = new FrigateReviewViewMedia(
+      'camera',
+      review,
+      'content_id',
+      'thumb',
+      new Date(),
+    );
     expect(media.getWhere()).toBeNull();
   });
 });
@@ -701,6 +813,7 @@ describe('FrigateViewMediaFactory', () => {
         createFrigateRecording(),
         config,
         'Front Camera',
+        'America/New_York',
       );
       expect(media).toBeInstanceOf(FrigateRecordingViewMedia);
     });
@@ -712,6 +825,7 @@ describe('FrigateViewMediaFactory', () => {
         createFrigateRecording(),
         config,
         'Front Camera',
+        'America/New_York',
       );
       expect(media).toBeNull();
     });
@@ -729,6 +843,7 @@ describe('FrigateViewMediaFactory', () => {
         'camera',
         createFrigateReview(),
         config,
+        'America/New_York',
       );
       expect(media).toBeInstanceOf(FrigateReviewViewMedia);
     });
@@ -739,6 +854,7 @@ describe('FrigateViewMediaFactory', () => {
         'camera',
         createFrigateReview(),
         config,
+        'America/New_York',
       );
       expect(media).toBeNull();
     });

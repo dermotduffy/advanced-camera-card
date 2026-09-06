@@ -1,4 +1,4 @@
-import { add, endOfHour, fromUnixTime, startOfHour } from 'date-fns';
+import { add, fromUnixTime } from 'date-fns';
 import { isEqual, orderBy, throttle, uniqWith } from 'lodash-es';
 
 import type { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
@@ -8,12 +8,13 @@ import type { EntityRegistryManager } from '../../ha/registry/entity/types';
 import type { HomeAssistant } from '../../ha/types';
 import { hasUnsupportedFilters, QuerySource } from '../../query-source.js';
 import type { Endpoint } from '../../types';
+import { allPromises, prettifyTitle, runWhenIdleIfSupported } from '../../utils/basic';
 import {
-  allPromises,
-  formatDate,
-  prettifyTitle,
-  runWhenIdleIfSupported,
-} from '../../utils/basic';
+  endOfHourInTimeZone,
+  getDayHourInTimeZone,
+  hourInTimeZoneToDate,
+  startOfHourInTimeZone,
+} from '../../utils/timezone';
 import { ViewMediaType, type ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../view/types';
@@ -614,12 +615,20 @@ export class FrigateCameraManagerEngine
 
       for (const dayData of recordingSummary ?? []) {
         for (const hourData of dayData.hours) {
-          const hour = add(dayData.day, { hours: hourData.hour });
-          const startHour = startOfHour(hour);
-          const endHour = endOfHour(hour);
+          // The day and hour carry no timezone, so converting them to a point
+          // in time needs to use the HA timezone, as the Frigate integration
+          // returns the summary using that timezone.
+          const startHour = hourInTimeZoneToDate(
+            dayData.day,
+            hourData.hour,
+            hass.config.time_zone,
+          );
+          const endHour = endOfHourInTimeZone(startHour, hass.config.time_zone);
+          // The query window and a recording hour can start on different
+          // minutes, so an overlap counts.
           if (
-            (!query.start || startHour >= query.start) &&
-            (!query.end || endHour <= query.end)
+            (!query.end || startHour <= query.end) &&
+            (!query.start || endHour >= query.start)
           ) {
             recordings.push({
               cameraID: cameraID,
@@ -842,6 +851,7 @@ export class FrigateCameraManagerEngine
         recording,
         cameraConfig,
         this.getCameraMetadata(hass, cameraConfig).title,
+        hass.config.time_zone,
       );
       if (media) {
         output.push(media);
@@ -851,7 +861,7 @@ export class FrigateCameraManagerEngine
   }
 
   public generateMediaFromReviews(
-    _hass: HomeAssistant,
+    hass: HomeAssistant,
     store: CameraManagerReadOnlyConfigStore,
     query: ReviewQuery,
     results: QueryReturnType<ReviewQuery>,
@@ -879,6 +889,7 @@ export class FrigateCameraManagerEngine
         cameraID,
         review,
         cameraConfig,
+        hass.config.time_zone,
       );
       if (media) {
         output.push(media);
@@ -915,10 +926,14 @@ export class FrigateCameraManagerEngine
     }
 
     // For recordings/reviews, use hour boundaries since Frigate recordings are
-    // hour-long. For clips/snapshots, use the actual media time range.
+    // hour-long, bucketed by the Frigate integration in the Home Assistant
+    // timezone. For clips/snapshots, use the actual media time range.
     const isRecordingBased = mediaType === 'recording' || mediaType === 'review';
-    const start = isRecordingBased ? startOfHour(mediaStart) : mediaStart;
-    const end = isRecordingBased ? endOfHour(mediaStart) : mediaEnd;
+    const timeZone = hass.config.time_zone;
+    const start = isRecordingBased
+      ? startOfHourInTimeZone(mediaStart, timeZone)
+      : mediaStart;
+    const end = isRecordingBased ? endOfHourInTimeZone(mediaStart, timeZone) : mediaEnd;
 
     if (!end || target < start || target > end) {
       return null;
@@ -1040,7 +1055,9 @@ export class FrigateCameraManagerEngine
 
         for (const recording of result.recordings) {
           // Frigate recordings are always 1 hour long, i.e. never span a day.
-          days.add(formatDate(recording.startTime));
+          // The event summary reports its days in the Home Assistant timezone,
+          // so use the same timezone here.
+          days.add(getDayHourInTimeZone(recording.startTime, hass.config.time_zone).day);
         }
       }
     };

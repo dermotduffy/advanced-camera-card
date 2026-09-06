@@ -1,4 +1,4 @@
-import { fromUnixTime, startOfHour, subSeconds } from 'date-fns';
+import { fromUnixTime } from 'date-fns';
 
 import type { CameraConfig } from '../../config/schema/cameras';
 import type { Severity } from '../../severity';
@@ -18,16 +18,11 @@ import {
   getRecordingMediaContentID,
   getRecordingTitle,
   getReviewMediaContentID,
+  getReviewPlaybackStartTime,
   getReviewSeverity,
   getReviewThumbnailURL,
   getReviewTitle,
 } from './util';
-
-// A review starts at the moment of detection, so playback without padding opens
-// with the subject already in frame. Five seconds matches the padding the
-// Frigate integration applies to event clips:
-// https://github.com/blakeblackshear/frigate-hass-integration/blob/v5.15.4/custom_components/frigate/const.py#L71
-const FRIGATE_REVIEW_PADDING_SECONDS = 5;
 
 export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   private _event: FrigateEvent;
@@ -152,18 +147,21 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
   private _contentID: string;
   private _thumbnail: string | null;
   private _title: string;
+  private _playbackStartTime: Date;
 
   constructor(
     cameraID: string,
     review: FrigateReview,
     contentID: string,
     thumbnail: string | null,
+    playbackStartTime: Date,
   ) {
     super(ViewMediaType.Review, { cameraID });
     this._review = review;
     this._contentID = contentID;
     this._thumbnail = thumbnail;
     this._title = this._review.data.metadata?.title ?? getReviewTitle(review);
+    this._playbackStartTime = playbackStartTime;
   }
 
   public getID(): string {
@@ -173,13 +171,7 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
     return fromUnixTime(this._review.start_time);
   }
   public getPlaybackStartTime(): Date {
-    const startTime = this.getStartTime();
-    const paddedStartTime = subSeconds(startTime, FRIGATE_REVIEW_PADDING_SECONDS);
-    const recordingStartTime = startOfHour(startTime);
-
-    // Frigate stores recordings in one-hour files, so ensure the padding never
-    // reaches back past the start of the hour that contains the review.
-    return paddedStartTime < recordingStartTime ? recordingStartTime : paddedStartTime;
+    return this._playbackStartTime;
   }
   public getEndTime(): Date | null {
     return this._review.end_time ? fromUnixTime(this._review.end_time) : null;
@@ -258,6 +250,7 @@ export class FrigateViewMediaFactory {
     recording: FrigateRecording,
     cameraConfig: CameraConfig,
     cameraTitle: string,
+    timeZone: string,
   ): FrigateRecordingViewMedia | null {
     if (!cameraConfig.frigate.client_id || !cameraConfig.frigate.camera_name) {
       return null;
@@ -272,6 +265,7 @@ export class FrigateViewMediaFactory {
         cameraConfig.frigate.client_id,
         cameraConfig.frigate.camera_name,
         recording,
+        timeZone,
       ),
       getRecordingTitle(cameraTitle, recording),
     );
@@ -281,6 +275,7 @@ export class FrigateViewMediaFactory {
     cameraID: string,
     review: FrigateReview,
     cameraConfig: CameraConfig,
+    timeZone: string,
   ): FrigateReviewViewMedia | null {
     if (!cameraConfig.frigate.client_id || !cameraConfig.frigate.camera_name) {
       return null;
@@ -293,8 +288,10 @@ export class FrigateViewMediaFactory {
         cameraConfig.frigate.client_id,
         cameraConfig.frigate.camera_name,
         review,
+        timeZone,
       ),
       getReviewThumbnailURL(cameraConfig.frigate.client_id, review),
+      getReviewPlaybackStartTime(review, timeZone),
     );
   }
 }

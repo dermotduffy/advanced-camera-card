@@ -37,7 +37,7 @@ describe('frigate requests', () => {
     const recordingSummary = {
       events: 0,
       hours: [],
-      day: new Date(),
+      day: '2023-05-06',
     };
     const hass = createHASS();
     hass.config.time_zone = 'Europe/Dublin';
