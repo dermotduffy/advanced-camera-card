@@ -182,6 +182,16 @@ describe('loadLanguages', () => {
     expect(localize('common.no_media')).toBe('Nenhuma mídia para exibir');
   });
 
+  it('should load and use Slovak translations', async () => {
+    const { loadLanguages, localize } = await importFresh();
+    const hass = mock<HomeAssistant>();
+    hass.language = 'sk';
+
+    await loadLanguages(hass);
+
+    expect(localize('actions.abort')).toBe('Prerušená akcia');
+  });
+
   it('should fall back to English for unsupported language', async () => {
     const { loadLanguages, localize } = await importFresh();
     const hass = mock<HomeAssistant>();
