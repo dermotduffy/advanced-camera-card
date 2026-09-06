@@ -3175,6 +3175,53 @@ describe('FrigateCameraManagerEngine', () => {
       expect(getRecordingsSummary).toHaveBeenCalled();
     });
 
+    it('should keep segments belonging to a Home Assistant hour', async () => {
+      vi.useFakeTimers();
+
+      const cache = new RecordingSegmentsCache();
+      const engine = createEngine({ cache });
+      const hass = createHASS();
+      hass.config.time_zone = 'Asia/Kolkata';
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      // Kolkata hour 20 runs 14:30 to 15:30, so it spans two browser hours.
+      const start = new Date('2026-03-14T14:30:00Z');
+      const end = new Date('2026-03-14T16:30:00Z');
+      const kept = {
+        start_time: new Date('2026-03-14T15:05:00Z').getTime() / 1000,
+        end_time: new Date('2026-03-14T15:10:00Z').getTime() / 1000,
+        id: 'kept',
+      };
+      const expired = {
+        start_time: new Date('2026-03-14T16:00:00Z').getTime() / 1000,
+        end_time: new Date('2026-03-14T16:05:00Z').getTime() / 1000,
+        id: 'expired',
+      };
+
+      cache.add('camera-1', { start, end }, [kept, expired]);
+      vi.mocked(getRecordingSegments).mockResolvedValue([kept, expired]);
+      vi.mocked(getRecordingsSummary).mockResolvedValue([
+        {
+          day: '2026-03-14',
+          events: 1,
+          hours: [{ hour: 20, duration: 3600, events: 1 }],
+        },
+      ]);
+
+      await engine.getRecordingSegments(hass, store, {
+        type: QueryType.RecordingSegments,
+        cameraIDs: new Set(['camera-1']),
+        start,
+        end,
+      });
+      await vi.advanceTimersByTimeAsync(60 * 60 * 1000 + 1);
+
+      expect(cache.get('camera-1', { start, end })).toEqual([kept]);
+    });
+
     it('should return early when getRecordings returns null', async () => {
       vi.useFakeTimers();
 

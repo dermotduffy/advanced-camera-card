@@ -10,8 +10,8 @@ import { hasUnsupportedFilters, QuerySource } from '../../query-source.js';
 import type { Endpoint } from '../../types';
 import { allPromises, prettifyTitle, runWhenIdleIfSupported } from '../../utils/basic';
 import {
+  createDayHourResolver,
   endOfHourInTimeZone,
-  getDayHourInTimeZone,
   hourInTimeZoneToDate,
   startOfHourInTimeZone,
 } from '../../utils/timezone';
@@ -1031,6 +1031,8 @@ export class FrigateCameraManagerEngine
       }
     };
 
+    const resolveDayHour = createDayHourResolver(hass.config.time_zone);
+
     const processRecordings = async (cameraIDs: Set<string>): Promise<void> => {
       const recordings = await this.getRecordings(
         hass,
@@ -1057,7 +1059,7 @@ export class FrigateCameraManagerEngine
           // Frigate recordings are always 1 hour long, i.e. never span a day.
           // The event summary reports its days in the Home Assistant timezone,
           // so use the same timezone here.
-          days.add(getDayHourInTimeZone(recording.startTime, hass.config.time_zone).day);
+          days.add(resolveDayHour(recording.startTime).day);
         }
       }
     };
@@ -1109,8 +1111,12 @@ export class FrigateCameraManagerEngine
     // Performance: _recordingSegments is potentially very large (e.g. 10K - 1M
     // items) and each item must be examined, so care required here to stick to
     // nothing worse than O(n) performance.
+    const resolveDayHour = createDayHourResolver(hass.config.time_zone);
     const getHourID = (cameraID: string, startTime: Date): string => {
-      return `${cameraID}/${startTime.getDate()}/${startTime.getHours()}`;
+      // Recordings are bucketed by the Home Assistant hour, so segments must be
+      // bucketed the same way to be matched against them.
+      const { day, hour } = resolveDayHour(startTime);
+      return `${cameraID}/${day}/${hour}`;
     };
 
     const results = await this.getRecordings(hass, store, recordingQuery);

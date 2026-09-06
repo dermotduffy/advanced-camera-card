@@ -8,28 +8,39 @@ export interface DayHour {
   hour: number;
 }
 
-export const getDayHourInTimeZone = (date: Date, timeZone: string): DayHour => {
-  // date-fns-tz would convert via browser-local time, losing an hour during
-  // the browser's own daylight savings transition.
-  const parts = new Intl.DateTimeFormat('en-US', {
+/**
+ * Create a function that resolves dates to the calendar day and hour they fall
+ * on in a given timezone. Constructing the underlying formatter costs 13x what
+ * *using* one does, so callers that resolve many dates should create one
+ * resolver and reuse it.
+ */
+export const createDayHourResolver = (timeZone: string): ((date: Date) => DayHour) => {
+  const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     hourCycle: 'h23',
-  }).formatToParts(date);
+  });
 
-  /* v8 ignore next 2: Intl always emits every requested part, so the fallback
-     is unreachable -- @preserve */
-  const get = (type: Intl.DateTimeFormatPartTypes): string =>
-    parts.find((part) => part.type === type)?.value ?? '';
+  return (date: Date): DayHour => {
+    const parts = formatter.formatToParts(date);
 
-  return {
-    day: `${get('year')}-${get('month')}-${get('day')}`,
-    hour: Number(get('hour')),
+    /* v8 ignore next 2: Intl always emits every requested part, so the fallback
+       is unreachable -- @preserve */
+    const get = (type: Intl.DateTimeFormatPartTypes): string =>
+      parts.find((part) => part.type === type)?.value ?? '';
+
+    return {
+      day: `${get('year')}-${get('month')}-${get('day')}`,
+      hour: Number(get('hour')),
+    };
   };
 };
+
+export const getDayHourInTimeZone = (date: Date, timeZone: string): DayHour =>
+  createDayHourResolver(timeZone)(date);
 
 /**
  * @param day A 'YYYY-MM-DD' string.

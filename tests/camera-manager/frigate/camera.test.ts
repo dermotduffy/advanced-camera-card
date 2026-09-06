@@ -679,6 +679,7 @@ describe('FrigateCamera', () => {
           createFrigateReview({ start_time: getUnixTime(startTime) }),
           'content-id',
           'thumbnail',
+          startTime,
         );
 
         expect(camera.getEndpoints({ view: 'media', media })?.ui).toEqual({

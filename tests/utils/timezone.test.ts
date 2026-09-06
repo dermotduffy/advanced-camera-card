@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  createDayHourResolver,
   endOfHourInTimeZone,
   getDayHourInTimeZone,
   hourInTimeZoneToDate,
@@ -94,5 +95,20 @@ describe('daylight savings transitions', () => {
     expect(endOfHourInTimeZone(new Date('2024-03-10T02:30:00.000Z'), 'UTC')).toEqual(
       new Date('2024-03-10T02:59:59.999Z'),
     );
+  });
+});
+
+describe('createDayHourResolver', () => {
+  it('should resolve multiple dates against one timezone', () => {
+    const resolve = createDayHourResolver('America/Chicago');
+
+    expect(resolve(new Date('2026-08-30T19:19:00Z'))).toEqual({
+      day: '2026-08-30',
+      hour: 14,
+    });
+    expect(resolve(new Date('2026-08-31T05:00:00Z'))).toEqual({
+      day: '2026-08-31',
+      hour: 0,
+    });
   });
 });
