@@ -382,6 +382,73 @@ describe('media source thumbnails', () => {
     ).rejects.toThrow(/Thumbnail is not an image/);
   });
 
+  it('should use the extension when the server does not identify the image', async () => {
+    const thumbnailURL = '/api/frigate/frigate/clips/review/thumb-front-1.webp';
+    const host = mock<ReactiveControllerHost>();
+    const hass = createHASS();
+
+    const mockResponse = mock<Response>();
+    Object.defineProperty(mockResponse, 'ok', { value: true });
+    mockResponse.blob.mockResolvedValue(
+      new Blob(['image-data'], { type: 'application/octet-stream' }),
+    );
+    vi.mocked(hass.fetchWithAuth).mockResolvedValue(mockResponse);
+
+    const mockFileReader = mock<FileReader>({ result: 'data:encoded' });
+    vi.stubGlobal(
+      'FileReader',
+      vi.fn(function () {
+        return mockFileReader;
+      }),
+    );
+
+    createFetchThumbnailTask(
+      host,
+      () => hass,
+      () => thumbnailURL,
+    );
+    const call = vi.mocked(Task).mock.calls[0];
+    assert(call);
+
+    const options = call[1];
+    assert(isTaskConfig(options));
+    const runPromise = options.task([true, thumbnailURL], createTaskFunctionOptions());
+
+    await flushPromises();
+    mockFileReader.onload?.(mock<ProgressEvent<FileReader>>());
+    await runPromise;
+
+    expect(mockFileReader.readAsDataURL).toHaveBeenCalled();
+  });
+
+  it('should throw when an unidentified file has no image extension', async () => {
+    const thumbnailURL = '/api/video.mp4';
+    const host = mock<ReactiveControllerHost>();
+    const hass = createHASS();
+
+    const mockResponse = mock<Response>();
+    Object.defineProperty(mockResponse, 'ok', { value: true });
+    mockResponse.blob.mockResolvedValue(
+      new Blob(['video-data'], { type: 'application/octet-stream' }),
+    );
+    vi.mocked(hass.fetchWithAuth).mockResolvedValue(mockResponse);
+
+    createFetchThumbnailTask(
+      host,
+      () => hass,
+      () => thumbnailURL,
+    );
+    const call = vi.mocked(Task).mock.calls[0];
+    assert(call);
+
+    const options = call[1];
+    assert(isTaskConfig(options));
+
+    await expect(
+      options.task([true, thumbnailURL], createTaskFunctionOptions()),
+    ).rejects.toThrow(/Thumbnail is not an image/);
+  });
+
   it('should throw when a media source ID cannot be resolved', async () => {
     const host = mock<ReactiveControllerHost>();
     const hass = createHASS();

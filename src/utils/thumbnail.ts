@@ -5,13 +5,12 @@ import { isMediaSourceID } from '../ha/media-source';
 import { resolveMedia } from '../ha/resolved-media';
 import type { HomeAssistant } from '../ha/types';
 import { AdvancedCameraCardError } from '../types';
+import { classifyMimeType, resolveImageMimeType } from './mime-type';
 
 // See: https://github.com/sindresorhus/is-absolute-url
 // Scheme: https://tools.ietf.org/html/rfc3986#section-3.1
 // Absolute URL: https://tools.ietf.org/html/rfc3986#section-4.3
 const ABSOLUTE_URL_REGEX = /^[a-zA-Z][a-zA-Z\d+\-.]*?:/;
-
-const IMAGE_MIME_TYPE_PREFIX = 'image/';
 
 /**
  * The URL of an image a media source ID refers to. May throw.
@@ -25,7 +24,7 @@ const resolveImageURL = async (
     throw new AdvancedCameraCardError(`Could not resolve thumbnail: ${thumbnail}`);
   }
 
-  if (!resolved.mime_type.startsWith(IMAGE_MIME_TYPE_PREFIX)) {
+  if (!classifyMimeType(resolved.mime_type).isImage) {
     throw new AdvancedCameraCardError(
       `Thumbnail is not an image: ${thumbnail} (${resolved.mime_type})`,
     );
@@ -61,9 +60,10 @@ const fetchThumbnail = async (
     throw new Error(response.statusText);
   }
   const blob = await response.blob();
+  const type = resolveImageMimeType(blob.type, thumbnailURL);
 
   // Ensure the data returned is actually an image, and not a redirect/error.
-  if (blob.type && !blob.type.startsWith(IMAGE_MIME_TYPE_PREFIX)) {
+  if (type && !classifyMimeType(type).isImage) {
     throw new AdvancedCameraCardError(
       `Thumbnail is not an image: ${thumbnail} (${blob.type})`,
     );
