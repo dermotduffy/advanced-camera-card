@@ -6,7 +6,6 @@ import '../../src/components/timeline';
 
 import type { FrigateReview } from '../../src/camera-manager/frigate/types';
 import type { AdvancedCameraCardDrawer } from '../../src/components/drawer';
-import type { AdvancedCameraCardTimelineCore } from '../../src/components/timeline-core';
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
 import { deepQuery, deepQueryAll, getElementAtPoint } from '../browser/dom';
 import {
@@ -91,17 +90,19 @@ describe('AdvancedCameraCardTimelineCore', () => {
       live: { controls: { timeline: { mode: 'below' } } },
     });
 
-    const timeline = await card.waitForSelector<AdvancedCameraCardTimelineCore>(
-      'advanced-camera-card-timeline-core',
-    );
-
     for (const [index, title] of PAN_MODE_TITLES.entries()) {
       await card.clickControl(title);
-      await timeline.updateComplete;
 
       // The last click wraps back to the mode the timeline started in.
-      expect(getPanControlTitle(card)).toBe(
-        PAN_MODE_TITLES[(index + 1) % PAN_MODE_TITLES.length],
+      const next = PAN_MODE_TITLES[(index + 1) % PAN_MODE_TITLES.length];
+
+      // The timeline resizes itself as it lays itself out, so an update of its
+      // own can be in flight when the control is clicked. Waiting on the title
+      // itself waits for the click's own update rather than whichever update
+      // completes first.
+      await card.waitForRender(
+        () => (getPanControlTitle(card) === next ? true : null),
+        `the pan control titled ${next}`,
       );
     }
   });
