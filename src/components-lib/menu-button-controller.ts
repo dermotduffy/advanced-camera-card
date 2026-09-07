@@ -7,6 +7,7 @@ import type { FullscreenManager } from '../card-controller/fullscreen/fullscreen
 import type { MediaPlayerManager } from '../card-controller/media-player-manager';
 import type { MicrophoneManager } from '../card-controller/microphone-manager';
 import type { PIPManager } from '../card-controller/pip-manager';
+import type { ViewItemManager } from '../card-controller/view/item-manager';
 import type { ViewManager } from '../card-controller/view/view-manager';
 import {
   VIEWS_USER_SPECIFIED,
@@ -55,6 +56,7 @@ export interface MenuButtonControllerOptions {
   microphoneManager?: MicrophoneManager | null;
   mediaPlayerController?: MediaPlayerManager | null;
   pipManager?: PIPManager | null;
+  viewItemManager?: ViewItemManager | null;
   viewManager?: ViewManager | null;
   view?: View | null;
 }
@@ -98,7 +100,7 @@ export class MenuButtonController {
       this._getGalleryButton(config, cameraManager, foldersManager, options?.view),
       this._getImageButton(config, cameraManager, foldersManager, options?.view),
       this._getTimelineButton(config, cameraManager, foldersManager, options?.view),
-      this._getDownloadButton(config, cameraManager, options?.view),
+      this._getDownloadButton(config, options?.viewItemManager, options?.view),
       this._getInfoButton(config, cameraManager, options?.view),
       this._getSetReviewButton(config, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
@@ -442,15 +444,14 @@ export class MenuButtonController {
 
   private _getDownloadButton(
     config: AdvancedCameraCardConfig,
-    cameraManager: CameraManager,
+    viewItemManager?: ViewItemManager | null,
     view?: View | null,
   ): MenuItem | null {
     const selectedItem = view?.queryResults?.getSelectedResult();
-    const mediaCapabilities =
-      selectedItem && ViewItemClassifier.isMedia(selectedItem)
-        ? cameraManager?.getMediaCapabilities(selectedItem)
-        : null;
-    if (view?.isViewerView() && mediaCapabilities?.canDownload && !isBeingCasted()) {
+    const capabilities = selectedItem
+      ? viewItemManager?.getCapabilities(selectedItem)
+      : null;
+    if (view?.isViewerView() && capabilities?.canDownload && !isBeingCasted()) {
       return {
         icon: 'mdi:download',
         ...config.menu.buttons.download,

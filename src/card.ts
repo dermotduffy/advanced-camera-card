@@ -316,6 +316,7 @@ export class AdvancedCameraCard extends LitElement {
             pipManager: this._controller.getPIPManager(),
             showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
             view: view,
+            viewItemManager: this._controller.getViewItemManager(),
             viewManager: this._controller.getViewManager(),
           },
         )}

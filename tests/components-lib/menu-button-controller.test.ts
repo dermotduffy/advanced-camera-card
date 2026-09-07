@@ -12,6 +12,7 @@ import type { FullscreenManager } from '../../src/card-controller/fullscreen/ful
 import type { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
 import type { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
 import type { PIPManager } from '../../src/card-controller/pip-manager.js';
+import type { ViewItemManager } from '../../src/card-controller/view/item-manager.js';
 import type { ViewManager } from '../../src/card-controller/view/view-manager.js';
 import {
   MenuButtonController,
@@ -100,7 +101,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have iris menu button', () => {
-    it('with hidden menu style', () => {
+    it('should have an iris menu button with a hidden menu style', () => {
       const buttons = calculateButtons(controller);
 
       expect(buttons).toContainEqual({
@@ -117,7 +118,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('without hidden menu style', () => {
+    it('should have an iris menu button without a hidden menu style', () => {
       const buttons = calculateButtons(controller, {
         config: createConfig({ menu: { style: 'overlay' } }),
       });
@@ -222,7 +223,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have substream button', () => {
-    it('with no view', () => {
+    it('should not have a substream button with no view', () => {
       const buttons = calculateButtons(controller, {
         cameraManager: createCameraManager(),
         view: null,
@@ -235,7 +236,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('with no dependency', () => {
+    it('should not have a substream button with no dependency', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -254,7 +255,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('with single dependency', () => {
+    it('should have a substream button with a single dependency', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -287,7 +288,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with substream selected and single dependency', () => {
+    it('should have a substream button with a substream selected and a single dependency', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -331,7 +332,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with substream unselected and multiple dependencies', () => {
+    it('should have a substream button with a substream unselected and multiple dependencies', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -432,7 +433,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with substream selected and with multiple dependencies', () => {
+    it('should have a substream button with a substream selected and multiple dependencies', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -531,7 +532,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have live menu button', () => {
-    it('when in live view', () => {
+    it('should have an emphasized live menu button when in live view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -553,7 +554,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not in live view', () => {
+    it('should have a de-emphasized live menu button when not in live view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -575,7 +576,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a live menu button when the view is not supported', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
@@ -591,7 +592,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have clips menu button', () => {
-    it('when in clips view', () => {
+    it('should have an emphasized clips menu button when in clips view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -614,7 +615,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not in clips view', () => {
+    it('should have a de-emphasized clips menu button when not in clips view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -636,7 +637,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a clips menu button when the view is not supported', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
@@ -650,7 +651,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have snapshots menu button', () => {
-    it('when in snapshots view', () => {
+    it('should have an emphasized snapshots menu button when in snapshots view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockImplementation((view) => view !== 'reviews');
       const buttons = calculateButtons(controller, {
@@ -679,7 +680,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not in snapshots view', () => {
+    it('should have a de-emphasized snapshots menu button when not in snapshots view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -707,7 +708,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a snapshots menu button when the view is not supported', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
@@ -723,7 +724,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have reviews menu button', () => {
-    it('when in reviews view', () => {
+    it('should have an emphasized reviews menu button when in reviews view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -752,7 +753,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not in reviews view', () => {
+    it('should have a de-emphasized reviews menu button when not in reviews view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -780,7 +781,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a reviews menu button when the view is not supported', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
@@ -794,7 +795,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have gallery menu button', () => {
-    it('when in gallery view', () => {
+    it('should have an emphasized gallery menu button when in gallery view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -823,7 +824,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not in gallery view', () => {
+    it('should have a de-emphasized gallery menu button when not in gallery view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -851,7 +852,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a gallery menu button when the view is not supported', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
@@ -865,7 +866,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have recordings menu button', () => {
-    it('when in recordings view', () => {
+    it('should have an emphasized recordings menu button when in recordings view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -894,7 +895,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not in recordings view', () => {
+    it('should have a de-emphasized recordings menu button when not in recordings view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -922,7 +923,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a recordings menu button when the view is not supported', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
@@ -938,7 +939,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have image menu button', () => {
-    it('when in image view', () => {
+    it('should have an emphasized image menu button when in image view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
 
@@ -961,7 +962,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not in image view', () => {
+    it('should have a de-emphasized image menu button when not in image view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
 
@@ -984,7 +985,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have an image menu button when the view is not supported', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
@@ -1000,7 +1001,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have timeline button', () => {
-    it('when in timeline view', () => {
+    it('should have an emphasized timeline button when in timeline view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -1025,7 +1026,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not in timeline view', () => {
+    it('should have a de-emphasized timeline button when not in timeline view', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
@@ -1050,7 +1051,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a timeline button when the view is not supported', () => {
       const viewManager = mock<ViewManager>();
       vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
@@ -1065,11 +1066,11 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have download button', () => {
-    it('when media available', () => {
+    it('should have a download button when media is available', () => {
       vi.stubGlobal('navigator', { userAgent: 'foo' });
 
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getMediaCapabilities).mockReturnValue(
+      const viewItemManager = mock<ViewItemManager>();
+      viewItemManager.getCapabilities.mockReturnValue(
         createMediaCapabilities({ canDownload: true }),
       );
       const view = createView({
@@ -1084,7 +1085,7 @@ describe('MenuButtonController', () => {
         }),
       });
       const buttons = calculateButtons(controller, {
-        cameraManager: cameraManager,
+        viewItemManager: viewItemManager,
         view: view,
       });
 
@@ -1104,15 +1105,39 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('not when being casted', () => {
+    it('should have a download button when a folder item is selected', () => {
+      vi.stubGlobal('navigator', { userAgent: 'foo' });
+
+      const viewItemManager = mock<ViewItemManager>();
+      viewItemManager.getCapabilities.mockReturnValue(
+        createMediaCapabilities({ canDownload: true }),
+      );
+      const view = createView({
+        view: 'folder',
+        queryResults: new QueryResults({
+          results: [new ViewMedia(ViewMediaType.Clip, { folder: createFolder() })],
+          selectedIndex: 0,
+        }),
+      });
+      const buttons = calculateButtons(controller, {
+        viewItemManager: viewItemManager,
+        view: view,
+      });
+
+      expect(buttons).toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Download' })]),
+      );
+    });
+
+    it('should not have a download button when being casted', () => {
       vi.stubGlobal('navigator', {
         userAgent:
           'Mozilla/5.0 (Fuchsia) AppleWebKit/537.36 (KHTML, like Gecko) ' +
           'Chrome/114.0.0.0 Safari/537.36 CrKey/1.56.500000',
       });
 
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getMediaCapabilities).mockReturnValue(
+      const viewItemManager = mock<ViewItemManager>();
+      viewItemManager.getCapabilities.mockReturnValue(
         createMediaCapabilities({ canDownload: true }),
       );
       const view = createView({
@@ -1122,7 +1147,7 @@ describe('MenuButtonController', () => {
         }),
       });
       const buttons = calculateButtons(controller, {
-        cameraManager: cameraManager,
+        viewItemManager: viewItemManager,
         view: view,
       });
 
@@ -1131,9 +1156,9 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('not in a non-media view', () => {
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getMediaCapabilities).mockReturnValue(
+    it('should not have a download button in a non-media view', () => {
+      const viewItemManager = mock<ViewItemManager>();
+      viewItemManager.getCapabilities.mockReturnValue(
         createMediaCapabilities({ canDownload: true }),
       );
       const view = createView({
@@ -1144,7 +1169,7 @@ describe('MenuButtonController', () => {
         }),
       });
       const buttons = calculateButtons(controller, {
-        cameraManager: cameraManager,
+        viewItemManager: viewItemManager,
         view: view,
       });
 
@@ -1173,7 +1198,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have call button', () => {
-    it('with no view', () => {
+    it('should not have a call button with no view', () => {
       const buttons = calculateButtons(controller, {
         cameraManager: createCameraManager(),
         view: null,
@@ -1186,7 +1211,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('with a non-live view', () => {
+    it('should not have a call button with a non-live view', () => {
       const cameraManager = createCameraManager(
         createStore([
           {
@@ -1207,7 +1232,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('when no camera supports 2-way audio', () => {
+    it('should not have a call button when no camera supports 2-way audio', () => {
       const cameraManager = createCameraManager(
         createStore([{ cameraID: 'camera-1', capabilities: createCapabilities() }]),
       );
@@ -1220,7 +1245,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('with a single 2-way-audio target', () => {
+    it('should have a call button with a single 2-way-audio target', () => {
       const cameraManager = createCameraManager(
         createStore([
           {
@@ -1247,7 +1272,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with multiple 2-way-audio targets', () => {
+    it('should have a call submenu with multiple 2-way-audio targets', () => {
       const cameraManager = createCameraManager(
         createStore([
           {
@@ -1289,7 +1314,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('when an answered call is active', () => {
+    it('should have a call end button when an answered call is active', () => {
       const cameraManager = createCameraManager(
         createStore([
           {
@@ -1331,7 +1356,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when an inbound call is ringing', () => {
+    it('should have a call answer button when an inbound call is ringing', () => {
       const cameraManager = createCameraManager(
         createStore([
           {
@@ -1380,7 +1405,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have microphone button', () => {
-    it('when camera has 2-way-audio capability', () => {
+    it('should have a microphone button when the camera has 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
       const callManager = mock<CallManager>();
       vi.mocked(callManager.isActive).mockReturnValue(true);
@@ -1426,7 +1451,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when camera does not have 2-way-audio capability', () => {
+    it('should not have a microphone button when the camera does not have 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
       const callManager = mock<CallManager>();
       vi.mocked(callManager.isActive).mockReturnValue(true);
@@ -1448,7 +1473,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('is not shown without an active call', () => {
+    it('should not have a microphone button without an active call', () => {
       const microphoneManager = mock<MicrophoneManager>();
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
@@ -1475,7 +1500,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('with forbidden microphone', () => {
+    it('should have a microphone button with a forbidden microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
       const callManager = mock<CallManager>();
       vi.mocked(callManager.isActive).mockReturnValue(true);
@@ -1508,7 +1533,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with muted microphone', () => {
+    it('should have a microphone button with a muted microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
       const callManager = mock<CallManager>();
       vi.mocked(callManager.isActive).mockReturnValue(true);
@@ -1551,7 +1576,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with unsupported microphone', () => {
+    it('should have a microphone button with an unsupported microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
       const callManager = mock<CallManager>();
       vi.mocked(callManager.isActive).mockReturnValue(true);
@@ -1586,7 +1611,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with muted toggle type microphone', () => {
+    it('should have a microphone button with a muted toggle type microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
       const callManager = mock<CallManager>();
       vi.mocked(callManager.isActive).mockReturnValue(true);
@@ -1628,7 +1653,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with unmuted toggle type microphone', () => {
+    it('should have a microphone button with an unmuted toggle type microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
       const callManager = mock<CallManager>();
       vi.mocked(callManager.isActive).mockReturnValue(true);
@@ -1679,7 +1704,7 @@ describe('MenuButtonController', () => {
       vi.unstubAllGlobals();
     });
 
-    it('when not in fullscreen mode', () => {
+    it('should have a de-emphasized fullscreen button when not in fullscreen mode', () => {
       // Need to write a readonly property.
       vi.stubGlobal('navigator', { userAgent: 'foo' });
 
@@ -1706,7 +1731,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when in fullscreen mode', () => {
+    it('should have an emphasized fullscreen button when in fullscreen mode', () => {
       vi.stubGlobal('navigator', { userAgent: 'foo' });
       const fullscreenManager = mock<FullscreenManager>();
       vi.mocked(fullscreenManager.isInFullscreen).mockReturnValue(true);
@@ -1731,7 +1756,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a fullscreen button when not supported', () => {
       // Need to write a readonly property.
       vi.stubGlobal('navigator', { userAgent: 'foo' });
       const fullscreenManager = mock<FullscreenManager>();
@@ -1745,8 +1770,8 @@ describe('MenuButtonController', () => {
     });
   });
 
-  describe('should have pip button', () => {
-    it('when not in PIP mode', () => {
+  describe('should have PIP button', () => {
+    it('should have a de-emphasized PIP button when not in PIP mode', () => {
       const pipManager = mock<PIPManager>();
       vi.mocked(pipManager.isInPIP).mockReturnValue(false);
       vi.mocked(pipManager.isAvailable).mockReturnValue(true);
@@ -1770,7 +1795,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when in PIP mode', () => {
+    it('should have an emphasized PIP button when in PIP mode', () => {
       const pipManager = mock<PIPManager>();
       vi.mocked(pipManager.isInPIP).mockReturnValue(true);
       vi.mocked(pipManager.isAvailable).mockReturnValue(true);
@@ -1794,7 +1819,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when not supported', () => {
+    it('should not have a PIP button when not supported', () => {
       const pipManager = mock<PIPManager>();
       vi.mocked(pipManager.isAvailable).mockReturnValue(false);
 
@@ -1805,7 +1830,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('when no pipManager provided', () => {
+    it('should not have a PIP button when no PIP manager is provided', () => {
       const buttons = calculateButtons(controller, {});
 
       expect(buttons).not.toContainEqual(
@@ -1815,7 +1840,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have expand button', () => {
-    it('when not expanded', () => {
+    it('should have a de-emphasized expand button when not expanded', () => {
       const buttons = calculateButtons(controller, { inExpandedMode: false });
 
       expect(buttons).toContainEqual({
@@ -1832,7 +1857,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when expanded', () => {
+    it('should have an emphasized expand button when expanded', () => {
       const buttons = calculateButtons(controller, { inExpandedMode: true });
 
       expect(buttons).toContainEqual({
@@ -1851,7 +1876,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have media players button', () => {
-    it('with media players', () => {
+    it('should have a media players button with media players', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -1910,7 +1935,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when entity not found', () => {
+    it('should have a disabled media player item when the entity is not found', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -2097,9 +2122,9 @@ describe('MenuButtonController', () => {
     });
   });
 
-  describe('should have grid button when display mode is', () => {
+  describe('should have grid button', () => {
     it.each([['single' as const], ['grid' as const]])(
-      '%s',
+      'should have a grid button when the display mode is %s',
       (displayMode: ViewDisplayMode) => {
         const view = createView({
           camera: 'camera-1',
@@ -2350,7 +2375,7 @@ describe('MenuButtonController', () => {
       ['media' as const, undefined, false],
       ['media' as const, false, true],
     ])(
-      '%s view with isDefault %s',
+      'should have a ptz home button in the %s view when the zoom isDefault is %s',
       (
         viewName: AdvancedCameraCardView,
         isDefault: boolean | undefined,
@@ -2642,7 +2667,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should handle dynamic buttons', () => {
-    it('successfully', () => {
+    it('should add and remove a dynamic button', () => {
       const button: MenuItem = {
         ...dynamicButton,
         style: {},
@@ -2665,7 +2690,7 @@ describe('MenuButtonController', () => {
       expect(calculateButtons(controller)).not.toContainEqual(button);
     });
 
-    it('with stock HA action', () => {
+    it('should handle a dynamic button with a stock HA action', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: { action: 'navigate', navigation_path: 'foo' },
@@ -2678,7 +2703,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with non-advanced-camera-card fire-dom-event action', () => {
+    it('should handle a dynamic button with a non-advanced-camera-card fire-dom-event action', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: { action: 'fire-dom-event' },
@@ -2692,7 +2717,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with advanced camera card view action', () => {
+    it('should handle a dynamic button with an advanced camera card view action', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
@@ -2706,7 +2731,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with advanced camera card default action', () => {
+    it('should handle a dynamic button with an advanced camera card default action', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'default' },
@@ -2720,7 +2745,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with fullscreen action', () => {
+    it('should handle a dynamic button with a fullscreen action', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: {
@@ -2739,7 +2764,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with camera_select action', () => {
+    it('should handle a dynamic button with a camera_select action', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: {
@@ -2760,7 +2785,7 @@ describe('MenuButtonController', () => {
     // `folder` (single folder) and `folders` (gallery) actions both carry a
     // folder ID and are emphasized identically, so exercise both.
     it.each([['folder' as const], ['folders' as const]])(
-      'with a %s action, emphasizes only the button for the folder being viewed',
+      'should emphasize only the button for the folder being viewed with a %s action',
       (action: 'folder' | 'folders') => {
         const folder = createFolder({ id: 'folder-a' });
         const folderNode: FolderQuery = {
@@ -2807,7 +2832,7 @@ describe('MenuButtonController', () => {
       },
     );
 
-    it('with a folder action and no folder ID, emphasizes on the folder view', () => {
+    it('should emphasize a dynamic button with a folder action and no folder ID on the folder view', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
@@ -2821,7 +2846,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with a folder action, stays emphasized in the media viewer while its folder query remains', () => {
+    it('should keep a dynamic button with a folder action emphasized in the media viewer while its folder query remains', () => {
       const folder = createFolder({ id: 'folder-a' });
       const folderNode: FolderQuery = {
         source: QuerySource.Folder,
@@ -2869,7 +2894,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with array of actions', () => {
+    it('should handle a dynamic button with an array of actions', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: [
@@ -2888,7 +2913,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have set review button', () => {
-    it('when unreviewed', () => {
+    it('should have a set review button when the item is unreviewed', () => {
       const selectedItem = new TestViewMedia({
         mediaType: ViewMediaType.Review,
         reviewed: false,
@@ -2912,7 +2937,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('when already reviewed', () => {
+    it('should have a set review button when the item is already reviewed', () => {
       const selectedItem = new TestViewMedia({
         mediaType: ViewMediaType.Review,
         reviewed: true,
@@ -2936,7 +2961,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('when isReviewed returns null', () => {
+    it('should not have a set review button when the item has no reviewed state', () => {
       const selectedItem = new TestViewMedia({
         mediaType: ViewMediaType.Review,
         reviewed: null,
