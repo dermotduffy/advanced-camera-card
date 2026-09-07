@@ -2,7 +2,11 @@ import { assert, describe, expect, it } from 'vitest';
 
 import type { FrigateEvent } from '../../../src/camera-manager/frigate/types';
 import type { PartialAdvancedCameraCardConfig } from '../../../src/config/types';
-import type { BrowseMedia } from '../../../src/ha/browse-media/types';
+import {
+  createFrontDoorFolderMedia,
+  FRONT_DOOR_FOLDER_CONTENT_ID,
+  registerFrontDoorFolder,
+} from '../../browser/browse-media';
 import { deepQuery } from '../../browser/dom';
 import {
   createFrigateCameraDescription,
@@ -189,40 +193,18 @@ describe('AdvancedCameraCardGallery', () => {
 });
 
 describe('AdvancedCameraCardGallery with a folder', () => {
-  const FOLDER_ID = 'media-source://media_source/local/front-door';
-
   // What Home Assistant's local media source resolves an image to.
   const IMAGE_PATH = '/media/local/front-door/clip.jpg';
-
-  const createFolderMedia = (title: string, mediaClass: string): BrowseMedia => ({
-    title,
-    media_class: mediaClass,
-    media_content_type: mediaClass,
-    media_content_id: `${FOLDER_ID}/${title}`,
-    can_play: true,
-    can_expand: false,
-    thumbnail: null,
-    children: null,
-  });
 
   // A folder holding a clip and the image a user generated for it, which is
   // what the `thumbnail` parser exists to pair up.
   const mountFolderCard = async (): Promise<MountedCard> => {
     const hass = createCameraHASS([createFrigateCameraDescription()]);
 
-    hass.registerBrowsableMedia({
-      title: 'front-door',
-      media_class: 'directory',
-      media_content_type: 'directory',
-      media_content_id: FOLDER_ID,
-      can_play: false,
-      can_expand: true,
-      thumbnail: null,
-      children: [
-        createFolderMedia('clip.mp4', 'video'),
-        createFolderMedia('clip.jpg', 'image'),
-      ],
-    });
+    registerFrontDoorFolder(hass, [
+      createFrontDoorFolderMedia('clip.mp4', 'video'),
+      createFrontDoorFolderMedia('clip.jpg', 'image'),
+    ]);
 
     hass.registerMediaSource(/clip\.jpg$/, async () => ({
       url: IMAGE_PATH,
@@ -244,7 +226,10 @@ describe('AdvancedCameraCardGallery with a folder', () => {
           {
             type: 'ha',
             ha: {
-              path: [{ id: FOLDER_ID }, { parsers: [{ type: 'thumbnail' }] }],
+              path: [
+                { id: FRONT_DOOR_FOLDER_CONTENT_ID },
+                { parsers: [{ type: 'thumbnail' }] },
+              ],
             },
           },
         ],
@@ -256,16 +241,7 @@ describe('AdvancedCameraCardGallery with a folder', () => {
   const mountCardThumbnailedWithItsOwnClip = async (): Promise<MountedCard> => {
     const hass = createCameraHASS([createFrigateCameraDescription()]);
 
-    hass.registerBrowsableMedia({
-      title: 'front-door',
-      media_class: 'directory',
-      media_content_type: 'directory',
-      media_content_id: FOLDER_ID,
-      can_play: false,
-      can_expand: true,
-      thumbnail: null,
-      children: [createFolderMedia('clip.mp4', 'video')],
-    });
+    registerFrontDoorFolder(hass, [createFrontDoorFolderMedia('clip.mp4', 'video')]);
 
     hass.registerMediaSource(/clip\.mp4$/, async () => ({
       url: createFixtureURL(CLIP_FIXTURE_FILENAME),
@@ -280,7 +256,7 @@ describe('AdvancedCameraCardGallery with a folder', () => {
             type: 'ha',
             ha: {
               path: [
-                { id: FOLDER_ID },
+                { id: FRONT_DOOR_FOLDER_CONTENT_ID },
                 {
                   parsers: [
                     {
@@ -314,23 +290,14 @@ describe('AdvancedCameraCardGallery with a folder', () => {
   const mountCardWithAThumbnailedFolder = async (): Promise<MountedCard> => {
     const hass = createCameraHASS([createFrigateCameraDescription()]);
 
-    hass.registerBrowsableMedia({
-      title: 'front-door',
-      media_class: 'directory',
-      media_content_type: 'directory',
-      media_content_id: FOLDER_ID,
-      can_play: false,
-      can_expand: true,
-      thumbnail: null,
-      children: [
-        {
-          ...createFolderMedia('2026-08-28', 'directory'),
-          can_play: false,
-          can_expand: true,
-        },
-        createFolderMedia('2026-08-28.jpg', 'image'),
-      ],
-    });
+    registerFrontDoorFolder(hass, [
+      {
+        ...createFrontDoorFolderMedia('2026-08-28', 'directory'),
+        can_play: false,
+        can_expand: true,
+      },
+      createFrontDoorFolderMedia('2026-08-28.jpg', 'image'),
+    ]);
 
     hass.registerMediaSource(/\.jpg$/, async () => ({
       url: IMAGE_PATH,
@@ -347,7 +314,12 @@ describe('AdvancedCameraCardGallery with a folder', () => {
         folders: [
           {
             type: 'ha',
-            ha: { path: [{ id: FOLDER_ID }, { parsers: [{ type: 'thumbnail' }] }] },
+            ha: {
+              path: [
+                { id: FRONT_DOOR_FOLDER_CONTENT_ID },
+                { parsers: [{ type: 'thumbnail' }] },
+              ],
+            },
           },
         ],
       }),
