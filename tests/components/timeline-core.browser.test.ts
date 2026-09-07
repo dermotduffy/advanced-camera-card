@@ -91,7 +91,8 @@ describe('AdvancedCameraCardTimelineCore', () => {
     });
 
     for (const [index, title] of PAN_MODE_TITLES.entries()) {
-      await card.clickControl(title);
+      // The timeline may move the control before a real pointer could reach it.
+      await card.clickControlWithoutPointer(title);
 
       // The last click wraps back to the mode the timeline started in.
       const next = PAN_MODE_TITLES[(index + 1) % PAN_MODE_TITLES.length];

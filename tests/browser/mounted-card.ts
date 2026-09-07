@@ -590,6 +590,16 @@ export class MountedCard {
   }
 
   /**
+   * Click a control by name without moving a real pointer, for a control the
+   * card may reposition.
+   */
+  public async clickControlWithoutPointer(name: string): Promise<void> {
+    const control = await this.findControl(name);
+
+    control.click();
+  }
+
+  /**
    * Press and keep holding a control until the card takes it as a hold, which
    * is a second action several controls carry alongside their tap.
    *
