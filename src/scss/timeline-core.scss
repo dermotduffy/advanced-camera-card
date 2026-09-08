@@ -32,8 +32,8 @@ advanced-camera-card-thumbnail {
   height: var(--advanced-camera-card-thumbnail-size);
   width: var(--advanced-camera-card-thumbnail-size);
 }
-advanced-camera-card-thumbnail[details] {
-  width: var(--advanced-camera-card-thumbnail-details-width);
+advanced-camera-card-thumbnail[details-style='panel'] {
+  width: var(--advanced-camera-card-thumbnail-details-panel-width);
 }
 
 div.timeline {

@@ -5,11 +5,12 @@ import type { CameraManager } from '../../camera-manager/manager.js';
 import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
 import type { ViewItem } from '../../view/item.js';
 
-import './details.js';
+import './details-panel.js';
 import './feature/feature.js';
 import './feature/thumbnail.js';
 
@@ -39,8 +40,8 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   @property({ attribute: false })
   public item?: ViewItem;
 
-  @property({ attribute: true, type: Boolean })
-  public details = false;
+  @property({ attribute: 'details-style', reflect: true })
+  public detailsStyle?: ResolvedThumbnailDetailsStyle;
 
   @property({ attribute: true, type: Boolean })
   public show_favorite_control = false;
@@ -78,7 +79,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
     return html`
       <advanced-camera-card-thumbnail-feature
         .cameraManager=${this.cameraManager}
-        .hasDetails=${this.details}
+        .detailsStyle=${this.detailsStyle}
         .hass=${this.hass}
         .item=${this.item}
         .viewItemManager=${this.viewItemManager}
@@ -92,13 +93,13 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .filterFavorite=${this.filterFavorite}
       >
       </advanced-camera-card-thumbnail-feature>
-      ${this.details
-        ? html`<advanced-camera-card-thumbnail-details
+      ${this.detailsStyle === 'panel'
+        ? html`<advanced-camera-card-thumbnail-details-panel
             .hass=${this.hass}
             .item=${this.item ?? undefined}
             .cameraManager=${this.cameraManager}
             .seek=${this.seek}
-          ></advanced-camera-card-thumbnail-details>`
+          ></advanced-camera-card-thumbnail-details-panel>`
         : ''}
     `;
   }

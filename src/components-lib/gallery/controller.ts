@@ -1,7 +1,11 @@
+import type { LitElement, ReactiveController } from 'lit';
+
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
-import { THUMBNAIL_WIDTH_DEFAULT } from '../../config/schema/common/controls/thumbnails';
-import type { MediaGalleryThumbnailsConfig } from '../../config/schema/media-gallery';
+import {
+  THUMBNAIL_SIZE_DEFAULT,
+  type ThumbnailsControlBaseConfig,
+} from '../../config/schema/common/controls/thumbnails';
 import { errorToConsole } from '../../utils/basic';
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
@@ -9,6 +13,10 @@ import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import type { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import type { View } from '../../view/view';
+import {
+  resolveThumbnailDetailsStyle,
+  type ResolvedThumbnailDetailsStyle,
+} from '../thumbnail/resolve-details-style';
 import type { GalleryColumnCountRoundMethod } from './gallery-core-controller';
 
 interface GalleryViewContext {
@@ -23,23 +31,68 @@ declare module 'view' {
   }
 }
 
-// The minimum width of a thumbnail with details enabled.
-const GALLERY_THUMBNAIL_DETAILS_WIDTH_MIN = 300;
+const MEDIA_DETAILS_PANEL_WIDTH = 200;
 
-// The minimum width of a folder thumbnail with details enabled.
-const FOLDER_THUMBNAIL_DETAILS_WIDTH_MIN = 200;
+// The narrowest a media column may be, regardless of the thumbnail size.
+const MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN = 300;
 
-export class GalleryController {
-  private _host: HTMLElement;
+// A folder details panel shows only a name, a count and a date range so needs
+// less space.
+const FOLDER_DETAILS_PANEL_WIDTH = 170;
+
+export class GalleryController implements ReactiveController {
+  private _host: LitElement;
   private _items: ViewItem[] | null = null;
   private _foldersOnly = false;
+  private _width: number | null = null;
 
-  public constructor(host: HTMLElement) {
+  private _thumbnailConfig: ThumbnailsControlBaseConfig | null = null;
+  private _resolvedDetailsStyle: ResolvedThumbnailDetailsStyle | null = null;
+
+  private _resizeObserver: ResizeObserver;
+
+  public constructor(host: LitElement) {
     this._host = host;
+    this._host.addController(this);
+
+    this._resizeObserver = new ResizeObserver(() => this._setWidth());
+  }
+
+  public hostConnected(): void {
+    this._resizeObserver.observe(this._host);
+  }
+
+  public hostDisconnected(): void {
+    this._resizeObserver.disconnect();
+    this._width = null;
+    this._setResolvedDetailsStyle();
   }
 
   public getItems(): ViewItem[] | null {
     return this._items;
+  }
+
+  private _setWidth(): void {
+    const width = this._host.clientWidth;
+    if (width === this._width) {
+      return;
+    }
+    this._width = width;
+
+    if (this._setResolvedDetailsStyle()) {
+      this._host.requestUpdate();
+    }
+  }
+
+  private _setResolvedDetailsStyle(): boolean {
+    const previous = this._resolvedDetailsStyle;
+    this._resolvedDetailsStyle = this._thumbnailConfig
+      ? resolveThumbnailDetailsStyle(this._thumbnailConfig, {
+          placement: 'grid',
+          availableWidth: this._width ?? undefined,
+        })
+      : null;
+    return this._resolvedDetailsStyle !== previous;
   }
 
   /**
@@ -62,31 +115,33 @@ export class GalleryController {
     this._foldersOnly = this._items?.every((item) => ViewItemClassifier.isFolder(item));
   }
 
-  public setThumbnailSize(size?: number): void {
+  public setThumbnailConfig(thumbnailConfig?: ThumbnailsControlBaseConfig): void {
+    this._thumbnailConfig = thumbnailConfig ?? null;
+    this._setResolvedDetailsStyle();
+
     this._host.style.setProperty(
       '--advanced-camera-card-thumbnail-size',
-      `${size ?? THUMBNAIL_WIDTH_DEFAULT}px`,
+      `${thumbnailConfig?.size ?? THUMBNAIL_SIZE_DEFAULT}px`,
     );
   }
 
-  public getColumnWidth(thumbnailConfig?: MediaGalleryThumbnailsConfig): number {
-    if (!thumbnailConfig) {
-      return THUMBNAIL_WIDTH_DEFAULT;
-    }
-    if (!thumbnailConfig.show_details) {
-      return thumbnailConfig.size;
-    }
-
-    // Use smaller width when all items are folders
-    return this._foldersOnly
-      ? FOLDER_THUMBNAIL_DETAILS_WIDTH_MIN
-      : GALLERY_THUMBNAIL_DETAILS_WIDTH_MIN;
+  public getResolvedThumbnailDetailsStyle(): ResolvedThumbnailDetailsStyle | null {
+    return this._resolvedDetailsStyle;
   }
 
-  public getColumnCountRoundMethod(
-    thumbnailConfig?: MediaGalleryThumbnailsConfig,
-  ): GalleryColumnCountRoundMethod {
-    return thumbnailConfig?.show_details ? 'floor' : 'ceil';
+  public getColumnWidth(): number {
+    const size = this._thumbnailConfig?.size ?? THUMBNAIL_SIZE_DEFAULT;
+    if (this._resolvedDetailsStyle !== 'panel') {
+      return size;
+    }
+
+    return this._foldersOnly
+      ? size + FOLDER_DETAILS_PANEL_WIDTH
+      : Math.max(MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN, size + MEDIA_DETAILS_PANEL_WIDTH);
+  }
+
+  public getColumnCountRoundMethod(): GalleryColumnCountRoundMethod {
+    return this._resolvedDetailsStyle === 'panel' ? 'floor' : 'ceil';
   }
 
   public async extend(

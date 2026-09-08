@@ -1,9 +1,9 @@
 import { afterEach, assert, describe, expect, it } from 'vitest';
 
 import {
-  THUMBNAIL_WIDTH_DEFAULT,
-  THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
+  THUMBNAIL_SIZE_DEFAULT,
+  THUMBNAIL_SIZE_MAX,
+  THUMBNAIL_SIZE_MIN,
 } from '../../../src/config/schema/common/controls/thumbnails';
 import { deepQuery, deepQueryAll } from '../../browser/dom';
 import {
@@ -19,7 +19,7 @@ const mountGalleryWithThumbnailSize = async (size: number): Promise<MountedCard>
     [createTestFrigateEvent('event', EVENT_TIME_NEWER)],
     {
       view: { default: 'clips' },
-      media_gallery: { controls: { thumbnails: { size, show_details: true } } },
+      media_gallery: { controls: { thumbnails: { size, details_style: 'panel' } } },
     },
   );
   await waitForThumbnails(card, 1);
@@ -27,7 +27,7 @@ const mountGalleryWithThumbnailSize = async (size: number): Promise<MountedCard>
 };
 
 const getDetails = (card: MountedCard): Element => {
-  const details = deepQuery(card.card, 'advanced-camera-card-thumbnail-details');
+  const details = deepQuery(card.card, 'advanced-camera-card-thumbnail-details-panel');
   assert(details);
   return details;
 };
@@ -55,20 +55,20 @@ const PIXEL_PRECISION = 1;
 const HEADING_SIZE = 14;
 const METADATA_RATIO = 0.8;
 
-describe('AdvancedCameraCardThumbnailDetails', () => {
+describe('AdvancedCameraCardThumbnailDetailsPanel', () => {
   afterEach(() => {
     document.body.style.removeProperty('line-height');
     document.documentElement.style.removeProperty('--ha-font-size-scale');
   });
 
   it('should size the heading independently of the thumbnail size', async () => {
-    const smallest = await mountGalleryWithThumbnailSize(THUMBNAIL_WIDTH_MIN);
+    const smallest = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_MIN);
     expect(getFontSize(getHeading(getDetails(smallest)))).toBeCloseTo(
       HEADING_SIZE,
       PIXEL_PRECISION,
     );
 
-    const largest = await mountGalleryWithThumbnailSize(THUMBNAIL_WIDTH_MAX);
+    const largest = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_MAX);
     expect(getFontSize(getHeading(getDetails(largest)))).toBeCloseTo(
       HEADING_SIZE,
       PIXEL_PRECISION,
@@ -78,7 +78,7 @@ describe('AdvancedCameraCardThumbnailDetails', () => {
   it('should follow the font scaling the dashboard is set to', async () => {
     document.documentElement.style.setProperty('--ha-font-size-scale', '2');
 
-    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_WIDTH_DEFAULT);
+    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_DEFAULT);
 
     expect(getFontSize(getHeading(getDetails(card)))).toBeCloseTo(
       HEADING_SIZE * 2,
@@ -87,7 +87,7 @@ describe('AdvancedCameraCardThumbnailDetails', () => {
   });
 
   it('should make the metadata text smaller than the heading', async () => {
-    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_WIDTH_DEFAULT);
+    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_DEFAULT);
     const details = getDetails(card);
 
     expect(getFontSize(getMetadataRow(details))).toBeCloseTo(
@@ -97,7 +97,7 @@ describe('AdvancedCameraCardThumbnailDetails', () => {
   });
 
   it('should size each icon to match the text beside it', async () => {
-    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_WIDTH_DEFAULT);
+    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_DEFAULT);
     const row = getMetadataRow(getDetails(card));
 
     const icon = deepQuery(row, 'advanced-camera-card-icon');
@@ -112,7 +112,7 @@ describe('AdvancedCameraCardThumbnailDetails', () => {
   it('should ignore a line height inherited from the page', async () => {
     document.body.style.setProperty('line-height', '3');
 
-    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_WIDTH_DEFAULT);
+    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_DEFAULT);
 
     expect(getComputedStyle(getHeading(getDetails(card))).lineHeight).toBe('normal');
   });

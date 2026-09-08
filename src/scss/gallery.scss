@@ -21,7 +21,7 @@ advanced-camera-card-thumbnail {
 
   background-color: var(--secondary-background-color);
 }
-advanced-camera-card-thumbnail:not([details]) {
+advanced-camera-card-thumbnail:not([details-style='panel']) {
   width: 100%;
 }
 advanced-camera-card-thumbnail.selected {

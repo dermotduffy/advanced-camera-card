@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import {
-  thumbnailControlsDefaults,
+  thumbnailsControlDefaults,
   thumbnailsControlSchema,
 } from './common/controls/thumbnails';
 import {
@@ -12,7 +12,7 @@ import {
 export const timelineConfigDefault = {
   ...timelineCoreConfigDefault,
   controls: {
-    thumbnails: thumbnailControlsDefaults,
+    thumbnails: thumbnailsControlDefaults,
   },
 };
 
@@ -20,7 +20,7 @@ export const timelineConfigSchema = timelineCoreConfigSchema
   .extend({
     controls: z
       .object({
-        thumbnails: thumbnailsControlSchema.default(thumbnailControlsDefaults),
+        thumbnails: thumbnailsControlSchema.default(thumbnailsControlDefaults),
       })
       .default(timelineConfigDefault.controls),
   })

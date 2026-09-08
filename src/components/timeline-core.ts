@@ -14,6 +14,7 @@ import type { CameraManager } from '../camera-manager/manager';
 import type { FoldersManager } from '../card-controller/folders/manager';
 import type { ViewItemManager } from '../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
+import type { ResolvedThumbnailDetailsStyle } from '../components-lib/thumbnail/resolve-details-style';
 import { TimelineController } from '../components-lib/timeline/controller';
 import {
   ThumbnailDataRequestEvent,
@@ -48,8 +49,8 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
   @property({ attribute: true })
   public item?: IdType;
 
-  @property({ attribute: true, type: Boolean })
-  public details = false;
+  @property({ attribute: 'details-style' })
+  public detailsStyle?: ResolvedThumbnailDetailsStyle;
 
   /**
    * Master render method.
@@ -100,7 +101,7 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
       .viewItemManager=${dataRequest.viewItemManager}
       .item=${dataRequest.media}
       .viewManagerEpoch=${dataRequest.viewManagerEpoch}
-      ?details=${this.details}
+      .detailsStyle=${this.detailsStyle}
     >
     </advanced-camera-card-thumbnail>`;
   }

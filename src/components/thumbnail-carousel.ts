@@ -21,6 +21,10 @@ import {
   navigateUp,
   type FolderNavigationParamaters,
 } from '../components-lib/navigation.js';
+import {
+  resolveThumbnailDetailsStyle,
+  type ResolvedThumbnailDetailsStyle,
+} from '../components-lib/thumbnail/resolve-details-style.js';
 import type { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import type { CardWideConfig } from '../config/schema/types.js';
 import type { HomeAssistant } from '../ha/types.js';
@@ -174,7 +178,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       item.includesTime(seekTarget)
         ? seekTarget
         : undefined}
-      ?details=${!!this.config?.show_details}
+      .detailsStyle=${this._getResolvedThumbnailDetailsStyle() ?? undefined}
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}
       ?show_download_control=${this.config?.show_download_control}
@@ -231,6 +235,18 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       return 'horizontal';
     }
     return null;
+  }
+
+  private _getResolvedThumbnailDetailsStyle(): ResolvedThumbnailDetailsStyle | null {
+    if (!this.config) {
+      return null;
+    }
+    return resolveThumbnailDetailsStyle(this.config, {
+      placement:
+        this._getDirection() === 'vertical'
+          ? 'surround-vertical'
+          : 'surround-horizontal',
+    });
   }
 
   protected render(): TemplateResult | void {

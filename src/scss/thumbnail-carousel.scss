@@ -39,6 +39,6 @@ advanced-camera-card-thumbnail {
   // Do not let thumbnails span beyond the width of the carousel.
   max-width: 100%;
 }
-advanced-camera-card-thumbnail[details] {
-  width: var(--advanced-camera-card-thumbnail-details-width);
+advanced-camera-card-thumbnail[details-style='panel'] {
+  width: var(--advanced-camera-card-thumbnail-details-panel-width);
 }

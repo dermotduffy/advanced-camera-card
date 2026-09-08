@@ -18,6 +18,7 @@ import {
   type NotificationControlsContext,
 } from '../../../components-lib/media/notification-controller';
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
+import type { ResolvedThumbnailDetailsStyle } from '../../../components-lib/thumbnail/resolve-details-style';
 import type { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss?inline';
@@ -55,7 +56,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
   public item?: ViewItem;
 
   @property({ attribute: false })
-  public hasDetails?: boolean;
+  public detailsStyle?: ResolvedThumbnailDetailsStyle;
 
   @property({ attribute: true, type: Boolean })
   public show_favorite_control = false;
@@ -82,9 +83,11 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
 
   protected willUpdate(changedProperties: PropertyValues): void {
     if (
-      ['item', 'hasDetails', 'cameraManager'].some((prop) => changedProperties.has(prop))
+      ['item', 'detailsStyle', 'cameraManager'].some((prop) =>
+        changedProperties.has(prop),
+      )
     ) {
-      this._controller.calculate(this.cameraManager, this.item, this.hasDetails);
+      this._controller.calculate(this.cameraManager, this.item, this.detailsStyle);
     }
   }
 

@@ -14,13 +14,13 @@ import type { CameraManager } from '../../camera-manager/manager';
 import { MediaNotificationController } from '../../components-lib/media/notification-controller';
 import type { NotificationDetail } from '../../config/schema/actions/types';
 import type { HomeAssistant } from '../../ha/types';
-import thumbnailDetailsStyle from '../../scss/thumbnail-details.scss?inline';
+import thumbnailDetailsPanelStyle from '../../scss/thumbnail-details-panel.scss?inline';
 import type { ViewItem } from '../../view/item';
 
 import '../icon';
 
-@customElement('advanced-camera-card-thumbnail-details')
-export class AdvancedCameraCardThumbnailDetails extends LitElement {
+@customElement('advanced-camera-card-thumbnail-details-panel')
+export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -72,12 +72,12 @@ export class AdvancedCameraCardThumbnailDetails extends LitElement {
   }
 
   static get styles(): CSSResult {
-    return unsafeCSS(thumbnailDetailsStyle);
+    return unsafeCSS(thumbnailDetailsPanelStyle);
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'advanced-camera-card-thumbnail-details': AdvancedCameraCardThumbnailDetails;
+    'advanced-camera-card-thumbnail-details-panel': AdvancedCameraCardThumbnailDetailsPanel;
   }
 }

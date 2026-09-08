@@ -1,13 +1,21 @@
 import { z } from 'zod';
 
-// The min/max width thumbnail.
-export const THUMBNAIL_WIDTH_MIN = 75;
-export const THUMBNAIL_WIDTH_DEFAULT = 100;
-export const THUMBNAIL_WIDTH_MAX = 300;
+export const THUMBNAIL_SIZE_MIN = 75;
+export const THUMBNAIL_SIZE_DEFAULT = 100;
+export const THUMBNAIL_SIZE_MAX = 300;
 
-export const thumbnailControlsBaseDefaults = {
-  size: THUMBNAIL_WIDTH_DEFAULT,
-  show_details: true,
+const thumbnailDetailsStyleSchema = z.enum([
+  'auto',
+  'none',
+  'overlay',
+  'hover',
+  'panel',
+]);
+export type ThumbnailDetailsStyle = z.infer<typeof thumbnailDetailsStyleSchema>;
+
+export const thumbnailsControlBaseDefaults = {
+  size: THUMBNAIL_SIZE_DEFAULT,
+  details_style: 'auto' as const,
   show_favorite_control: true,
   show_timeline_control: false,
   show_download_control: false,
@@ -19,36 +27,38 @@ export const thumbnailControlsBaseDefaults = {
 export const thumbnailsControlBaseSchema = z.object({
   size: z
     .number()
-    .min(THUMBNAIL_WIDTH_MIN)
-    .max(THUMBNAIL_WIDTH_MAX)
-    .default(thumbnailControlsBaseDefaults.size),
-  show_details: z.boolean().default(thumbnailControlsBaseDefaults.show_details),
+    .min(THUMBNAIL_SIZE_MIN)
+    .max(THUMBNAIL_SIZE_MAX)
+    .default(thumbnailsControlBaseDefaults.size),
+  details_style: thumbnailDetailsStyleSchema.default(
+    thumbnailsControlBaseDefaults.details_style,
+  ),
   show_favorite_control: z
     .boolean()
-    .default(thumbnailControlsBaseDefaults.show_favorite_control),
+    .default(thumbnailsControlBaseDefaults.show_favorite_control),
   show_timeline_control: z
     .boolean()
-    .default(thumbnailControlsBaseDefaults.show_timeline_control),
+    .default(thumbnailsControlBaseDefaults.show_timeline_control),
   show_download_control: z
     .boolean()
-    .default(thumbnailControlsBaseDefaults.show_download_control),
+    .default(thumbnailsControlBaseDefaults.show_download_control),
   show_review_control: z
     .boolean()
-    .default(thumbnailControlsBaseDefaults.show_review_control),
+    .default(thumbnailsControlBaseDefaults.show_review_control),
   show_info_control: z
     .boolean()
-    .default(thumbnailControlsBaseDefaults.show_info_control),
+    .default(thumbnailsControlBaseDefaults.show_info_control),
 });
 export type ThumbnailsControlBaseConfig = z.infer<typeof thumbnailsControlBaseSchema>;
 
-export const thumbnailControlsDefaults = {
-  ...thumbnailControlsBaseDefaults,
+export const thumbnailsControlDefaults = {
+  ...thumbnailsControlBaseDefaults,
   mode: 'right' as const,
 };
 
 export const thumbnailsControlSchema = thumbnailsControlBaseSchema.extend({
   mode: z
     .enum(['none', 'above', 'below', 'left', 'right'])
-    .default(thumbnailControlsDefaults.mode),
+    .default(thumbnailsControlDefaults.mode),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;

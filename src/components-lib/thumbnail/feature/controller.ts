@@ -9,6 +9,7 @@ import {
 } from '../../../ha/brands-url';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
+import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
 
 export class ThumbnailFeatureController {
   private _title: string | null = null;
@@ -20,7 +21,7 @@ export class ThumbnailFeatureController {
   public calculate(
     cameraManager?: CameraManager | null,
     item?: ViewItem,
-    hasDetails?: boolean,
+    detailsStyle?: ResolvedThumbnailDetailsStyle,
   ): void {
     const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
     const cameraMetadata = cameraID
@@ -28,15 +29,15 @@ export class ThumbnailFeatureController {
       : null;
 
     this._calculateVisuals(cameraMetadata, item);
-    this._calculateTitles(cameraMetadata, item, hasDetails);
+    this._calculateTitles(cameraMetadata, item, detailsStyle);
   }
 
   private _calculateTitles(
     cameraMetadata?: CameraManagerCameraMetadata | null,
     item?: ViewItem,
-    hasDetails?: boolean,
+    detailsStyle?: ResolvedThumbnailDetailsStyle,
   ) {
-    if (hasDetails) {
+    if (detailsStyle === 'panel') {
       return;
     }
 

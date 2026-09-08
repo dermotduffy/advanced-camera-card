@@ -286,6 +286,14 @@
           }
         },
         "thumbnails": {
+          "details_style": "Details style",
+          "details_styles": {
+            "auto": "Automatic",
+            "hover": "Details on hover",
+            "none": "No details",
+            "overlay": "Details on the thumbnail",
+            "panel": "Details panel beside the thumbnail"
+          },
           "editor_label": "Thumbnails",
           "mode": "Mode",
           "modes": {
@@ -295,7 +303,6 @@
             "none": "None",
             "right": "Right drawer"
           },
-          "show_details": "Show details",
           "show_download_control": "Show download control",
           "show_favorite_control": "Show favorite control",
           "show_info_control": "Show info control",

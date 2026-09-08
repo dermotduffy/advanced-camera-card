@@ -236,7 +236,6 @@
             "none": "Brak miniatur",
             "right": "Miniatury w szufladzie po prawej"
           },
-          "show_details": "Pokaż szczegóły przy miniaturach",
           "show_download_control": "Pokaż przycisk pobierania na miniaturach",
           "show_favorite_control": "Pokaż przycisk ulubionych na miniaturach",
           "show_timeline_control": "Pokaż przycisk osi czasu na miniaturach",

@@ -96,7 +96,7 @@ export class AdvancedCameraCardGallery extends LitElement {
     }
 
     if (changedProps.has('galleryConfig')) {
-      this._controller.setThumbnailSize(this.galleryConfig?.controls.thumbnails.size);
+      this._controller.setThumbnailConfig(this.galleryConfig?.controls.thumbnails);
     }
   }
 
@@ -118,7 +118,7 @@ export class AdvancedCameraCardGallery extends LitElement {
       .hass=${this.hass}
       .item=${this._upFolderItem}
       .viewManagerEpoch=${this.viewManagerEpoch}
-      ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
+      .detailsStyle=${this._controller.getResolvedThumbnailDetailsStyle() ?? undefined}
       @click=${(ev: Event) => {
         stopEventFromActivatingCardWideActions(ev);
         navigateUp(this._getFolderNavigationParameters());
@@ -144,7 +144,8 @@ export class AdvancedCameraCardGallery extends LitElement {
             .item=${item}
             .viewManagerEpoch=${this.viewManagerEpoch}
             ?selected=${item === selected}
-            ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
+            .detailsStyle=${this._controller.getResolvedThumbnailDetailsStyle() ??
+            undefined}
             ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
               .show_favorite_control}
             ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
@@ -222,12 +223,8 @@ export class AdvancedCameraCardGallery extends LitElement {
             )
           : html`<advanced-camera-card-gallery-core
               .hass=${this.hass}
-              .columnWidth=${this._controller.getColumnWidth(
-                this.galleryConfig?.controls.thumbnails,
-              )}
-              .columnCountRoundMethod=${this._controller.getColumnCountRoundMethod(
-                this.galleryConfig?.controls.thumbnails,
-              )}
+              .columnWidth=${this._controller.getColumnWidth()}
+              .columnCountRoundMethod=${this._controller.getColumnCountRoundMethod()}
               .cardWideConfig=${this.cardWideConfig}
               .extendUp=${true}
               .extendDown=${true}

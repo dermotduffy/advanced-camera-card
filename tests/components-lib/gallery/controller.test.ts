@@ -1,4 +1,13 @@
-import { assert, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  assert,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type {
@@ -6,9 +15,12 @@ import type {
   ViewManagerInterface,
 } from '../../../src/card-controller/view/types';
 import { GalleryController } from '../../../src/components-lib/gallery/controller';
-import { THUMBNAIL_WIDTH_DEFAULT } from '../../../src/config/schema/common/controls/thumbnails';
+import {
+  THUMBNAIL_SIZE_DEFAULT,
+  THUMBNAIL_SIZE_MIN,
+  type ThumbnailsControlBaseConfig,
+} from '../../../src/config/schema/common/controls/thumbnails';
 import type { FolderConfig } from '../../../src/config/schema/folders';
-import type { MediaGalleryThumbnailsConfig } from '../../../src/config/schema/media-gallery';
 import {
   ViewFolder,
   ViewMedia,
@@ -19,13 +31,18 @@ import type { QueryResults } from '../../../src/view/query-results';
 import type { UnifiedQuery } from '../../../src/view/unified-query';
 import type { UnifiedQueryRunner } from '../../../src/view/unified-query-runner';
 import type { View } from '../../../src/view/view';
+import {
+  callResizeHandler,
+  createLitElement,
+  ResizeObserverMock,
+} from '../../test-utils';
 
 // @vitest-environment jsdom
 const createThumbnailConfig = (
-  config?: Partial<MediaGalleryThumbnailsConfig>,
-): MediaGalleryThumbnailsConfig => ({
-  size: THUMBNAIL_WIDTH_DEFAULT,
-  show_details: true,
+  config?: Partial<ThumbnailsControlBaseConfig>,
+): ThumbnailsControlBaseConfig => ({
+  size: THUMBNAIL_SIZE_DEFAULT,
+  details_style: 'panel',
   show_favorite_control: true,
   show_timeline_control: true,
   show_download_control: true,
@@ -35,8 +52,20 @@ const createThumbnailConfig = (
 });
 
 describe('GalleryController', () => {
+  beforeAll(() => {
+    vi.stubGlobal('ResizeObserver', ResizeObserverMock);
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('should construct', () => {
-    const host = document.createElement('div');
+    const host = createLitElement();
     const controller = new GalleryController(host);
     expect(controller).toBeTruthy();
     expect(controller.getItems()).toBeNull();
@@ -44,7 +73,7 @@ describe('GalleryController', () => {
 
   describe('setItemsFromView', () => {
     it('should set items from view', () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
       const view = mock<View>();
       view.queryResults = mock<QueryResults>();
@@ -60,7 +89,7 @@ describe('GalleryController', () => {
     });
 
     it('should handle null view or results', () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
 
       controller.setItemsFromView(null);
@@ -73,7 +102,7 @@ describe('GalleryController', () => {
     });
 
     it('should not update items if results are the same', () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
       const view = mock<View>();
       view.queryResults = mock<QueryResults>();
@@ -90,7 +119,7 @@ describe('GalleryController', () => {
     });
 
     it('should update items if results change', () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
       const view1 = mock<View>();
       view1.queryResults = mock<QueryResults>();
@@ -110,88 +139,222 @@ describe('GalleryController', () => {
   });
 
   it('should set thumbnail size', () => {
-    const host = document.createElement('div');
+    const host = createLitElement();
     const controller = new GalleryController(host);
 
-    controller.setThumbnailSize(150);
+    controller.setThumbnailConfig(createThumbnailConfig({ size: 150 }));
     expect(host.style.getPropertyValue('--advanced-camera-card-thumbnail-size')).toBe(
       '150px',
     );
 
-    controller.setThumbnailSize();
+    controller.setThumbnailConfig();
     expect(host.style.getPropertyValue('--advanced-camera-card-thumbnail-size')).toBe(
-      `${THUMBNAIL_WIDTH_DEFAULT}px`,
+      `${THUMBNAIL_SIZE_DEFAULT}px`,
     );
   });
 
   describe('getColumnWidth', () => {
     it('should return default width if no config', () => {
-      const host = document.createElement('div');
-      const controller = new GalleryController(host);
-      expect(controller.getColumnWidth()).toBe(THUMBNAIL_WIDTH_DEFAULT);
+      const controller = new GalleryController(createLitElement());
+      expect(controller.getColumnWidth()).toBe(THUMBNAIL_SIZE_DEFAULT);
     });
 
     it('should return size if details are hidden', () => {
-      const host = document.createElement('div');
-      const controller = new GalleryController(host);
-      expect(
-        controller.getColumnWidth(
-          createThumbnailConfig({ size: 123, show_details: false }),
-        ),
-      ).toBe(123);
+      const controller = new GalleryController(createLitElement());
+
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ size: 123, details_style: 'none' }),
+      );
+
+      expect(controller.getColumnWidth()).toBe(123);
     });
 
     it('should return gallery width if details are shown and items are not all folders', () => {
-      const host = document.createElement('div');
-      const controller = new GalleryController(host);
+      const controller = new GalleryController(createLitElement());
       const view = mock<View>();
-      const item = new ViewMedia(ViewMediaType.Clip);
 
       view.queryResults = mock<QueryResults>();
-      vi.mocked(view.queryResults.getResults).mockReturnValue([item]);
-
+      vi.mocked(view.queryResults.getResults).mockReturnValue([
+        new ViewMedia(ViewMediaType.Clip),
+      ]);
       controller.setItemsFromView(view);
-      expect(
-        controller.getColumnWidth(createThumbnailConfig({ show_details: true })),
-      ).toBe(300);
+      controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'panel' }));
+
+      expect(controller.getColumnWidth()).toBe(300);
     });
 
     it('should return folder width if details are shown and items are all folders', () => {
-      const host = document.createElement('div');
-      const controller = new GalleryController(host);
+      const controller = new GalleryController(createLitElement());
       const view = mock<View>();
-      const item = new ViewFolder(mock<FolderConfig>(), []);
 
       view.queryResults = mock<QueryResults>();
-      vi.mocked(view.queryResults.getResults).mockReturnValue([item]);
-
+      vi.mocked(view.queryResults.getResults).mockReturnValue([
+        new ViewFolder(mock<FolderConfig>(), []),
+      ]);
       controller.setItemsFromView(view);
-      expect(
-        controller.getColumnWidth(createThumbnailConfig({ show_details: true })),
-      ).toBe(200);
+      controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'panel' }));
+
+      expect(controller.getColumnWidth()).toBe(270);
+    });
+
+    it('should not shrink the column below the minimum', () => {
+      const controller = new GalleryController(createLitElement());
+
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ size: THUMBNAIL_SIZE_MIN, details_style: 'panel' }),
+      );
+
+      expect(controller.getColumnWidth()).toBe(300);
+    });
+
+    it('should grow the column with the thumbnail size', () => {
+      const controller = new GalleryController(createLitElement());
+
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ size: 300, details_style: 'panel' }),
+      );
+
+      expect(controller.getColumnWidth()).toBe(500);
+    });
+
+    it('should grow the folder column with the thumbnail size', () => {
+      const controller = new GalleryController(createLitElement());
+      const view = mock<View>();
+
+      view.queryResults = mock<QueryResults>();
+      vi.mocked(view.queryResults.getResults).mockReturnValue([
+        new ViewFolder(mock<FolderConfig>(), []),
+      ]);
+      controller.setItemsFromView(view);
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ size: 300, details_style: 'panel' }),
+      );
+
+      expect(controller.getColumnWidth()).toBe(470);
+    });
+  });
+
+  describe('getResolvedThumbnailDetailsStyle', () => {
+    it('should have no details without config', () => {
+      const controller = new GalleryController(createLitElement());
+      expect(controller.getResolvedThumbnailDetailsStyle()).toBeNull();
+    });
+
+    it('should return the configured presentation', () => {
+      const controller = new GalleryController(createLitElement());
+
+      controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'overlay' }));
+
+      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('overlay');
+    });
+
+    it('should resolve automatically from the size', () => {
+      const controller = new GalleryController(createLitElement());
+
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ details_style: 'auto', size: 100 }),
+      );
+      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('overlay');
+
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ details_style: 'auto', size: 200 }),
+      );
+      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('hover');
+    });
+
+    it('should resolve automatically from the gallery width', () => {
+      const host = createLitElement();
+      const controller = new GalleryController(host);
+      controller.hostConnected();
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ details_style: 'auto', size: 200 }),
+      );
+
+      Object.defineProperty(host, 'clientWidth', { value: 240, configurable: true });
+      callResizeHandler([{ target: host, width: 240, height: 100 }]);
+
+      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('overlay');
+    });
+  });
+
+  describe('resize', () => {
+    it('should request an update when the presentation changes', () => {
+      const host = createLitElement();
+      const controller = new GalleryController(host);
+      controller.hostConnected();
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ details_style: 'auto', size: 200 }),
+      );
+
+      Object.defineProperty(host, 'clientWidth', { value: 240, configurable: true });
+      callResizeHandler([{ target: host, width: 240, height: 100 }]);
+
+      expect(host.requestUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not request an update when the presentation is unchanged', () => {
+      const host = createLitElement();
+      const controller = new GalleryController(host);
+      controller.hostConnected();
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ details_style: 'auto', size: 200 }),
+      );
+
+      Object.defineProperty(host, 'clientWidth', { value: 800, configurable: true });
+      callResizeHandler([{ target: host, width: 800, height: 100 }]);
+      Object.defineProperty(host, 'clientWidth', { value: 900, configurable: true });
+      callResizeHandler([{ target: host, width: 900, height: 100 }]);
+
+      expect(host.requestUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should not resolve again when the width is unchanged', () => {
+      const host = createLitElement();
+      const controller = new GalleryController(host);
+      controller.hostConnected();
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ details_style: 'auto', size: 200 }),
+      );
+
+      Object.defineProperty(host, 'clientWidth', { value: 240, configurable: true });
+      callResizeHandler([{ target: host, width: 240, height: 100 }]);
+      callResizeHandler([{ target: host, width: 240, height: 100 }]);
+
+      expect(host.requestUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should forget the width when disconnected', () => {
+      const host = createLitElement();
+      const controller = new GalleryController(host);
+      controller.hostConnected();
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ details_style: 'auto', size: 200 }),
+      );
+
+      Object.defineProperty(host, 'clientWidth', { value: 240, configurable: true });
+      callResizeHandler([{ target: host, width: 240, height: 100 }]);
+      controller.hostDisconnected();
+
+      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('hover');
     });
   });
 
   it('should get column count round method', () => {
-    const host = document.createElement('div');
-    const controller = new GalleryController(host);
+    const controller = new GalleryController(createLitElement());
 
-    expect(
-      controller.getColumnCountRoundMethod(
-        createThumbnailConfig({ show_details: true }),
-      ),
-    ).toBe('floor');
-    expect(
-      controller.getColumnCountRoundMethod(
-        createThumbnailConfig({ show_details: false }),
-      ),
-    ).toBe('ceil');
+    controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'panel' }));
+    expect(controller.getColumnCountRoundMethod()).toBe('floor');
+
+    controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'none' }));
+    expect(controller.getColumnCountRoundMethod()).toBe('ceil');
+
+    controller.setThumbnailConfig();
     expect(controller.getColumnCountRoundMethod()).toBe('ceil');
   });
 
   describe('extend', () => {
     it('should handle missing view or query', async () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
       const runner = mock<UnifiedQueryRunner>();
       const manager = mock<ViewManagerInterface>();
@@ -211,7 +374,7 @@ describe('GalleryController', () => {
     });
 
     it('should handle missing results', async () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
       const runner = mock<UnifiedQueryRunner>();
       const manager = mock<ViewManagerInterface>();
@@ -230,7 +393,7 @@ describe('GalleryController', () => {
     });
 
     it('should extend and update view', async () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
       const runner = mock<UnifiedQueryRunner>();
       const manager = mock<ViewManagerInterface>();
@@ -274,7 +437,7 @@ describe('GalleryController', () => {
     });
 
     it('should handle extend failure', async () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
       const runner = mock<UnifiedQueryRunner>();
       const manager = mock<ViewManagerInterface>();
@@ -302,7 +465,7 @@ describe('GalleryController', () => {
     });
 
     it('should not update view if extend returns null', async () => {
-      const host = document.createElement('div');
+      const host = createLitElement();
       const controller = new GalleryController(host);
       const runner = mock<UnifiedQueryRunner>();
       const manager = mock<ViewManagerInterface>();

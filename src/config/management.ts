@@ -8,9 +8,13 @@ import {
   CONF_CAMERAS_GLOBAL_PTZ,
   CONF_DIMENSIONS_HEIGHT,
   CONF_ELEMENTS,
+  CONF_LIVE_CONTROLS_THUMBNAILS_DETAILS_STYLE,
+  CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_DETAILS_STYLE,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_DETAILS_STYLE,
   CONF_OVERRIDES,
   CONF_PROFILES,
   CONF_STATUS_BAR,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_DETAILS_STYLE,
   CONF_UPGRADE_FAILURE,
   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
@@ -24,6 +28,7 @@ import {
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from './const';
+import type { ThumbnailDetailsStyle } from './schema/common/controls/thumbnails';
 import { getCompositeConditionsKey } from './schema/condition-trigger/conditions/composite';
 import type {
   RawAdvancedCameraCardConfig,
@@ -1664,6 +1669,11 @@ const removeFromArrayTransform = (
   };
 };
 
+const showDetailsToDetailsStyleTransform = (
+  value: unknown,
+): Extract<ThumbnailDetailsStyle, 'none' | 'panel'> | null =>
+  value === true ? 'panel' : value === false ? 'none' : null;
+
 const UPGRADES = [
   // v5.2.0 -> v6.0.0
   (data: unknown): boolean => {
@@ -1915,4 +1925,26 @@ const UPGRADES = [
     removeFromArrayTransform('selected'),
   ),
   removeMicrophoneActionsTransform,
+
+  // v8.1.0+
+  upgradeMoveToWithOverrides(
+    'live.controls.thumbnails.show_details',
+    CONF_LIVE_CONTROLS_THUMBNAILS_DETAILS_STYLE,
+    { transform: showDetailsToDetailsStyleTransform },
+  ),
+  upgradeMoveToWithOverrides(
+    'media_gallery.controls.thumbnails.show_details',
+    CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_DETAILS_STYLE,
+    { transform: showDetailsToDetailsStyleTransform },
+  ),
+  upgradeMoveToWithOverrides(
+    'media_viewer.controls.thumbnails.show_details',
+    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_DETAILS_STYLE,
+    { transform: showDetailsToDetailsStyleTransform },
+  ),
+  upgradeMoveToWithOverrides(
+    'timeline.controls.thumbnails.show_details',
+    CONF_TIMELINE_CONTROLS_THUMBNAILS_DETAILS_STYLE,
+    { transform: showDetailsToDetailsStyleTransform },
+  ),
 ];

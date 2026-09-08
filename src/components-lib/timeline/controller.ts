@@ -40,6 +40,7 @@ import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 import { mergeViewContext } from '../../view/view';
+import { resolveThumbnailDetailsStyle } from '../thumbnail/resolve-details-style';
 import {
   canMediaBeShownAsTimelineItem,
   TimelineDataSource,
@@ -1030,7 +1031,7 @@ export class TimelineController {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'advanced-camera-card-timeline-thumbnail': ['details', 'item'],
+            'advanced-camera-card-timeline-thumbnail': ['details-style', 'item'],
             div: ['title'],
             span: ['style'],
           },
@@ -1051,13 +1052,17 @@ export class TimelineController {
       return '';
     }
 
+    const detailsStyle = this._thumbnailConfig
+      ? resolveThumbnailDetailsStyle(this._thumbnailConfig, { placement: 'popup' })
+      : null;
+
     // Cannot use Lit data-bindings as visjs requires a string for tooltips.
     // Note that changes to attributes here must be mirrored in the xss
     // whitelist in `_getOptions()` .
     return `
         <advanced-camera-card-timeline-thumbnail
           item='${item.id}'
-          ${this._thumbnailConfig?.show_details ? 'details' : ''}
+          ${detailsStyle ? `details-style='${detailsStyle}'` : ''}
         >
         </advanced-camera-card-timeline-thumbnail>`;
   }

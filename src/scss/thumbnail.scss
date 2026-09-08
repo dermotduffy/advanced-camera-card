@@ -16,11 +16,11 @@
   transition: transform 0.2s linear;
 }
 
-:host(:not([details])) {
+:host(:not([details-style='panel'])) {
   aspect-ratio: 1 / 1;
 }
 
-:host([details]) {
+:host([details-style='panel']) {
   border: 1px solid var(--advanced-camera-card-thumbnail-border-color);
   border-radius: var(--advanced-camera-card-border-radius-final);
   padding: 2px;
@@ -37,6 +37,6 @@
   transform: scale(1.04);
 }
 
-advanced-camera-card-thumbnail-details {
+advanced-camera-card-thumbnail-details-panel {
   flex: 1;
 }
