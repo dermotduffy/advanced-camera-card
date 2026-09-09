@@ -112,6 +112,11 @@ export class AdvancedCameraCardThumbnail extends LitElement {
             .item=${this.item ?? undefined}
             .cameraManager=${this.cameraManager}
             .seek=${this.seek}
+            .viewItemManager=${this.viewItemManager}
+            .viewManagerEpoch=${this.viewManagerEpoch}
+            .filterReviewed=${this.filterReviewed}
+            .size=${this.size}
+            .showInfoControl=${this.show_info_control}
           ></advanced-camera-card-thumbnail-details-panel>`
         : ''}
     `;

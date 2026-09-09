@@ -17,6 +17,7 @@ class HomeAssistantElementsLoadError extends AdvancedCameraCardError {
  */
 export const SIDE_LOADED_ELEMENTS = [
   'ha-alert',
+  'ha-assist-chip',
   'ha-button',
   'ha-camera-stream',
   'ha-card',

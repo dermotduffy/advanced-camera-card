@@ -43,6 +43,10 @@
   --advanced-camera-card-thumbnail-hovered: 1;
 }
 
+// A flex item will not shrink narrower than its own text unless `min-width` is
+// set. Without it the rows push out of the thumbnail instead of being cut off
+// with an ellipsis.
 advanced-camera-card-thumbnail-details-panel {
   flex: 1;
+  min-width: 0;
 }

@@ -17,7 +17,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
   @property({ attribute: false })
   public item?: ViewItem;
 
-  @property({ attribute: 'details-style', reflect: true })
+  @property({ attribute: false })
   public detailsStyle?: ResolvedThumbnailDetailsStyle;
 
   @property({ attribute: false })
@@ -33,18 +33,15 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
       this.size,
     );
     this.setAttribute('tier', this._controller.getTier());
+    this.toggleAttribute('hover', this._controller.isHover());
   }
 
-  protected render(): TemplateResult | void {
-    const label = this._controller.getLabel();
+  protected render(): TemplateResult {
+    const cornerLabel = this._controller.getCornerLabel();
+    const headlineLabel = this._controller.getHeadlineLabel();
     const time = this._controller.getTime();
     const rows = this._controller.getRows();
     const severity = this._controller.getSeverity();
-    const isLabelInCorner = this._controller.isLabelInCorner();
-
-    if (!label && !time && !rows.length) {
-      return;
-    }
 
     // A time reads left to right even where the language around it does not.
     const renderTime = (): TemplateResult =>
@@ -55,21 +52,25 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
       >`;
 
     return html`
-      ${isLabelInCorner && label
-        ? html`<span class="corner-label" title=${label}>${label}</span>`
+      ${cornerLabel
+        ? html`<span class="corner-label" title=${cornerLabel}>${cornerLabel}</span>`
         : ''}
-      <div class="details" severity=${ifDefined(severity ?? undefined)}>
-        <div class="headline">
-          ${!isLabelInCorner && label
-            ? html`<span class="label-container"
-                >${severity ? html`<span class="dot"></span>` : ''}
-                <span class="label" title=${label}>${label}</span></span
-              >`
-            : ''}
-          ${time ? renderTime() : ''}
-        </div>
-        ${rows.map((row) => html`<div class="row" title=${row}>${row}</div>`)}
-      </div>
+      ${headlineLabel || time || rows.length
+        ? html`<div class="details" severity=${ifDefined(severity ?? undefined)}>
+            <div class="headline">
+              ${headlineLabel
+                ? html`<span class="label-container"
+                    >${severity ? html`<span class="dot"></span>` : ''}
+                    <span class="label" title=${headlineLabel}
+                      >${headlineLabel}</span
+                    ></span
+                  >`
+                : ''}
+              ${time ? renderTime() : ''}
+            </div>
+            ${rows.map((row) => html`<div class="row" title=${row}>${row}</div>`)}
+          </div>`
+        : ''}
     `;
   }
 

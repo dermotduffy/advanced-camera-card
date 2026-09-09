@@ -327,7 +327,7 @@ describe('AdvancedCameraCardGallery with a folder', () => {
     );
   };
 
-  it('should show a folder picture in full rather than cropped', async () => {
+  it('should crop a folder picture to fill the thumbnail', async () => {
     const card = await mountCardWithAThumbnailedFolder();
 
     // The folder and the tile that navigates "up".
@@ -340,7 +340,7 @@ describe('AdvancedCameraCardGallery with a folder', () => {
       'the folder picture',
     );
 
-    expect(getComputedStyle(picture).objectFit).toBe('contain');
+    expect(getComputedStyle(picture).objectFit).toBe('cover');
   });
 
   it('should show folder media with a matching image as its thumbnail', async () => {

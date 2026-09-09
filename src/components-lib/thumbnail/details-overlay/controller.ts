@@ -13,19 +13,9 @@ import {
   getMediaTags,
   getMediaWhere,
 } from '../../media/format';
+import { isIdentifiedByThumbnail } from '../is-identified-by-thumbnail';
 import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
-
-export type ThumbnailDetailsOverlayTier =
-  | 'compact'
-  | 'standard'
-  | 'comfortable'
-  | 'poster';
-
-const TIER_SIZE_MIN: Record<Exclude<ThumbnailDetailsOverlayTier, 'compact'>, number> = {
-  standard: 100,
-  comfortable: 175,
-  poster: 250,
-};
+import { getThumbnailTier, type ThumbnailTier } from '../tier';
 
 interface ThumbnailDetailsOverlayTime {
   hoursMinutes: string;
@@ -40,7 +30,7 @@ const join = (...parts: (string | null | undefined)[]): string | null =>
   parts.filter(isTruthy).join(JOINER) || null;
 
 export class ThumbnailDetailsOverlayController {
-  private _tier: ThumbnailDetailsOverlayTier = 'standard';
+  private _tier: ThumbnailTier = 'standard';
 
   private _isHover = false;
 
@@ -53,21 +43,16 @@ export class ThumbnailDetailsOverlayController {
   private _tags: string | null = null;
 
   public calculate(
-    cameraManager?: CameraManager | null,
+    cameraManager?: CameraManager,
     item?: ViewItem,
     detailsStyle?: ResolvedThumbnailDetailsStyle,
     size: number = THUMBNAIL_SIZE_DEFAULT,
   ): void {
-    this._tier =
-      size >= TIER_SIZE_MIN.poster
-        ? 'poster'
-        : size >= TIER_SIZE_MIN.comfortable
-          ? 'comfortable'
-          : size >= TIER_SIZE_MIN.standard
-            ? 'standard'
-            : 'compact';
+    this._tier = getThumbnailTier(size);
 
-    this._isHover = detailsStyle === 'hover';
+    // Hover if that's the configured style and the thumbnail alone is
+    // sufficient to identify the distinction between neighboring items.
+    this._isHover = detailsStyle === 'hover' && isIdentifiedByThumbnail(item);
 
     if (detailsStyle !== 'overlay' && detailsStyle !== 'hover') {
       this._label = null;
@@ -89,25 +74,32 @@ export class ThumbnailDetailsOverlayController {
     this._tags = getMediaTags(item);
   }
 
-  public getTier(): ThumbnailDetailsOverlayTier {
+  public getTier(): ThumbnailTier {
     return this._tier;
+  }
+
+  public isHover(): boolean {
+    return this._isHover;
   }
 
   public getSeverity(): Severity | null {
     return this._severity;
   }
 
-  public getLabel(): string | null {
-    return this._label;
+  public getCornerLabel(): string | null {
+    return this._isLabelInCorner() ? this._label : null;
   }
 
-  /**
-   * The smallest permanent overlay fits one value, and the time is the one that
-   * tells otherwise identical thumbnails apart.
-   * @returns `true` if the label goes in a corner of the thumbnail instead.
-   */
-  public isLabelInCorner(): boolean {
-    return this._tier === 'compact' && !this._isHover;
+  public getHeadlineLabel(): string | null {
+    return this._isLabelInCorner() ? null : this._label;
+  }
+
+  // Place the label in the corner when a compact overlay is permanently on
+  // screen and the item has a time: its single line fits either the label or
+  // the time, not both. A hover overlay grows tall enough to show them on
+  // separate lines.
+  private _isLabelInCorner(): boolean {
+    return this._tier === 'compact' && !this._isHover && !!this._startTime;
   }
 
   public getTime(): ThumbnailDetailsOverlayTime | null {
@@ -129,8 +121,8 @@ export class ThumbnailDetailsOverlayController {
     // Don't repeat data in the overlay.
     const camera = this._cameraTitle === this._label ? null : this._cameraTitle;
 
-    // A hover overlay is allowed carry more data (since it covers the thumbnail
-    // temporarily).
+    // A hover overlay is allowed to carry more data (since it covers the
+    // thumbnail temporarily).
     const rows =
       this._tier === 'poster'
         ? [join(this._duration, camera, this._where), this._tags]

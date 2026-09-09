@@ -1,12 +1,9 @@
-import { format } from 'date-fns';
-
 import type { CameraManager } from '../../camera-manager/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type {
   InternalNotification,
   InternalNotificationControl,
-  NotificationDetail,
 } from '../../config/schema/actions/types';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
@@ -20,13 +17,7 @@ import {
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../view/types';
-import {
-  getMediaCameraTitle,
-  getMediaDuration,
-  getMediaLabel,
-  getMediaTags,
-  getMediaWhere,
-} from './format';
+import { getMediaDetails, getMediaHeading, type MediaDetail } from './detail';
 
 export interface NotificationControlsContext {
   hass?: HomeAssistant;
@@ -41,123 +32,15 @@ export interface NotificationControlsContext {
 }
 
 export class MediaNotificationController {
-  private _metadata: NotificationDetail[] = [];
-  private _heading: NotificationDetail | null = null;
+  private _metadata: MediaDetail[] = [];
+  private _heading: MediaDetail | null = null;
   private _item: ViewItem | null = null;
 
-  public calculate(
-    cameraManager?: CameraManager | null,
-    item?: ViewItem,
-    seek?: Date,
-  ): void {
+  public calculate(cameraManager?: CameraManager, item?: ViewItem, seek?: Date): void {
     this._item = item ?? null;
 
-    this._calculateHeading(cameraManager, item);
-    this._calculateMetadata(cameraManager, item, seek);
-  }
-
-  private _calculateHeading(
-    cameraManager?: CameraManager | null,
-    item?: ViewItem,
-  ): void {
-    const label = getMediaLabel(cameraManager, item);
-    if (!label) {
-      this._heading = null;
-      return;
-    }
-
-    if (ViewItemClassifier.isReview(item)) {
-      const severity = item.getSeverity();
-      this._heading = {
-        text: label,
-        severity: severity ?? undefined,
-        tooltip:
-          localize('common.severity') + ': ' + localize('common.severities.' + severity),
-        icon: 'mdi:circle-medium',
-      };
-      return;
-    }
-
-    this._heading = { text: label };
-  }
-
-  private _calculateMetadata(
-    cameraManager?: CameraManager | null,
-    item?: ViewItem,
-    seek?: Date,
-  ): void {
-    const startTime = ViewItemClassifier.isMedia(item) ? item.getStartTime() : null;
-    const duration = getMediaDuration(item);
-    const cameraTitle = getMediaCameraTitle(cameraManager, item);
-    const where = getMediaWhere(item);
-    const tags = getMediaTags(item);
-
-    const seekString = seek ? format(seek, 'HH:mm:ss') : null;
-
-    this._metadata = [
-      ...(startTime
-        ? [
-            {
-              tooltip: localize('thumbnail.start'),
-              icon: 'mdi:calendar-clock-outline',
-              text: format(startTime, 'yyyy-MM-dd HH:mm:ss'),
-            },
-          ]
-        : []),
-      ...(duration
-        ? [
-            {
-              tooltip: localize('thumbnail.duration'),
-              icon: 'mdi:clock-outline',
-              text: duration,
-            },
-          ]
-        : []),
-      ...(cameraTitle
-        ? [
-            {
-              tooltip: localize('thumbnail.camera'),
-              text: cameraTitle,
-              icon: 'mdi:cctv',
-            },
-          ]
-        : []),
-      ...(where
-        ? [
-            {
-              tooltip: localize('thumbnail.where'),
-              text: where,
-              icon: 'mdi:map-marker-outline',
-            },
-          ]
-        : []),
-      ...(tags
-        ? [
-            {
-              tooltip: localize('thumbnail.tag'),
-              text: tags,
-              icon: 'mdi:tag',
-            },
-          ]
-        : []),
-      ...(seekString
-        ? [
-            {
-              tooltip: localize('thumbnail.seek'),
-              text: seekString,
-              icon: 'mdi:clock-fast',
-            },
-          ]
-        : []),
-    ];
-  }
-
-  public getHeading(): NotificationDetail | null {
-    return this._heading;
-  }
-
-  public getMetadata(): NotificationDetail[] {
-    return this._metadata;
+    this._heading = getMediaHeading(cameraManager, item);
+    this._metadata = getMediaDetails(cameraManager, item, seek);
   }
 
   public getNotification(context?: NotificationControlsContext): InternalNotification {

@@ -5,7 +5,7 @@ import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 
 export const getMediaCameraTitle = (
-  cameraManager?: CameraManager | null,
+  cameraManager?: CameraManager,
   item?: ViewItem,
 ): string | null => {
   const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
@@ -48,7 +48,7 @@ export const getMediaDuration = (item?: ViewItem): string | null => {
  * @returns The label, or `null` if the media says nothing about itself.
  */
 export const getMediaLabel = (
-  cameraManager?: CameraManager | null,
+  cameraManager?: CameraManager,
   item?: ViewItem,
 ): string | null => {
   if (ViewItemClassifier.isEvent(item)) {

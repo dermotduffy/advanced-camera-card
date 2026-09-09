@@ -10,25 +10,19 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import type { CameraManager } from '../../../camera-manager/manager';
-import { dispatchActionExecutionRequest } from '../../../card-controller/actions/utils/execution-request';
 import type { ViewItemManager } from '../../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../../card-controller/view/types';
-import {
-  MediaNotificationController,
-  type NotificationControlsContext,
-} from '../../../components-lib/media/notification-controller';
+import type { NotificationControlsContext } from '../../../components-lib/media/notification-controller';
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
 import type { ResolvedThumbnailDetailsStyle } from '../../../components-lib/thumbnail/resolve-details-style';
 import type { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss?inline';
-import {
-  createNotificationAction,
-  stopEventFromActivatingCardWideActions,
-} from '../../../utils/action';
+import { stopEventFromActivatingCardWideActions } from '../../../utils/action';
 import {
   downloadMedia,
   navigateToTimeline,
+  showMediaInfoNotification,
   toggleFavorite,
   toggleReviewed,
 } from '../../../utils/media-actions';
@@ -223,15 +217,14 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             title=${this.item?.getDescription() ?? ''}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              const notificationController = new MediaNotificationController();
-              notificationController.calculate(this.cameraManager, this.item);
-              dispatchActionExecutionRequest(this, {
-                actions: [
-                  createNotificationAction(
-                    notificationController.getNotification(this._getControlContext()),
-                  ),
-                ],
-              });
+              if (this.item) {
+                showMediaInfoNotification(
+                  this,
+                  this.item,
+                  this._getControlContext(),
+                  this.cameraManager,
+                );
+              }
             }}
           ></advanced-camera-card-icon>`
         : ''}

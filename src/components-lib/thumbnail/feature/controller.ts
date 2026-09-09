@@ -9,6 +9,7 @@ import {
 } from '../../../ha/brands-url';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
+import { isIdentifiedByThumbnail } from '../is-identified-by-thumbnail';
 import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
 
 export class ThumbnailFeatureController {
@@ -19,7 +20,7 @@ export class ThumbnailFeatureController {
   private _thumbnailClass: string | null = null;
 
   public calculate(
-    cameraManager?: CameraManager | null,
+    cameraManager?: CameraManager,
     item?: ViewItem,
     detailsStyle?: ResolvedThumbnailDetailsStyle,
   ): void {
@@ -37,11 +38,12 @@ export class ThumbnailFeatureController {
     item?: ViewItem,
     detailsStyle?: ResolvedThumbnailDetailsStyle,
   ) {
-    if (detailsStyle === 'panel') {
-      return;
-    }
+    const hasDetails = !!detailsStyle && detailsStyle !== 'none';
 
-    if (this._thumbnail && ViewItemClassifier.isMedia(item)) {
+    // If there are details being rendered, or the thumbnail is itself
+    // sufficient to distinguish items, there is no need to render additional
+    // titles.
+    if (hasDetails || isIdentifiedByThumbnail(item)) {
       this._title = null;
       this._subtitles = [];
       return;

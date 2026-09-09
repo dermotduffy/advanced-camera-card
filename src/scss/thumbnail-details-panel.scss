@@ -1,15 +1,7 @@
 :host {
   display: flex;
   flex-direction: column;
-
-  // Wrap "details that don't fit" off the side instead of showing part of a
-  // detail.
-  align-content: flex-start;
-  flex-wrap: wrap;
-
   justify-content: center;
-
-  width: 100%;
 
   // Details panel can shrink as well as grow.
   min-height: 0px;
@@ -56,6 +48,46 @@ div {
     white-space: nowrap;
     min-width: 0;
   }
+}
+
+// A bigger thumbnail gets more space between the rows, never bigger text. The
+// text size always matches the dashboard's body text.
+:host([tier='compact']) {
+  line-height: 1.17;
+  row-gap: 3.5px;
+}
+:host([tier='standard']) {
+  line-height: 1.25;
+  row-gap: 5px;
+}
+:host([tier='comfortable']) {
+  line-height: 1.4;
+  row-gap: 7px;
+}
+:host([tier='poster']) {
+  line-height: 1.5;
+  row-gap: 9px;
+}
+
+// Chip that opens the "info" notification.
+ha-assist-chip.more {
+  align-self: flex-start;
+  margin-top: auto;
+  cursor: pointer;
+
+  --md-assist-chip-container-height: 22px;
+  --md-assist-chip-label-text-size: 0.75em;
+  --md-assist-chip-leading-space: 8px;
+  --md-assist-chip-trailing-space: 8px;
+  --md-assist-chip-label-text-color: var(--advanced-camera-card-active-color);
+
+  // `ha-assist-chip` draws this background instead of its outline when its
+  // `filled` attribute is set.
+  --ha-assist-chip-filled-container-color: color-mix(
+    in srgb,
+    var(--advanced-camera-card-active-color),
+    transparent 82%
+  );
 }
 
 [severity='high'] {
