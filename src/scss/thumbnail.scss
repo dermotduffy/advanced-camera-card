@@ -14,6 +14,10 @@
   overflow: hidden;
 
   transition: transform 0.2s linear;
+
+  // As the overlay doesn't take pointer events, it cannot itself determine if
+  // it's being hovered over.
+  --advanced-camera-card-thumbnail-hovered: 0;
 }
 
 :host(:not([details-style='panel'])) {
@@ -35,6 +39,8 @@
 
 :host(:hover) {
   transform: scale(1.04);
+
+  --advanced-camera-card-thumbnail-hovered: 1;
 }
 
 advanced-camera-card-thumbnail-details-panel {

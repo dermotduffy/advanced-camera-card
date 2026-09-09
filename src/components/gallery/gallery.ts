@@ -119,6 +119,7 @@ export class AdvancedCameraCardGallery extends LitElement {
       .item=${this._upFolderItem}
       .viewManagerEpoch=${this.viewManagerEpoch}
       .detailsStyle=${this._controller.getResolvedThumbnailDetailsStyle() ?? undefined}
+      .size=${this.galleryConfig?.controls.thumbnails.size}
       @click=${(ev: Event) => {
         stopEventFromActivatingCardWideActions(ev);
         navigateUp(this._getFolderNavigationParameters());
@@ -146,6 +147,7 @@ export class AdvancedCameraCardGallery extends LitElement {
             ?selected=${item === selected}
             .detailsStyle=${this._controller.getResolvedThumbnailDetailsStyle() ??
             undefined}
+            .size=${this.galleryConfig?.controls.thumbnails.size}
             ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
               .show_favorite_control}
             ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails

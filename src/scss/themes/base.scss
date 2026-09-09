@@ -211,6 +211,18 @@
   );
   --advanced-camera-card-thumbnail-text-color: var(--advanced-camera-card-text-color);
 
+  // The details overlaid on a thumbnail. Defaults to the same translucent blur
+  // as the notification popup, so the two look alike.
+  --advanced-camera-card-thumbnail-details-overlay-background: rgba(16, 16, 18, 0.5);
+  --advanced-camera-card-thumbnail-details-overlay-backdrop-filter: blur(20px)
+    saturate(180%);
+  --advanced-camera-card-thumbnail-details-overlay-border-top: 1px solid
+    rgba(255, 255, 255, 0.2);
+  --advanced-camera-card-thumbnail-details-overlay-color: #ffffff;
+
+  // Scales the overlay's text, independently of the dashboard's own font size.
+  --advanced-camera-card-thumbnail-text-size: var(--ha-font-size-m, 14px);
+
   /**********
    * Timeline
    **********/

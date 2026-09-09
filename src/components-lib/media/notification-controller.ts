@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
 
 import type { CameraManager } from '../../camera-manager/manager';
-import type { CameraManagerCameraMetadata } from '../../camera-manager/types';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type {
@@ -12,7 +11,6 @@ import type {
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { createInternalCallbackAction } from '../../utils/action';
-import { getDurationString, prettifyTitle } from '../../utils/basic';
 import {
   downloadMedia,
   navigateToTimeline,
@@ -22,6 +20,13 @@ import {
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../view/types';
+import {
+  getMediaCameraTitle,
+  getMediaDuration,
+  getMediaLabel,
+  getMediaTags,
+  getMediaWhere,
+} from './format';
 
 export interface NotificationControlsContext {
   hass?: HomeAssistant;
@@ -46,85 +51,50 @@ export class MediaNotificationController {
     seek?: Date,
   ): void {
     this._item = item ?? null;
-    const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
-    const cameraMetadata = cameraID
-      ? cameraManager?.getCameraMetadata(cameraID) ?? null
-      : null;
 
-    this._calculateHeading(cameraMetadata, item);
-    this._calculateMetadata(cameraMetadata, item, seek);
+    this._calculateHeading(cameraManager, item);
+    this._calculateMetadata(cameraManager, item, seek);
   }
 
   private _calculateHeading(
-    cameraMetadata: CameraManagerCameraMetadata | null,
+    cameraManager?: CameraManager | null,
     item?: ViewItem,
   ): void {
-    if (ViewItemClassifier.isEvent(item)) {
-      const what = prettifyTitle(item.getWhat()?.join(', ')) ?? null;
-      const tags = prettifyTitle(item.getTags()?.join(', ')) ?? null;
-      const whatWithTags =
-        what || tags ? (what ?? '') + (what && tags ? ': ' : '') + (tags ?? '') : null;
-      const rawScore = item.getScore();
-      const score = rawScore ? (rawScore * 100).toFixed(2) + '%' : null;
-
-      this._heading = whatWithTags
-        ? { text: `${whatWithTags}${score ? ` ${score}` : ''}` }
-        : null;
+    const label = getMediaLabel(cameraManager, item);
+    if (!label) {
+      this._heading = null;
       return;
     }
 
     if (ViewItemClassifier.isReview(item)) {
-      const title = item.getTitle();
       const severity = item.getSeverity();
-
-      this._heading = title
-        ? {
-            text: title,
-            severity: severity ?? undefined,
-            tooltip:
-              localize('common.severity') +
-              ': ' +
-              localize('common.severities.' + severity),
-            icon: 'mdi:circle-medium',
-          }
-        : null;
-      return;
-    }
-
-    if (cameraMetadata?.title) {
       this._heading = {
-        text: cameraMetadata.title,
+        text: label,
+        severity: severity ?? undefined,
+        tooltip:
+          localize('common.severity') + ': ' + localize('common.severities.' + severity),
+        icon: 'mdi:circle-medium',
       };
       return;
     }
 
-    this._heading = null;
+    this._heading = { text: label };
   }
 
   private _calculateMetadata(
-    cameraMetadata: CameraManagerCameraMetadata | null,
+    cameraManager?: CameraManager | null,
     item?: ViewItem,
     seek?: Date,
   ): void {
-    const itemTitle = item?.getTitle() ?? null;
-
     const startTime = ViewItemClassifier.isMedia(item) ? item.getStartTime() : null;
-    const endTime = ViewItemClassifier.isMedia(item) ? item.getEndTime() : null;
-    const duration = startTime && endTime ? getDurationString(startTime, endTime) : null;
-    const inProgress = ViewItemClassifier.isMedia(item)
-      ? item.inProgress()
-        ? localize('common.in_progress')
-        : null
-      : null;
-    const where = ViewItemClassifier.isMedia(item)
-      ? prettifyTitle(item?.getWhere()?.join(', ')) ?? null
-      : null;
-    const tags = ViewItemClassifier.isEvent(item)
-      ? prettifyTitle(item?.getTags()?.join(', ')) ?? null
-      : null;
+    const duration = getMediaDuration(item);
+    const cameraTitle = getMediaCameraTitle(cameraManager, item);
+    const where = getMediaWhere(item);
+    const tags = getMediaTags(item);
+
     const seekString = seek ? format(seek, 'HH:mm:ss') : null;
 
-    const details = [
+    this._metadata = [
       ...(startTime
         ? [
             {
@@ -134,20 +104,20 @@ export class MediaNotificationController {
             },
           ]
         : []),
-      ...(duration || inProgress
+      ...(duration
         ? [
             {
               tooltip: localize('thumbnail.duration'),
               icon: 'mdi:clock-outline',
-              text: `${duration ?? ''}${duration && inProgress ? ' ' : ''}${inProgress ?? ''}`,
+              text: duration,
             },
           ]
         : []),
-      ...(cameraMetadata?.title
+      ...(cameraTitle
         ? [
             {
               tooltip: localize('thumbnail.camera'),
-              text: cameraMetadata.title,
+              text: cameraTitle,
               icon: 'mdi:cctv',
             },
           ]
@@ -179,26 +149,6 @@ export class MediaNotificationController {
             },
           ]
         : []),
-    ];
-
-    // To avoid duplication, if the event has a starttime, the title is omitted
-    // from the details.
-    const includeTitle =
-      (!ViewItemClassifier.isEvent(item) && !ViewItemClassifier.isReview(item)) ||
-      !startTime;
-    this._metadata = [
-      ...(includeTitle && itemTitle
-        ? [
-            {
-              text: itemTitle,
-              ...(details.length > 0 && {
-                icon: 'mdi:rename',
-                tooltip: localize('thumbnail.title'),
-              }),
-            },
-          ]
-        : []),
-      ...details,
     ];
   }
 

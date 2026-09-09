@@ -1,0 +1,275 @@
+:host {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  color: var(--advanced-camera-card-thumbnail-details-overlay-color);
+
+  // Everything below is sized in `em`, so one token scales the whole overlay.
+  font-size: var(--advanced-camera-card-thumbnail-text-size);
+
+  // Avoid HA overriding line-height.
+  line-height: normal;
+}
+
+@mixin frosted {
+  background: var(--advanced-camera-card-thumbnail-details-overlay-background);
+  backdrop-filter: var(--advanced-camera-card-thumbnail-details-overlay-backdrop-filter);
+  -webkit-backdrop-filter: var(
+    --advanced-camera-card-thumbnail-details-overlay-backdrop-filter
+  );
+}
+
+.details {
+  @include frosted;
+
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+
+  box-sizing: border-box;
+  overflow: hidden;
+
+  border-top: var(--advanced-camera-card-thumbnail-details-overlay-border-top);
+
+  // Painted over the thumbnail rather than inside it, so nothing clips these
+  // to the rounded corners underneath.
+  border-end-start-radius: var(--advanced-camera-card-border-radius-final);
+  border-end-end-radius: var(--advanced-camera-card-border-radius-final);
+}
+
+// Where the details have no room for the label, it sits flush in the
+// thumbnail's leading top corner instead.
+.corner-label {
+  @include frosted;
+
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  max-width: 100%;
+
+  box-sizing: border-box;
+  height: 16px;
+  padding: 0 6px;
+  line-height: 16px;
+
+  font-size: 0.64em;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+
+  border-start-start-radius: var(--advanced-camera-card-border-radius-final);
+}
+
+.headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.43em;
+  min-width: 0;
+}
+
+.label-container {
+  display: flex;
+  align-items: center;
+  gap: 0.36em;
+  min-width: 0;
+}
+
+.dot {
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+}
+[severity='high'] .dot {
+  background: var(--advanced-camera-card-thumbnail-icon-severity-high-color);
+}
+[severity='medium'] .dot {
+  background: var(--advanced-camera-card-thumbnail-icon-severity-medium-color);
+}
+[severity='low'] .dot {
+  background: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
+}
+
+.label {
+  font-weight: 500;
+}
+
+.time {
+  flex: none;
+  font-family: var(--ha-font-family-code, ui-monospace, monospace);
+}
+
+.row {
+  opacity: 0.7;
+}
+
+.corner-label,
+.label,
+.row,
+.time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*****************************************************************************
+ * Tiers. Type never scales: a larger thumbnail buys more detail and more room
+ * around it, not bigger text.
+ *****************************************************************************/
+
+:host([tier='compact']) {
+  .details {
+    height: 19px;
+    padding: 0 6px;
+  }
+  .headline {
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .label {
+    font-size: 0.79em;
+  }
+  .time {
+    font-size: 0.75em;
+  }
+}
+
+:host([tier='standard']) {
+  .details {
+    height: 26px;
+    padding: 0 8px;
+  }
+  .headline {
+    height: 100%;
+  }
+  .label {
+    font-size: 0.86em;
+  }
+  .time,
+  .row {
+    font-size: 0.79em;
+  }
+}
+
+:host([tier='comfortable']) {
+  .details {
+    padding: 8px 11px 9px;
+  }
+  .label {
+    font-size: 1em;
+  }
+  .time {
+    font-size: 0.93em;
+  }
+  .row {
+    font-size: 0.82em;
+    margin-top: 2px;
+  }
+}
+
+// The largest thumbnail gives the time a column of its own.
+:host([tier='poster']) {
+  .details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    align-items: end;
+    padding: 14px 16px 15px;
+  }
+  .headline {
+    display: contents;
+  }
+  .label-container,
+  .row {
+    grid-column: 1;
+  }
+  .time {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: flex-end;
+    font-size: 1.71em;
+    letter-spacing: -0.03em;
+    line-height: 1;
+
+    .seconds {
+      font-size: 0.63em;
+      opacity: 0.66;
+    }
+  }
+  .label {
+    font-size: 1.14em;
+  }
+  .row {
+    font-size: 0.86em;
+    margin-top: 4px;
+  }
+}
+
+/*****************************************************************************
+ * `hover`: the details are only on screen while the pointer is hovering, so can
+ * afford to cover more of the thumbnail: the two smallest tiers give the label
+ * and the time a line each rather than sharing.
+ *****************************************************************************/
+:host([details-style='hover']) {
+  .details {
+    // `thumbnail.scss` sets this to 1 while the pointer is hovering, so the
+    // details fade in, and slide back down when the pointer leaves.
+    opacity: var(--advanced-camera-card-thumbnail-hovered, 0);
+    transform: translateY(
+      calc(100% * (1 - var(--advanced-camera-card-thumbnail-hovered, 0)))
+    );
+
+    transition:
+      transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.16s ease;
+  }
+
+  // Each line after the first is dimmer than the one above it.
+  .row + .row {
+    margin-top: 0;
+    opacity: 0.55;
+  }
+}
+
+:host([details-style='hover'][tier='compact']),
+:host([details-style='hover'][tier='standard']) {
+  .details {
+    height: auto;
+  }
+  .headline {
+    display: block;
+  }
+}
+
+:host([details-style='hover'][tier='compact']) {
+  .details {
+    padding: 4px 6px;
+  }
+  .label {
+    font-size: 0.79em;
+  }
+}
+
+:host([details-style='hover'][tier='standard']) .details {
+  padding: 6px 8px 7px;
+}
+
+:host([details-style='hover'][tier='comfortable']) {
+  .details {
+    padding: 10px 12px 11px;
+  }
+  .label {
+    font-weight: 700;
+  }
+}
+
+// Fade without sliding, for a user who has asked for less motion.
+@media (prefers-reduced-motion: reduce) {
+  :host([details-style='hover']) .details {
+    transform: none;
+    transition: opacity 0.16s ease;
+  }
+}

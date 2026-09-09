@@ -35,6 +35,7 @@ import {
   callResizeHandler,
   createLitElement,
   ResizeObserverMock,
+  stubMatchMedia,
 } from '../../test-utils';
 
 // @vitest-environment jsdom
@@ -58,6 +59,7 @@ describe('GalleryController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    stubMatchMedia().mockReturnValue({ matches: true });
   });
 
   afterAll(() => {

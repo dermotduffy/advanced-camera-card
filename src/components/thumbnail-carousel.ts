@@ -179,6 +179,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
         ? seekTarget
         : undefined}
       .detailsStyle=${this._getResolvedThumbnailDetailsStyle() ?? undefined}
+      .size=${this.config?.size}
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}
       ?show_download_control=${this.config?.show_download_control}

@@ -38,7 +38,7 @@ async function executeControlAction(
 
 describe('MediaNotificationController', () => {
   describe('should set heading', () => {
-    it('should set heading on event with what, tags and score', () => {
+    it('should leave the tags out of an event heading', () => {
       const item = new TestViewMedia({
         what: ['person', 'car'],
         tags: ['tag1', 'tag2'],
@@ -47,17 +47,20 @@ describe('MediaNotificationController', () => {
 
       const controller = new MediaNotificationController();
       controller.calculate(null, item);
-      expect(controller.getHeading()?.text).toBe('Person, Car: Tag1, Tag2 50.00%');
+      expect(controller.getHeading()?.text).toBe('Person, Car 50%');
     });
 
-    it('should set heading on event with tags', () => {
+    it('should set no heading on event with only tags, which get a row instead', () => {
       const item = new TestViewMedia({
         tags: ['tag1', 'tag2'],
       });
 
       const controller = new MediaNotificationController();
       controller.calculate(null, item);
-      expect(controller.getHeading()?.text).toBe('Tag1, Tag2');
+      expect(controller.getHeading()).toBeNull();
+      expect(controller.getMetadata()).toContainEqual(
+        expect.objectContaining({ text: 'Tag1, Tag2' }),
+      );
     });
 
     it('should set heading on event with what', () => {
@@ -119,50 +122,18 @@ describe('MediaNotificationController', () => {
   });
 
   describe('should set details', () => {
-    describe('should have title in details', () => {
-      it('should have icon with title when there are other details', () => {
-        const item = new TestViewMedia({
-          title: 'Test Event',
-          where: ['where1', 'where2'],
-        });
-
-        const controller = new MediaNotificationController();
-        controller.calculate(null, item);
-        expect(controller.getMetadata()).toContainEqual({
-          text: 'Test Event',
-          icon: 'mdi:rename',
-          tooltip: 'Title',
-        });
+    it('should headline media with its title when nothing shorter names it', () => {
+      const item = new TestViewMedia({
+        cameraID: null,
+        title: 'Test Event',
       });
 
-      it('should not have icon with title when there are no other details', () => {
-        const item = new TestViewMedia({
-          title: 'Test Event',
-        });
-
-        const controller = new MediaNotificationController();
-        controller.calculate(null, item);
-        expect(controller.getMetadata()).toEqual([
-          {
-            text: 'Test Event',
-          },
-        ]);
-      });
-
-      it('should not have title with a start time', () => {
-        const item = new TestViewMedia({
-          title: 'Test Event',
-          startTime: new Date('2025-05-22T21:12:00Z'),
-        });
-
-        const controller = new MediaNotificationController();
-        controller.calculate(null, item);
-        expect(controller.getMetadata()).not.toContainEqual(
-          expect.objectContaining({
-            text: 'Test Event',
-          }),
-        );
-      });
+      const controller = new MediaNotificationController();
+      controller.calculate(null, item);
+      expect(controller.getHeading()?.text).toBe('Test Event');
+      expect(controller.getMetadata()).not.toContainEqual(
+        expect.objectContaining({ text: 'Test Event' }),
+      );
     });
 
     it('should have start time in details', () => {
@@ -361,9 +332,7 @@ describe('MediaNotificationController', () => {
 
       const notification = controller.getNotification();
       expect(notification.heading?.text).toBe('Person');
-      expect(notification.metadata).toContainEqual({
-        text: 'Test Title',
-      });
+      expect(notification.metadata).toEqual([]);
       expect(notification.body).toEqual({ text: 'Test Description' });
     });
 

@@ -6,11 +6,13 @@ import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style.js';
+import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
 import type { ViewItem } from '../../view/item.js';
 
 import './details-panel.js';
+import './details-overlay.js';
 import './feature/feature.js';
 import './feature/thumbnail.js';
 
@@ -42,6 +44,9 @@ export class AdvancedCameraCardThumbnail extends LitElement {
 
   @property({ attribute: 'details-style', reflect: true })
   public detailsStyle?: ResolvedThumbnailDetailsStyle;
+
+  @property({ attribute: false })
+  public size: number = THUMBNAIL_SIZE_DEFAULT;
 
   @property({ attribute: true, type: Boolean })
   public show_favorite_control = false;
@@ -93,6 +98,14 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .filterFavorite=${this.filterFavorite}
       >
       </advanced-camera-card-thumbnail-feature>
+      ${this.detailsStyle === 'overlay' || this.detailsStyle === 'hover'
+        ? html`<advanced-camera-card-thumbnail-details-overlay
+            .cameraManager=${this.cameraManager}
+            .item=${this.item}
+            .detailsStyle=${this.detailsStyle}
+            .size=${this.size}
+          ></advanced-camera-card-thumbnail-details-overlay>`
+        : ''}
       ${this.detailsStyle === 'panel'
         ? html`<advanced-camera-card-thumbnail-details-panel
             .hass=${this.hass}

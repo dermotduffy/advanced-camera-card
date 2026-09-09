@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   resolveThumbnailDetailsStyle,
@@ -8,6 +8,7 @@ import {
   thumbnailsControlBaseDefaults,
   type ThumbnailsControlBaseConfig,
 } from '../../../src/config/schema/common/controls/thumbnails';
+import { stubMatchMedia } from '../../test-utils';
 
 const createConfig = (
   config?: Partial<ThumbnailsControlBaseConfig>,
@@ -23,7 +24,12 @@ const createContext = (
   ...context,
 });
 
+// @vitest-environment jsdom
 describe('resolveThumbnailDetailsStyle', () => {
+  beforeEach(() => {
+    stubMatchMedia().mockReturnValue({ matches: true });
+  });
+
   it.each([
     ['none' as const],
     ['overlay' as const],
@@ -38,8 +44,19 @@ describe('resolveThumbnailDetailsStyle', () => {
     ).toBe(detailsStyle);
   });
 
+  it('should overlay rather than reveal on a device with no pointer', () => {
+    stubMatchMedia().mockReturnValue({ matches: false });
+
+    expect(
+      resolveThumbnailDetailsStyle(
+        createConfig({ details_style: 'hover' }),
+        createContext(),
+      ),
+    ).toBe('overlay');
+  });
+
   describe('auto', () => {
-    it('should use a strip when there is no room for a panel', () => {
+    it('should use an overlay when there is no room for a panel', () => {
       expect(
         resolveThumbnailDetailsStyle(
           createConfig({ details_style: 'auto', size: 100 }),
@@ -93,7 +110,7 @@ describe('resolveThumbnailDetailsStyle', () => {
       ).toBe('hover');
     });
 
-    it('should keep a strip on small grid thumbnails', () => {
+    it('should keep an overlay on small grid thumbnails', () => {
       expect(
         resolveThumbnailDetailsStyle(
           createConfig({ details_style: 'auto', size: 199 }),

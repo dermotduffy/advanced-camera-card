@@ -2,6 +2,7 @@ import type {
   ThumbnailDetailsStyle,
   ThumbnailsControlBaseConfig,
 } from '../../config/schema/common/controls/thumbnails';
+import { isHoverableDevice } from '../../utils/basic';
 
 export type ResolvedThumbnailDetailsStyle = Exclude<ThumbnailDetailsStyle, 'auto'>;
 
@@ -20,14 +21,10 @@ const DETAILS_PANEL_WIDTH_ALLOWANCE = 200;
 // The smallest grid thumbnail that reveals its details on hover.
 const HOVER_SIZE_MIN = 200;
 
-export const resolveThumbnailDetailsStyle = (
+const resolveAutoThumbnailDetailsStyle = (
   config: ThumbnailsControlBaseConfig,
   context: ThumbnailDetailsStyleContext,
 ): ResolvedThumbnailDetailsStyle => {
-  if (config.details_style !== 'auto') {
-    return config.details_style;
-  }
-
   if (
     context.availableWidth !== undefined &&
     context.availableWidth < config.size + DETAILS_PANEL_WIDTH_ALLOWANCE
@@ -58,4 +55,16 @@ export const resolveThumbnailDetailsStyle = (
   // until there's a hover. A smaller thumbnail is hard to identify without the
   // details, so overlay them.
   return config.size >= HOVER_SIZE_MIN ? 'hover' : 'overlay';
+};
+
+export const resolveThumbnailDetailsStyle = (
+  config: ThumbnailsControlBaseConfig,
+  context: ThumbnailDetailsStyleContext,
+): ResolvedThumbnailDetailsStyle => {
+  const style =
+    config.details_style === 'auto'
+      ? resolveAutoThumbnailDetailsStyle(config, context)
+      : config.details_style;
+
+  return style === 'hover' && !isHoverableDevice() ? 'overlay' : style;
 };
