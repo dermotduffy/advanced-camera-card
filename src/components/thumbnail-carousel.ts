@@ -165,6 +165,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     };
 
     return html` <advanced-camera-card-thumbnail
+      clickable
       class="${classMap(classes)}"
       .cameraManager=${this.cameraManager}
       .hass=${this.hass}

@@ -104,12 +104,12 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     // need to show both reviewed/unreviewed.
     const card = await mountCardWithReview('all');
 
-    expect(getReviewControl(card).classList.contains('reviewed')).toBe(false);
+    expect(getReviewControl(card).classList.contains('active')).toBe(false);
 
     await clickElement(getReviewControl(card));
 
     await card.waitForRender(
-      () => (getReviewControl(card).classList.contains('reviewed') ? true : null),
+      () => (getReviewControl(card).classList.contains('active') ? true : null),
       'a reviewed review control',
     );
   });

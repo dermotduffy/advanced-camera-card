@@ -13,11 +13,13 @@
   isolation: isolate;
   overflow: hidden;
 
-  transition: transform 0.2s linear;
-
   // As the overlay doesn't take pointer events, it cannot itself determine if
-  // it's being hovered over.
+  // it's being hovered over. Read by `thumbnail-details-overlay.scss` and
+  // `thumbnail-controls.scss`.
   --advanced-camera-card-thumbnail-hovered: 0;
+
+  // Applied to the image by `thumbnail-feature.scss`.
+  --advanced-camera-card-thumbnail-media-filter: none;
 }
 
 :host(:not([details-style='panel'])) {
@@ -38,9 +40,20 @@
 }
 
 :host(:hover) {
-  transform: scale(1.04);
-
   --advanced-camera-card-thumbnail-hovered: 1;
+  --advanced-camera-card-thumbnail-media-filter: brightness(1.13) contrast(1.05);
+}
+
+// The focus ring is two stacked shadows: 2px of the color behind the
+// thumbnail, then 2px of the focus color outside that. The first is a spacer,
+// so the ring never touches the image and stays visible on a light or busy
+// photo. The browser's own outline is turned off because a selected thumbnail
+// already draws one.
+:host(:focus-visible) {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--advanced-camera-card-exterior),
+    0 0 0 4px var(--advanced-camera-card-thumbnail-focus-color);
 }
 
 // A flex item will not shrink narrower than its own text unless `min-width` is

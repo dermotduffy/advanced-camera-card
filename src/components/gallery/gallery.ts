@@ -115,6 +115,7 @@ export class AdvancedCameraCardGallery extends LitElement {
     }
 
     return html`<advanced-camera-card-thumbnail
+      clickable
       .hass=${this.hass}
       .item=${this._upFolderItem}
       .viewManagerEpoch=${this.viewManagerEpoch}
@@ -136,6 +137,7 @@ export class AdvancedCameraCardGallery extends LitElement {
       ${this._controller.getItems()?.map(
         (item) =>
           html`<advanced-camera-card-thumbnail
+            clickable
             class=${classMap({
               selected: item === selected,
             })}

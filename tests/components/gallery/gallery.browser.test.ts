@@ -7,7 +7,7 @@ import {
   FRONT_DOOR_FOLDER_CONTENT_ID,
   registerFrontDoorFolder,
 } from '../../browser/browse-media';
-import { deepQuery } from '../../browser/dom';
+import { deepQuery, pressKey } from '../../browser/dom';
 import {
   createFrigateCameraDescription,
   createTestFrigateEvent,
@@ -168,6 +168,34 @@ describe('AdvancedCameraCardGallery', () => {
 
     expect(getMediaViewerMediaURLs(card.card)).toEqual([
       expect.stringContaining('clip.webm?event=older'),
+    ]);
+  });
+
+  it('should have tab stopped thumbnails', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    await waitForThumbnails(card, 1);
+
+    const thumbnail = getThumbnails(card.card)[0];
+    expect(thumbnail.getAttribute('tabindex')).toBe('0');
+    expect(thumbnail.getAttribute('role')).toBe('button');
+    expect(thumbnail.getAttribute('aria-label')).not.toBe('');
+  });
+
+  it.each([
+    { name: 'Enter', key: 'Enter' },
+    { name: 'Space', key: ' ' },
+  ])('should open the media with keypress: $name', async ({ key }) => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    await waitForThumbnails(card, 1);
+
+    getThumbnails(card.card)[0].focus();
+    await pressKey(key);
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+
+    await card.waitForSelector('advanced-camera-card-viewer-carousel');
+
+    expect(getMediaViewerMediaURLs(card.card)).toEqual([
+      expect.stringContaining('clip.webm?event=newer'),
     ]);
   });
 

@@ -1,4 +1,11 @@
-import { html, LitElement, unsafeCSS, type CSSResult, type TemplateResult } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResult,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
@@ -11,8 +18,8 @@ import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
 import type { ViewItem } from '../../view/item.js';
 
-import './details-panel.js';
 import './details-overlay.js';
+import './details-panel.js';
 import './feature/feature.js';
 import './feature/thumbnail.js';
 
@@ -72,6 +79,36 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   @property({ attribute: false })
   public seek?: Date;
 
+  @property({ attribute: true, type: Boolean })
+  public clickable = false;
+
+  constructor() {
+    super();
+    this.addEventListener('keydown', (ev: KeyboardEvent) => this._keydown(ev));
+  }
+
+  private _keydown(ev: KeyboardEvent): void {
+    if (this.clickable && (ev.key === 'Enter' || ev.key === ' ')) {
+      // Space would otherwise scroll the page.
+      ev.preventDefault();
+      this.click();
+    }
+  }
+
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (changedProperties.has('clickable') || changedProperties.has('item')) {
+      if (this.clickable) {
+        this.setAttribute('tabindex', '0');
+        this.setAttribute('role', 'button');
+        this.setAttribute('aria-label', this.item?.getTitle() ?? '');
+      } else {
+        this.removeAttribute('tabindex');
+        this.removeAttribute('role');
+        this.removeAttribute('aria-label');
+      }
+    }
+  }
+
   /**
    * Render the element.
    * @returns A template to display to the user.
@@ -87,6 +124,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .detailsStyle=${this.detailsStyle}
         .hass=${this.hass}
         .item=${this.item}
+        .size=${this.size}
         .viewItemManager=${this.viewItemManager}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .show_favorite_control=${this.show_favorite_control}

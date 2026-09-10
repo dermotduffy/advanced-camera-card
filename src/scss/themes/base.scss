@@ -202,6 +202,12 @@
   --advanced-camera-card-thumbnail-border-color: var(
     --advanced-camera-card-foreground-primary
   );
+  --advanced-camera-card-thumbnail-selected-color: var(
+    --advanced-camera-card-active-color
+  );
+  --advanced-camera-card-thumbnail-focus-color: var(
+    --advanced-camera-card-foreground-primary
+  );
   --advanced-camera-card-thumbnail-background: var(--advanced-camera-card-background);
   --advanced-camera-card-thumbnail-icon-favorite-color: var(
     --advanced-camera-card-favorite-color
