@@ -99,15 +99,15 @@ describe('AdvancedCameraCardThumbnailDetailsPanel', () => {
     );
   });
 
-  it('should size each icon to match the text beside it', async () => {
+  it('should give every row the same icon width, so the text lines up', async () => {
     const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_DEFAULT);
-    const row = getMetadataRow(getDetails(card));
+    const details = getDetails(card);
 
-    const icon = deepQuery(row, 'advanced-camera-card-icon');
+    const icon = deepQuery(getMetadataRow(details), 'advanced-camera-card-icon');
     assert(icon);
 
     expect(parseFloat(getComputedStyle(icon).width)).toBeCloseTo(
-      getFontSize(row),
+      getFontSize(getHeading(details)),
       PIXEL_PRECISION,
     );
   });

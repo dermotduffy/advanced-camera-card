@@ -98,6 +98,9 @@ export const tabUntil = async (
 export const clickElement = async (element: Element): Promise<void> =>
   await userEvent.click(element);
 
+export const hoverElement = async (element: Element): Promise<void> =>
+  await userEvent.hover(element);
+
 /**
  * Send a `pointerdown` to an element without moving a real pointer, so the page
  * stays scrolled where the test left it: `clickElement` scrolls its target into

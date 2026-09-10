@@ -7,7 +7,7 @@ import {
   FRONT_DOOR_FOLDER_CONTENT_ID,
   registerFrontDoorFolder,
 } from '../../browser/browse-media';
-import { deepQuery, pressKey } from '../../browser/dom';
+import { deepQuery, hoverElement, pressKey } from '../../browser/dom';
 import {
   createFrigateCameraDescription,
   createTestFrigateEvent,
@@ -197,6 +197,43 @@ describe('AdvancedCameraCardGallery', () => {
     expect(getMediaViewerMediaURLs(card.card)).toEqual([
       expect.stringContaining('clip.webm?event=newer'),
     ]);
+  });
+
+  it('should brighten the media on hover without moving the thumbnail', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    await waitForThumbnails(card, 1);
+
+    const thumbnail = getThumbnails(card.card)[0];
+    await hoverElement(thumbnail);
+
+    const media = deepQuery(thumbnail, '.media');
+    assert(media);
+
+    expect(getComputedStyle(media).filter).toContain('brightness');
+  });
+
+  it('should outline the selected thumbnail', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)], {
+      view: { default: 'clips' },
+      menu: { style: 'outside', buttons: { clips: { enabled: true } } },
+    });
+    await waitForThumbnails(card, 1);
+
+    await clickThumbnail(card.card, 0);
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+    await card.clickControl('Clips gallery');
+    await waitForThumbnails(card, 1);
+
+    const thumbnail = await card.waitForRender(
+      () =>
+        getThumbnails(card.card).find((one) => one.classList.contains('selected')) ??
+        null,
+      'the selected thumbnail',
+    );
+
+    const style = getComputedStyle(thumbnail);
+    expect(style.outlineStyle).toBe('solid');
+    expect(style.outlineWidth).toBe('2px');
   });
 
   it('should show the media filter', async () => {

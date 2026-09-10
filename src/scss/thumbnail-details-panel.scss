@@ -7,7 +7,8 @@
   min-height: 0px;
   max-height: var(--advanced-camera-card-thumbnail-size);
 
-  margin-left: 5px;
+  // The thumbnail has no padding of its own, so the text is inset from it/
+  margin: 0 5px;
 
   color: var(--advanced-camera-card-thumbnail-text-color);
 
@@ -21,6 +22,8 @@
   // Pin the line height the rows inherit, so a Home Assistant change cannot
   // alter how many details fit in the panel.
   line-height: normal;
+
+  --mdc-icon-size: var(--ha-font-size-m, 14px);
 }
 
 div {
@@ -29,10 +32,6 @@ div {
   display: flex;
   align-items: center;
   gap: 5px;
-
-  // Icons match the text on their own row, so this belongs on the rows rather
-  // than on `:host`.
-  --mdc-icon-size: 1em;
 
   &:not(.heading) {
     font-size: 0.8em;
@@ -78,8 +77,11 @@ div {
 // Chip that opens the "info" notification.
 ha-assist-chip.more {
   align-self: flex-start;
-  margin-top: auto;
   cursor: pointer;
+
+  // Pushed to the bottom of the panel, and held off the border below it.
+  margin-top: auto;
+  margin-bottom: 5px;
 
   --md-assist-chip-container-height: 22px;
   --md-assist-chip-label-text-size: 0.75em;

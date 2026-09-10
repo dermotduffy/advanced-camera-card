@@ -13,6 +13,8 @@
   // Hide scrollbar: Firefox
   scrollbar-width: none;
 
+  background-color: var(--advanced-camera-card-gallery-background);
+
   --advanced-camera-card-gallery-gap: 3px;
   --advanced-camera-card-gallery-columns: 4;
 }

@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
-  gap: 2px;
 
   // Position control icons relative to the thumbnail, and `isolation: isolate`
   // to keep their `z-index` scoped here. Without a stacking context an
@@ -29,10 +28,6 @@
 :host([details-style='panel']) {
   border: 1px solid var(--advanced-camera-card-thumbnail-border-color);
   border-radius: var(--advanced-camera-card-border-radius-final);
-  padding: 2px;
-
-  // Additional padding on the right to match the gap specified above.
-  padding-right: 4px;
 
   // When details are enabled, use a background color so that the details have
   // contrast with the background.

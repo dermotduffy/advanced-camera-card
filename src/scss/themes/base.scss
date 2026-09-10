@@ -208,6 +208,14 @@
   --advanced-camera-card-thumbnail-focus-color: var(
     --advanced-camera-card-foreground-primary
   );
+
+  // The surface the thumbnails sit on.
+  --advanced-camera-card-gallery-background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-background),
+    var(--advanced-camera-card-text-color) 6%
+  );
+
   --advanced-camera-card-thumbnail-background: var(--advanced-camera-card-background);
   --advanced-camera-card-thumbnail-icon-favorite-color: var(
     --advanced-camera-card-favorite-color
