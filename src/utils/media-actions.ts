@@ -125,8 +125,8 @@ export function showMediaInfoNotification(
   context: NotificationControlsContext,
   cameraManager?: CameraManager,
 ): void {
-  const notificationController = new MediaNotificationController();
-  notificationController.calculate(cameraManager, item);
+  const notificationController = new MediaNotificationController(item);
+  notificationController.calculate({ cameraManager });
 
   dispatchActionExecutionRequest(host, {
     actions: [createNotificationAction(notificationController.getNotification(context))],

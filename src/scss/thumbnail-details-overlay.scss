@@ -97,18 +97,61 @@
   font-weight: 500;
 }
 
+:host([review='unreviewed']) .label {
+  font-weight: 700;
+}
+:host([review='reviewed']) .label {
+  font-weight: 400;
+}
+
+// Media still being written to (i.e. recording in progress).
+.in-progress {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.36em;
+  margin-inline-end: auto;
+
+  box-sizing: border-box;
+  height: 1.29em;
+  padding: 0 0.5em;
+  border-radius: 0.64em;
+
+  background: var(--advanced-camera-card-thumbnail-in-progress-background);
+  color: var(--advanced-camera-card-thumbnail-in-progress-color);
+
+  font-size: 0.71em;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+.in-progress-dot {
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: currentcolor;
+
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
 .time {
   flex: none;
   font-family: var(--ha-font-family-code, ui-monospace, monospace);
 }
 
-.row {
+.detail {
   opacity: 0.7;
 }
 
 .corner-label,
 .label,
-.row,
+.detail,
 .time {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -116,7 +159,7 @@
 }
 
 /*****************************************************************************
- * Tiers. A bigger thumbnail shows more rows with more space around them. The
+ * Tiers. A bigger thumbnail shows more details with more space around them. The
  * text size never changes.
  *****************************************************************************/
 
@@ -127,13 +170,16 @@
   }
   .headline {
     height: 100%;
-    justify-content: flex-end;
   }
   .label {
     font-size: 0.79em;
   }
   .time {
     font-size: 0.75em;
+
+    // Absorbs the space before the time, moving it to the trailing edge.
+    // Without this `space-between` leaves it leading, as it is the only child.
+    margin-inline-start: auto;
   }
 }
 
@@ -149,7 +195,7 @@
     font-size: 0.86em;
   }
   .time,
-  .row {
+  .detail {
     font-size: 0.79em;
   }
 }
@@ -164,7 +210,7 @@
   .time {
     font-size: 0.93em;
   }
-  .row {
+  .detail {
     font-size: 0.82em;
     margin-top: 2px;
   }
@@ -183,7 +229,7 @@
     display: contents;
   }
   .label-container,
-  .row {
+  .detail {
     grid-column: 1;
   }
   .time {
@@ -202,7 +248,7 @@
   .label {
     font-size: 1.14em;
   }
-  .row {
+  .detail {
     font-size: 0.86em;
     margin-top: 4px;
   }
@@ -227,8 +273,8 @@
       opacity 0.16s ease;
   }
 
-  // Every row after the first is dimmer than the first.
-  .row + .row {
+  // Every detail after the first is dimmer than the first.
+  .detail + .detail {
     margin-top: 0;
     opacity: 0.55;
   }
@@ -257,13 +303,8 @@
   padding: 6px 8px 7px;
 }
 
-:host([hover][tier='comfortable']) {
-  .details {
-    padding: 10px 12px 11px;
-  }
-  .label {
-    font-weight: 700;
-  }
+:host([hover][tier='comfortable']) .details {
+  padding: 10px 12px 11px;
 }
 
 // Fade without sliding, for a user who has asked for less motion.
@@ -271,5 +312,9 @@
   :host([hover]) .details {
     transform: none;
     transition: opacity 0.16s ease;
+  }
+
+  .in-progress-dot {
+    animation: none;
   }
 }

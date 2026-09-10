@@ -13,8 +13,8 @@ export class InfoAction extends AdvancedCameraCardAction<GeneralActionConfig> {
       return;
     }
 
-    const notificationController = new MediaNotificationController();
-    notificationController.calculate(api.getCameraManager(), item);
+    const notificationController = new MediaNotificationController(item);
+    notificationController.calculate({ cameraManager: api.getCameraManager() });
 
     api.getNotificationManager().setNotification(
       notificationController.getNotification({

@@ -42,6 +42,12 @@ div {
     font-weight: bold;
   }
 
+  // The time the user is seeking to (not directly related to the media so
+  // colored differently).
+  &.seek {
+    color: var(--primary-color);
+  }
+
   span {
     overflow: hidden;
     text-overflow: ellipsis;

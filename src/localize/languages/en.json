@@ -980,6 +980,7 @@
     "camera": "Camera",
     "download": "Download media",
     "duration": "Duration",
+    "in_progress": "REC",
     "more_details": "+{count} details",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Retain media indefinitely",

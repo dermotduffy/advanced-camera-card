@@ -17,7 +17,17 @@ import {
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../view/types';
-import { getMediaDetails, getMediaHeading, type MediaDetail } from './detail';
+import {
+  getMediaDetails,
+  getMediaHeading,
+  getMediaSeekDetail,
+  type MediaDetail,
+} from './detail';
+
+export interface MediaNotificationOptions {
+  cameraManager?: CameraManager;
+  seek?: Date;
+}
 
 export interface NotificationControlsContext {
   hass?: HomeAssistant;
@@ -32,15 +42,24 @@ export interface NotificationControlsContext {
 }
 
 export class MediaNotificationController {
+  private _item: ViewItem;
   private _metadata: MediaDetail[] = [];
   private _heading: MediaDetail | null = null;
-  private _item: ViewItem | null = null;
 
-  public calculate(cameraManager?: CameraManager, item?: ViewItem, seek?: Date): void {
-    this._item = item ?? null;
+  constructor(item: ViewItem) {
+    this._item = item;
+  }
 
-    this._heading = getMediaHeading(cameraManager, item);
-    this._metadata = getMediaDetails(cameraManager, item, seek);
+  public calculate(options?: MediaNotificationOptions): void {
+    const detailOptions = { cameraManager: options?.cameraManager, item: this._item };
+
+    this._heading = getMediaHeading(detailOptions);
+
+    const seekDetail = getMediaSeekDetail(options?.seek);
+    this._metadata = [
+      ...getMediaDetails(detailOptions),
+      ...(seekDetail ? [seekDetail] : []),
+    ];
   }
 
   public getNotification(context?: NotificationControlsContext): InternalNotification {
@@ -61,10 +80,6 @@ export class MediaNotificationController {
   ): InternalNotificationControl[] {
     const controls: InternalNotificationControl[] = [];
     const item = this._item;
-
-    if (!item) {
-      return controls;
-    }
 
     if (ViewItemClassifier.isReview(item)) {
       const isReviewed = item.isReviewed();

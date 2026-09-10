@@ -6,8 +6,11 @@ import type { CameraManager } from '../../camera-manager/manager';
 import { ThumbnailDetailsOverlayController } from '../../components-lib/thumbnail/details-overlay/controller';
 import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style';
 import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails';
+import { localize } from '../../localize/localize';
 import thumbnailDetailsOverlayStyle from '../../scss/thumbnail-details-overlay.scss?inline';
 import type { ViewItem } from '../../view/item';
+
+import '../icon.js';
 
 @customElement('advanced-camera-card-thumbnail-details-overlay')
 export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
@@ -26,22 +29,30 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
   private _controller = new ThumbnailDetailsOverlayController();
 
   protected willUpdate(): void {
-    this._controller.calculate(
-      this.cameraManager,
-      this.item,
-      this.detailsStyle,
-      this.size,
-    );
+    this._controller.calculate({
+      cameraManager: this.cameraManager,
+      item: this.item,
+      detailsStyle: this.detailsStyle,
+      size: this.size,
+    });
     this.setAttribute('tier', this._controller.getTier());
     this.toggleAttribute('hover', this._controller.isHover());
+
+    const reviewState = this._controller.getReviewState();
+    if (reviewState) {
+      this.setAttribute('review', reviewState);
+    } else {
+      this.removeAttribute('review');
+    }
   }
 
   protected render(): TemplateResult {
     const cornerLabel = this._controller.getCornerLabel();
     const headlineLabel = this._controller.getHeadlineLabel();
     const time = this._controller.getTime();
-    const rows = this._controller.getRows();
+    const details = this._controller.getDetails();
     const severity = this._controller.getSeverity();
+    const isInProgress = this._controller.isInProgress();
 
     // A time reads left to right even where the language around it does not.
     const renderTime = (): TemplateResult =>
@@ -55,20 +66,27 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
       ${cornerLabel
         ? html`<span class="corner-label" title=${cornerLabel}>${cornerLabel}</span>`
         : ''}
-      ${headlineLabel || time || rows.length
+      ${headlineLabel || time || details.length || isInProgress
         ? html`<div class="details" severity=${ifDefined(severity ?? undefined)}>
             <div class="headline">
-              ${headlineLabel
-                ? html`<span class="label-container"
-                    >${severity ? html`<span class="dot"></span>` : ''}
-                    <span class="label" title=${headlineLabel}
-                      >${headlineLabel}</span
-                    ></span
+              ${isInProgress
+                ? html`<span class="in-progress" title=${localize('common.in_progress')}
+                    ><span class="in-progress-dot"></span>${localize(
+                      'thumbnail.in_progress',
+                    )}</span
                   >`
+                : ''}
+              ${headlineLabel
+                ? html`<span class="label-container">
+                    ${severity ? html`<span class="dot"></span>` : ''}
+                    <span class="label" title=${headlineLabel}>${headlineLabel}</span>
+                  </span>`
                 : ''}
               ${time ? renderTime() : ''}
             </div>
-            ${rows.map((row) => html`<div class="row" title=${row}>${row}</div>`)}
+            ${details.map(
+              (detail) => html`<div class="detail" title=${detail}>${detail}</div>`,
+            )}
           </div>`
         : ''}
     `;

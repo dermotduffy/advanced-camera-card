@@ -8,6 +8,7 @@ import type { ViewManager } from '../../src/card-controller/view/view-manager';
 import {
   downloadMedia,
   navigateToTimeline,
+  showMediaInfoNotification,
   toggleFavorite,
   toggleReviewed,
 } from '../../src/utils/media-actions';
@@ -319,6 +320,32 @@ describe('MediaActions', () => {
       expect(consoleSpy).toHaveBeenCalledWith(error.message);
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('showMediaInfo', () => {
+    it('should dispatch an action to open a notification', () => {
+      const host = mock<HTMLElement>();
+      const item = new TestViewMedia({
+        mediaType: ViewMediaType.Clip,
+        what: ['person'],
+      });
+
+      showMediaInfoNotification(host, item, {});
+
+      expect(host.dispatchEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({
+            actions: [
+              expect.objectContaining({
+                notification: expect.objectContaining({
+                  heading: expect.objectContaining({ text: 'Person' }),
+                }),
+              }),
+            ],
+          }),
+        }),
+      );
     });
   });
 

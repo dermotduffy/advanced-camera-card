@@ -21,22 +21,24 @@ export interface MediaDetail {
   severity?: Severity;
 }
 
+export interface MediaDetailOptions {
+  cameraManager?: CameraManager;
+  item?: ViewItem;
+}
+
 /**
- * @param cameraManager The camera manager, for media that names only its camera.
- * @param item The item.
+ * @param options The item, and the camera manager for media that names only its
+ * camera.
  * @returns The item heading or `null` if there is none.
  */
-export const getMediaHeading = (
-  cameraManager?: CameraManager,
-  item?: ViewItem,
-): MediaDetail | null => {
-  const label = getMediaLabel(cameraManager, item);
+export const getMediaHeading = (options: MediaDetailOptions): MediaDetail | null => {
+  const label = getMediaLabel(options.cameraManager, options.item);
   if (!label) {
     return null;
   }
 
-  if (ViewItemClassifier.isReview(item)) {
-    const severity = item.getSeverity();
+  if (ViewItemClassifier.isReview(options.item)) {
+    const severity = options.item.getSeverity();
     return {
       text: label,
       severity: severity ?? undefined,
@@ -53,18 +55,14 @@ const toDetails = (text: string | null, icon: string, tooltip: string): MediaDet
   text ? [{ text, icon, tooltip }] : [];
 
 /**
- * @param cameraManager The camera manager, for the camera title.
- * @param item The item.
- * @param seek The time under the cursor while the user drags the timeline.
+ * @param options The item, and the camera manager for the camera title.
  * @returns Everything known about the item beyond its heading, in display
  * order.
  */
-export const getMediaDetails = (
-  cameraManager?: CameraManager,
-  item?: ViewItem,
-  seek?: Date,
-): MediaDetail[] => {
-  const startTime = ViewItemClassifier.isMedia(item) ? item.getStartTime() : null;
+export const getMediaDetails = (options: MediaDetailOptions): MediaDetail[] => {
+  const startTime = ViewItemClassifier.isMedia(options.item)
+    ? options.item.getStartTime()
+    : null;
 
   return [
     ...toDetails(
@@ -73,25 +71,29 @@ export const getMediaDetails = (
       localize('thumbnail.start'),
     ),
     ...toDetails(
-      getMediaDuration(item),
+      getMediaDuration(options.item),
       'mdi:clock-outline',
       localize('thumbnail.duration'),
     ),
     ...toDetails(
-      getMediaCameraTitle(cameraManager, item),
+      getMediaCameraTitle(options.cameraManager, options.item),
       'mdi:cctv',
       localize('thumbnail.camera'),
     ),
     ...toDetails(
-      getMediaWhere(item),
+      getMediaWhere(options.item),
       'mdi:map-marker-outline',
       localize('thumbnail.where'),
     ),
-    ...toDetails(getMediaTags(item), 'mdi:tag', localize('thumbnail.tag')),
-    ...toDetails(
-      seek ? format(seek, 'HH:mm:ss') : null,
-      'mdi:clock-fast',
-      localize('thumbnail.seek'),
-    ),
+    ...toDetails(getMediaTags(options.item), 'mdi:tag', localize('thumbnail.tag')),
   ];
 };
+
+export const getMediaSeekDetail = (seek?: Date): MediaDetail | null =>
+  seek
+    ? {
+        text: format(seek, 'HH:mm:ss'),
+        icon: 'mdi:clock-fast',
+        tooltip: localize('thumbnail.seek'),
+      }
+    : null;

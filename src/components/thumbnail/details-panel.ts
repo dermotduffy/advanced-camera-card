@@ -7,7 +7,6 @@ import {
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
 import type { CameraManager } from '../../camera-manager/manager';
@@ -61,13 +60,13 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
         changedProperties.has(prop),
       )
     ) {
-      this._controller.calculate(
-        this.cameraManager,
-        this.item,
-        this.seek,
-        this.size,
-        this.showInfoControl,
-      );
+      this._controller.calculate({
+        cameraManager: this.cameraManager,
+        item: this.item,
+        seek: this.seek,
+        size: this.size,
+        showInfoControl: this.showInfoControl,
+      });
       this.setAttribute('tier', this._controller.getTier());
     }
   }
@@ -94,15 +93,12 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
 
   protected render(): TemplateResult | void {
     const heading = this._controller.getHeading();
-    const rows = this._controller.getRows();
-    const hiddenRowCount = this._controller.getHiddenRowCount();
+    const details = this._controller.getDetails();
+    const seekDetail = this._controller.getSeekDetail();
+    const hiddenDetailCount = this._controller.getHiddenDetailCount();
 
-    const renderDetail = (detail: MediaDetail, heading = false): TemplateResult => {
-      return html`<div
-        class=${classMap({
-          heading,
-        })}
-      >
+    const renderDetail = (detail: MediaDetail, className?: string): TemplateResult => {
+      return html`<div class=${ifDefined(className)}>
         ${detail.icon
           ? html` <advanced-camera-card-icon
               severity=${ifDefined(detail.severity)}
@@ -115,16 +111,17 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
     };
 
     return html`
-      ${heading ? renderDetail(heading, true) : ``}
-      ${rows.map((row) => renderDetail(row))}
-      ${hiddenRowCount
+      ${heading ? renderDetail(heading, 'heading') : ''}
+      ${details.map((detail) => renderDetail(detail))}
+      ${seekDetail ? renderDetail(seekDetail, 'seek') : ''}
+      ${hiddenDetailCount
         ? html`<ha-assist-chip
             class="more"
             filled
             .label=${localize(
               'thumbnail.more_details',
               '{count}',
-              String(hiddenRowCount),
+              String(hiddenDetailCount),
             )}
             @click=${(ev: Event) => this._showInfo(ev)}
           ></ha-assist-chip>`

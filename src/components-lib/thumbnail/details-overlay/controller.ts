@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
 
 import type { CameraManager } from '../../../camera-manager/manager';
-import { THUMBNAIL_SIZE_DEFAULT } from '../../../config/schema/common/controls/thumbnails';
 import type { Severity } from '../../../severity';
 import { isTruthy } from '../../../utils/basic';
 import type { ViewItem } from '../../../view/item';
@@ -10,12 +9,23 @@ import {
   getMediaCameraTitle,
   getMediaDuration,
   getMediaLabel,
+  getMediaSeverity,
   getMediaTags,
   getMediaWhere,
+  isMediaReviewed,
 } from '../../media/format';
 import { isIdentifiedByThumbnail } from '../is-identified-by-thumbnail';
 import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
 import { getThumbnailTier, type ThumbnailTier } from '../tier';
+
+export type ThumbnailReviewState = 'reviewed' | 'unreviewed';
+
+export interface ThumbnailDetailsOverlayOptions {
+  cameraManager?: CameraManager;
+  item?: ViewItem;
+  detailsStyle?: ResolvedThumbnailDetailsStyle;
+  size?: number;
+}
 
 interface ThumbnailDetailsOverlayTime {
   hoursMinutes: string;
@@ -35,6 +45,8 @@ export class ThumbnailDetailsOverlayController {
   private _isHover = false;
 
   private _label: string | null = null;
+  private _reviewState: ThumbnailReviewState | null = null;
+  private _isInProgress = false;
   private _severity: Severity | null = null;
   private _startTime: Date | null = null;
   private _duration: string | null = null;
@@ -42,20 +54,18 @@ export class ThumbnailDetailsOverlayController {
   private _where: string | null = null;
   private _tags: string | null = null;
 
-  public calculate(
-    cameraManager?: CameraManager,
-    item?: ViewItem,
-    detailsStyle?: ResolvedThumbnailDetailsStyle,
-    size: number = THUMBNAIL_SIZE_DEFAULT,
-  ): void {
-    this._tier = getThumbnailTier(size);
+  public calculate(options: ThumbnailDetailsOverlayOptions): void {
+    this._tier = getThumbnailTier(options.size);
 
     // Hover if that's the configured style and the thumbnail alone is
     // sufficient to identify the distinction between neighboring items.
-    this._isHover = detailsStyle === 'hover' && isIdentifiedByThumbnail(item);
+    this._isHover =
+      options.detailsStyle === 'hover' && isIdentifiedByThumbnail(options.item);
 
-    if (detailsStyle !== 'overlay' && detailsStyle !== 'hover') {
+    if (options.detailsStyle !== 'overlay' && options.detailsStyle !== 'hover') {
       this._label = null;
+      this._reviewState = null;
+      this._isInProgress = false;
       this._severity = null;
       this._startTime = null;
       this._duration = null;
@@ -65,13 +75,21 @@ export class ThumbnailDetailsOverlayController {
       return;
     }
 
-    this._label = getMediaLabel(cameraManager, item);
-    this._severity = ViewItemClassifier.isReview(item) ? item.getSeverity() : null;
-    this._startTime = ViewItemClassifier.isMedia(item) ? item.getStartTime() : null;
-    this._duration = getMediaDuration(item);
-    this._cameraTitle = getMediaCameraTitle(cameraManager, item);
-    this._where = getMediaWhere(item);
-    this._tags = getMediaTags(item);
+    this._label = getMediaLabel(options.cameraManager, options.item);
+    const isReviewed = isMediaReviewed(options.item);
+    this._reviewState =
+      isReviewed === null ? null : isReviewed ? 'reviewed' : 'unreviewed';
+
+    this._isInProgress =
+      ViewItemClassifier.isMedia(options.item) && options.item.inProgress() === true;
+    this._severity = getMediaSeverity(options.item);
+    this._startTime = ViewItemClassifier.isMedia(options.item)
+      ? options.item.getStartTime()
+      : null;
+    this._duration = getMediaDuration(options.item);
+    this._cameraTitle = getMediaCameraTitle(options.cameraManager, options.item);
+    this._where = getMediaWhere(options.item);
+    this._tags = getMediaTags(options.item);
   }
 
   public getTier(): ThumbnailTier {
@@ -84,6 +102,14 @@ export class ThumbnailDetailsOverlayController {
 
   public getSeverity(): Severity | null {
     return this._severity;
+  }
+
+  public getReviewState(): ThumbnailReviewState | null {
+    return this._reviewState;
+  }
+
+  public isInProgress(): boolean {
+    return this._isInProgress;
   }
 
   public getCornerLabel(): string | null {
@@ -115,15 +141,15 @@ export class ThumbnailDetailsOverlayController {
   }
 
   /**
-   * @returns The values below the headline row, one per line, in display order.
+   * @returns The details below the headline, one per line, in display order.
    */
-  public getRows(): string[] {
+  public getDetails(): string[] {
     // Don't repeat data in the overlay.
     const camera = this._cameraTitle === this._label ? null : this._cameraTitle;
 
     // A hover overlay is allowed to carry more data (since it covers the
     // thumbnail temporarily).
-    const rows =
+    const details =
       this._tier === 'poster'
         ? [join(this._duration, camera, this._where), this._tags]
         : this._tier === 'comfortable'
@@ -134,6 +160,6 @@ export class ThumbnailDetailsOverlayController {
             ? [join(this._duration, camera)]
             : [];
 
-    return rows.filter(isTruthy);
+    return details.filter(isTruthy);
   }
 }

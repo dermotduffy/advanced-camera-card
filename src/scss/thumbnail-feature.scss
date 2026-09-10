@@ -21,6 +21,34 @@
   position: relative;
 }
 
+// A review's severity, along the top of the thumbnail. The bar is ranked by
+// height as well as colored, so it still reads at the smallest thumbnail size
+// and for a user who cannot tell the colors apart.
+:host([severity])::before {
+  content: '';
+
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 3;
+}
+:host([severity='high'])::before {
+  height: 4px;
+  background: var(--advanced-camera-card-thumbnail-icon-severity-high-color);
+}
+:host([severity='medium'])::before {
+  height: 3px;
+  background: var(--advanced-camera-card-thumbnail-icon-severity-medium-color);
+}
+:host([severity='low'])::before {
+  height: 2px;
+  background: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
+}
+
+:host([reviewed]) .media {
+  opacity: 0.88;
+}
+
 .media {
   // Relative for thumbnail.
   position: relative;
@@ -49,12 +77,12 @@ advanced-camera-card-thumbnail-feature-thumbnail:not(.placeholder) {
 // can use the full width. Per-image fit (contain vs cover) is handled inside
 // the inner thumbnail/icon.
 //
-// The two size rules look inverted (95% with text, 60% without) because the
+// The two size rules look inverted (95% with text, 40% without) because the
 // percentages are relative to .media, which itself differs by case:
 //   .has-text       → .media is 100% × 50% of tile, so 95% ≈ 47% of tile height
-//   :not(.has-text) → .media is 100% × 100% of tile, so 60% = 60% of tile height
-// Both cases land at roughly half-tile visible; without the no-text shrink the
-// placeholder would fill the entire tile and stop reading as an icon.
+//   :not(.has-text) → .media is 100% × 100% of tile, so 40% = 40% of tile height
+// Without the no-text shrink the placeholder would fill the entire tile and
+// stop reading as an icon.
 advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
 advanced-camera-card-icon.placeholder {
   --mdc-icon-size: 100%;
@@ -66,8 +94,8 @@ advanced-camera-card-icon.placeholder {
 }
 .media:not(.has-text) > advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
 .media:not(.has-text) > advanced-camera-card-icon.placeholder {
-  width: 60%;
-  height: 60%;
+  width: 40%;
+  height: 40%;
 }
 
 advanced-camera-card-icon.background {

@@ -1,5 +1,6 @@
 import type { CameraManager } from '../../camera-manager/manager';
 import { localize } from '../../localize/localize';
+import type { Severity } from '../../severity';
 import { getDurationString, prettifyTitle } from '../../utils/basic';
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
@@ -11,6 +12,12 @@ export const getMediaCameraTitle = (
   const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
   return cameraID ? cameraManager?.getCameraMetadata(cameraID)?.title ?? null : null;
 };
+
+export const isMediaReviewed = (item?: ViewItem): boolean | null =>
+  ViewItemClassifier.isReview(item) ? item.isReviewed() : null;
+
+export const getMediaSeverity = (item?: ViewItem): Severity | null =>
+  ViewItemClassifier.isReview(item) ? item.getSeverity() : null;
 
 export const getMediaTags = (item?: ViewItem): string | null =>
   (ViewItemClassifier.isEvent(item)

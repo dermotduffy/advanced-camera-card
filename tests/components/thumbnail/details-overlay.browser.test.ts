@@ -1,14 +1,25 @@
 import { assert, describe, expect, it } from 'vitest';
 
 import type { ThumbnailDetailsStyle } from '../../../src/config/schema/common/controls/thumbnails';
-import { deepQuery } from '../../browser/dom';
 import {
+  createFrontDoorFolderMedia,
+  FRONT_DOOR_FOLDER_CONTENT_ID,
+  registerFrontDoorFolder,
+} from '../../browser/browse-media';
+import { deepQuery, deepQueryAll } from '../../browser/dom';
+import {
+  createFrigateCameraDescription,
   createTestFrigateEvent,
+  createTestFrigateReview,
   EVENT_TIME_NEWER,
   mountCardWithFrigate,
 } from '../../browser/fake-frigate';
-import type { MountedCard } from '../../browser/mounted-card';
-import { waitForThumbnails } from '../../browser/test-utils';
+import { MountedCardFactory, type MountedCard } from '../../browser/mounted-card';
+import {
+  createCameraHASS,
+  createStillImageCardConfig,
+  waitForThumbnails,
+} from '../../browser/test-utils';
 
 const mountGallery = async (
   detailsStyle: ThumbnailDetailsStyle,
@@ -27,8 +38,64 @@ const mountGallery = async (
   return card;
 };
 
+const mountReviewGallery = async (
+  severity: 'alert' | 'detection',
+): Promise<MountedCard> => {
+  const { card } = await mountCardWithFrigate(
+    [],
+    {
+      view: { default: 'reviews' },
+      media_gallery: {
+        controls: {
+          thumbnails: {
+            details_style: 'overlay',
+            show_review_control: false,
+            show_favorite_control: false,
+          },
+        },
+      },
+    },
+    [createTestFrigateReview('review', EVENT_TIME_NEWER, { severity })],
+  );
+  await waitForThumbnails(card, 1);
+  return card;
+};
+
+const FOLDER_NAME = 'Recordings';
+
+const mountFolderGallery = async (size: number): Promise<MountedCard> => {
+  const hass = createCameraHASS([createFrigateCameraDescription()]);
+
+  registerFrontDoorFolder(hass, [
+    {
+      ...createFrontDoorFolderMedia(FOLDER_NAME, 'directory'),
+      can_play: false,
+      can_expand: true,
+    },
+  ]);
+
+  const card = await MountedCardFactory.createFromSource(
+    createStillImageCardConfig({
+      view: { default: 'folders' },
+      folders: [{ type: 'ha', ha: { path: [{ id: FRONT_DOOR_FOLDER_CONTENT_ID }] } }],
+      media_gallery: {
+        controls: { thumbnails: { size, details_style: 'overlay' } },
+      },
+    }),
+    hass,
+  );
+  await waitForThumbnails(card, 1);
+  return card;
+};
+
 const getOverlay = (card: MountedCard): Element | null =>
   deepQuery(card.card, 'advanced-camera-card-thumbnail-details-overlay');
+
+const getFeature = (card: MountedCard): Element => {
+  const feature = deepQuery(card.card, 'advanced-camera-card-thumbnail-feature');
+  assert(feature);
+  return feature;
+};
 
 describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
   it('should render an overlay for the overlay style', async () => {
@@ -103,6 +170,46 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
     assert(details);
 
     expect(getComputedStyle(details).opacity).toBe('1');
+  });
+
+  describe('the state of the item', () => {
+    it.each([
+      ['alert' as const, '4px'],
+      ['detection' as const, '3px'],
+    ])('should rank a %s with a bar %s tall', async (severity, height) => {
+      const card = await mountReviewGallery(severity);
+
+      expect(getComputedStyle(getFeature(card), '::before').height).toBe(height);
+    });
+
+    it('should show no severity bar on media that cannot be reviewed', async () => {
+      const card = await mountGallery('overlay', 100);
+
+      expect(getFeature(card).hasAttribute('severity')).toBe(false);
+      expect(deepQuery(getOverlay(card) ?? card.card, '.label')).not.toBeNull();
+    });
+  });
+
+  it('should lead with the name of an item that has no time', async () => {
+    const card = await mountFolderGallery(75);
+
+    const overlay = await card.waitForRender(
+      () =>
+        deepQueryAll(card.card, 'advanced-camera-card-thumbnail-details-overlay').find(
+          (candidate) => deepQuery(candidate, '.label')?.textContent === FOLDER_NAME,
+        ) ?? null,
+      'the folder overlay',
+    );
+
+    expect(deepQuery(overlay, '.corner-label')).toBeNull();
+
+    const label = deepQuery(overlay, '.label');
+    const details = deepQuery(overlay, '.details');
+    assert(label && details);
+
+    expect(
+      label.getBoundingClientRect().left - details.getBoundingClientRect().left,
+    ).toBeLessThan(10);
   });
 
   it('should not intercept a click on the media', async () => {

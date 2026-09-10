@@ -39,6 +39,50 @@ img {
   object-fit: contain;
 }
 
+// Shown while the thumbnail is fetched (at the same size to avoid shifting as
+// things load).
+.skeleton {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  border-radius: var(--advanced-camera-card-border-radius-final);
+  background: var(--advanced-camera-card-thumbnail-skeleton-background);
+
+  // Keeps the `::after` gradient inside the rounded corners. An absolutely
+  // positioned child is not clipped by its parent's `border-radius` on its own.
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: '';
+
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--advanced-camera-card-thumbnail-skeleton-shimmer-color),
+    transparent
+  );
+
+  transform: translateX(-100%);
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}
+
 // The bordered frame occupies the same space an image would, with the icon
 // centered at half size within it.
 .icon-container {

@@ -12,6 +12,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import type { CameraManager } from '../../../camera-manager/manager';
 import type { ViewItemManager } from '../../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../../card-controller/view/types';
+import { getMediaSeverity, isMediaReviewed } from '../../../components-lib/media/format';
 import type { NotificationControlsContext } from '../../../components-lib/media/notification-controller';
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
 import type { ResolvedThumbnailDetailsStyle } from '../../../components-lib/thumbnail/resolve-details-style';
@@ -81,8 +82,21 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
         changedProperties.has(prop),
       )
     ) {
-      this._controller.calculate(this.cameraManager, this.item, this.detailsStyle);
+      this._controller.calculate({
+        cameraManager: this.cameraManager,
+        item: this.item,
+        detailsStyle: this.detailsStyle,
+      });
     }
+
+    const severity = getMediaSeverity(this.item);
+    if (severity) {
+      this.setAttribute('severity', severity);
+    } else {
+      this.removeAttribute('severity');
+    }
+
+    this.toggleAttribute('reviewed', isMediaReviewed(this.item) === true);
   }
 
   private _getControlContext(): NotificationControlsContext {

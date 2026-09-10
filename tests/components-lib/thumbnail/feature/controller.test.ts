@@ -1,10 +1,9 @@
 import { format } from 'date-fns';
 import { assert, describe, expect, it } from 'vitest';
-import { mock } from 'vitest-mock-extended';
 
-import type { CameraManager } from '../../../../src/camera-manager/manager';
 import { ThumbnailFeatureController } from '../../../../src/components-lib/thumbnail/feature/controller';
 import { ViewFolder } from '../../../../src/view/item';
+import { createCameraManagerWithMetadata } from '../../../camera-manager/test-utils';
 import { createFolder } from '../../../test-utils';
 import { TestViewMedia } from '../../../view/test-utils';
 
@@ -21,20 +20,23 @@ describe('ThumbnailFeatureController', () => {
     it('should set title with start time ', () => {
       const controller = new ThumbnailFeatureController();
 
-      controller.calculate(null, itemWithTime, 'none');
+      controller.calculate({ item: itemWithTime, detailsStyle: 'none' });
 
       // Use format() to generate expected time in local timezone
       const expectedTime = format(itemStartTime, 'HH:mm');
       expect(controller.getTitle()).toBe(expectedTime);
     });
 
-    it('should not set title when details are shown ', () => {
-      const controller = new ThumbnailFeatureController();
+    it.each([['overlay' as const], ['hover' as const], ['panel' as const]])(
+      'should set no title where the %s presentation names the item',
+      (detailsStyle) => {
+        const controller = new ThumbnailFeatureController();
 
-      controller.calculate(null, itemWithTime, 'panel');
+        controller.calculate({ item: itemWithTime, detailsStyle });
 
-      expect(controller.getTitle()).toBeNull();
-    });
+        expect(controller.getTitle()).toBeNull();
+      },
+    );
 
     it('should not set title on media with a thumbnail', () => {
       const controller = new ThumbnailFeatureController();
@@ -45,7 +47,7 @@ describe('ThumbnailFeatureController', () => {
         thumbnail: 'thumbnail',
       });
 
-      controller.calculate(null, itemWithThumbnail, 'none');
+      controller.calculate({ item: itemWithThumbnail, detailsStyle: 'none' });
 
       expect(controller.getTitle()).toBeNull();
     });
@@ -55,7 +57,7 @@ describe('ThumbnailFeatureController', () => {
     it('should set subtitle with start date ', () => {
       const controller = new ThumbnailFeatureController();
 
-      controller.calculate(null, itemWithTime, 'none');
+      controller.calculate({ item: itemWithTime, detailsStyle: 'none' });
 
       // Use format() to generate expected date string (formats in local time)
       const expectedDate = format(itemStartTime, 'MMM do');
@@ -65,7 +67,7 @@ describe('ThumbnailFeatureController', () => {
     it('should set subtitle with source from item title ', () => {
       const controller = new ThumbnailFeatureController();
 
-      controller.calculate(null, itemWithTime, 'none');
+      controller.calculate({ item: itemWithTime, detailsStyle: 'none' });
 
       expect(controller.getSubtitles()).toContain('Test Event');
     });
@@ -73,8 +75,7 @@ describe('ThumbnailFeatureController', () => {
     it('should set subtitle with source from camera title ', () => {
       const controller = new ThumbnailFeatureController();
 
-      const cameraManager = mock<CameraManager>();
-      cameraManager.getCameraMetadata.mockReturnValue({
+      const cameraManager = createCameraManagerWithMetadata({
         title: 'Camera 1',
         icon: { icon: 'mdi:camera' },
       });
@@ -85,7 +86,11 @@ describe('ThumbnailFeatureController', () => {
         cameraID: 'camera_1',
       });
 
-      controller.calculate(cameraManager, itemWithoutTitle, 'none');
+      controller.calculate({
+        cameraManager,
+        item: itemWithoutTitle,
+        detailsStyle: 'none',
+      });
 
       expect(controller.getSubtitles()).toContain('Camera 1');
     });
@@ -98,7 +103,7 @@ describe('ThumbnailFeatureController', () => {
         cameraID: null,
       });
 
-      controller.calculate(null, item, 'none');
+      controller.calculate({ item: item, detailsStyle: 'none' });
 
       expect(controller.getSubtitles()).toContain('Title');
     });
@@ -112,7 +117,7 @@ describe('ThumbnailFeatureController', () => {
         thumbnail: 'thumbnail',
       });
 
-      controller.calculate(null, itemWithThumbnail, 'none');
+      controller.calculate({ item: itemWithThumbnail, detailsStyle: 'none' });
 
       expect(controller.getSubtitles()).toEqual([]);
     });
@@ -123,7 +128,7 @@ describe('ThumbnailFeatureController', () => {
         title: 'Test Folder',
       });
 
-      controller.calculate(null, itemWithThumbnail, 'none');
+      controller.calculate({ item: itemWithThumbnail, detailsStyle: 'none' });
 
       expect(controller.getSubtitles()).toContain('Test Folder');
     });
@@ -137,7 +142,7 @@ describe('ThumbnailFeatureController', () => {
         icon: 'mdi:cow',
       });
 
-      controller.calculate(null, itemWithThumbnail, 'none');
+      controller.calculate({ item: itemWithThumbnail, detailsStyle: 'none' });
 
       expect(controller.getIcon()).toBe('mdi:cow');
     });
@@ -149,7 +154,7 @@ describe('ThumbnailFeatureController', () => {
         icon: 'mdi:cow',
       });
 
-      controller.calculate(null, itemWithThumbnail, 'none');
+      controller.calculate({ item: itemWithThumbnail, detailsStyle: 'none' });
 
       expect(controller.getIcon()).toBeNull();
     });
@@ -162,7 +167,7 @@ describe('ThumbnailFeatureController', () => {
         thumbnail: 'https://brands.home-assistant.io//amcrest/icon.png',
       });
 
-      controller.calculate(null, itemWithThumbnail, 'none');
+      controller.calculate({ item: itemWithThumbnail, detailsStyle: 'none' });
 
       expect(controller.getThumbnail()).toBe(
         'https://brands.home-assistant.io/brands/_/amcrest/icon.png',
@@ -176,7 +181,7 @@ describe('ThumbnailFeatureController', () => {
         thumbnail: 'https://card.camera/thumbnail.jpg',
       });
 
-      controller.calculate(null, itemWithThumbnail, 'none');
+      controller.calculate({ item: itemWithThumbnail, detailsStyle: 'none' });
 
       expect(controller.getThumbnail()).toBe('https://card.camera/thumbnail.jpg');
       expect(controller.getThumbnailClass()).toBeNull();
@@ -189,7 +194,7 @@ describe('ThumbnailFeatureController', () => {
         thumbnail: 'https://card.camera/thumbnail.jpg',
       });
 
-      controller.calculate(null, folder, 'none');
+      controller.calculate({ item: folder, detailsStyle: 'none' });
 
       expect(controller.getThumbnail()).toBe('https://card.camera/thumbnail.jpg');
       expect(controller.getThumbnailClass()).toBe('placeholder');
@@ -203,7 +208,7 @@ describe('ThumbnailFeatureController', () => {
         isThumbnailConfigured: true,
       });
 
-      controller.calculate(null, folder, 'none');
+      controller.calculate({ item: folder, detailsStyle: 'none' });
 
       expect(controller.getThumbnail()).toBe('https://card.camera/thumbnail.jpg');
       expect(controller.getThumbnailClass()).toBeNull();

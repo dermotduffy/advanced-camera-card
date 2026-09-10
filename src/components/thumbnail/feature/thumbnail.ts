@@ -88,7 +88,7 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
           (embeddedThumbnail: string | null) =>
             embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
           {
-            inProgressFunc: () => renderIcon('mdi:image-refresh'),
+            inProgressFunc: () => html`<div class="skeleton"></div>`,
             errorFunc: () => imageOff,
           },
         )

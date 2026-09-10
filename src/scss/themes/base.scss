@@ -211,6 +211,24 @@
   );
   --advanced-camera-card-thumbnail-text-color: var(--advanced-camera-card-text-color);
 
+  // The block shown in place of a thumbnail while it is fetched, and the lighter
+  // shimmer that moves across it.
+  --advanced-camera-card-thumbnail-skeleton-background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-foreground-primary),
+    transparent 88%
+  );
+  --advanced-camera-card-thumbnail-skeleton-shimmer-color: color-mix(
+    in srgb,
+    var(--advanced-camera-card-foreground-primary),
+    transparent 78%
+  );
+
+  // Media a camera is still writing to (i.e. being recorded). Red carries the
+  // meaning on its own, so the pair is fixed rather than taken from the theme.
+  --advanced-camera-card-thumbnail-in-progress-background: #c62828;
+  --advanced-camera-card-thumbnail-in-progress-color: #ffffff;
+
   // The details overlaid on a thumbnail. Defaults to the same translucent blur
   // as the notification popup, so the two look alike.
   --advanced-camera-card-thumbnail-details-overlay-background: rgba(16, 16, 18, 0.5);
