@@ -125,6 +125,25 @@
   letter-spacing: 0.07em;
 }
 
+// The compact and standard tiers fit the media's label and the time on one
+// line, leaving no room for the "REC" text. Only the dot is drawn.
+:host(:not([hover])[tier='compact']) .in-progress,
+:host(:not([hover])[tier='standard']) .in-progress {
+  padding: 0;
+  background: none;
+  color: var(--advanced-camera-card-thumbnail-in-progress-background);
+
+  // Fatter than the severity dot, which is 0.5em of the overlay's own text.
+  .in-progress-dot {
+    width: 1em;
+    height: 1em;
+  }
+}
+:host(:not([hover])[tier='compact']) .in-progress-label,
+:host(:not([hover])[tier='standard']) .in-progress-label {
+  display: none;
+}
+
 .in-progress-dot {
   width: 0.5em;
   height: 0.5em;

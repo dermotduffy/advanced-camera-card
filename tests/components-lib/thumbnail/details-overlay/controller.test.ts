@@ -136,14 +136,17 @@ describe('ThumbnailDetailsOverlayController', () => {
   });
 
   describe('should show the time', () => {
-    it('should omit the seconds on the smallest permanent overlay', () => {
-      expect(createController('overlay', 75).getTime()).toEqual({
-        hoursMinutes: '16:55',
-      });
-    });
+    it.each([[75], [100]])(
+      'should omit the seconds where the line is shared at size %s',
+      (size) => {
+        expect(createController('overlay', size).getTime()).toEqual({
+          hoursMinutes: '16:55',
+        });
+      },
+    );
 
     it('should show the seconds where there is room', () => {
-      expect(createController('overlay', 100).getTime()).toEqual({
+      expect(createController('overlay', 175).getTime()).toEqual({
         hoursMinutes: '16:55',
         seconds: ':47',
       });

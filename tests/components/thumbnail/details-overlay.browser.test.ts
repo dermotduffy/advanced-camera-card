@@ -212,6 +212,19 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
     ).toBeLessThan(10);
   });
 
+  it('should keep the details above the picture', async () => {
+    const card = await mountGallery('overlay', 300);
+
+    const feature = deepQuery(card.card, 'advanced-camera-card-thumbnail-feature');
+    assert(feature);
+    const media = deepQuery(feature, '.media');
+    assert(media);
+
+    // Tree order alone keeps the overlay on top: any `z-index` would put the
+    // picture over it.
+    expect(getComputedStyle(media).zIndex).toBe('auto');
+  });
+
   it('should not intercept a click on the media', async () => {
     const card = await mountGallery('overlay', 100);
 

@@ -133,7 +133,10 @@ export class ThumbnailDetailsOverlayController {
       return null;
     }
 
-    const showSeconds = this._isHover || this._tier !== 'compact';
+    // The two smallest tiers share one line between the label and the time --
+    // omit the seconds.
+    const showSeconds =
+      this._isHover || this._tier === 'comfortable' || this._tier === 'poster';
     return {
       hoursMinutes: format(this._startTime, 'HH:mm'),
       ...(showSeconds && { seconds: format(this._startTime, ':ss') }),

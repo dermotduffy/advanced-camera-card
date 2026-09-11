@@ -118,7 +118,10 @@ advanced-camera-card-icon.background {
   --mdc-icon-size: 100%;
 }
 
-div {
+// Text shown in place of an image. `.media` is excluded: it is `position:
+// relative`, so a `z-index` here would lift the picture above the details
+// overlay.
+div:not(.media) {
   text-align: center;
   color: var(--primary-text-color);
   z-index: 1;
