@@ -127,8 +127,7 @@
 
 // The compact and standard tiers fit the media's label and the time on one
 // line, leaving no room for the "REC" text. Only the dot is drawn.
-:host(:not([hover])[tier='compact']) .in-progress,
-:host(:not([hover])[tier='standard']) .in-progress {
+:host([one-line]) .in-progress {
   padding: 0;
   background: none;
   color: var(--advanced-camera-card-thumbnail-in-progress-background);
@@ -139,8 +138,7 @@
     height: 1em;
   }
 }
-:host(:not([hover])[tier='compact']) .in-progress-label,
-:host(:not([hover])[tier='standard']) .in-progress-label {
+:host([one-line]) .in-progress-label {
   display: none;
 }
 

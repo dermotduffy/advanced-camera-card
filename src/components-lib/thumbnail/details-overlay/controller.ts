@@ -112,6 +112,19 @@ export class ThumbnailDetailsOverlayController {
     return this._isInProgress;
   }
 
+  // The two smallest permanent overlays give the label and the time a single
+  // shared line. A hover overlay grows taller instead, so it always has room
+  // for both.
+  public isOneLineHeadline(): boolean {
+    return !this._isHover && (this._tier === 'compact' || this._tier === 'standard');
+  }
+
+  // The recording dot takes priority over the severity dot where the two would
+  // otherwise sit side by side.
+  public isSeverityDotShown(): boolean {
+    return !!this._severity && !(this._isInProgress && this.isOneLineHeadline());
+  }
+
   public getCornerLabel(): string | null {
     return this._isLabelInCorner() ? this._label : null;
   }
@@ -133,10 +146,8 @@ export class ThumbnailDetailsOverlayController {
       return null;
     }
 
-    // The two smallest tiers share one line between the label and the time --
-    // omit the seconds.
-    const showSeconds =
-      this._isHover || this._tier === 'comfortable' || this._tier === 'poster';
+    // Seconds need a line the label is not also using.
+    const showSeconds = !this.isOneLineHeadline();
     return {
       hoursMinutes: format(this._startTime, 'HH:mm'),
       ...(showSeconds && { seconds: format(this._startTime, ':ss') }),

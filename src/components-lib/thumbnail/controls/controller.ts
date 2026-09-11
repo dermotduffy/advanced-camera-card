@@ -39,10 +39,11 @@ export class ThumbnailControlsController {
   public calculate(options: ThumbnailControlsOptions): void {
     const controls = this._calculateControls(options);
 
-    // Without a pointer a control has to be 44px to be hittable, and only from
-    // the comfortable tier up is there room for one: at 75px it would cover a
-    // third of the thumbnail. The info control takes that slot (and the other
-    // controls are accessible from the popup).
+    // Without a pointer a control has to be 48px to be hittable, the size Home
+    // Assistant gives its own icon buttons, and only from the comfortable tier
+    // up is there room for one: at 75px it would take two fifths of the
+    // thumbnail. The info control takes that slot (and the other controls are
+    // accessible from the popup).
     const tier = getThumbnailTier(options.size);
     const hasRoomForAFinger = tier === 'comfortable' || tier === 'poster';
 

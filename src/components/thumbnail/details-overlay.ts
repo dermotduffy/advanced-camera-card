@@ -37,6 +37,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
     });
     this.setAttribute('tier', this._controller.getTier());
     this.toggleAttribute('hover', this._controller.isHover());
+    this.toggleAttribute('one-line', this._controller.isOneLineHeadline());
 
     const reviewState = this._controller.getReviewState();
     if (reviewState) {
@@ -52,6 +53,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
     const time = this._controller.getTime();
     const details = this._controller.getDetails();
     const severity = this._controller.getSeverity();
+    const isSeverityDotShown = this._controller.isSeverityDotShown();
     const isInProgress = this._controller.isInProgress();
 
     // A time reads left to right even where the language around it does not.
@@ -79,7 +81,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
                 : ''}
               ${headlineLabel
                 ? html`<span class="label-container">
-                    ${severity ? html`<span class="dot"></span>` : ''}
+                    ${isSeverityDotShown ? html`<span class="dot"></span>` : ''}
                     <span class="label" title=${headlineLabel}>${headlineLabel}</span>
                   </span>`
                 : ''}

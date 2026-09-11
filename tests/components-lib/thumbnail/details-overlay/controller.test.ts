@@ -18,6 +18,16 @@ const createEvent = (): TestViewMedia =>
     thumbnail: 'thumbnail.jpg',
   });
 
+const createInProgressReview = (): TestViewMedia =>
+  new TestViewMedia({
+    cameraID: 'camera_1',
+    mediaType: ViewMediaType.Review,
+    startTime: new Date('2026-09-08T16:55:47'),
+    title: 'Person',
+    severity: 'high',
+    inProgress: true,
+  });
+
 const createController = (
   detailsStyle: ResolvedThumbnailDetailsStyle,
   size: number,
@@ -341,6 +351,36 @@ describe('ThumbnailDetailsOverlayController', () => {
 
     it('should show no severity for media that is not a review', () => {
       expect(createController('overlay', 100).getSeverity()).toBeNull();
+    });
+
+    it('should show no severity dot for media that is not a review', () => {
+      expect(createController('overlay', 100).isSeverityDotShown()).toBe(false);
+    });
+
+    it('should show no severity dot beside the recording dot', () => {
+      const controller = createController('overlay', 100, createInProgressReview());
+
+      expect(controller.isSeverityDotShown()).toBe(false);
+    });
+
+    it('should show the severity dot beside the recording pill', () => {
+      const controller = createController('overlay', 175, createInProgressReview());
+
+      expect(controller.isSeverityDotShown()).toBe(true);
+    });
+  });
+
+  describe('should share one line between the label and the time', () => {
+    it.each([[75], [100]])('should share the line at size %s', (size) => {
+      expect(createController('overlay', size).isOneLineHeadline()).toBe(true);
+    });
+
+    it.each([[175], [300]])('should give each its own line at size %s', (size) => {
+      expect(createController('overlay', size).isOneLineHeadline()).toBe(false);
+    });
+
+    it('should give each its own line on a revealed overlay', () => {
+      expect(createController('hover', 100).isOneLineHeadline()).toBe(false);
     });
   });
 });

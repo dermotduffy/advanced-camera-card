@@ -58,17 +58,18 @@ advanced-camera-card-icon.review.active {
 }
 
 // Where space is limited on a touch device only the info control is rendered,
-// and it takes the full 44px a finger press needs.
+// and it takes the full 48px a finger press needs. The glyph itself stays the
+// normal size, but the padding around it makes it hittable.
 :host([single-control]) advanced-camera-card-icon.info {
   inset-block-start: 0;
   inset-inline-end: 0;
 
   box-sizing: border-box;
-  width: 44px;
-  height: 44px;
-  padding: 7px;
+  width: 48px;
+  height: 48px;
+  padding: 12px;
 
   opacity: 1;
 
-  --mdc-icon-size: 30px;
+  --mdc-icon-size: 24px;
 }
