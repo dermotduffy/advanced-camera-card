@@ -142,6 +142,9 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
             class="${control.name} ${control.active ? 'active' : ''}"
             title=${control.title}
             .icon=${{ icon: control.icon }}
+            @mousedown=${(ev: Event) =>
+              // Don't take focus (as it will hold the controls pill open).
+              ev.preventDefault()}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               await this._activate(control);

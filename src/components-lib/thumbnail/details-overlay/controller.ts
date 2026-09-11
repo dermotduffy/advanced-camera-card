@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
 
 import type { CameraManager } from '../../../camera-manager/manager';
-import type { Severity } from '../../../severity';
 import { isTruthy } from '../../../utils/basic';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
@@ -9,7 +8,6 @@ import {
   getMediaCameraTitle,
   getMediaDuration,
   getMediaLabel,
-  getMediaSeverity,
   getMediaTags,
   getMediaWhere,
   isMediaReviewed,
@@ -43,7 +41,6 @@ export class ThumbnailDetailsOverlayController {
   private _label: string | null = null;
   private _reviewState: ThumbnailReviewState | null = null;
   private _isInProgress = false;
-  private _severity: Severity | null = null;
   private _startTime: Date | null = null;
   private _duration: string | null = null;
   private _cameraTitle: string | null = null;
@@ -62,7 +59,6 @@ export class ThumbnailDetailsOverlayController {
       this._label = null;
       this._reviewState = null;
       this._isInProgress = false;
-      this._severity = null;
       this._startTime = null;
       this._duration = null;
       this._cameraTitle = null;
@@ -78,7 +74,6 @@ export class ThumbnailDetailsOverlayController {
 
     this._isInProgress =
       ViewItemClassifier.isMedia(options.item) && options.item.inProgress() === true;
-    this._severity = getMediaSeverity(options.item);
     this._startTime = ViewItemClassifier.isMedia(options.item)
       ? options.item.getStartTime()
       : null;
@@ -96,10 +91,6 @@ export class ThumbnailDetailsOverlayController {
     return this._isHover;
   }
 
-  public getSeverity(): Severity | null {
-    return this._severity;
-  }
-
   public getReviewState(): ThumbnailReviewState | null {
     return this._reviewState;
   }
@@ -113,12 +104,6 @@ export class ThumbnailDetailsOverlayController {
   // for both.
   public isOneLineHeadline(): boolean {
     return !this._isHover && (this._tier === 'compact' || this._tier === 'standard');
-  }
-
-  // The recording dot takes priority over the severity dot where the two would
-  // otherwise sit side by side.
-  public isSeverityDotShown(): boolean {
-    return !!this._severity && !(this._isInProgress && this.isOneLineHeadline());
   }
 
   public getCornerLabel(): string | null {

@@ -1,6 +1,6 @@
 import { assert, describe, expect, it } from 'vitest';
 
-import { deepQuery, hoverElement } from '../../browser/dom';
+import { clickElement, deepQuery, hoverElement } from '../../browser/dom';
 import {
   createTestFrigateEvent,
   EVENT_TIME_NEWER,
@@ -88,6 +88,20 @@ describe('AdvancedCameraCardThumbnailControls', () => {
     thumbnail.focus();
 
     expect(isRevealed()).toBe('1');
+  });
+
+  it('should not leave the controls showing after one of them is clicked', async () => {
+    const card = await mountGallery();
+    const thumbnail = getThumbnails(card.card)[0];
+    const favorite = deepQuery<HTMLElement>(
+      getControls(card),
+      'advanced-camera-card-icon.favorite',
+    );
+    assert(favorite);
+
+    await clickElement(favorite);
+
+    expect(thumbnail.matches(':focus-within')).toBe(false);
   });
 
   it('should keep a control on show at rest when its state is set', async () => {

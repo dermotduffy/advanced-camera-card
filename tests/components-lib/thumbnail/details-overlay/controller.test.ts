@@ -18,16 +18,6 @@ const createEvent = (): TestViewMedia =>
     thumbnail: 'thumbnail.jpg',
   });
 
-const createInProgressReview = (): TestViewMedia =>
-  new TestViewMedia({
-    cameraID: 'camera_1',
-    mediaType: ViewMediaType.Review,
-    startTime: new Date('2026-09-08T16:55:47'),
-    title: 'Person',
-    severity: 'high',
-    inProgress: true,
-  });
-
 const createController = (
   detailsStyle: ResolvedThumbnailDetailsStyle,
   size: number,
@@ -72,7 +62,6 @@ describe('ThumbnailDetailsOverlayController', () => {
         expect(controller.getHeadlineLabel()).toBeNull();
         expect(controller.getTime()).toBeNull();
         expect(controller.getDetails()).toEqual([]);
-        expect(controller.getSeverity()).toBeNull();
         expect(controller.getReviewState()).toBeNull();
         expect(controller.isInProgress()).toBe(false);
       },
@@ -257,20 +246,6 @@ describe('ThumbnailDetailsOverlayController', () => {
       expect(controller.getHeadlineLabel()).toBe('Office');
       expect(controller.getDetails()).toEqual(['1h 0s']);
     });
-
-    it('should say a recording is still in progress', () => {
-      const controller = createController(
-        'overlay',
-        175,
-        new TestViewMedia({
-          cameraID: 'camera_1',
-          startTime: new Date('2026-09-08T16:55:47'),
-          inProgress: true,
-        }),
-      );
-
-      expect(controller.getDetails()).toEqual(['In progress...']);
-    });
   });
 
   it('should label a folder with its title', () => {
@@ -328,45 +303,6 @@ describe('ThumbnailDetailsOverlayController', () => {
 
     it('should say a camera has finished writing the media', () => {
       expect(createController('overlay', 175).isInProgress()).toBe(false);
-    });
-  });
-
-  describe('should show severity', () => {
-    it('should show the severity of a review', () => {
-      const controller = createController(
-        'overlay',
-        100,
-        new TestViewMedia({
-          cameraID: 'camera_1',
-          mediaType: ViewMediaType.Review,
-          startTime: new Date('2026-09-08T16:55:47'),
-          title: 'Person',
-          severity: 'high',
-        }),
-      );
-
-      expect(controller.getSeverity()).toBe('high');
-      expect(controller.getHeadlineLabel()).toBe('Person');
-    });
-
-    it('should show no severity for media that is not a review', () => {
-      expect(createController('overlay', 100).getSeverity()).toBeNull();
-    });
-
-    it('should show no severity dot for media that is not a review', () => {
-      expect(createController('overlay', 100).isSeverityDotShown()).toBe(false);
-    });
-
-    it('should show no severity dot beside the recording dot', () => {
-      const controller = createController('overlay', 100, createInProgressReview());
-
-      expect(controller.isSeverityDotShown()).toBe(false);
-    });
-
-    it('should show the severity dot beside the recording pill', () => {
-      const controller = createController('overlay', 175, createInProgressReview());
-
-      expect(controller.isSeverityDotShown()).toBe(true);
     });
   });
 

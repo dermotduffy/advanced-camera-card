@@ -1,6 +1,5 @@
 import { html, LitElement, unsafeCSS, type CSSResult, type TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { ifDefined } from 'lit/directives/if-defined.js';
 
 import type { CameraManager } from '../../camera-manager/manager';
 import { ThumbnailDetailsOverlayController } from '../../components-lib/thumbnail/details-overlay/controller';
@@ -52,8 +51,6 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
     const headlineLabel = this._controller.getHeadlineLabel();
     const time = this._controller.getTime();
     const details = this._controller.getDetails();
-    const severity = this._controller.getSeverity();
-    const isSeverityDotShown = this._controller.isSeverityDotShown();
     const isInProgress = this._controller.isInProgress();
 
     // A time reads left to right even where the language around it does not.
@@ -69,7 +66,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
         ? html`<span class="corner-label" title=${cornerLabel}>${cornerLabel}</span>`
         : ''}
       ${headlineLabel || time || details.length || isInProgress
-        ? html`<div class="details" severity=${ifDefined(severity ?? undefined)}>
+        ? html`<div class="details">
             <div class="headline">
               ${isInProgress
                 ? html`<span class="in-progress" title=${localize('common.in_progress')}
@@ -80,10 +77,9 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
                   >`
                 : ''}
               ${headlineLabel
-                ? html`<span class="label-container">
-                    ${isSeverityDotShown ? html`<span class="dot"></span>` : ''}
-                    <span class="label" title=${headlineLabel}>${headlineLabel}</span>
-                  </span>`
+                ? html`<span class="label" title=${headlineLabel}
+                    >${headlineLabel}</span
+                  >`
                 : ''}
               ${time ? renderTime() : ''}
             </div>
