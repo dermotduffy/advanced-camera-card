@@ -122,6 +122,17 @@ describe('AdvancedCameraCardGallery', () => {
     expectClose(iconRect.top - frameRect.top, (frameRect.height - iconRect.height) / 2);
   });
 
+  it('should keep a thumbnail square', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)], {
+      media_gallery: { controls: { thumbnails: { size: 200 } } },
+    });
+    await waitForThumbnails(card, 1);
+
+    const rect = getThumbnails(card.card)[0].getBoundingClientRect();
+
+    expect(Math.abs(rect.width - rect.height)).toBeLessThanOrEqual(1);
+  });
+
   it('should say there is nothing to view when the camera has no events', async () => {
     const card = await mountCard([]);
 

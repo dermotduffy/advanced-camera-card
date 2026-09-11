@@ -15,12 +15,14 @@ advanced-camera-card-surround-basic {
   }
 }
 
-advanced-camera-card-thumbnail {
-  height: 100%;
-  min-height: var(--advanced-camera-card-thumbnail-size);
-}
 advanced-camera-card-thumbnail:not([details-style='panel']) {
   width: 100%;
+}
+
+// A panel thumbnail is the one shape with no aspect ratio of its own, so the
+// configured size is what gives it a height.
+advanced-camera-card-thumbnail[details-style='panel'] {
+  min-height: var(--advanced-camera-card-thumbnail-size);
 }
 advanced-camera-card-thumbnail.selected {
   outline: 2px solid var(--advanced-camera-card-thumbnail-selected-color);

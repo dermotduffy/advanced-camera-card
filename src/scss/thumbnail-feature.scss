@@ -9,6 +9,10 @@
 
   aspect-ratio: 1 / 1;
 
+  // WebKit will not size this from the aspect ratio alone, so take the height
+  // from the thumbnail.
+  height: 100%;
+
   border: 1px solid var(--secondary-color);
   background-color: var(--secondary-background-color);
   border-radius: var(--advanced-camera-card-border-radius-final);

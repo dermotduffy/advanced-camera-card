@@ -113,9 +113,13 @@
   margin-inline-end: auto;
 
   box-sizing: border-box;
-  height: 1.29em;
+  height: 1.3em;
   padding: 0 0.5em;
   border-radius: 0.64em;
+
+  // A `normal` line height is computed from the font, so the pill would be a
+  // different height on a phone than on a desktop.
+  line-height: 1;
 
   background: var(--advanced-camera-card-thumbnail-in-progress-background);
   color: var(--advanced-camera-card-thumbnail-in-progress-color);
@@ -123,6 +127,17 @@
   font-size: 0.71em;
   font-weight: 700;
   letter-spacing: 0.07em;
+}
+
+// The label's box otherwise runs from the font's ascent to its descent, which
+// leaves a different amount of blank space above and below capital letters in
+// every font: the pill centers the box, so the letters themselves end up a
+// little high or a little low depending on the font the device has. Trimming
+// the box to the letters improves the vertical centering.
+@supports (text-box: trim-both cap alphabetic) {
+  .in-progress-label {
+    text-box: trim-both cap alphabetic;
+  }
 }
 
 // The compact and standard tiers fit the media's label and the time on one
