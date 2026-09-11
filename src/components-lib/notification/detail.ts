@@ -1,8 +1,8 @@
 import { format } from 'date-fns';
 
 import type { CameraManager } from '../../camera-manager/manager';
+import type { NotificationDetail } from '../../config/schema/actions/types';
 import { localize } from '../../localize/localize';
-import type { Severity } from '../../severity';
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import {
@@ -11,17 +11,9 @@ import {
   getMediaLabel,
   getMediaTags,
   getMediaWhere,
-} from './format';
+} from '../media/format';
 
-// A single piece of data about a media item.
-export interface MediaDetail {
-  text: string;
-  icon?: string;
-  tooltip?: string;
-  severity?: Severity;
-}
-
-export interface MediaDetailOptions {
+export interface NotificationDetailOptions {
   cameraManager?: CameraManager;
   item?: ViewItem;
 }
@@ -31,7 +23,9 @@ export interface MediaDetailOptions {
  * camera.
  * @returns The item heading or `null` if there is none.
  */
-export const getMediaHeading = (options: MediaDetailOptions): MediaDetail | null => {
+export const getMediaHeading = (
+  options: NotificationDetailOptions,
+): NotificationDetail | null => {
   const label = getMediaLabel(options.cameraManager, options.item);
   if (!label) {
     return null;
@@ -51,15 +45,20 @@ export const getMediaHeading = (options: MediaDetailOptions): MediaDetail | null
   return { text: label };
 };
 
-const toDetails = (text: string | null, icon: string, tooltip: string): MediaDetail[] =>
-  text ? [{ text, icon, tooltip }] : [];
+const toDetails = (
+  text: string | null,
+  icon: string,
+  tooltip: string,
+): NotificationDetail[] => (text ? [{ text, icon, tooltip }] : []);
 
 /**
  * @param options The item, and the camera manager for the camera title.
  * @returns Everything known about the item beyond its heading, in display
  * order.
  */
-export const getMediaDetails = (options: MediaDetailOptions): MediaDetail[] => {
+export const getNotificationDetails = (
+  options: NotificationDetailOptions,
+): NotificationDetail[] => {
   const startTime = ViewItemClassifier.isMedia(options.item)
     ? options.item.getStartTime()
     : null;
@@ -89,7 +88,7 @@ export const getMediaDetails = (options: MediaDetailOptions): MediaDetail[] => {
   ];
 };
 
-export const getMediaSeekDetail = (seek?: Date): MediaDetail | null =>
+export const getMediaSeekDetail = (seek?: Date): NotificationDetail | null =>
   seek
     ? {
         text: format(seek, 'HH:mm:ss'),

@@ -8,7 +8,7 @@ import type { ViewManagerEpoch } from '../card-controller/view/types';
 import {
   MediaNotificationController,
   type NotificationControlsContext,
-} from '../components-lib/media/notification-controller';
+} from '../components-lib/notification/media-controller';
 import type { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { createNotificationAction } from './action';

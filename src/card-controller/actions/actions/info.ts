@@ -1,4 +1,4 @@
-import { MediaNotificationController } from '../../../components-lib/media/notification-controller';
+import { MediaNotificationController } from '../../../components-lib/notification/media-controller';
 import type { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { CardActionsAPI } from '../../types';

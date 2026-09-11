@@ -5,7 +5,7 @@ import { ActionFactory } from '../../../src/card-controller/actions/factory';
 import type { CardController } from '../../../src/card-controller/controller';
 import type { ViewItemManager } from '../../../src/card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../../src/card-controller/view/types';
-import { MediaNotificationController } from '../../../src/components-lib/media/notification-controller';
+import { MediaNotificationController } from '../../../src/components-lib/notification/media-controller';
 import type { NotificationControl } from '../../../src/config/schema/actions/types';
 import { downloadMedia, navigateToTimeline } from '../../../src/utils/media-actions';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';

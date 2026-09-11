@@ -1,3 +1,5 @@
+@use 'thumbnail-frosted.scss' as *;
+
 :host {
   position: absolute;
   inset: 0;
@@ -11,14 +13,6 @@
 
   // Avoid HA overriding line-height.
   line-height: normal;
-}
-
-@mixin frosted {
-  background: var(--advanced-camera-card-thumbnail-details-overlay-background);
-  backdrop-filter: var(--advanced-camera-card-thumbnail-details-overlay-backdrop-filter);
-  -webkit-backdrop-filter: var(
-    --advanced-camera-card-thumbnail-details-overlay-backdrop-filter
-  );
 }
 
 .details {
@@ -129,11 +123,9 @@
   letter-spacing: 0.07em;
 }
 
-// The label's box otherwise runs from the font's ascent to its descent, which
-// leaves a different amount of blank space above and below capital letters in
-// every font: the pill centers the box, so the letters themselves end up a
-// little high or a little low depending on the font the device has. Trimming
-// the box to the letters improves the vertical centering.
+// The label's box runs from the font's ascent to its descent, which leaves
+// unequal blank space above and below capital letters, by a different amount in
+// every font. Trimming the box to the letters centers what is actually seen.
 @supports (text-box: trim-both cap alphabetic) {
   .in-progress-label {
     text-box: trim-both cap alphabetic;
@@ -191,8 +183,8 @@
 }
 
 /*****************************************************************************
- * Tiers. A bigger thumbnail shows more details with more space around them. The
- * text size never changes.
+ * Tiers. A bigger thumbnail shows more details, in bigger text, with more space
+ * around it.
  *****************************************************************************/
 
 :host([tier='compact']) {
@@ -293,11 +285,11 @@
  *****************************************************************************/
 :host([hover]) {
   .details {
-    // `thumbnail.scss` sets this to 1 while the pointer is hovering, so the
-    // details fade in, and slide back down when the pointer leaves.
-    opacity: var(--advanced-camera-card-thumbnail-hovered, 0);
+    // `thumbnail.scss` sets this to 1 while the thumbnail is hovered or
+    // focused.
+    opacity: var(--advanced-camera-card-thumbnail-revealed, 0);
     transform: translateY(
-      calc(100% * (1 - var(--advanced-camera-card-thumbnail-hovered, 0)))
+      calc(100% * (1 - var(--advanced-camera-card-thumbnail-revealed, 0)))
     );
 
     transition:

@@ -20,6 +20,7 @@ import {
   contentsChanged,
   getChildrenFromElement,
   isHoverableDevice,
+  isPointInBox,
 } from '../utils/basic.js';
 
 import './icon.js';
@@ -117,7 +118,17 @@ export class AdvancedCameraCardDrawer extends LitElement {
         ${ref(this._refDrawer)}
         location="${this.location}"
         ?open=${this.open}
-        @mouseleave=${() => {
+        @mouseleave=${(ev: MouseEvent) => {
+          if (!this._isHoverableDevice) {
+            return;
+          }
+
+          // Only close the drawer if the pointer has left the drawer area.
+          const box = this._refDrawer.value?.getBoundingClientRect();
+          if (box && isPointInBox({ x: ev.clientX, y: ev.clientY }, box)) {
+            return;
+          }
+
           this.open = false;
         }}
       >

@@ -197,9 +197,6 @@
     --advanced-camera-card-foreground-severity-low-color
   );
 
-  --advanced-camera-card-thumbnail-border-color: var(
-    --advanced-camera-card-foreground-primary
-  );
   --advanced-camera-card-thumbnail-selected-color: var(
     --advanced-camera-card-active-color
   );
@@ -207,14 +204,20 @@
     --advanced-camera-card-foreground-primary
   );
 
-  // The surface the thumbnails sit on.
-  --advanced-camera-card-gallery-background: color-mix(
+  // Background behind the thumbnails (i.e. the gallery and drawer backgrounds).
+  --advanced-camera-card-thumbnails-background: color-mix(
     in srgb,
     var(--advanced-camera-card-background),
     var(--advanced-camera-card-text-color) 6%
   );
 
-  --advanced-camera-card-thumbnail-background: var(--advanced-camera-card-background);
+  // Background behind a thumbnail's details panel.
+  --advanced-camera-card-thumbnail-details-background: var(
+    --advanced-camera-card-background
+  );
+
+  // Background behind a thumbnail's image (e.g. when it's a placeholder icon).
+  --advanced-camera-card-thumbnail-image-background: var(--secondary-background-color);
   --advanced-camera-card-thumbnail-icon-favorite-color: var(
     --advanced-camera-card-favorite-color
   );

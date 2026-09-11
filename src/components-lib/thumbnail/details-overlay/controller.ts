@@ -13,6 +13,7 @@ import {
   getMediaTags,
   getMediaWhere,
   isMediaReviewed,
+  joinValues,
 } from '../../media/format';
 import { isIdentifiedByThumbnail } from '../is-identified-by-thumbnail';
 import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
@@ -33,11 +34,6 @@ interface ThumbnailDetailsOverlayTime {
   // Dropped where the overlay has only one line to give the time.
   seconds?: string;
 }
-
-const JOINER = ' · ';
-
-const join = (...parts: (string | null | undefined)[]): string | null =>
-  parts.filter(isTruthy).join(JOINER) || null;
 
 export class ThumbnailDetailsOverlayController {
   private _tier: ThumbnailTier = 'standard';
@@ -165,13 +161,13 @@ export class ThumbnailDetailsOverlayController {
     // thumbnail temporarily).
     const details =
       this._tier === 'poster'
-        ? [join(this._duration, camera, this._where), this._tags]
+        ? [joinValues(this._duration, camera, this._where), this._tags]
         : this._tier === 'comfortable'
           ? this._isHover
-            ? [this._duration, join(camera, this._where), this._tags]
-            : [join(this._duration, camera)]
+            ? [this._duration, joinValues(camera, this._where), this._tags]
+            : [joinValues(this._duration, camera)]
           : this._tier === 'standard' && this._isHover
-            ? [join(this._duration, camera)]
+            ? [joinValues(this._duration, camera)]
             : [];
 
     return details.filter(isTruthy);

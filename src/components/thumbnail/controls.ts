@@ -8,6 +8,7 @@ import {
   ThumbnailControlsController,
   type ThumbnailControl,
 } from '../../components-lib/thumbnail/controls/controller';
+import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style';
 import type { HomeAssistant } from '../../ha/types';
 import thumbnailControlsStyle from '../../scss/thumbnail-controls.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action';
@@ -41,6 +42,9 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
   @property({ attribute: false })
   public size?: number;
 
+  @property({ attribute: false })
+  public detailsStyle?: ResolvedThumbnailDetailsStyle;
+
   @property({ attribute: true, type: Boolean })
   public show_favorite_control = false;
 
@@ -70,9 +74,11 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
       showDownloadControl: this.show_download_control,
       showReviewControl: this.show_review_control,
       showInfoControl: this.show_info_control,
+      detailsStyle: this.detailsStyle,
     });
 
     this.toggleAttribute('single-control', this._controller.isSingleControl());
+    this.setAttribute('tier', this._controller.getTier());
   }
 
   private async _activate(control: ThumbnailControl): Promise<void> {
@@ -124,18 +130,25 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
   }
 
   protected render(): TemplateResult {
-    return html`${this._controller.getControls().map(
-      (control) =>
-        html`<advanced-camera-card-icon
-          class="${control.name} ${control.active ? 'active' : ''}"
-          title=${control.title}
-          .icon=${{ icon: control.icon }}
-          @click=${async (ev: Event) => {
-            stopEventFromActivatingCardWideActions(ev);
-            await this._activate(control);
-          }}
-        ></advanced-camera-card-icon>`,
-    )}`;
+    const controls = this._controller.getControls();
+    if (!controls.length) {
+      return html``;
+    }
+
+    return html`<div class="controls">
+      ${controls.map(
+        (control) =>
+          html`<advanced-camera-card-icon
+            class="${control.name} ${control.active ? 'active' : ''}"
+            title=${control.title}
+            .icon=${{ icon: control.icon }}
+            @click=${async (ev: Event) => {
+              stopEventFromActivatingCardWideActions(ev);
+              await this._activate(control);
+            }}
+          ></advanced-camera-card-icon>`,
+      )}
+    </div>`;
   }
 
   static get styles(): CSSResult {

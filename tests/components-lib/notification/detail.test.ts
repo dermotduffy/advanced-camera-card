@@ -2,10 +2,10 @@ import { format } from 'date-fns';
 import { describe, expect, it } from 'vitest';
 
 import {
-  getMediaDetails,
   getMediaHeading,
   getMediaSeekDetail,
-} from '../../../src/components-lib/media/detail';
+  getNotificationDetails,
+} from '../../../src/components-lib/notification/detail';
 import { formatDateAndTime } from '../../../src/utils/basic';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../camera-manager/test-utils';
@@ -129,12 +129,12 @@ describe('getMediaHeading', () => {
   });
 });
 
-describe('getMediaDetails', () => {
+describe('getNotificationDetails', () => {
   it('should have the start time', () => {
     const startTime = new Date('2025-05-18T17:03:00Z');
     const item = new TestViewMedia({ startTime });
 
-    expect(getMediaDetails({ item })).toContainEqual({
+    expect(getNotificationDetails({ item })).toContainEqual({
       text: formatDateAndTime(startTime, true),
       tooltip: 'Start',
       icon: 'mdi:calendar-clock-outline',
@@ -148,7 +148,7 @@ describe('getMediaDetails', () => {
         endTime: new Date('2025-05-18T17:04:00Z'),
       });
 
-      expect(getMediaDetails({ item })).toContainEqual({
+      expect(getNotificationDetails({ item })).toContainEqual({
         text: '1m 0s',
         tooltip: 'Duration',
         icon: 'mdi:clock-outline',
@@ -162,7 +162,7 @@ describe('getMediaDetails', () => {
         inProgress: true,
       });
 
-      expect(getMediaDetails({ item })).toContainEqual({
+      expect(getNotificationDetails({ item })).toContainEqual({
         text: 'In progress...',
         tooltip: 'Duration',
         icon: 'mdi:clock-outline',
@@ -176,7 +176,7 @@ describe('getMediaDetails', () => {
         inProgress: true,
       });
 
-      expect(getMediaDetails({ item })).toContainEqual({
+      expect(getNotificationDetails({ item })).toContainEqual({
         text: '1m 0s In progress...',
         tooltip: 'Duration',
         icon: 'mdi:clock-outline',
@@ -188,7 +188,7 @@ describe('getMediaDetails', () => {
     const item = new TestViewMedia({ cameraID: 'camera_1' });
 
     expect(
-      getMediaDetails({
+      getNotificationDetails({
         cameraManager: createCameraManagerWithMetadata({
           title: 'Camera Title',
           icon: { icon: 'mdi:cow' },
@@ -208,7 +208,7 @@ describe('getMediaDetails', () => {
       where: ['where1', 'where2'],
     });
 
-    expect(getMediaDetails({ item })).toContainEqual({
+    expect(getNotificationDetails({ item })).toContainEqual({
       text: 'Where1, Where2',
       tooltip: 'Where',
       icon: 'mdi:map-marker-outline',
@@ -221,7 +221,7 @@ describe('getMediaDetails', () => {
       tags: ['tag1', 'tag2'],
     });
 
-    expect(getMediaDetails({ item })).toContainEqual({
+    expect(getNotificationDetails({ item })).toContainEqual({
       text: 'Tag1, Tag2',
       tooltip: 'Tag',
       icon: 'mdi:tag',
@@ -234,13 +234,13 @@ describe('getMediaDetails', () => {
       title: 'Test Event',
     });
 
-    expect(getMediaDetails({ item })).not.toContainEqual(
+    expect(getNotificationDetails({ item })).not.toContainEqual(
       expect.objectContaining({ text: 'Test Event' }),
     );
   });
 
   it('should have nothing without an item', () => {
-    expect(getMediaDetails({})).toEqual([]);
+    expect(getNotificationDetails({})).toEqual([]);
   });
 });
 

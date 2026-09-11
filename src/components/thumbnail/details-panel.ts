@@ -7,12 +7,10 @@ import {
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { ifDefined } from 'lit/directives/if-defined.js';
 
 import type { CameraManager } from '../../camera-manager/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
-import type { MediaDetail } from '../../components-lib/media/detail';
 import { ThumbnailDetailsPanelController } from '../../components-lib/thumbnail/details-panel/controller';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
@@ -49,14 +47,11 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
   @property({ attribute: false })
   public size?: number;
 
-  @property({ attribute: false })
-  public showInfoControl = false;
-
   private _controller = new ThumbnailDetailsPanelController();
 
   protected willUpdate(changedProperties: PropertyValues): void {
     if (
-      ['item', 'seek', 'cameraManager', 'size', 'showInfoControl'].some((prop) =>
+      ['item', 'seek', 'cameraManager', 'size'].some((prop) =>
         changedProperties.has(prop),
       )
     ) {
@@ -65,7 +60,6 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
         item: this.item,
         seek: this.seek,
         size: this.size,
-        showInfoControl: this.showInfoControl,
       });
       this.setAttribute('tier', this._controller.getTier());
     }
@@ -92,28 +86,33 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    const heading = this._controller.getHeading();
+    const label = this._controller.getLabel();
+    const time = this._controller.getTime();
     const details = this._controller.getDetails();
-    const seekDetail = this._controller.getSeekDetail();
+    const seekTime = this._controller.getSeekTime();
     const hiddenDetailCount = this._controller.getHiddenDetailCount();
 
-    const renderDetail = (detail: MediaDetail, className?: string): TemplateResult => {
-      return html`<div class=${ifDefined(className)}>
-        ${detail.icon
-          ? html` <advanced-camera-card-icon
-              severity=${ifDefined(detail.severity)}
-              title=${detail.tooltip ?? ''}
-              .icon=${{ icon: detail.icon }}
-            ></advanced-camera-card-icon>`
-          : ''}
-        <span title=${detail.text}>${detail.text}</span>
-      </div>`;
-    };
-
     return html`
-      ${heading ? renderDetail(heading, 'heading') : ''}
-      ${details.map((detail) => renderDetail(detail))}
-      ${seekDetail ? renderDetail(seekDetail, 'seek') : ''}
+      ${label || time
+        ? html`<div class="heading">
+            ${label ? html`<span title=${label}>${label}</span>` : ''}
+            ${time
+              ? html`<span class="time" dir="ltr"
+                  >${time.hoursMinutes}<span class="seconds">${time.seconds}</span></span
+                >`
+              : ''}
+          </div>`
+        : ''}
+      ${details.map((detail) => html`<div><span title=${detail}>${detail}</span></div>`)}
+      ${seekTime
+        ? html`<div class="seek">
+            <advanced-camera-card-icon
+              title=${localize('thumbnail.seek')}
+              .icon=${{ icon: 'mdi:clock-fast' }}
+            ></advanced-camera-card-icon>
+            <span title=${seekTime}>${seekTime}</span>
+          </div>`
+        : ''}
       ${hiddenDetailCount
         ? html`<ha-assist-chip
             class="more"

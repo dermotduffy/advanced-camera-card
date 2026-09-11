@@ -177,6 +177,29 @@ describe('ThumbnailControlsController', () => {
     expect(controller.getControls()).toEqual([]);
   });
 
+  it('should show no info control beside a details panel', () => {
+    const controller = createController({
+      ...ALL_CONTROLS,
+      capabilities: CAPABILITIES,
+      detailsStyle: 'panel',
+      item: new TestViewMedia({ id: 'id' }),
+    });
+
+    expect(getControlNames(controller)).not.toContain('info');
+    expect(getControlNames(controller)).toContain('favorite');
+  });
+
+  describe('should say which tier the thumbnail is in', () => {
+    it.each([
+      ['compact', THUMBNAIL_SIZE_MIN],
+      ['standard', 100],
+      ['comfortable', 175],
+      ['poster', THUMBNAIL_SIZE_MAX],
+    ])('should be in the %s tier at size %s', (tier, size) => {
+      expect(createController({ size }).getTier()).toBe(tier);
+    });
+  });
+
   describe('should reduce the controls without a pointer', () => {
     const createEveryControl = (
       isHoverable: boolean,
@@ -220,15 +243,18 @@ describe('ThumbnailControlsController', () => {
       ]);
     });
 
-    it('should reduce to the info control where there is room for one', () => {
-      const controller = createEveryControl(false);
+    it.each([[100], [174], [175], [THUMBNAIL_SIZE_MAX]])(
+      'should reduce to the info control at size %s',
+      (size) => {
+        const controller = createEveryControl(false, size);
 
-      expect(controller.isSingleControl()).toBe(true);
-      expect(getControlNames(controller)).toEqual(['info']);
-    });
+        expect(controller.isSingleControl()).toBe(true);
+        expect(getControlNames(controller)).toEqual(['info']);
+      },
+    );
 
-    it.each([[THUMBNAIL_SIZE_MIN], [174]])(
-      'should not show any control at size %s',
+    it.each([[THUMBNAIL_SIZE_MIN], [99]])(
+      'should not show any control at size %s where a finger has insufficient space',
       (size) => {
         const controller = createEveryControl(false, size);
 

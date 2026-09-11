@@ -1,9 +1,14 @@
 import type { CameraManager } from '../../camera-manager/manager';
 import { localize } from '../../localize/localize';
 import type { Severity } from '../../severity';
-import { getDurationString, prettifyTitle } from '../../utils/basic';
+import { getDurationString, isTruthy, prettifyTitle } from '../../utils/basic';
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
+
+const JOINER = ' · ';
+
+export const joinValues = (...values: (string | null | undefined)[]): string | null =>
+  values.filter(isTruthy).join(JOINER) || null;
 
 export const getMediaCameraTitle = (
   cameraManager?: CameraManager,

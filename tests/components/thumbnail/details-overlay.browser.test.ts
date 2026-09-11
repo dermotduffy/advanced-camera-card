@@ -24,9 +24,14 @@ import {
 const mountGallery = async (
   detailsStyle: ThumbnailDetailsStyle,
   size: number,
+  inProgress?: boolean,
 ): Promise<MountedCard> => {
   const { card } = await mountCardWithFrigate(
-    [createTestFrigateEvent('event', EVENT_TIME_NEWER)],
+    [
+      createTestFrigateEvent('event', EVENT_TIME_NEWER, {
+        ...(inProgress && { end_time: null }),
+      }),
+    ],
     {
       view: { default: 'clips' },
       media_gallery: {
@@ -210,6 +215,38 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
     expect(
       label.getBoundingClientRect().left - details.getBoundingClientRect().left,
     ).toBeLessThan(10);
+  });
+
+  describe('media that is still recording', () => {
+    it('should show the REC text and its dot where the label has its own line', async () => {
+      const card = await mountGallery('overlay', 300, true);
+      const overlay = getOverlay(card);
+      assert(overlay);
+
+      expect(overlay.hasAttribute('one-line')).toBe(false);
+      expect(
+        getComputedStyle(deepQuery(overlay, '.in-progress-label') as Element).display,
+      ).not.toBe('none');
+    });
+
+    it('should drop the REC text when the label shares its line with the time', async () => {
+      const card = await mountGallery('overlay', 100, true);
+      const overlay = getOverlay(card);
+      assert(overlay);
+
+      expect(overlay.hasAttribute('one-line')).toBe(true);
+
+      const label = deepQuery(overlay, '.in-progress-label');
+      assert(label);
+      expect(getComputedStyle(label).display).toBe('none');
+
+      // A 'fat' dot is all that is left to carry the state.
+      const dot = deepQuery(overlay, '.in-progress-dot');
+      assert(dot);
+      expect(dot.getBoundingClientRect().width).toBeGreaterThan(
+        parseFloat(getComputedStyle(dot).fontSize) * 0.5,
+      );
+    });
   });
 
   it('should keep the details above the picture', async () => {

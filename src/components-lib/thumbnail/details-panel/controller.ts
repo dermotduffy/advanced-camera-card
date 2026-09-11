@@ -1,18 +1,21 @@
+import { format, isToday, isYesterday } from 'date-fns';
+
 import type { CameraManager } from '../../../camera-manager/manager';
+import { localize } from '../../../localize/localize';
+import { isTruthy } from '../../../utils/basic';
 import type { ViewItem } from '../../../view/item';
+import { ViewItemClassifier } from '../../../view/item-classifier';
 import {
-  getMediaDetails,
-  getMediaHeading,
-  getMediaSeekDetail,
-  type MediaDetail,
-} from '../../media/detail';
+  getMediaCameraTitle,
+  getMediaDuration,
+  getMediaLabel,
+  getMediaTags,
+  getMediaWhere,
+  joinValues,
+} from '../../media/format';
 import { getThumbnailTier, type ThumbnailTier } from '../tier';
 
-// The lines the panel shows, heading included. Each tier's `line-height` and
-// `row-gap` in `thumbnail-details-panel.scss` set the height of a row, and the
-// panel is never taller than the thumbnail beside it, so the smaller tiers fit
-// fewer. Seven is the most a media item has, so the two largest tiers are not
-// limited by height.
+// The lines the panel show, always smaller than the actual thumbnail.
 const LINES_BY_TIER: Record<ThumbnailTier, number> = {
   compact: 3,
   standard: 4,
@@ -20,68 +23,120 @@ const LINES_BY_TIER: Record<ThumbnailTier, number> = {
   poster: 7,
 };
 
+// Today and yesterday are named. Anything older needs its date.
+const formatDay = (startTime: Date): string =>
+  isToday(startTime)
+    ? localize('common.today')
+    : isYesterday(startTime)
+      ? localize('common.yesterday')
+      : format(startTime, 'yyyy-MM-dd');
+
 export interface ThumbnailDetailsPanelOptions {
   cameraManager?: CameraManager;
   item?: ViewItem;
   seek?: Date;
   size?: number;
-  showInfoControl?: boolean;
+}
+
+export interface ThumbnailDetailsPanelTime {
+  hoursMinutes: string;
+  seconds: string;
 }
 
 export class ThumbnailDetailsPanelController {
   private _tier: ThumbnailTier = 'standard';
-  private _heading: MediaDetail | null = null;
-  private _details: MediaDetail[] = [];
-  private _seekDetail: MediaDetail | null = null;
+  private _label: string | null = null;
+  private _time: ThumbnailDetailsPanelTime | null = null;
+  private _details: string[] = [];
+  private _seekTime: string | null = null;
   private _hiddenDetailCount = 0;
 
   public calculate(options: ThumbnailDetailsPanelOptions): void {
     this._tier = getThumbnailTier(options.size);
-    this._heading = getMediaHeading(options);
-    this._seekDetail = getMediaSeekDetail(options.seek);
+    this._label = getMediaLabel(options.cameraManager, options.item);
+    this._seekTime = options.seek ? format(options.seek, 'HH:mm:ss') : null;
 
-    const allDetails = getMediaDetails(options);
-    const lines =
-      LINES_BY_TIER[this._tier] - (this._heading ? 1 : 0) - (this._seekDetail ? 1 : 0);
+    const startTime = ViewItemClassifier.isMedia(options.item)
+      ? options.item.getStartTime()
+      : null;
+    this._time = startTime
+      ? { hoursMinutes: format(startTime, 'HH:mm'), seconds: format(startTime, ':ss') }
+      : null;
 
-    if (allDetails.length <= lines) {
-      this._details = allDetails;
-      this._hiddenDetailCount = 0;
-      return;
-    }
+    const cameraTitle = getMediaCameraTitle(options.cameraManager, options.item);
 
-    // The  "More details" chip (that opens the "info" notification) takes a
-    // line of its own. Without the info control there is no popup to open, so
-    // no chip and no line for it.
-    this._details = allDetails.slice(
-      0,
-      Math.max(options.showInfoControl ? lines - 1 : lines, 0),
+    this._fitLines(
+      this._groupLines({
+        date: startTime ? formatDay(startTime) : null,
+        duration: getMediaDuration(options.item),
+        camera: cameraTitle === this._label ? null : cameraTitle,
+        where: getMediaWhere(options.item),
+        tags: getMediaTags(options.item),
+      }),
     );
-    this._hiddenDetailCount = options.showInfoControl
-      ? allDetails.length - this._details.length
-      : 0;
+  }
+
+  // Groups the values into the lines they are shown on. The compact panel has
+  // room for two lines, every other panel for three.
+  private _groupLines(values: {
+    date: string | null;
+    duration: string | null;
+    camera: string | null;
+    where: string | null;
+    tags: string | null;
+  }): string[][] {
+    const { date, duration, camera, where, tags } = values;
+
+    const lines =
+      this._tier === 'compact'
+        ? [
+            [date, duration, camera],
+            [where, tags],
+          ]
+        : [[date, duration], [camera, where], [tags]];
+
+    return lines.map((line) => line.filter(isTruthy)).filter((line) => line.length);
+  }
+
+  private _fitLines(lines: string[][]): void {
+    const available =
+      LINES_BY_TIER[this._tier] - (this._label ? 1 : 0) - (this._seekTime ? 1 : 0);
+
+    // The "More details" chip takes a line of its own.
+    const kept =
+      lines.length <= available ? lines : lines.slice(0, Math.max(available - 1, 0));
+
+    this._details = kept.map((line) => joinValues(...line)).filter(isTruthy);
+
+    // The chip counts the values the reader cannot see (not the lines they
+    // would have taken).
+    this._hiddenDetailCount = lines.slice(kept.length).flat().length;
   }
 
   public getTier(): ThumbnailTier {
     return this._tier;
   }
 
-  public getHeading(): MediaDetail | null {
-    return this._heading;
+  public getLabel(): string | null {
+    return this._label;
   }
 
-  public getDetails(): MediaDetail[] {
+  public getTime(): ThumbnailDetailsPanelTime | null {
+    return this._time;
+  }
+
+  public getDetails(): string[] {
     return this._details;
   }
 
   // Kept separate from the details so it avoids truncation.
-  public getSeekDetail(): MediaDetail | null {
-    return this._seekDetail;
+  public getSeekTime(): string | null {
+    return this._seekTime;
   }
 
   /**
-   * @returns How many details the panel had no room for, or `0` if they all
-   * fit or there is no info control to open the popup with.
+   * @returns How many values the panel had no room for, or `0` if they all
+   * fit.
    */
   public getHiddenDetailCount(): number {
     return this._hiddenDetailCount;

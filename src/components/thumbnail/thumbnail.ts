@@ -154,7 +154,6 @@ export class AdvancedCameraCardThumbnail extends LitElement {
             .viewManagerEpoch=${this.viewManagerEpoch}
             .filterReviewed=${this.filterReviewed}
             .size=${this.size}
-            .showInfoControl=${this.show_info_control}
           ></advanced-camera-card-thumbnail-details-panel>`
         : ''}
     `;

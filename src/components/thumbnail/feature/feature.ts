@@ -135,6 +135,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
         .viewManagerEpoch=${this.viewManagerEpoch}
         .item=${this.item}
         .size=${this.size}
+        .detailsStyle=${this.detailsStyle}
         .filterReviewed=${this.filterReviewed}
         .filterFavorite=${this.filterFavorite}
         ?show_favorite_control=${this.show_favorite_control}

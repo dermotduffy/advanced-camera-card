@@ -4,6 +4,7 @@ import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type {
   InternalNotification,
   InternalNotificationControl,
+  NotificationDetail,
 } from '../../config/schema/actions/types';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
@@ -17,12 +18,7 @@ import {
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../view/types';
-import {
-  getMediaDetails,
-  getMediaHeading,
-  getMediaSeekDetail,
-  type MediaDetail,
-} from './detail';
+import { getMediaHeading, getMediaSeekDetail, getNotificationDetails } from './detail';
 
 export interface MediaNotificationOptions {
   cameraManager?: CameraManager;
@@ -43,8 +39,8 @@ export interface NotificationControlsContext {
 
 export class MediaNotificationController {
   private _item: ViewItem;
-  private _metadata: MediaDetail[] = [];
-  private _heading: MediaDetail | null = null;
+  private _metadata: NotificationDetail[] = [];
+  private _heading: NotificationDetail | null = null;
 
   constructor(item: ViewItem) {
     this._item = item;
@@ -57,7 +53,7 @@ export class MediaNotificationController {
 
     const seekDetail = getMediaSeekDetail(options?.seek);
     this._metadata = [
-      ...getMediaDetails(detailOptions),
+      ...getNotificationDetails(detailOptions),
       ...(seekDetail ? [seekDetail] : []),
     ];
   }

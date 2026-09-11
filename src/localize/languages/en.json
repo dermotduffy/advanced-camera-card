@@ -22,7 +22,9 @@
       "medium": "Medium"
     },
     "severity": "Severity",
-    "up": "Up"
+    "today": "Today",
+    "up": "Up",
+    "yesterday": "Yesterday"
   },
   "config": {
     "cameras": {

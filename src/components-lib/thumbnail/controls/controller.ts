@@ -4,7 +4,8 @@ import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../../view/types';
 import { isMediaReviewed } from '../../media/format';
-import { getThumbnailTier } from '../tier';
+import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
+import { getThumbnailTier, type ThumbnailTier } from '../tier';
 
 type ThumbnailControlName = 'review' | 'favorite' | 'info' | 'timeline' | 'download';
 
@@ -28,9 +29,12 @@ export interface ThumbnailControlsOptions {
   showDownloadControl?: boolean;
   showReviewControl?: boolean;
   showInfoControl?: boolean;
+
+  detailsStyle?: ResolvedThumbnailDetailsStyle;
 }
 
 export class ThumbnailControlsController {
+  private _tier: ThumbnailTier = 'standard';
   private _controls: ThumbnailControl[] = [];
 
   // The info control alone, at a size a finger can hit.
@@ -39,13 +43,10 @@ export class ThumbnailControlsController {
   public calculate(options: ThumbnailControlsOptions): void {
     const controls = this._calculateControls(options);
 
-    // Without a pointer a control has to be 48px to be hittable, the size Home
-    // Assistant gives its own icon buttons, and only from the comfortable tier
-    // up is there room for one: at 75px it would take two fifths of the
-    // thumbnail. The info control takes that slot (and the other controls are
-    // accessible from the popup).
-    const tier = getThumbnailTier(options.size);
-    const hasRoomForAFinger = tier === 'comfortable' || tier === 'poster';
+    // A touch device shows only the info control, and only where a finger-sized
+    // target fits. The popup carries the other controls.
+    this._tier = getThumbnailTier(options.size);
+    const hasRoomForAFinger = this._tier !== 'compact';
 
     this._isSingleControl =
       !isHoverableDevice() &&
@@ -89,7 +90,12 @@ export class ThumbnailControlsController {
       });
     }
 
-    if (options.showInfoControl && ViewItemClassifier.isMedia(options.item)) {
+    if (
+      options.showInfoControl &&
+      // Don't show 'i' when the panel already has the media information.
+      options.detailsStyle !== 'panel' &&
+      ViewItemClassifier.isMedia(options.item)
+    ) {
       controls.push({
         name: 'info',
         icon: 'mdi:information-outline',
@@ -125,6 +131,10 @@ export class ThumbnailControlsController {
 
   public getControls(): ThumbnailControl[] {
     return this._controls;
+  }
+
+  public getTier(): ThumbnailTier {
+    return this._tier;
   }
 
   public isSingleControl(): boolean {

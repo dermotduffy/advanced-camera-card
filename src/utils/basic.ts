@@ -129,6 +129,24 @@ export function errorToConsole(e: unknown, func: CallableFunction = console.warn
   }
 }
 
+interface Box {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/**
+ * @param point A point, in the coordinates the box is measured in.
+ * @param box The box.
+ * @returns `true` if the point is inside the box or on its edge.
+ */
+export const isPointInBox = (point: { x: number; y: number }, box: Box): boolean =>
+  point.x >= box.left &&
+  point.x <= box.right &&
+  point.y >= box.top &&
+  point.y <= box.bottom;
+
 /**
  * Determine if the device supports hovering.
  * @returns `true` if the device supports hovering, `false` otherwise.

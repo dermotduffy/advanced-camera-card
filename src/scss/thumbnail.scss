@@ -13,9 +13,9 @@
   overflow: hidden;
 
   // As the overlay doesn't take pointer events, it cannot itself determine if
-  // it's being hovered over. Read by `thumbnail-details-overlay.scss` and
-  // `thumbnail-controls.scss`.
-  --advanced-camera-card-thumbnail-hovered: 0;
+  // it's being hovered over or focused. Read by
+  // `thumbnail-details-overlay.scss` and `thumbnail-controls.scss`.
+  --advanced-camera-card-thumbnail-revealed: 0;
 
   // Applied to the image by `thumbnail-feature.scss`.
   --advanced-camera-card-thumbnail-media-filter: none;
@@ -26,16 +26,13 @@
 }
 
 :host([details-style='panel']) {
-  border: 1px solid var(--advanced-camera-card-thumbnail-border-color);
   border-radius: var(--advanced-camera-card-border-radius-final);
-
-  // When details are enabled, use a background color so that the details have
-  // contrast with the background.
-  background-color: var(--advanced-camera-card-thumbnail-background);
+  background-color: var(--advanced-camera-card-thumbnail-details-background);
 }
 
-:host(:hover) {
-  --advanced-camera-card-thumbnail-hovered: 1;
+:host(:hover),
+:host(:focus-within) {
+  --advanced-camera-card-thumbnail-revealed: 1;
   --advanced-camera-card-thumbnail-media-filter: brightness(1.13) contrast(1.05);
 }
 

@@ -7,7 +7,7 @@
   min-height: 0px;
   max-height: var(--advanced-camera-card-thumbnail-size);
 
-  // The thumbnail has no padding of its own, so the text is inset from it/
+  // The thumbnail has no padding of its own, so the text is inset.
   margin: 0 5px;
 
   color: var(--advanced-camera-card-thumbnail-text-color);
@@ -32,20 +32,7 @@ div {
   display: flex;
   align-items: center;
   gap: 5px;
-
-  &:not(.heading) {
-    font-size: 0.8em;
-  }
-
-  &.heading {
-    font-weight: bold;
-  }
-
-  // The time the user is seeking to (not directly related to the media so
-  // colored differently).
-  &.seek {
-    color: var(--primary-color);
-  }
+  min-width: 0;
 
   span {
     overflow: hidden;
@@ -55,23 +42,100 @@ div {
   }
 }
 
-// A bigger thumbnail gets more space between the rows, never bigger text. The
-// text size always matches the dashboard's body text.
+.heading {
+  font-weight: bold;
+  gap: 8px;
+}
+
+.time {
+  // Pushed to the end of the line and never shrunk, so the label truncates
+  // instead of this.
+  flex: none;
+  margin-inline-start: auto;
+
+  font-family: var(--ha-font-family-code, ui-monospace, monospace);
+  letter-spacing: -0.03em;
+
+  // Stops the tier's line height stretching the heading row around it.
+  line-height: 1;
+
+  .seconds {
+    font-size: 0.63em;
+    opacity: 0.66;
+  }
+}
+
+// Each line below the heading is fainter than the one above it.
+:host > div:not(.heading):not(.seek) {
+  opacity: 0.7;
+}
+:host > div:not(.heading):not(.seek) ~ div:not(.heading):not(.seek) {
+  opacity: 0.55;
+}
+
+// The time the user is seeking to (not directly related to the media so
+// colored differently).
+.seek {
+  color: var(--primary-color);
+}
+
+// A bigger thumbnail gets more space between its lines and larger text, the
+// time by more than the rest.
 :host([tier='compact']) {
   line-height: 1.17;
   row-gap: 3.5px;
+
+  .heading > span:not(.time) {
+    font-size: 0.93em;
+  }
+  .time {
+    font-size: 1em;
+  }
+  div:not(.heading) {
+    font-size: 0.79em;
+  }
 }
 :host([tier='standard']) {
   line-height: 1.25;
   row-gap: 5px;
+
+  .heading > span:not(.time) {
+    font-size: 1em;
+  }
+  .time {
+    font-size: 1.15em;
+  }
+  div:not(.heading) {
+    font-size: 0.86em;
+  }
 }
 :host([tier='comfortable']) {
   line-height: 1.4;
   row-gap: 7px;
+
+  .heading > span:not(.time) {
+    font-size: 1.14em;
+  }
+  .time {
+    font-size: 1.43em;
+  }
+  div:not(.heading) {
+    font-size: 0.93em;
+  }
 }
 :host([tier='poster']) {
   line-height: 1.5;
   row-gap: 9px;
+
+  .heading > span:not(.time) {
+    font-size: 1.29em;
+  }
+  .time {
+    font-size: 1.71em;
+  }
+  div:not(.heading) {
+    font-size: 1em;
+  }
 }
 
 // Chip that opens the "info" notification.
@@ -96,14 +160,4 @@ ha-assist-chip.more {
     var(--advanced-camera-card-active-color),
     transparent 82%
   );
-}
-
-[severity='high'] {
-  color: var(--advanced-camera-card-thumbnail-icon-severity-high-color);
-}
-[severity='medium'] {
-  color: var(--advanced-camera-card-thumbnail-icon-severity-medium-color);
-}
-[severity='low'] {
-  color: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
 }
