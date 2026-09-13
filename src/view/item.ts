@@ -93,11 +93,10 @@ export class ViewMedia {
   /**
    * Whether another object describes this same item.
    *
-   * One item can be present more than once (e.g. a gallery showing both clips
-   * and snapshots holds a separate object per media type of an event). As such
-   * an ID match is what finds every object for it. Media and folders never
-   * match one another, since their identifiers come from different namespaces.
-   * An item without an identifier can only be matched by object.
+   * Two separate objects can describe one item, so the comparison is by
+   * identifier rather than by object. Media and folders never match one
+   * another, since their identifiers come from different namespaces. An item
+   * without an identifier can only be matched by object.
    */
   public isSameAs(other: ViewItem): boolean {
     const id = this.getID();

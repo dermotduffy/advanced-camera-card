@@ -2,7 +2,8 @@ import type { ViewItem } from '../../../view/item';
 import type { View } from '../../../view/view';
 import type { ViewModifier } from '../types';
 
-// Updates item(s) with a new copy of itself.
+// Replaces an item in the results with a new copy of itself, so that a
+// component comparing by object identity re-renders it.
 export class UpdateItemViewModifier implements ViewModifier {
   private _item: ViewItem;
 

@@ -107,25 +107,23 @@ describe('MediaActions', () => {
       expect(results?.[1]).toBe(other);
     });
 
-    it('should update every copy of the item', async () => {
-      // A gallery showing both clips and snapshots holds one object per media
-      // type of an event, and all of them display the state that changed.
+    it('should update every result with a matching id', async () => {
       const host = mock<HTMLElement>();
-      const clip = createReviewItem('event-1');
-      const snapshot = createReviewItem('event-1');
+      const item = createReviewItem('event-1');
+      const duplicate = createReviewItem('event-1');
       const viewItemManager = mock<ViewItemManager>();
       const { viewManager, viewManagerEpoch } = createViewManagerWithResults([
-        clip,
-        snapshot,
+        item,
+        duplicate,
       ]);
 
-      expect(await toggleReviewed(host, clip, viewItemManager, viewManagerEpoch)).toBe(
+      expect(await toggleReviewed(host, item, viewItemManager, viewManagerEpoch)).toBe(
         true,
       );
 
       const results = getQueryResultsAfterModifiers(viewManager)?.getResults();
-      expect(results?.[0]).not.toBe(clip);
-      expect(results?.[1]).not.toBe(snapshot);
+      expect(results?.[0]).not.toBe(item);
+      expect(results?.[1]).not.toBe(duplicate);
     });
 
     it('should update the item when the view is rebuilt during the request', async () => {

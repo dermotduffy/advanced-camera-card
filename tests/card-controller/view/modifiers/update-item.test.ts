@@ -12,21 +12,20 @@ it('should do nothing without results', () => {
   expect(view.queryResults).toBeNull();
 });
 
-it('should update every copy of the item', () => {
-  // A gallery showing clips & snapshots holds a separate object per type.
-  const clip = new TestViewMedia({ id: 'event-1' });
-  const snapshot = new TestViewMedia({ id: 'event-1' });
+it('should update every result with a matching id', () => {
+  const item = new TestViewMedia({ id: 'event-1' });
+  const duplicate = new TestViewMedia({ id: 'event-1' });
   const other = new TestViewMedia({ id: 'event-2' });
   const view = createView({
-    queryResults: new QueryResults({ results: [clip, snapshot, other] }),
+    queryResults: new QueryResults({ results: [item, duplicate, other] }),
   });
 
-  new UpdateItemViewModifier(clip).modify(view);
+  new UpdateItemViewModifier(item).modify(view);
 
   const results = view.queryResults?.getResults();
-  expect(results?.[0]).not.toBe(clip);
+  expect(results?.[0]).not.toBe(item);
   expect(results?.[0]?.getID()).toBe('event-1');
-  expect(results?.[1]).not.toBe(snapshot);
+  expect(results?.[1]).not.toBe(duplicate);
   expect(results?.[2]).toBe(other);
 });
 

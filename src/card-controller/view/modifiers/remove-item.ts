@@ -2,7 +2,7 @@ import type { ViewItem } from '../../../view/item';
 import type { View } from '../../../view/view';
 import type { ViewModifier } from '../types';
 
-// Removes item(s) from the results.
+// Removes an item from the results.
 export class RemoveItemViewModifier implements ViewModifier {
   private _item: ViewItem;
 
