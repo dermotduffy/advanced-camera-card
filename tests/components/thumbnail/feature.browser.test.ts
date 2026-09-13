@@ -11,6 +11,7 @@ import {
 } from '../../browser/fake-frigate';
 import type { MountedCard } from '../../browser/mounted-card';
 import {
+  clickThumbnail,
   createStillImageCameraConfig,
   getThumbnails,
   setMediaFilter,
@@ -36,10 +37,13 @@ const mountCardWithReview = async (
   return card;
 };
 
-const getNotificationReviewControl = (card: MountedCard): HTMLElement | null => {
+const getNotificationControl = (
+  card: MountedCard,
+  title: string,
+): HTMLElement | null => {
   const notification = deepQuery(card.card, 'advanced-camera-card-notification');
   return notification
-    ? deepQuery<HTMLElement>(notification, '[title="Mark as reviewed"]')
+    ? deepQuery<HTMLElement>(notification, `[title="${title}"]`)
     : null;
 };
 
@@ -86,7 +90,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     await clickElement(info);
 
     const control = await card.waitForRender(
-      () => getNotificationReviewControl(card),
+      () => getNotificationControl(card, 'Mark as reviewed'),
       'the review control on the notification',
     );
     await clickElement(control);
@@ -110,6 +114,33 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     );
   });
 
+  it('should mark the thumbnail as reviewed from the menu button', async () => {
+    const { card } = await mountCardWithFrigate(
+      [],
+      {
+        view: { default: 'reviews' },
+        cameras: [{ ...createStillImageCameraConfig(), media: { reviewed: 'all' } }],
+        menu: { style: 'outside' },
+        media_viewer: { controls: { thumbnails: { mode: 'below' } } },
+      },
+      [createTestFrigateReview(REVIEW_ID, EVENT_TIME_NEWER)],
+    );
+    await waitForThumbnails(card, 1);
+    await clickThumbnail(card.card, 0);
+
+    const button = await card.findControl('Mark as reviewed');
+    expect(getReviewControl(card).classList.contains('reviewed')).toBe(false);
+
+    await clickElement(button);
+
+    // Thumbnail should show the new state, even though the review action was
+    // via the menu.
+    await card.waitForRender(
+      () => (getReviewControl(card).classList.contains('reviewed') ? true : null),
+      'a reviewed review control on the thumbnail',
+    );
+  });
+
   it('should fill the thumbnail star when an item is favorited', async () => {
     const { card } = await mountCardWithFrigate(
       [createTestFrigateEvent('event-1', EVENT_TIME_NEWER)],
@@ -130,11 +161,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     await clickElement(info);
 
     const star = await card.waitForRender(
-      () =>
-        deepQuery<HTMLElement>(
-          deepQuery(card.card, 'advanced-camera-card-notification') ?? card.card,
-          '[title="Retain media indefinitely"]',
-        ),
+      () => getNotificationControl(card, 'Retain media indefinitely'),
       'the favorite control on the notification',
     );
     await clickElement(star);

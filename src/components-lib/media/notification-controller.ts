@@ -5,8 +5,8 @@ import type { CameraManagerCameraMetadata } from '../../camera-manager/types';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type {
-  Notification,
-  NotificationControl,
+  InternalNotification,
+  InternalNotificationControl,
   NotificationDetail,
 } from '../../config/schema/actions/types';
 import type { HomeAssistant } from '../../ha/types';
@@ -210,7 +210,7 @@ export class MediaNotificationController {
     return this._metadata;
   }
 
-  public getNotification(context?: NotificationControlsContext): Notification {
+  public getNotification(context?: NotificationControlsContext): InternalNotification {
     const description = ViewItemClassifier.isMedia(this._item)
       ? this._item.getDescription()
       : null;
@@ -223,8 +223,10 @@ export class MediaNotificationController {
     };
   }
 
-  private _getControls(context: NotificationControlsContext): NotificationControl[] {
-    const controls: NotificationControl[] = [];
+  private _getControls(
+    context: NotificationControlsContext,
+  ): InternalNotificationControl[] {
+    const controls: InternalNotificationControl[] = [];
     const item = this._item;
 
     if (!item) {
@@ -238,6 +240,7 @@ export class MediaNotificationController {
           ? localize('common.set_reviews.unreviewed')
           : localize('common.set_reviews.reviewed'),
         icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline',
+        ...(isReviewed && { className: 'reviewed' }),
         actions: {
           tap_action: createInternalCallbackAction(async (api) => {
             const success = await toggleReviewed(
@@ -263,7 +266,7 @@ export class MediaNotificationController {
       controls.push({
         tooltip: localize('thumbnail.retain_indefinitely'),
         icon: isFavorite ? 'mdi:star' : 'mdi:star-outline',
-        severity: isFavorite ? 'medium' : undefined,
+        ...(isFavorite && { className: 'favorited' }),
         actions: {
           tap_action: createInternalCallbackAction(async (api) => {
             const success = await toggleFavorite(
