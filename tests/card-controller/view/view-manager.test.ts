@@ -152,6 +152,27 @@ it('should set view with modifiers', () => {
   expect(manager.getView()?.context).toEqual({ timeline: {} });
 });
 
+it('should not set view when the modifiers do not change anything', () => {
+  const api = createInitializedCardAPI();
+  const factory = mock<ViewFactory>();
+
+  const manager = new ViewManager(api, { viewFactory: factory });
+  factory.getViewDefault.mockReturnValue(createView({ view: 'live', camera: 'camera' }));
+  manager.setViewDefault();
+
+  const view = manager.getView();
+  const epoch = manager.getEpoch();
+  const modifier = mock<ViewModifier>();
+  modifier.modify.mockReturnValue(false);
+
+  manager.setViewWithModifiers([modifier]);
+
+  expect(modifier.modify).toHaveBeenCalled();
+
+  expect(manager.getView()).toBe(view);
+  expect(manager.getEpoch()).toBe(epoch);
+});
+
 it('should return epoch', () => {
   const factory = mock<ViewFactory>();
   const manager = new ViewManager(createCardAPI(), { viewFactory: factory });

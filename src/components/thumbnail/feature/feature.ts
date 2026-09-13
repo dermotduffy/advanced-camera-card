@@ -75,6 +75,9 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
   @property({ attribute: false })
   public filterReviewed?: boolean;
 
+  @property({ attribute: false })
+  public filterFavorite?: boolean;
+
   private _controller = new ThumbnailFeatureController();
 
   protected willUpdate(changedProperties: PropertyValues): void {
@@ -92,6 +95,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       viewManagerEpoch: this.viewManagerEpoch,
       capabilities: this.item ? this.viewItemManager?.getCapabilities(this.item) : null,
       filterReviewed: this.filterReviewed,
+      filterFavorite: this.filterFavorite,
     };
   }
 
@@ -178,17 +182,14 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             }}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (
-                this.item &&
-                (await toggleReviewed(
+              if (this.item) {
+                await toggleReviewed(
                   this,
                   this.item,
                   this.viewItemManager,
                   this.viewManagerEpoch,
                   this.filterReviewed,
-                ))
-              ) {
-                this.requestUpdate();
+                );
               }
             }}
           ></advanced-camera-card-icon>`
@@ -201,11 +202,13 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
               }}
               @click=${async (ev: Event) => {
                 stopEventFromActivatingCardWideActions(ev);
-                if (
-                  this.item &&
-                  (await toggleFavorite(this.item, this.viewItemManager))
-                ) {
-                  this.requestUpdate();
+                if (this.item) {
+                  await toggleFavorite(
+                    this.item,
+                    this.viewItemManager,
+                    this.viewManagerEpoch,
+                    this.filterFavorite,
+                  );
                 }
               }}
             ></advanced-camera-card-icon>`

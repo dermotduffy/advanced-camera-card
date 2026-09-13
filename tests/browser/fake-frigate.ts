@@ -329,6 +329,12 @@ export class FakeFrigate {
     );
 
     hass.registerCommand(
+      'frigate/event/retain',
+      this._answerAsFrigate(['event_id', 'retain'], (message) =>
+        this._setEventRetained(message),
+      ),
+    );
+    hass.registerCommand(
       'frigate/reviews/get',
       this._answerAsFrigate(
         [
@@ -451,6 +457,23 @@ export class FakeFrigate {
       }
       review.has_been_reviewed = viewed;
     }
+
+    return { success: true, message: '' };
+  }
+
+  // Retain an event indefinitely, which the card calls favoriting.
+  private _setEventRetained(message: MessageBase): {
+    success: boolean;
+    message: string;
+  } {
+    const id = readParameter(message, 'event_id', isString, 'a string') ?? '';
+    const retain = readParameter(message, 'retain', isBoolean, 'true or false') ?? true;
+
+    const event = this._getEvent(id);
+    if (!event) {
+      throw new Error(`FakeFrigate has no such event: ${id}`);
+    }
+    event.retain_indefinitely = retain;
 
     return { success: true, message: '' };
   }

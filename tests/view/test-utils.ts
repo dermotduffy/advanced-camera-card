@@ -123,14 +123,8 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
   public isReviewed(): boolean | null {
     return this._reviewed;
   }
-  public setReviewed(reviewed: boolean): void {
-    this._reviewed = reviewed;
-  }
   public isFavorite(): boolean | null {
     return this._favorite;
-  }
-  public setFavorite(favorite: boolean): void {
-    this._favorite = favorite;
   }
 }
 

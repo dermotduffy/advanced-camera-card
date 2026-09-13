@@ -61,6 +61,9 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   public filterReviewed?: boolean;
 
   @property({ attribute: false })
+  public filterFavorite?: boolean;
+
+  @property({ attribute: false })
   public seek?: Date;
 
   /**
@@ -86,6 +89,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .show_review_control=${this.show_review_control}
         .show_info_control=${this.show_info_control}
         .filterReviewed=${this.filterReviewed}
+        .filterFavorite=${this.filterFavorite}
       >
       </advanced-camera-card-thumbnail-feature>
       ${this.details

@@ -29,9 +29,10 @@ export interface NotificationControlsContext {
   viewManagerEpoch?: ViewManagerEpoch;
   capabilities?: ViewItemCapabilities | null;
 
-  // Whether to filter reviewed/unreviewed items after changing the reviewed
-  // state.
+  // Whether to filter {reviewed/unreviewed, favorite/non-favorite} items after
+  // changing the reviewed state.
   filterReviewed?: boolean;
+  filterFavorite?: boolean;
 }
 
 export class MediaNotificationController {
@@ -265,7 +266,12 @@ export class MediaNotificationController {
         severity: isFavorite ? 'medium' : undefined,
         actions: {
           tap_action: createInternalCallbackAction(async (api) => {
-            const success = await toggleFavorite(item, context.viewItemManager);
+            const success = await toggleFavorite(
+              item,
+              context.viewItemManager,
+              context.viewManagerEpoch,
+              context.filterFavorite,
+            );
             if (success) {
               api
                 .getNotificationManager()

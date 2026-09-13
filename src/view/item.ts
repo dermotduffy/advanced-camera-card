@@ -83,12 +83,6 @@ export class ViewMedia {
     return !!startTime && !!endTime && seek >= startTime && seek <= endTime;
   }
 
-  // Sets the favorite attribute (if any). This purely sets the media item as a
-  // favorite in JS.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public setFavorite(_favorite: boolean): void {
-    return;
-  }
   public getSeverity(): Severity | null {
     return null;
   }
@@ -97,13 +91,27 @@ export class ViewMedia {
   }
 
   /**
-   * Creates a shallow clone of this ViewMedia instance.
+   * Whether another object describes this same item.
    *
-   * This is needed because Lit components use reference equality (===) to
-   * detect property changes. When we mutate an item's state (e.g.,
-   * setReviewed), the reference doesn't change, so Lit doesn't re-render. By
-   * cloning the item before mutation and replacing it in the QueryResults, we
-   * ensure Lit sees a new reference and updates the UI.
+   * One item can be present more than once (e.g. a gallery showing both clips
+   * and snapshots holds a separate object per media type of an event). As such
+   * an ID match is what finds every object for it. Media and folders never
+   * match one another, since their identifiers come from different namespaces.
+   * An item without an identifier can only be matched by object.
+   */
+  public isSameAs(other: ViewItem): boolean {
+    const id = this.getID();
+    return (
+      this === other ||
+      (other instanceof ViewMedia && id !== null && id === other.getID())
+    );
+  }
+
+  /**
+   * Creates a shallow copy. Note this will (intentionally) result in underlying
+   * data objects being shared between clones -- this ensures state written
+   * through one object is visible through the other (e.g. favorite/review
+   * status).
    */
   public clone(): this {
     return clone(this);
@@ -123,7 +131,6 @@ export interface RecordingViewMedia extends ViewMedia {
 export interface ReviewViewMedia extends ViewMedia {
   getWhat(): string[] | null;
   isReviewed(): boolean | null;
-  setReviewed(reviewed: boolean): void;
 }
 
 interface ViewFolderParameters {
@@ -191,6 +198,15 @@ export class ViewFolder {
   }
   public isFavorite(): boolean | null {
     return null;
+  }
+
+  /** See ViewMedia.isSameAs() for explanation. */
+  public isSameAs(other: ViewItem): boolean {
+    const id = this.getID();
+    return (
+      this === other ||
+      (other instanceof ViewFolder && id !== null && id === other.getID())
+    );
   }
 
   /** See ViewMedia.clone() for explanation. */

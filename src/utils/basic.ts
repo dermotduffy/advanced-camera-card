@@ -5,7 +5,7 @@ import {
   format,
 } from 'date-fns';
 import type { StyleInfo } from 'lit/directives/style-map.js';
-import { isEqualWith, mergeWith, round, uniq } from 'lodash-es';
+import { isEqual, isEqualWith, mergeWith, round, uniq, uniqWith } from 'lodash-es';
 
 import { AdvancedCameraCardError } from '../types';
 
@@ -70,6 +70,14 @@ export const arrayifyWithFalsy = <T>(value: T | T[]): T[] =>
  */
 export const setify = <T>(value: T | T[] | Set<T>): Set<T> => {
   return value instanceof Set ? value : new Set(arrayify(value));
+};
+
+/**
+ * Get a unanimous value from a collection, or null if there isn't one.
+ */
+export const getUnanimousValue = <T>(values: (T | null | undefined)[]): T | null => {
+  const unique = uniqWith(values, isEqual);
+  return unique.length === 1 ? unique[0] ?? null : null;
 };
 
 /**
