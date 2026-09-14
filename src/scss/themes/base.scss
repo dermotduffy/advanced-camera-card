@@ -1,3 +1,4 @@
+@use '../color-mix.scss' as *;
 @use 'dark.scss' as *;
 @use 'light.scss' as *;
 @use 'traditional.scss' as *;
@@ -32,11 +33,13 @@
   --advanced-camera-card-control-background: var(--app-header-background-color);
   --advanced-camera-card-control-background-opacity: 60%;
 
-  --advanced-camera-card-control-background-transparent: color-mix(
-    in oklab,
-    var(--advanced-camera-card-control-background),
-    transparent var(--advanced-camera-card-control-background-opacity)
+  @include color-mixed(
+    --advanced-camera-card-control-background-transparent,
+    --advanced-camera-card-control-background,
+    var(--advanced-camera-card-control-background-opacity),
+    $fallback: dark-transparent-color(60%)
   );
+
   --advanced-camera-card-control-foreground: var(--app-header-text-color);
 
   --advanced-camera-card-foreground-severity-high-color: var(
@@ -50,7 +53,7 @@
   );
 
   // The color of a favorited or reviewed item, wherever its control is shown.
-  --advanced-camera-card-favorite-color: color-mix(in oklab, gold, transparent 25%);
+  --advanced-camera-card-favorite-color: #{rgba(gold, 0.75)};
   --advanced-camera-card-review-color: var(--advanced-camera-card-active-color);
 
   /*********
@@ -115,10 +118,11 @@
   );
 
   // The background color of the button "circles" in the menu.
-  --advanced-camera-card-menu-button-background: color-mix(
-    in oklab,
-    var(--advanced-camera-card-menu-button-inactive-color),
-    transparent var(--advanced-camera-card-control-background-opacity)
+  @include color-mixed(
+    --advanced-camera-card-menu-button-background,
+    --advanced-camera-card-menu-button-inactive-color,
+    var(--advanced-camera-card-control-background-opacity),
+    $fallback: dark-transparent-color(60%)
   );
 
   // The menu background color.
@@ -221,10 +225,10 @@
   --advanced-camera-card-timeline-background: var(--advanced-camera-card-background);
 
   // style for the 'background' style of item (i.e. recordings).
-  --advanced-camera-card-timeline-background-item-color: color-mix(
-    in oklab,
-    var(--advanced-camera-card-timeline-item-color),
-    transparent 90%
+  @include color-mixed(
+    --advanced-camera-card-timeline-background-item-color,
+    --advanced-camera-card-timeline-item-color,
+    90%
   );
 
   --advanced-camera-card-timeline-divider-color: var(
@@ -282,30 +286,28 @@
   --advanced-camera-card-ptz-color: var(--advanced-camera-card-control-foreground);
   --advanced-camera-card-ptz-background: var(--advanced-camera-card-control-background);
 
-  --advanced-camera-card-ptz-color-active: color-mix(
-    in oklab,
-    var(--advanced-camera-card-ptz-color),
-    transparent 20%
+  --advanced-camera-card-ptz-color-active: var(--advanced-camera-card-ptz-color);
+  --advanced-camera-card-ptz-color-selected: var(
+    --advanced-camera-card-foreground-primary
   );
-  --advanced-camera-card-ptz-background-active: color-mix(
-    in oklab,
-    var(--advanced-camera-card-ptz-background),
-    transparent 20%
+
+  @include color-mixed(
+    --advanced-camera-card-ptz-background-active,
+    --advanced-camera-card-ptz-background,
+    20%,
+    $fallback: dark-transparent-color(20%)
   );
-  --advanced-camera-card-ptz-color-inactive: color-mix(
-    in oklab,
-    var(--advanced-camera-card-ptz-color),
-    transparent var(--advanced-camera-card-control-background-opacity)
+  @include color-mixed(
+    --advanced-camera-card-ptz-color-inactive,
+    --advanced-camera-card-ptz-color,
+    var(--advanced-camera-card-control-background-opacity),
+    $fallback: opaque
   );
-  --advanced-camera-card-ptz-background-inactive: color-mix(
-    in oklab,
-    var(--advanced-camera-card-ptz-background),
-    transparent var(--advanced-camera-card-control-background-opacity)
-  );
-  --advanced-camera-card-ptz-color-selected: color-mix(
-    in oklab,
-    var(--advanced-camera-card-foreground-primary),
-    transparent 20%
+  @include color-mixed(
+    --advanced-camera-card-ptz-background-inactive,
+    --advanced-camera-card-ptz-background,
+    var(--advanced-camera-card-control-background-opacity),
+    $fallback: dark-transparent-color(60%)
   );
 
   /********

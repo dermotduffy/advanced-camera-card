@@ -16,6 +16,24 @@ The card supports these browsers versions or newer:
 
 Older browsers may work to varying degrees, however no official support is offered.
 
+### Chromecast
+
+Home Assistant casts the card to the Chromecast built-in receiver, which runs
+whatever Chrome version the device firmware ships with. Devices on current
+firmware run a recent Chrome and are fully supported, as per the above table.
+Older devices (e.g. TVs with old non-updated firmware) that run
+as far back as Chrome `92` (July 2021) offer a "Partial Support" status. Partial
+support ensures:
+
+- The card loads, live video plays and the menu works.
+- Features that need newer browsers will _degrade_ rather than _break_ the card.
+
+#### Known Gaps (as of 2026-09-13)
+
+- [Templates](configuration/templates.md) do not render: the unrendered template text is shown as written.
+
+This list is expected to keep growing, until the cost of supporting Chromecast receivers on older firmware becomes impractical, at which point support will be withdrawn entirely and revert to the table above.
+
 ## Highlighted Issues
 
 ### Legacy dashboard resource detected

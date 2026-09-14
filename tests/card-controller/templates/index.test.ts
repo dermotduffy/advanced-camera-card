@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { TemplateManager } from '../../../src/card-controller/templates/index';
 import { createConfig } from '../../config/test-utils';
@@ -292,6 +292,66 @@ describe('TemplateManager', () => {
         conditionState: {},
       });
       expect(result).toBe('Value:');
+    });
+  });
+
+  describe('renderer errors', () => {
+    const BROKEN_TEMPLATE = '{{ acc.camera | nosuchfilter }}';
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('should return the template as written', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const manager = new TemplateManager();
+      await manager.loadRenderer();
+
+      expect(manager.renderRecursively(createHASS(), BROKEN_TEMPLATE)).toBe(
+        BROKEN_TEMPLATE,
+      );
+
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should warn once per distinct error', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const manager = new TemplateManager();
+      await manager.loadRenderer();
+      const hass = createHASS();
+
+      manager.renderRecursively(hass, BROKEN_TEMPLATE);
+      manager.renderRecursively(hass, BROKEN_TEMPLATE);
+      expect(warn).toHaveBeenCalledTimes(1);
+
+      manager.renderRecursively(hass, '{{ acc.camera | anothermissingfilter }}');
+      expect(warn).toHaveBeenCalledTimes(2);
+    });
+
+    it('should return the template as written when the browser lacks render engine requirements', async () => {
+      // Chrome 92 (which some Chromecast receivers run), has no
+      // `structuredClone`; ha-nunjucks calls it on every render.
+      const original = globalThis.structuredClone;
+
+      // @ts-expect-error -- removing a standard global to emulate an older
+      // browser.
+      delete globalThis.structuredClone;
+
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      try {
+        const manager = new TemplateManager();
+        await manager.loadRenderer();
+
+        expect(
+          manager.renderRecursively(createHASS(), '{{ acc.camera }}', {
+            conditionState: { camera: 'camera.office' },
+          }),
+        ).toBe('{{ acc.camera }}');
+        expect(warn).toHaveBeenCalledWith('structuredClone is not defined');
+      } finally {
+        globalThis.structuredClone = original;
+      }
     });
   });
 
