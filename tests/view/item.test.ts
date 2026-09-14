@@ -28,7 +28,6 @@ describe('ViewMedia', () => {
     expect(media.getTitle()).toBeNull();
     expect(media.includesTime(new Date())).toBeFalsy();
     expect(media.getWhere()).toBeNull();
-    expect(media.setFavorite(true)).toBeUndefined();
     expect(media.isFavorite()).toBeNull();
     expect(media.isReviewed()).toBeNull();
     expect(media.getIcon()).toBeNull();
@@ -51,6 +50,56 @@ describe('ViewMedia', () => {
     expect(clone).not.toBe(media);
     expect(clone).toBeInstanceOf(ViewMedia);
     expect(clone.getCameraID()).toBe('camera');
+  });
+
+  describe('should match by identifier', () => {
+    it('should match a copy of itself', () => {
+      const media = new TestViewMedia({ id: 'id' });
+
+      expect(media.isSameAs(media.clone())).toBeTruthy();
+    });
+
+    it('should match an object with the same identifier', () => {
+      const clip = new TestViewMedia({ id: 'id', mediaType: ViewMediaType.Clip });
+      const snapshot = new TestViewMedia({
+        id: 'id',
+        mediaType: ViewMediaType.Snapshot,
+      });
+
+      expect(clip.isSameAs(snapshot)).toBeTruthy();
+    });
+
+    it('should not match a different identifier', () => {
+      const media = new TestViewMedia({ id: 'id-1' });
+
+      expect(media.isSameAs(new TestViewMedia({ id: 'id-2' }))).toBeFalsy();
+    });
+
+    it('should match itself when it has no identifier', () => {
+      const media = new TestViewMedia({ id: null });
+
+      expect(media.isSameAs(media)).toBeTruthy();
+    });
+
+    it('should not match when neither has an identifier', () => {
+      const media = new TestViewMedia({ id: null });
+
+      expect(media.isSameAs(new TestViewMedia({ id: null }))).toBeFalsy();
+    });
+
+    it('should not match an object without an identifier', () => {
+      const media = new TestViewMedia({ id: 'id' });
+
+      expect(media.isSameAs(new TestViewMedia({ id: null }))).toBeFalsy();
+    });
+
+    it('should not match a folder', () => {
+      const media = new TestViewMedia({ id: 'id' });
+      const folder = new ViewFolder(createFolder(), [], { id: 'id' });
+
+      expect(media.isSameAs(folder)).toBeFalsy();
+      expect(folder.isSameAs(media)).toBeFalsy();
+    });
   });
 
   it('should correctly determine if a media item includes a time', () => {
@@ -101,6 +150,19 @@ describe('ViewFolder', () => {
     expect(item.getIcon()).toBe('icon');
     expect(item.isFavorite()).toBeNull();
     expect(item.getSeverity()).toBeNull();
+  });
+
+  it('should match by identifier', () => {
+    const item = new ViewFolder(createFolder(), [], { id: 'id' });
+    const withoutID = new ViewFolder(createFolder(), []);
+
+    expect(item.isSameAs(item)).toBeTruthy();
+    expect(item.isSameAs(new ViewFolder(createFolder(), [], { id: 'id' }))).toBeTruthy();
+    expect(
+      item.isSameAs(new ViewFolder(createFolder(), [], { id: 'other' })),
+    ).toBeFalsy();
+    expect(withoutID.isSameAs(withoutID)).toBeTruthy();
+    expect(withoutID.isSameAs(new ViewFolder(createFolder(), []))).toBeFalsy();
   });
 
   it('should clone', () => {

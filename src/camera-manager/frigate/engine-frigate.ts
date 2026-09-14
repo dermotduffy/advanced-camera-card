@@ -337,21 +337,44 @@ export class FrigateCameraManagerEngine
     return output.length ? output : null;
   }
 
+  // Return every cached payload with the given id; there can be several, since
+  // each query parses its own returned data from Frigate. The cache holds
+  // results of every query type, so `select` returns the payloads within a
+  // result, or null if it does not handle that type.
+  private _getCachedPayloads<T extends { id: string }>(
+    id: string,
+    select: (results: QueryResults) => T[] | null,
+  ): T[] {
+    const payloads: T[] = [];
+    for (const [, results] of this._requestCache.entries()) {
+      payloads.push(...(select(results) ?? []).filter((payload) => payload.id === id));
+    }
+    return payloads;
+  }
+
   public async favoriteMedia(
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
     media: ViewMedia,
     favorite: boolean,
   ): Promise<void> {
-    if (
-      !FrigateViewMediaClassifier.isFrigateEvent(media) ||
-      !cameraConfig.frigate.client_id
-    ) {
+    const instanceID = cameraConfig.frigate.client_id;
+    if (!FrigateViewMediaClassifier.isFrigateEvent(media) || !instanceID) {
       return;
     }
 
-    await retainEvent(hass, cameraConfig.frigate.client_id, media.getID(), favorite);
+    const eventID = media.getID();
+    await retainEvent(hass, instanceID, eventID, favorite);
+
+    const cachedEvents = this._getCachedPayloads(eventID, (results) =>
+      FrigateQueryResultsClassifier.isFrigateEventQueryResults(results) &&
+      results.instanceID === instanceID
+        ? results.events
+        : null,
+    );
+
     media.setFavorite(favorite);
+    cachedEvents.forEach((event) => (event.retain_indefinitely = favorite));
   }
 
   public async reviewMedia(
@@ -360,19 +383,23 @@ export class FrigateCameraManagerEngine
     media: ViewMedia,
     reviewed: boolean,
   ): Promise<void> {
-    if (
-      !FrigateViewMediaClassifier.isFrigateReview(media) ||
-      !cameraConfig.frigate.client_id
-    ) {
+    const instanceID = cameraConfig.frigate.client_id;
+    if (!FrigateViewMediaClassifier.isFrigateReview(media) || !instanceID) {
       return;
     }
 
-    await setReviewsReviewed(
-      hass,
-      cameraConfig.frigate.client_id,
-      [media.getID()],
-      reviewed,
+    const reviewID = media.getID();
+    await setReviewsReviewed(hass, instanceID, [reviewID], reviewed);
+
+    const cachedReviews = this._getCachedPayloads(reviewID, (results) =>
+      FrigateQueryResultsClassifier.isFrigateReviewQueryResults(results) &&
+      results.instanceID === instanceID
+        ? results.reviews
+        : null,
     );
+
+    media.setReviewed(reviewed);
+    cachedReviews.forEach((review) => (review.has_been_reviewed = reviewed));
   }
 
   private _buildInstanceToCameraIDMapFromQuery(

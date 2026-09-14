@@ -88,7 +88,7 @@ export const navigateToMedia = (
 
   const newResults = view.queryResults
     .clone()
-    .selectResultIfFound((result) => result === media);
+    .selectResultIfFound((result) => media.isSameAs(result));
 
   const cameraID = media.getCameraID();
   manager.setViewByParameters({

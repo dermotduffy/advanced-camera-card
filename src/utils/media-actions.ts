@@ -1,10 +1,21 @@
 import type { ViewItemManager } from '../card-controller/view/item-manager';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context';
+import { RemoveItemViewModifier } from '../card-controller/view/modifiers/remove-item';
+import { UpdateItemViewModifier } from '../card-controller/view/modifiers/update-item';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
 import type { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { errorToConsole } from './basic';
 import { fireAdvancedCameraCardEvent } from './fire-advanced-camera-card-event';
+
+const replaceItemInView = (
+  item: ViewItem,
+  removeItem: boolean,
+  viewManagerEpoch?: ViewManagerEpoch,
+): void =>
+  viewManagerEpoch?.manager.setViewWithModifiers([
+    removeItem ? new RemoveItemViewModifier(item) : new UpdateItemViewModifier(item),
+  ]);
 
 export async function toggleReviewed(
   host: HTMLElement,
@@ -24,24 +35,12 @@ export async function toggleReviewed(
     errorToConsole(e);
     return false;
   }
-  item.setReviewed(newState);
 
-  // Only remove from query results if the new state conflicts with the filter:
-  // - If filter is 'false' (unreviewed only) and we toggled TO reviewed → remove
-  // - If filter is 'true' (reviewed only) and we toggled TO unreviewed → remove
-  // - If filter is 'undefined' (both) → never remove
-  const shouldRemove = filterReviewed !== undefined && filterReviewed !== newState;
-
-  if (shouldRemove) {
-    const view = viewManagerEpoch?.manager.getView();
-    if (view?.queryResults) {
-      viewManagerEpoch?.manager.setViewByParameters({
-        params: {
-          queryResults: view.queryResults.clone().removeItem(item),
-        },
-      });
-    }
-  }
+  replaceItemInView(
+    item,
+    filterReviewed !== undefined && filterReviewed !== newState,
+    viewManagerEpoch,
+  );
 
   // Provide visual feedback on review.
   fireAdvancedCameraCardEvent<ViewItem>(host, 'media:reviewed', item);
@@ -52,6 +51,8 @@ export async function toggleReviewed(
 export async function toggleFavorite(
   item: ViewItem,
   viewItemManager?: ViewItemManager,
+  viewManagerEpoch?: ViewManagerEpoch,
+  filterFavorite?: boolean,
 ): Promise<boolean> {
   if (!ViewItemClassifier.isMedia(item) || !viewItemManager) {
     return false;
@@ -64,6 +65,13 @@ export async function toggleFavorite(
     errorToConsole(e);
     return false;
   }
+
+  replaceItemInView(
+    item,
+    filterFavorite !== undefined && filterFavorite !== newState,
+    viewManagerEpoch,
+  );
+
   return true;
 }
 
@@ -98,7 +106,7 @@ export function navigateToTimeline(
       queryResults: viewManagerEpoch.manager
         .getView()
         ?.queryResults?.clone()
-        .selectResultIfFound((media) => media === item),
+        .selectResultIfFound((media) => item.isSameAs(media)),
     },
     modifiers: [new RemoveContextViewModifier(['timeline'])],
   });

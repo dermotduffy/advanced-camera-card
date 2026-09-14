@@ -33,6 +33,8 @@ import {
   Engine,
   QueryResultsType,
   QueryType,
+  type EventQuery,
+  type ReviewQuery,
 } from '../../../src/camera-manager/types';
 import type { CameraConfig } from '../../../src/config/schema/cameras';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
@@ -617,6 +619,116 @@ describe('FrigateCameraManagerEngine', () => {
       expect(retainEvent).toHaveBeenCalledWith(hass, 'frigate', 'event-id', false);
     });
 
+    it('should favorite every copy of the event', async () => {
+      // A gallery showing both clips and snapshots runs two queries. Each
+      // parses its own copy of the event, so there are two resulting
+      // FrigateEvent objects that share an id.
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const hass = createHASS();
+      const config = createFrigateCameraConfig();
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      vi.mocked(getEvents).mockImplementation(async () => [
+        createFrigateEvent({ camera: 'camera-1', id: 'event-id' }),
+        createFrigateEvent({ camera: 'camera-1', id: 'other-event-id' }),
+      ]);
+      vi.mocked(retainEvent).mockResolvedValue();
+
+      const buildQuery = (extra: Partial<EventQuery>): EventQuery => ({
+        type: QueryType.Event,
+        source: QuerySource.Camera,
+        cameraIDs: new Set(['camera-1']),
+        ...extra,
+      });
+      const generate = async (query: EventQuery): Promise<ViewMedia[]> => {
+        const results = await engine.getEvents(hass, store, query);
+        assert(results);
+        return engine.generateMediaFromEvents(
+          hass,
+          store,
+          query,
+          [...results.values()][0],
+        ) as ViewMedia[];
+      };
+
+      const clips = await generate(buildQuery({ hasClip: true }));
+      const snapshots = await generate(buildQuery({ hasSnapshot: true }));
+
+      const clip = clips[0];
+      const snapshot = snapshots[0];
+      assert(clip && snapshot);
+      expect(clip.isFavorite()).toBe(false);
+      expect(snapshot.isFavorite()).toBe(false);
+
+      await engine.favoriteMedia(hass, config, clip, true);
+
+      expect(retainEvent).toHaveBeenCalledWith(hass, 'frigate', 'event-id', true);
+      expect(clip.isFavorite()).toBe(true);
+      expect(snapshot.isFavorite()).toBe(true);
+
+      // A different event in the same results is left alone.
+      expect(clips[1]?.isFavorite()).toBe(false);
+    });
+
+    it('should favorite uncached media', async () => {
+      const clip = createClipMedia();
+      vi.mocked(retainEvent).mockResolvedValue();
+
+      await createEngine().favoriteMedia(
+        createHASS(),
+        createFrigateCameraConfig(),
+        clip,
+        false,
+      );
+
+      expect(clip.isFavorite()).toBe(false);
+    });
+
+    it('should not favorite the same id on another instance', async () => {
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const hass = createHASS();
+      const config = createFrigateCameraConfig();
+      const otherConfig = createFrigateCameraConfig({
+        frigate: { camera_name: 'camera-2', client_id: 'other-instance' },
+      });
+      const store = createStore([
+        { cameraID: 'camera-1', config },
+        { cameraID: 'camera-2', config: otherConfig },
+      ]);
+
+      vi.mocked(getEvents).mockImplementation(async () => [
+        createFrigateEvent({ camera: 'camera-1', id: 'event-id' }),
+      ]);
+      vi.mocked(retainEvent).mockResolvedValue();
+
+      const generate = async (cameraID: string): Promise<ViewMedia[]> => {
+        const query: EventQuery = {
+          type: QueryType.Event,
+          source: QuerySource.Camera,
+          cameraIDs: new Set([cameraID]),
+        };
+        const results = await engine.getEvents(hass, store, query);
+        assert(results);
+        return engine.generateMediaFromEvents(
+          hass,
+          store,
+          query,
+          [...results.values()][0],
+        ) as ViewMedia[];
+      };
+
+      const media = (await generate('camera-1'))[0];
+      const otherMedia = (await generate('camera-2'))[0];
+      assert(media && otherMedia);
+
+      await engine.favoriteMedia(hass, config, media, true);
+
+      expect(media.isFavorite()).toBe(true);
+      expect(otherMedia.isFavorite()).toBe(false);
+    });
+
     it('should do nothing for non-frigate event media', async () => {
       const media = new ViewMedia(ViewMediaType.Clip, { cameraID: 'camera-1' });
 
@@ -651,6 +763,143 @@ describe('FrigateCameraManagerEngine', () => {
         ['review_id'],
         true,
       );
+      expect(media.isReviewed()).toBe(true);
+    });
+
+    it('should not mark a review when the request fails', async () => {
+      const media = new FrigateReviewViewMedia(
+        'camera-1',
+        createFrigateReview(),
+        'content-id',
+        'thumb',
+        new Date(),
+      );
+      vi.mocked(setReviewsReviewed).mockRejectedValue(new Error('fail'));
+
+      await expect(
+        createEngine().reviewMedia(
+          createHASS(),
+          createFrigateCameraConfig(),
+          media,
+          true,
+        ),
+      ).rejects.toThrow();
+
+      expect(media.isReviewed()).toBe(false);
+    });
+
+    it('should mark every copy of the review', async () => {
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const hass = createHASS();
+      const config = createFrigateCameraConfig();
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      // Each fetch parses its own copy, so the two results below do not share
+      // a review object.
+      vi.mocked(getReviews).mockImplementation(async () => [
+        createFrigateReview({ camera: 'camera-1', id: 'review_id' }),
+      ]);
+      vi.mocked(setReviewsReviewed).mockResolvedValue();
+
+      const generate = async (query: ReviewQuery): Promise<ViewMedia[]> => {
+        const results = await engine.getReviews(hass, store, query);
+        assert(results);
+        return engine.generateMediaFromReviews(
+          hass,
+          store,
+          query,
+          [...results.values()][0],
+        ) as ViewMedia[];
+      };
+
+      const first = (
+        await generate({
+          type: QueryType.Review,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+        })
+      )[0];
+      const second = (
+        await generate({
+          type: QueryType.Review,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+          severity: new Set(['high' as const]),
+        })
+      )[0];
+      assert(first && second);
+      expect(first.isReviewed()).toBe(false);
+      expect(second.isReviewed()).toBe(false);
+
+      await engine.reviewMedia(hass, config, first, true);
+
+      expect(first.isReviewed()).toBe(true);
+      expect(second.isReviewed()).toBe(true);
+    });
+
+    it('should not mark the same id on another instance', async () => {
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const hass = createHASS();
+      const config = createFrigateCameraConfig();
+      const otherConfig = createFrigateCameraConfig({
+        frigate: { camera_name: 'camera-2', client_id: 'other-instance' },
+      });
+      const store = createStore([
+        { cameraID: 'camera-1', config },
+        { cameraID: 'camera-2', config: otherConfig },
+      ]);
+
+      vi.mocked(getReviews).mockImplementation(async () => [
+        createFrigateReview({ camera: 'camera-1', id: 'review_id' }),
+      ]);
+      vi.mocked(setReviewsReviewed).mockResolvedValue();
+
+      const generate = async (cameraID: string): Promise<ViewMedia[]> => {
+        const query: ReviewQuery = {
+          type: QueryType.Review,
+          source: QuerySource.Camera,
+          cameraIDs: new Set([cameraID]),
+        };
+        const results = await engine.getReviews(hass, store, query);
+        assert(results);
+        return engine.generateMediaFromReviews(
+          hass,
+          store,
+          query,
+          [...results.values()][0],
+        ) as ViewMedia[];
+      };
+
+      const media = (await generate('camera-1'))[0];
+      const otherMedia = (await generate('camera-2'))[0];
+      assert(media && otherMedia);
+
+      await engine.reviewMedia(hass, config, media, true);
+
+      expect(media.isReviewed()).toBe(true);
+      expect(otherMedia.isReviewed()).toBe(false);
+    });
+
+    it('should mark uncached media as reviewed', async () => {
+      const review = new FrigateReviewViewMedia(
+        'camera-1',
+        createFrigateReview(),
+        'content-id',
+        'thumb',
+        new Date(),
+      );
+      vi.mocked(setReviewsReviewed).mockResolvedValue();
+
+      await createEngine().reviewMedia(
+        createHASS(),
+        createFrigateCameraConfig(),
+        review,
+        true,
+      );
+
+      expect(review.isReviewed()).toBe(true);
     });
 
     it('should do nothing for non-frigate review media', async () => {

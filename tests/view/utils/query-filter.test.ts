@@ -4,66 +4,114 @@ import { mock } from 'vitest-mock-extended';
 import { ViewFolder } from '../../../src/view/item';
 import type { UnifiedQuery } from '../../../src/view/unified-query';
 import {
+  getBooleanQueryFilter,
   getReviewedQueryFilterFromConfig,
-  getReviewedQueryFilterFromQuery,
 } from '../../../src/view/utils/query-filter';
 import { createFolder } from '../../test-utils';
 import { createEventQuery, TestViewMedia } from '../test-utils';
 
 describe('query-filter', () => {
-  describe('getReviewedQueryFilterFromQuery', () => {
-    it('should return undefined if query is missing', () => {
-      expect(getReviewedQueryFilterFromQuery(null)).toBeUndefined();
+  describe('getBooleanQueryFilter for reviewed', () => {
+    it('should return null if query is missing', () => {
+      expect(getBooleanQueryFilter('reviewed', null)).toBeNull();
     });
 
-    it('should return undefined if item is missing', () => {
-      expect(getReviewedQueryFilterFromQuery(mock<UnifiedQuery>())).toBeUndefined();
+    it('should return null if item is missing', () => {
+      expect(getBooleanQueryFilter('reviewed', mock<UnifiedQuery>())).toBeNull();
     });
 
-    it('should return undefined if item is not media', () => {
+    it('should return null if item is not media', () => {
       const query = mock<UnifiedQuery>();
       const item = new ViewFolder(createFolder(), []);
 
-      expect(getReviewedQueryFilterFromQuery(query, item)).toBeUndefined();
+      expect(getBooleanQueryFilter('reviewed', query, item)).toBeNull();
     });
 
-    it('should return undefined if item has no cameraID', () => {
+    it('should return null if item has no cameraID', () => {
       const query = mock<UnifiedQuery>();
       const item = new TestViewMedia({ cameraID: null });
 
-      expect(getReviewedQueryFilterFromQuery(query, item)).toBeUndefined();
+      expect(getBooleanQueryFilter('reviewed', query, item)).toBeNull();
     });
 
-    it('should return undefined if zero or multiple media queries match', () => {
+    it('should return null when no media query sets the filter', () => {
       const query = mock<UnifiedQuery>();
       const item = new TestViewMedia({ cameraID: 'camera-1' });
 
       query.getMediaQueries.mockReturnValue([]);
-      expect(getReviewedQueryFilterFromQuery(query, item)).toBeUndefined();
+      expect(getBooleanQueryFilter('reviewed', query, item)).toBeNull();
 
       query.getMediaQueries.mockReturnValue([
         createEventQuery('camera-1'),
         createEventQuery('camera-2'),
       ]);
-      expect(getReviewedQueryFilterFromQuery(query, item)).toBeUndefined();
+      expect(getBooleanQueryFilter('reviewed', query, item)).toBeNull();
     });
 
-    it('should return boolean if exactly one media query matches', () => {
+    it('should return the filter from a single media query', () => {
       const query = mock<UnifiedQuery>();
       const item = new TestViewMedia({ cameraID: 'camera-1' });
 
       query.getMediaQueries.mockReturnValue([
         createEventQuery('camera-1', { reviewed: true }),
       ]);
-      expect(getReviewedQueryFilterFromQuery(query, item)).toBe(true);
+      expect(getBooleanQueryFilter('reviewed', query, item)).toBe(true);
 
       query.getMediaQueries.mockReturnValue([
         createEventQuery('camera-1', { reviewed: false }),
       ]);
-      expect(getReviewedQueryFilterFromQuery(query, item)).toBe(false);
+      expect(getBooleanQueryFilter('reviewed', query, item)).toBe(false);
 
       query.getMediaQueries.mockReturnValue([createEventQuery('camera-1')]);
-      expect(getReviewedQueryFilterFromQuery(query, item)).toBeUndefined();
+      expect(getBooleanQueryFilter('reviewed', query, item)).toBeNull();
+    });
+  });
+
+  describe('getBooleanQueryFilter for favorite', () => {
+    it('should return the filter from a single media query', () => {
+      const query = mock<UnifiedQuery>();
+      const item = new TestViewMedia({ cameraID: 'camera-1' });
+
+      query.getMediaQueries.mockReturnValue([
+        createEventQuery('camera-1', { favorite: true }),
+      ]);
+      expect(getBooleanQueryFilter('favorite', query, item)).toBe(true);
+
+      query.getMediaQueries.mockReturnValue([
+        createEventQuery('camera-1', { favorite: false }),
+      ]);
+      expect(getBooleanQueryFilter('favorite', query, item)).toBe(false);
+
+      query.getMediaQueries.mockReturnValue([createEventQuery('camera-1')]);
+      expect(getBooleanQueryFilter('favorite', query, item)).toBeNull();
+    });
+
+    it('should return null without a query', () => {
+      expect(getBooleanQueryFilter('favorite', null)).toBeNull();
+    });
+
+    it('should return the filter when multiple media queries agree', () => {
+      const query = mock<UnifiedQuery>();
+      const item = new TestViewMedia({ cameraID: 'camera-1' });
+
+      query.getMediaQueries.mockReturnValue([
+        createEventQuery('camera-1', { favorite: true }),
+        createEventQuery('camera-1', { favorite: true }),
+      ]);
+
+      expect(getBooleanQueryFilter('favorite', query, item)).toBe(true);
+    });
+
+    it('should return null when media queries disagree', () => {
+      const query = mock<UnifiedQuery>();
+      const item = new TestViewMedia({ cameraID: 'camera-1' });
+
+      query.getMediaQueries.mockReturnValue([
+        createEventQuery('camera-1', { favorite: true }),
+        createEventQuery('camera-1', { favorite: false }),
+      ]);
+
+      expect(getBooleanQueryFilter('favorite', query, item)).toBeNull();
     });
   });
 
@@ -74,11 +122,14 @@ describe('query-filter', () => {
 
     it('should return undefined for all', () => {
       expect(getReviewedQueryFilterFromConfig('all')).toBeUndefined();
-      expect(getReviewedQueryFilterFromConfig(undefined)).toBe(false);
     });
 
     it('should return false for unreviewed', () => {
       expect(getReviewedQueryFilterFromConfig('unreviewed')).toBe(false);
+    });
+
+    it('should return false without a config value', () => {
+      expect(getReviewedQueryFilterFromConfig(undefined)).toBe(false);
     });
   });
 });

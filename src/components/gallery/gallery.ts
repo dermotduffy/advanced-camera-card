@@ -33,7 +33,7 @@ import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewFolder, ViewItem } from '../../view/item.js';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder.js';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner.js';
-import { getReviewedQueryFilterFromQuery } from '../../view/utils/query-filter.js';
+import { getBooleanQueryFilter } from '../../view/utils/query-filter.js';
 
 import '../media-filter.js';
 
@@ -155,7 +155,10 @@ export class AdvancedCameraCardGallery extends LitElement {
               .show_review_control}
             ?show_info_control=${!!this.galleryConfig?.controls.thumbnails
               .show_info_control}
-            .filterReviewed=${getReviewedQueryFilterFromQuery(view?.query, item)}
+            .filterReviewed=${getBooleanQueryFilter('reviewed', view?.query, item) ??
+            undefined}
+            .filterFavorite=${getBooleanQueryFilter('favorite', view?.query, item) ??
+            undefined}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (ViewItemClassifier.isMedia(item) && this.viewManagerEpoch) {

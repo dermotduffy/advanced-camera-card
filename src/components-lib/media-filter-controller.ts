@@ -11,7 +11,7 @@ import {
   sub,
 } from 'date-fns';
 import type { LitElement } from 'lit';
-import { isEqual, orderBy } from 'lodash-es';
+import { orderBy } from 'lodash-es';
 
 import { CameraQueryClassifier, type CameraManager } from '../camera-manager/manager';
 import type { DateRange, PartialDateRange } from '../camera-manager/range';
@@ -28,7 +28,12 @@ import type { CardWideConfig } from '../config/schema/types';
 import { localize } from '../localize/localize';
 import { SEVERITIES, type Severity } from '../severity';
 import type { ViewMediaType } from '../types';
-import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
+import {
+  errorToConsole,
+  formatDate,
+  getUnanimousValue,
+  prettifyTitle,
+} from '../utils/basic';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder';
 
 export interface MediaFilterCoreDefaults {
@@ -306,18 +311,15 @@ export class MediaFilterController {
     }
 
     // Extract favorite from all media queries (only if explicitly set to true/false)
-    const favoriteValues = new Set(
+    const unanimousFavorite = getUnanimousValue(
       mediaQueries.map((mediaQuery) =>
         CameraQueryClassifier.isEventQuery(mediaQuery) ? mediaQuery.favorite : undefined,
       ),
     );
-    if (favoriteValues.size === 1) {
-      const fav = [...favoriteValues][0];
-      if (fav !== undefined) {
-        favorite = fav
-          ? MediaFilterCoreFavoriteSelection.Favorite
-          : MediaFilterCoreFavoriteSelection.NotFavorite;
-      }
+    if (unanimousFavorite !== null) {
+      favorite = unanimousFavorite
+        ? MediaFilterCoreFavoriteSelection.Favorite
+        : MediaFilterCoreFavoriteSelection.NotFavorite;
     }
 
     // Detect media types from queries
@@ -341,36 +343,33 @@ export class MediaFilterController {
       mediaTypes.push(MediaFilterMediaType.Reviews);
     }
 
-    const whatSets = eventQueries.map((q) => q.what);
-    if (this._hasSingleUniqueValue(whatSets) && whatSets[0]?.size) {
-      what = [...whatSets[0]];
+    const unanimousWhat = getUnanimousValue(eventQueries.map((q) => q.what));
+    if (unanimousWhat?.size) {
+      what = [...unanimousWhat];
     }
 
-    const whereSets = eventQueries.map((q) => q.where);
-    if (this._hasSingleUniqueValue(whereSets) && whereSets[0]?.size) {
-      where = [...whereSets[0]];
+    const unanimousWhere = getUnanimousValue(eventQueries.map((q) => q.where));
+    if (unanimousWhere?.size) {
+      where = [...unanimousWhere];
     }
 
-    const tagsSets = eventQueries.map((q) => q.tags);
-    if (this._hasSingleUniqueValue(tagsSets) && tagsSets[0]?.size) {
-      tags = [...tagsSets[0]];
+    const unanimousTags = getUnanimousValue(eventQueries.map((q) => q.tags));
+    if (unanimousTags?.size) {
+      tags = [...unanimousTags];
     }
 
     // Extract reviewed from review queries (only if explicitly set to true/false)
     const reviewQueries = query.getMediaQueries<ReviewQuery>({ type: QueryType.Review });
-    const reviewedValues = new Set(reviewQueries.map((q) => q.reviewed));
-    if (reviewedValues.size === 1) {
-      const rev = [...reviewedValues][0];
-      if (rev !== undefined) {
-        reviewed = rev
-          ? MediaFilterCoreReviewedSelection.Reviewed
-          : MediaFilterCoreReviewedSelection.NotReviewed;
-      }
+    const unanimousReviewed = getUnanimousValue(reviewQueries.map((q) => q.reviewed));
+    if (unanimousReviewed !== null) {
+      reviewed = unanimousReviewed
+        ? MediaFilterCoreReviewedSelection.Reviewed
+        : MediaFilterCoreReviewedSelection.NotReviewed;
     }
 
-    const severitySets = reviewQueries.map((q) => q.severity);
-    if (this._hasSingleUniqueValue(severitySets) && severitySets[0]?.size) {
-      severity = [...severitySets[0]];
+    const unanimousSeverity = getUnanimousValue(reviewQueries.map((q) => q.severity));
+    if (unanimousSeverity?.size) {
+      severity = [...unanimousSeverity];
     }
 
     this._defaults = {
@@ -498,12 +497,5 @@ export class MediaFilterController {
       default:
         return this._stringToDateRange(values.selected);
     }
-  }
-
-  private _hasSingleUniqueValue(sets: (Set<unknown> | undefined)[]): boolean {
-    if (sets.length === 0) {
-      return false;
-    }
-    return sets.every((s) => isEqual(s, sets[0]));
   }
 }

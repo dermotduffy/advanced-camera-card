@@ -49,6 +49,10 @@
     --ha-color-fill-neutral-loud-resting
   );
 
+  // The color of a favorited or reviewed item, wherever its control is shown.
+  --advanced-camera-card-favorite-color: color-mix(in oklab, gold, transparent 25%);
+  --advanced-camera-card-review-color: var(--advanced-camera-card-active-color);
+
   /*********
    * Buttons
    *********/
@@ -195,13 +199,11 @@
     --advanced-camera-card-foreground-primary
   );
   --advanced-camera-card-thumbnail-background: var(--advanced-camera-card-background);
-  --advanced-camera-card-thumbnail-icon-favorite-color: color-mix(
-    in oklab,
-    gold,
-    transparent 25%
+  --advanced-camera-card-thumbnail-icon-favorite-color: var(
+    --advanced-camera-card-favorite-color
   );
   --advanced-camera-card-thumbnail-icon-review-color: var(
-    --advanced-camera-card-active-color
+    --advanced-camera-card-review-color
   );
   --advanced-camera-card-thumbnail-text-color: var(--advanced-camera-card-text-color);
 

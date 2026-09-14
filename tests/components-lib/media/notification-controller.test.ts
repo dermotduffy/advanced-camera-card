@@ -481,9 +481,10 @@ describe('MediaNotificationController', () => {
 
       expect(controls?.[0].tooltip).toBe('Mark as unreviewed');
       expect(controls?.[0].icon).toBe('mdi:check-circle');
+      expect(controls?.[0].className).toBe('reviewed');
 
-      expect(controls?.[1].severity).toBe('medium');
       expect(controls?.[1].icon).toBe('mdi:star');
+      expect(controls?.[1].className).toBe('favorited');
     });
 
     it('should get notification with controls when item has no ID', () => {

@@ -58,6 +58,13 @@
   &.severity-high {
     color: var(--advanced-camera-card-foreground-severity-high-color);
   }
+
+  &.favorited {
+    color: var(--advanced-camera-card-favorite-color);
+  }
+  &.reviewed {
+    color: var(--advanced-camera-card-review-color);
+  }
 }
 
 .detail {

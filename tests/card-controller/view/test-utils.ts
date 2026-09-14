@@ -55,5 +55,6 @@ export const applySetViewModifiers = (
 ): View => {
   const mock = vi.mocked(viewManager.setViewWithModifiers).mock;
   expect(mock.calls.length).greaterThan(n);
-  return applyViewModifiers(view, mock.calls[n][0]);
+  applyViewModifiers(view, mock.calls[n][0]);
+  return view;
 };

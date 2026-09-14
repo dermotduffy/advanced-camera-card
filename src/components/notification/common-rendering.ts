@@ -3,6 +3,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import { actionHandler } from '../../action-handler-directive.js';
 import type {
+  InternalNotificationControl,
   Notification,
   NotificationControl,
   NotificationDetail,
@@ -40,12 +41,13 @@ export function renderDetail(
 }
 
 export function renderControl(
-  control: NotificationControl,
+  control: InternalNotificationControl,
   onAction: (ev: CustomEvent<{ action: string }>, control: NotificationControl) => void,
 ): TemplateResult {
   const classes = {
     control: true,
     [`severity-${control.severity}`]: !!control.severity,
+    ...(control.className && { [control.className]: true }),
   };
   return html`
     <div

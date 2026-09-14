@@ -18,6 +18,7 @@ import {
   getChildrenFromElement,
   getDurationString,
   getErrorDescription,
+  getUnanimousValue,
   ignoreFunctionIdentity,
   isHoverableDevice,
   isHTMLElement,
@@ -93,6 +94,25 @@ describe('setify', () => {
   it('should return set', () => {
     const data = new Set([1, 2, 3]);
     expect(setify(data)).toBe(data);
+  });
+});
+
+describe('getUnanimousValue', () => {
+  it('should return null without values', () => {
+    expect(getUnanimousValue([])).toBeNull();
+  });
+  it('should return the agreed value', () => {
+    expect(getUnanimousValue([true, true])).toBe(true);
+  });
+  it('should return null when the agreed value is absent', () => {
+    expect(getUnanimousValue([undefined, undefined])).toBeNull();
+  });
+  it('should return null when values differ', () => {
+    expect(getUnanimousValue([true, false])).toBeNull();
+  });
+  it('should compare by content rather than reference', () => {
+    expect(getUnanimousValue([new Set(['a']), new Set(['a'])])).toEqual(new Set(['a']));
+    expect(getUnanimousValue([new Set(['a']), new Set(['b'])])).toBeNull();
   });
 });
 

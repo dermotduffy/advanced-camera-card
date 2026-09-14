@@ -31,7 +31,7 @@ import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-
 import { ViewItemClassifier } from '../view/item-classifier.js';
 import type { ViewItem, ViewMedia } from '../view/item.js';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder.js';
-import { getReviewedQueryFilterFromQuery } from '../view/utils/query-filter.js';
+import { getBooleanQueryFilter } from '../view/utils/query-filter.js';
 
 import './carousel.js';
 import './thumbnail/thumbnail.js';
@@ -153,6 +153,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     clickCallback: (item: ViewItem, ev: Event) => void,
     seekTarget?: Date,
     filterReviewed?: boolean,
+    filterFavorite?: boolean,
   ): TemplateResult {
     const classes = {
       embla__slide: true,
@@ -164,6 +165,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       .cameraManager=${this.cameraManager}
       .hass=${this.hass}
       .filterReviewed=${filterReviewed}
+      .filterFavorite=${filterFavorite}
       .item=${item}
       .viewManagerEpoch=${this.viewManagerEpoch}
       .viewItemManager=${this.viewItemManager}
@@ -213,7 +215,8 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
           selectedIndex === thumbnails.length,
           clickHandler,
           view?.context?.mediaViewer?.seek,
-          getReviewedQueryFilterFromQuery(view?.query, item),
+          getBooleanQueryFilter('reviewed', view?.query, item) ?? undefined,
+          getBooleanQueryFilter('favorite', view?.query, item) ?? undefined,
         ),
       );
     }

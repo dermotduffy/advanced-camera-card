@@ -19,20 +19,20 @@ export class SubstreamViewModifier implements ViewModifier {
     this._options = options ?? {};
   }
 
-  public modify(view: View): void {
+  public modify(view: View): boolean {
     const cameraID = this._options.camera ?? view.camera;
     if (!cameraID) {
-      return;
+      return false;
     }
     // A stream equal to the camera itself is semantically "no substream";
     // normalize it to a cleared override so the map doesn't carry self-
     // referential entries.
     if (!this._options.stream || this._options.stream === cameraID) {
-      view.context?.live?.overrides?.delete(cameraID);
-      return;
+      return !!view.context?.live?.overrides?.delete(cameraID);
     }
     const overrides = view.context?.live?.overrides ?? new Map<string, string>();
     overrides.set(cameraID, this._options.stream);
     view.mergeInContext({ live: { overrides } });
+    return true;
   }
 }
