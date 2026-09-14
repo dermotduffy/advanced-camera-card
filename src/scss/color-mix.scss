@@ -1,0 +1,58 @@
+@use 'sass:math';
+
+// Use in place of a mix that fades a color most of the way out: a theme
+// variable cannot be faded without use of `color-mix()`, so a mid-grey can
+// substitute. Pass the transparency the mix uses, so both lines read the same
+// number.
+//
+// Wrap the call in `#{}` when setting a custom property. Sass treats those
+// values as plain text, otherwise the browser gets the function name and
+// discards the declaration.
+//
+//   background: neutral-transparent-color(90%);
+//   --bracket-color: #{neutral-transparent-color(90%)};
+//
+@function neutral-transparent-color($transparency) {
+  @return rgba(127, 127, 127, math.div(100% - $transparency, 100%));
+}
+
+// The dark counterpart of `neutral-transparent-color`. Use it behind light
+// icons, where a mid grey leaves too little contrast.
+@function dark-transparent-color($transparency) {
+  @return rgba(0, 0, 0, math.div(100% - $transparency, 100%));
+}
+
+// Set a property to a `color-mix()`, behind a @supports guard, with the simpler
+// value older browsers fall back to. The Chromecast built-in receiver runs
+// Chrome 92, which has no `color-mix()`.
+//
+// The @supports guard is necessary: Simply writing the plain value and the
+// color-mix() value as two declarations won't work: the mixes also read custom
+// properties, and if the mix fails the browser will set the property to `unset`
+// instead of using the earlier declaration.
+//
+// `$fallback` is `neutral` for a mid-grey, `opaque` for the color at full
+// strength, or any value to use literally.
+//
+//   @include color-mixed(background, --notification-control-color, 92%);
+//   @include color-mixed(outline-color, --timeline-item-color, 20%, black, opaque);
+//
+@mixin color-mixed(
+  $property,
+  $color,
+  $mix-amount,
+  $mix-color: transparent,
+  $fallback: neutral
+) {
+  @if $fallback == neutral {
+    #{$property}: neutral-transparent-color($mix-amount);
+  } @else if $fallback == opaque {
+    #{$property}: var(#{$color});
+  } @else {
+    #{$property}: $fallback;
+  }
+
+  @supports (color: color-mix(in oklab, red, transparent 50%)) {
+    #{$property}: color-mix(in oklab, var(#{$color}), #{$mix-color} #{$mix-amount});
+  }
+}

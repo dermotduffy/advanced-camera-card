@@ -4,8 +4,15 @@ advanced-camera-card-surround-basic {
   // The gallery will grow indefinitely in the `unconstrained` aspect ratio
   // modes, the surround height needs to be limited to something reasonable in
   // order for the media filter to still display somewhere the user can
-  // easily/continually access. See similar: gallery.scss.
-  max-height: 110dvh;
+  // easily/continually access.
+
+  // `vh` is here for browsers without `dvh`. It always measures the viewport
+  // at its tallest, whereas `dvh` follows the viewport as a mobile browser's
+  // toolbars slide in and out.
+  max-height: 110vh;
+  @supports (max-height: 100dvh) {
+    max-height: 110dvh;
+  }
 }
 
 advanced-camera-card-thumbnail {
