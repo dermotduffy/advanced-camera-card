@@ -86,6 +86,34 @@ describe('ConditionStateManager', () => {
       ).toBe(true);
       expect(listener).toHaveBeenCalledTimes(5);
     });
+
+    it('should compare hass by reference, not by deep equality', () => {
+      const listener = vi.fn();
+      const manager = new ConditionStateManager();
+      manager.addListener(listener);
+
+      const hass = createHASS({
+        'binary_sensor.foo': createStateEntity(),
+      });
+
+      // A new (but content-identical) hass is a change: `HASSManager` only
+      // ever assigns a new `hass` when HA itself reports one, so a fresh
+      // reference is trusted as a real change without needing to deep-walk
+      // (potentially thousands of) entities to confirm it.
+      expect(manager.setState({ hass })).toBe(true);
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      const hassAgainSameContent = createHASS({
+        'binary_sensor.foo': createStateEntity(),
+      });
+      expect(manager.setState({ hass: hassAgainSameContent })).toBe(true);
+      expect(listener).toHaveBeenCalledTimes(2);
+
+      // The exact same reference, however, is correctly recognized as no
+      // change.
+      expect(manager.setState({ hass: hassAgainSameContent })).toBe(false);
+      expect(listener).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('should serialize a state change made from within a listener', () => {

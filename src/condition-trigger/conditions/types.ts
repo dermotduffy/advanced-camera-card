@@ -7,13 +7,15 @@ import type { AdvancedCameraCardConfig } from '../../config/schema/types';
 import type { HomeAssistant } from '../../ha/types';
 import type { MediaLoadedInfo } from '../../types';
 
-// ConditionStateManager checks each written field with lodash isEqual. Prefer
-// plain immutable data: functions (callbacks) compare by identity, and opaque
-// objects get deep-walked through their enumerable state, which is rarely a
-// meaningful equality contract. Store such a value only when its reference is
-// the intended state (`mediaLoadedInfo`'s MediaPlayerController, which
-// consumers also reference-compare) or its identity is stable across writes
-// (`hass`'s methods).
+// ConditionStateManager checks each written field with lodash isEqual, except
+// for the fields listed in REFERENCE_COMPARED_KEYS (state-manager.ts), which
+// are compared by reference instead. Prefer plain immutable data: functions
+// (callbacks) compare by identity, and opaque objects get deep-walked through
+// their enumerable state, which is rarely a meaningful equality contract, and
+// can be actively expensive (see `hass`, below). Store such a value only when
+// its reference is the intended state (`mediaLoadedInfo`'s
+// MediaPlayerController, which consumers also reference-compare) or its
+// identity is stable across writes (`hass`'s methods).
 //
 // Counterexample: Rebuilding an equivalent function callback each write making
 // the field look changed when nothing observable did.
@@ -34,7 +36,11 @@ export interface ConditionState {
   panel?: boolean;
 
   // Home Assistant:
-  // - The main HA object itself.
+  // - The main HA object itself. Compared by reference (REFERENCE_COMPARED_KEYS
+  //   in state-manager.ts), not deep-equal -- `hass.states` can hold thousands
+  //   of entities, and HASSManager only ever assigns a new `hass` when Home
+  //   Assistant itself reports a change, so identity is a correct and much
+  //   cheaper proxy for "did anything change".
   hass?: HomeAssistant;
   // - The card's view of HA's readiness.
   hassReadiness?: HASSReadiness;
