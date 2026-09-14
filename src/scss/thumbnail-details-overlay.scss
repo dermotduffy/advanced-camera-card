@@ -223,7 +223,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: 12px;
-    align-items: end;
+    align-items: flex-end;
     padding: 14px 16px 15px;
   }
   .headline {

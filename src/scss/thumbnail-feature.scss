@@ -48,7 +48,7 @@
   background: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
 }
 
-:host([reviewed]) .media {
+:host([review='reviewed']) .media {
   opacity: 0.88;
 }
 

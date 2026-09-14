@@ -1,5 +1,6 @@
 import { assert, describe, expect, it } from 'vitest';
 
+import type { FrigateReview } from '../../../src/camera-manager/frigate/types';
 import type { ThumbnailDetailsStyle } from '../../../src/config/schema/common/controls/thumbnails';
 import {
   createFrontDoorFolderMedia,
@@ -17,6 +18,7 @@ import {
 import { MountedCardFactory, type MountedCard } from '../../browser/mounted-card';
 import {
   createCameraHASS,
+  createStillImageCameraConfig,
   createStillImageCardConfig,
   waitForThumbnails,
 } from '../../browser/test-utils';
@@ -44,12 +46,13 @@ const mountGallery = async (
 };
 
 const mountReviewGallery = async (
-  severity: 'alert' | 'detection',
+  review: Partial<FrigateReview>,
 ): Promise<MountedCard> => {
   const { card } = await mountCardWithFrigate(
     [],
     {
       view: { default: 'reviews' },
+      cameras: [{ ...createStillImageCameraConfig(), media: { reviewed: 'all' } }],
       media_gallery: {
         controls: {
           thumbnails: {
@@ -60,7 +63,7 @@ const mountReviewGallery = async (
         },
       },
     },
-    [createTestFrigateReview('review', EVENT_TIME_NEWER, { severity })],
+    [createTestFrigateReview('review', EVENT_TIME_NEWER, review)],
   );
   await waitForThumbnails(card, 1);
   return card;
@@ -89,7 +92,8 @@ const mountFolderGallery = async (size: number): Promise<MountedCard> => {
     }),
     hass,
   );
-  await waitForThumbnails(card, 1);
+  // The gallery renders the folder plus an "up" thumbnail to its parent.
+  await waitForThumbnails(card, 2);
   return card;
 };
 
@@ -182,9 +186,24 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
       ['alert' as const, '4px'],
       ['detection' as const, '3px'],
     ])('should rank a %s with a bar %s tall', async (severity, height) => {
-      const card = await mountReviewGallery(severity);
+      const card = await mountReviewGallery({ severity });
 
       expect(getComputedStyle(getFeature(card), '::before').height).toBe(height);
+    });
+
+    it('should set the label weight depending on review state', async () => {
+      const weight = (card: MountedCard): number => {
+        const label = deepQuery(getOverlay(card) ?? card.card, '.label');
+        assert(label);
+        return parseFloat(getComputedStyle(label).fontWeight);
+      };
+
+      const reviewed = weight(await mountReviewGallery({ has_been_reviewed: true }));
+      const unreviewed = weight(await mountReviewGallery({ has_been_reviewed: false }));
+      const notReviewable = weight(await mountGallery('overlay', 100));
+
+      expect(reviewed).toBeLessThan(notReviewable);
+      expect(notReviewable).toBeLessThan(unreviewed);
     });
 
     it('should show no severity bar on media that cannot be reviewed', async () => {

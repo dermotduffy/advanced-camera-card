@@ -10,14 +10,11 @@ import {
   getMediaLabel,
   getMediaTags,
   getMediaWhere,
-  isMediaReviewed,
   joinValues,
 } from '../../media/format';
 import { isIdentifiedByThumbnail } from '../is-identified-by-thumbnail';
 import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
 import { getThumbnailTier, type ThumbnailTier } from '../tier';
-
-export type ThumbnailReviewState = 'reviewed' | 'unreviewed';
 
 export interface ThumbnailDetailsOverlayOptions {
   cameraManager?: CameraManager;
@@ -39,7 +36,6 @@ export class ThumbnailDetailsOverlayController {
   private _isHover = false;
 
   private _label: string | null = null;
-  private _reviewState: ThumbnailReviewState | null = null;
   private _isInProgress = false;
   private _startTime: Date | null = null;
   private _duration: string | null = null;
@@ -57,7 +53,6 @@ export class ThumbnailDetailsOverlayController {
 
     if (options.detailsStyle !== 'overlay' && options.detailsStyle !== 'hover') {
       this._label = null;
-      this._reviewState = null;
       this._isInProgress = false;
       this._startTime = null;
       this._duration = null;
@@ -68,9 +63,6 @@ export class ThumbnailDetailsOverlayController {
     }
 
     this._label = getMediaLabel(options.cameraManager, options.item);
-    const isReviewed = isMediaReviewed(options.item);
-    this._reviewState =
-      isReviewed === null ? null : isReviewed ? 'reviewed' : 'unreviewed';
 
     this._isInProgress =
       ViewItemClassifier.isMedia(options.item) && options.item.inProgress() === true;
@@ -89,10 +81,6 @@ export class ThumbnailDetailsOverlayController {
 
   public isHover(): boolean {
     return this._isHover;
-  }
-
-  public getReviewState(): ThumbnailReviewState | null {
-    return this._reviewState;
   }
 
   public isInProgress(): boolean {

@@ -62,7 +62,6 @@ describe('ThumbnailDetailsOverlayController', () => {
         expect(controller.getHeadlineLabel()).toBeNull();
         expect(controller.getTime()).toBeNull();
         expect(controller.getDetails()).toEqual([]);
-        expect(controller.getReviewState()).toBeNull();
         expect(controller.isInProgress()).toBe(false);
       },
     );
@@ -267,30 +266,6 @@ describe('ThumbnailDetailsOverlayController', () => {
   });
 
   describe('should show the state of the item', () => {
-    it('should say a review is reviewed', () => {
-      const controller = createController(
-        'overlay',
-        175,
-        new TestViewMedia({ mediaType: ViewMediaType.Review, reviewed: true }),
-      );
-
-      expect(controller.getReviewState()).toBe('reviewed');
-    });
-
-    it('should say a review is unreviewed', () => {
-      const controller = createController(
-        'overlay',
-        175,
-        new TestViewMedia({ mediaType: ViewMediaType.Review, reviewed: false }),
-      );
-
-      expect(controller.getReviewState()).toBe('unreviewed');
-    });
-
-    it('should have no review state for media that cannot be reviewed', () => {
-      expect(createController('overlay', 175).getReviewState()).toBeNull();
-    });
-
     it('should say a camera is still writing the media', () => {
       const controller = createController(
         'overlay',

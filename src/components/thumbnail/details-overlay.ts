@@ -2,11 +2,13 @@ import { html, LitElement, unsafeCSS, type CSSResult, type TemplateResult } from
 import { customElement, property } from 'lit/decorators.js';
 
 import type { CameraManager } from '../../camera-manager/manager';
+import { isMediaReviewed } from '../../components-lib/media/format';
 import { ThumbnailDetailsOverlayController } from '../../components-lib/thumbnail/details-overlay/controller';
 import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style';
 import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails';
 import { localize } from '../../localize/localize';
 import thumbnailDetailsOverlayStyle from '../../scss/thumbnail-details-overlay.scss?inline';
+import { setOrRemoveAttribute } from '../../utils/basic';
 import type { ViewItem } from '../../view/item';
 
 import '../icon.js';
@@ -38,12 +40,13 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
     this.toggleAttribute('hover', this._controller.isHover());
     this.toggleAttribute('one-line', this._controller.isOneLineHeadline());
 
-    const reviewState = this._controller.getReviewState();
-    if (reviewState) {
-      this.setAttribute('review', reviewState);
-    } else {
-      this.removeAttribute('review');
-    }
+    const isReviewed = isMediaReviewed(this.item);
+    setOrRemoveAttribute(
+      this,
+      isReviewed !== null,
+      'review',
+      isReviewed ? 'reviewed' : 'unreviewed',
+    );
   }
 
   protected render(): TemplateResult {

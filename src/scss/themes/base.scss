@@ -205,10 +205,12 @@
   );
 
   // Background behind the thumbnails (i.e. the gallery and drawer backgrounds).
-  --advanced-camera-card-thumbnails-background: color-mix(
-    in srgb,
-    var(--advanced-camera-card-background),
-    var(--advanced-camera-card-text-color) 6%
+  @include color-mixed(
+    --advanced-camera-card-thumbnails-background,
+    --advanced-camera-card-background,
+    6%,
+    var(--advanced-camera-card-text-color),
+    $fallback: opaque
   );
 
   // Background behind a thumbnail's details panel.
@@ -228,15 +230,15 @@
 
   // The block shown in place of a thumbnail while it is fetched, and the lighter
   // shimmer that moves across it.
-  --advanced-camera-card-thumbnail-skeleton-background: color-mix(
-    in srgb,
-    var(--advanced-camera-card-foreground-primary),
-    transparent 88%
+  @include color-mixed(
+    --advanced-camera-card-thumbnail-skeleton-background,
+    --advanced-camera-card-foreground-primary,
+    88%
   );
-  --advanced-camera-card-thumbnail-skeleton-shimmer-color: color-mix(
-    in srgb,
-    var(--advanced-camera-card-foreground-primary),
-    transparent 78%
+  @include color-mixed(
+    --advanced-camera-card-thumbnail-skeleton-shimmer-color,
+    --advanced-camera-card-foreground-primary,
+    78%
   );
 
   // Media a camera is still writing to (i.e. being recorded). Red carries the

@@ -8,11 +8,15 @@ import {
 import { deepQuery, deepQueryAll } from '../../browser/dom';
 import {
   createTestFrigateEvent,
+  createTestFrigateReview,
   EVENT_TIME_NEWER,
   mountCardWithFrigate,
 } from '../../browser/fake-frigate';
 import type { MountedCard } from '../../browser/mounted-card';
-import { waitForThumbnails } from '../../browser/test-utils';
+import {
+  createStillImageCameraConfig,
+  waitForThumbnails,
+} from '../../browser/test-utils';
 
 const mountGalleryWithThumbnailSize = async (size: number): Promise<MountedCard> => {
   const { card } = await mountCardWithFrigate(
@@ -21,6 +25,24 @@ const mountGalleryWithThumbnailSize = async (size: number): Promise<MountedCard>
       view: { default: 'clips' },
       media_gallery: { controls: { thumbnails: { size, details_style: 'panel' } } },
     },
+  );
+  await waitForThumbnails(card, 1);
+  return card;
+};
+
+const mountReviewGallery = async (reviewed: boolean): Promise<MountedCard> => {
+  const { card } = await mountCardWithFrigate(
+    [],
+    {
+      view: { default: 'reviews' },
+      cameras: [{ ...createStillImageCameraConfig(), media: { reviewed: 'all' } }],
+      media_gallery: { controls: { thumbnails: { details_style: 'panel' } } },
+    },
+    [
+      createTestFrigateReview('review', EVENT_TIME_NEWER, {
+        has_been_reviewed: reviewed,
+      }),
+    ],
   );
   await waitForThumbnails(card, 1);
   return card;
@@ -163,6 +185,16 @@ describe('AdvancedCameraCardThumbnailDetailsPanel', () => {
     };
 
     expect(timeToHeading(largest)).toBeGreaterThan(timeToHeading(smallest));
+  });
+
+  it('should lighten the heading of a reviewed item', async () => {
+    const weight = (details: Element): number =>
+      parseFloat(getComputedStyle(getHeadingLabel(details)).fontWeight);
+
+    const unreviewed = weight(getDetails(await mountReviewGallery(false)));
+    const reviewed = weight(getDetails(await mountReviewGallery(true)));
+
+    expect(reviewed).toBeLessThan(unreviewed);
   });
 
   it.each([[THUMBNAIL_SIZE_MIN], [THUMBNAIL_SIZE_MAX]])(

@@ -256,7 +256,7 @@ export const setOrRemoveAttribute = <T extends string>(
   element: HTMLElement,
   set: boolean,
   name: string,
-  value?: T,
+  value?: T | null,
 ): void => {
   if (set) {
     element.setAttribute(name, value ?? '');

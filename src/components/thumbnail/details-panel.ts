@@ -11,11 +11,13 @@ import { customElement, property } from 'lit/decorators.js';
 import type { CameraManager } from '../../camera-manager/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
+import { isMediaReviewed } from '../../components-lib/media/format';
 import { ThumbnailDetailsPanelController } from '../../components-lib/thumbnail/details-panel/controller';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import thumbnailDetailsPanelStyle from '../../scss/thumbnail-details-panel.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action';
+import { setOrRemoveAttribute } from '../../utils/basic';
 import { showMediaInfoNotification } from '../../utils/media-actions';
 import type { ViewItem } from '../../view/item';
 
@@ -62,6 +64,14 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
         size: this.size,
       });
       this.setAttribute('tier', this._controller.getTier());
+
+      const isReviewed = isMediaReviewed(this.item);
+      setOrRemoveAttribute(
+        this,
+        isReviewed !== null,
+        'review',
+        isReviewed ? 'reviewed' : 'unreviewed',
+      );
     }
   }
 

@@ -17,6 +17,7 @@ import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/fe
 import type { ResolvedThumbnailDetailsStyle } from '../../../components-lib/thumbnail/resolve-details-style';
 import type { HomeAssistant } from '../../../ha/types';
 import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss?inline';
+import { setOrRemoveAttribute } from '../../../utils/basic';
 import type { ViewItem } from '../../../view/item';
 
 import '../controls.js';
@@ -82,13 +83,15 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
     }
 
     const severity = getMediaSeverity(this.item);
-    if (severity) {
-      this.setAttribute('severity', severity);
-    } else {
-      this.removeAttribute('severity');
-    }
+    setOrRemoveAttribute(this, !!severity, 'severity', severity);
 
-    this.toggleAttribute('reviewed', isMediaReviewed(this.item) === true);
+    const isReviewed = isMediaReviewed(this.item);
+    setOrRemoveAttribute(
+      this,
+      isReviewed !== null,
+      'review',
+      isReviewed ? 'reviewed' : 'unreviewed',
+    );
   }
 
   protected render(): TemplateResult | void {
