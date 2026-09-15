@@ -73,6 +73,23 @@ describe('getEntityTitle', () => {
       expect(getEntityTitle(hassWithNames, 'sensor.temperature')).toBeNull();
     });
 
+    it('falls back to friendly_name when hass reports the version but has no helper', () => {
+      const hassWithoutHelper = createHASS({
+        'sensor.temperature': createStateEntity({
+          attributes: { friendly_name: 'Thermostat Temperature' },
+        }),
+      });
+      hassWithoutHelper.config.version = '2026.4.0';
+      // createHASS auto-mocks every property, so the helper has to be removed
+      // explicitly to reproduce a hass that does not carry it.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (hassWithoutHelper as any).formatEntityName = undefined;
+
+      expect(getEntityTitle(hassWithoutHelper, 'sensor.temperature')).toBe(
+        'Thermostat Temperature',
+      );
+    });
+
     it('still returns null for an entity that does not exist', () => {
       expect(getEntityTitle(createHASSWithEntityNames(), 'sensor.unknown')).toBeNull();
     });

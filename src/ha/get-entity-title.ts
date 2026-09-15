@@ -1,4 +1,5 @@
 import type { HassEntity } from 'home-assistant-js-websocket';
+
 import type { HomeAssistant } from './types';
 
 type HassWithEntityNames = HomeAssistant & {
@@ -13,6 +14,12 @@ type HassWithEntityNames = HomeAssistant & {
  * so feature detection is not enough and the version has to be checked.
  */
 const supportsEntityNames = (hass: HomeAssistant): boolean => {
+  // The version gate alone is not enough: a hass object can report a recent
+  // version without carrying the helper (test harnesses, or a hass that has not
+  // finished initialising), and calling it then throws.
+  if (typeof (hass as Partial<HassWithEntityNames>).formatEntityName !== 'function') {
+    return false;
+  }
   const [major, minor] = (hass.config?.version ?? '').split('.', 2);
   return Number(major) > 2026 || (Number(major) === 2026 && Number(minor) >= 4);
 };
