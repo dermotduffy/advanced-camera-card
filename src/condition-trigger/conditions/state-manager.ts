@@ -8,6 +8,14 @@ import type {
   ConditionStateManagerReadonlyInterface,
 } from './types';
 
+// Fields compared by reference rather than lodash's deep `isEqual`. `hass` in
+// particular holds the entire HomeAssistant object: `HASSManager` only ever
+// writes a new `hass` reference when Home Assistant itself reports a change
+// (see `HASSManager.setHASS`), so a reference check is exact for this field --
+// unlike the deep walk, it does not need to enumerate every key of
+// `hass.states` (which can be thousands of entities) on every single update.
+const REFERENCE_COMPARED_KEYS: ReadonlySet<keyof ConditionState> = new Set(['hass']);
+
 /**
  * A class to manage state used in the evaluation of conditions.
  */
@@ -55,17 +63,14 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
   }
 
   private _calculateTrueChange(change: ConditionState): ConditionState {
-    return pickBy(
-      change,
-      (value, key) =>
-        !isEqual(
-          value,
-          this._state[
-            // lodash widens the key to `string`, which cannot index ConditionState.
-            key as keyof ConditionState
-          ],
-        ),
-    );
+    return pickBy(change, (value, key) => {
+      // lodash widens the key to `string`, which cannot index ConditionState.
+      const typedKey = key as keyof ConditionState;
+      const oldValue = this._state[typedKey];
+      return REFERENCE_COMPARED_KEYS.has(typedKey)
+        ? value !== oldValue
+        : !isEqual(value, oldValue);
+    });
   }
 
   private _callListeners = (stateChange: ConditionStateChange): void => {
