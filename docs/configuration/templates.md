@@ -26,11 +26,6 @@ supported.
 > [open an issue](https://github.com/dermotduffy/advanced-camera-card/issues) to
 > request it.
 
-> [!WARNING]
-> On Chromecast built-in receivers running older Chrome firmwares, templates do
-> not render and are simply passed through as written. See
-> [Chromecast support](../troubleshooting.md?id=chromecast).
-
 See [an example](../examples.md?id=accessing-home-assistant-state) that
 accesses Home Assistant state.
 

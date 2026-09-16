@@ -2818,7 +2818,7 @@ __metadata:
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-compat: "npm:^7.0.2"
     ha-nunjucks: "npm:~1.7.8"
-    home-assistant-js-websocket: "npm:^9.4.0"
+    home-assistant-js-websocket: "npm:^9.7.0"
     js-yaml: "npm:^4.1.0"
     jsdom: "npm:^21.1.2"
     keycharm: "npm:^0.4.0"
@@ -5959,17 +5959,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"home-assistant-js-websocket@npm:^9.4.0":
-  version: 9.4.0
-  resolution: "home-assistant-js-websocket@npm:9.4.0"
-  checksum: 10c0/9c8a5ff903648ebe7856f62a58af53e3d89dd24a30c600a2145ed518cd5f5f2218345048cfc42bdc3ee5d6f2994da3948765c77b6012ed56cf4546173a1a1de1
-  languageName: node
-  linkType: hard
-
-"home-assistant-js-websocket@npm:^9.6.0":
-  version: 9.6.0
-  resolution: "home-assistant-js-websocket@npm:9.6.0"
-  checksum: 10c0/92973a99c21efbd15e093f12ebc7797d1d86a305246e2a6cbe5cd7d980fa916c216ffb3459a9aa17c23adf7339773a176c99783386b6fb5688972bad3107ab7b
+"home-assistant-js-websocket@npm:^9.6.0, home-assistant-js-websocket@npm:^9.7.0":
+  version: 9.7.0
+  resolution: "home-assistant-js-websocket@npm:9.7.0"
+  checksum: 10c0/0afb6fe1a4b827aca7b741bb2061d5b556e428c60b1efb4ae668f5a36e414fe71c59be1740b014af3dad1e088ca9c3736b5bc76680ebdeaa5757783a6b83afa7
   languageName: node
   linkType: hard
 

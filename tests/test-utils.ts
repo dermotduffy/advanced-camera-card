@@ -3,6 +3,7 @@ import {
   type HassEntities,
   type HassEntity,
   type HassEvent,
+  type MessageBase,
 } from 'home-assistant-js-websocket';
 import type { LitElement } from 'lit';
 import screenfull from 'screenfull';
@@ -506,10 +507,8 @@ export const stubConnectedHomeAssistant = (): void => {
         // entities) expect a bare array; repairs issues expects a `{issues}`
         // wrapper -- see ha-nunjucks' fetchLabelRegistry/fetchEntityRegistry
         // vs fetchRepairsIssues.
-        sendMessagePromise: (message: { type: string }) =>
-          Promise.resolve(
-            message?.type === 'repairs/list_issues' ? { issues: [] } : [],
-          ),
+        sendMessagePromise: (message: MessageBase) =>
+          Promise.resolve(message.type === 'repairs/list_issues' ? { issues: [] } : []),
         // ha-nunjucks 1.7.x subscribes to live registry updates (labels,
         // entities, repairs issues, config entries) during init via these two
         // methods; without them, the calls throw and the engine deletes its
