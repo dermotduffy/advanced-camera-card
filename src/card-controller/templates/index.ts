@@ -5,6 +5,7 @@ import type { ConditionState } from '../../condition-trigger/conditions/types';
 import type { TriggerData } from '../../condition-trigger/triggers/types';
 import type { HomeAssistant } from '../../ha/types';
 import { errorToConsole, isRecord } from '../../utils/basic';
+import { polyfillObjectHasOwn } from '../../utils/object-has-own';
 import type { TemplateACCNamespace, TemplateMediaData } from './types';
 
 type RenderTemplate = typeof renderTemplate;
@@ -70,6 +71,11 @@ export class TemplateManager implements TemplateRenderer {
     if (this._renderer) {
       return;
     }
+
+    // ha-nunjucks pulls in `@noble/hashes`, which calls `Object.hasOwn` as it is
+    // evaluated, so the polyfill has to be in place before the import below.
+    polyfillObjectHasOwn();
+
     const module = await import('ha-nunjucks/dist');
     this._renderer = module.renderTemplate;
   }
@@ -155,12 +161,8 @@ export class TemplateManager implements TemplateRenderer {
           templateContext,
         );
       } catch (error) {
-        // The renderer throws for a template with a syntax error, but also for
-        // any template on a browser missing an API it uses (Chromecast
-        // receivers run Chrome 92, which ha-nunjucks and some of its
-        // dependencies do not support).
-        //
-        // In these cases the template is just returned unmodified.
+        // The renderer throws for a template with a syntax error, in which case
+        // the template is just returned unmodified.
         this._warn(error);
         return data;
       }

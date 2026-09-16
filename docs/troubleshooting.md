@@ -28,11 +28,11 @@ support ensures:
 - The card loads, live video plays and the menu works.
 - Features that need newer browsers will _degrade_ rather than _break_ the card.
 
-#### Known Gaps (as of 2026-09-13)
+#### Known Gaps
 
-- [Templates](configuration/templates.md) do not render: the unrendered template text is shown as written.
+As of 2026-09-15 the card is believed to work fully on Chrome `92`, with no known gaps.
 
-This list is expected to keep growing, until the cost of supporting Chromecast receivers on older firmware becomes impractical, at which point support will be withdrawn entirely and revert to the table above.
+Gaps are expected to appear and accumulate over time, until the cost of supporting Chromecast receivers on older firmware becomes impractical, at which point support will be withdrawn entirely and revert to the table above.
 
 ## Highlighted Issues
 
