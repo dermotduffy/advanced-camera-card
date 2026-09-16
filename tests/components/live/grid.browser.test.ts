@@ -101,6 +101,12 @@ const getGeometry = (card: MountedCard): string =>
 // Wait for the cells to stop changing size. Geometry can change with no DOM
 // mutation, so this polls frames rather than waiting on the card to render.
 const waitForQuietGrid = async (card: MountedCard): Promise<HTMLElement[]> => {
+  // Wait for the correct number of cells to render, before assessing quietness.
+  await card.waitForRender(
+    () => getCells(card).length === CAMERA_ENTITIES.length || null,
+    'the grid drawing a cell per camera',
+  );
+
   let previous: string | null = null;
   let quietFrames = 0;
 
