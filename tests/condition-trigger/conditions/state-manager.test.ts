@@ -87,31 +87,38 @@ describe('ConditionStateManager', () => {
       expect(listener).toHaveBeenCalledTimes(5);
     });
 
-    it('should compare hass by reference, not by deep equality', () => {
+    it('should compare hass by reference without examining entities', () => {
       const listener = vi.fn();
       const manager = new ConditionStateManager();
       manager.addListener(listener);
 
-      const hass = createHASS({
-        'binary_sensor.foo': createStateEntity(),
+      manager.setState({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
       });
 
-      // A new (but content-identical) hass is a change: `HASSManager` only
-      // ever assigns a new `hass` when HA itself reports one, so a fresh
-      // reference is trusted as a real change without needing to deep-walk
-      // (potentially thousands of) entities to confirm it.
+      let accessedEntities = false;
+      const hass = createHASS({ 'binary_sensor.foo': createStateEntity() });
+
+      // Record every enumeration or read of the entity map: for performance
+      // reasons hass should only be compared by identity.
+      hass.states = new Proxy(hass.states, {
+        ownKeys: (target) => {
+          accessedEntities = true;
+          return Reflect.ownKeys(target);
+        },
+        get: (target, property) => {
+          accessedEntities = true;
+          return Reflect.get(target, property);
+        },
+      });
+
       expect(manager.setState({ hass })).toBe(true);
-      expect(listener).toHaveBeenCalledTimes(1);
-
-      const hassAgainSameContent = createHASS({
-        'binary_sensor.foo': createStateEntity(),
-      });
-      expect(manager.setState({ hass: hassAgainSameContent })).toBe(true);
+      expect(accessedEntities).toBe(false);
       expect(listener).toHaveBeenCalledTimes(2);
 
-      // The exact same reference, however, is correctly recognized as no
-      // change.
-      expect(manager.setState({ hass: hassAgainSameContent })).toBe(false);
+      // The same reference is not a change.
+      expect(manager.setState({ hass })).toBe(false);
+      expect(accessedEntities).toBe(false);
       expect(listener).toHaveBeenCalledTimes(2);
     });
   });
