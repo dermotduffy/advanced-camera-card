@@ -1897,7 +1897,10 @@ describe('MenuButtonController', () => {
         cameraManager: cameraManager,
         mediaPlayerController: mediaPlayerController,
         hass: createHASS({
-          'media_player.tv': createStateEntity({ entity_id: 'media_player.tv' }),
+          'media_player.tv': createStateEntity({
+            entity_id: 'media_player.tv',
+            attributes: { friendly_name: 'TV' },
+          }),
         }),
       });
 
@@ -1916,7 +1919,7 @@ describe('MenuButtonController', () => {
             selected: false,
             entity: 'media_player.tv',
             state_color: false,
-            title: 'media_player.tv',
+            title: 'TV',
             disabled: false,
             tap_action: {
               action: 'fire-dom-event',

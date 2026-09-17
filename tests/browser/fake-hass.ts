@@ -11,7 +11,11 @@ import { mock } from 'vitest-mock-extended';
 import type { BrowseMedia } from '../../src/ha/browse-media/types';
 import type { Entity } from '../../src/ha/registry/entity/types';
 import type { HomeAssistant, ResolvedMedia } from '../../src/ha/types';
-import { createRegistryEntity, createStateEntity } from '../test-utils';
+import {
+  createRegistryEntity,
+  createStateEntity,
+  formatEntityName,
+} from '../test-utils';
 
 // A WebSocket command handler. Returning a rejected promise models a command
 // Home Assistant refuses; throwing models a malformed request.
@@ -392,6 +396,7 @@ export class FakeHASS {
       hassUrl: (path?: string) => this._hassUrl(path),
       localize: (key: string) => key,
       fetchWithAuth: (path: string) => this._fetchWithAuth(path),
+      formatEntityName,
 
       // Everything the card can call has to either work or fail loudly. A
       // method that quietly returns nothing would let a card start depending on
