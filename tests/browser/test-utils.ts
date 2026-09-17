@@ -12,6 +12,7 @@ import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
 import type { MountedCard } from './mounted-card';
 
 export const CAMERA_ENTITY = 'camera.office';
+export const CAMERA_NAME = 'office';
 
 // A same-origin still red image, served by the Vite dev server. The same image
 // is handed on by the worker in test-media.ts, which can be asked to misbehave

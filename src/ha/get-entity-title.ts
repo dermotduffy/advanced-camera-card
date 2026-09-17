@@ -1,10 +1,4 @@
-import type { HassEntity } from 'home-assistant-js-websocket';
-
 import type { HomeAssistant } from './types';
-
-type HassWithEntityNames = HomeAssistant & {
-  formatEntityName: (stateObj: HassEntity, name?: undefined) => string;
-};
 
 /**
  * Whether hass can resolve an entity's name from its registry context.
@@ -14,12 +8,6 @@ type HassWithEntityNames = HomeAssistant & {
  * so feature detection is not enough and the version has to be checked.
  */
 const supportsEntityNames = (hass: HomeAssistant): boolean => {
-  // The version gate alone is not enough: a hass object can report a recent
-  // version without carrying the helper (test harnesses, or a hass that has not
-  // finished initialising), and calling it then throws.
-  if (typeof (hass as Partial<HassWithEntityNames>).formatEntityName !== 'function') {
-    return false;
-  }
   const [major, minor] = (hass.config?.version ?? '').split('.', 2);
   return Number(major) > 2026 || (Number(major) === 2026 && Number(minor) >= 4);
 };
@@ -31,8 +19,8 @@ const supportsEntityNames = (hass: HomeAssistant): boolean => {
  * context (entity, device, area, floor), matching what the built-in cards show.
  * Older versions fall back to the friendly name.
  *
- * @param entity The entity id.
  * @param hass The Home Assistant object.
+ * @param entity The entity id.
  * @returns The title or null.
  */
 export function getEntityTitle(hass?: HomeAssistant, entity?: string): string | null {
@@ -41,7 +29,7 @@ export function getEntityTitle(hass?: HomeAssistant, entity?: string): string | 
     return null;
   }
   if (supportsEntityNames(hass)) {
-    return (hass as HassWithEntityNames).formatEntityName(stateObj) || null;
+    return hass.formatEntityName(stateObj) || null;
   }
   return stateObj.attributes?.friendly_name ?? null;
 }

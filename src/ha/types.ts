@@ -154,6 +154,7 @@ export interface HomeAssistant {
   hassUrl(path?: string): string;
   sendWS: (msg: MessageBase) => Promise<void>;
   callWS: <T>(msg: MessageBase) => Promise<T>;
+  formatEntityName: (stateObj: HassEntity) => string;
 }
 
 declare enum NumberFormat {
