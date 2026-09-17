@@ -633,6 +633,78 @@ describe('ZoomController', () => {
       });
     });
 
+    it('should not undo the user zoom when resized', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+
+      const controller = createAndRegisterZoom(element);
+      controller.setSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+      expect(panzoom.zoom).toHaveBeenCalledTimes(1);
+
+      // The user pinches to their own scale. Panzoom reports the gesture that
+      // caused it in originalEvent.
+      vi.mocked(panzoom.getScale).mockReturnValue(4);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 10, y: 20 });
+      element.dispatchEvent(
+        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+          detail: {
+            x: 10,
+            y: 20,
+            scale: 4,
+            isSVG: false,
+            originalEvent: new PointerEvent('pointermove'),
+          },
+        }),
+      );
+
+      // A resize must leave that zoom alone rather than springing back to the
+      // configured scale.
+      setElementToDefaultCardSize(element);
+      triggerResizeObserver();
+      expect(panzoom.zoom).toHaveBeenCalledTimes(1);
+
+      // A newly supplied configuration takes precedence again.
+      controller.setSettings({ zoom: 3, pan: { x: 5, y: 6 } });
+      expect(panzoom.zoom).toHaveBeenNthCalledWith(2, 3, { animate: false });
+    });
+
+    it('should still apply config after a programmatic zoom change', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+
+      const controller = createAndRegisterZoom(element);
+      controller.setSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+      expect(panzoom.zoom).toHaveBeenCalledTimes(1);
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 3, y: 4 });
+
+      // Panzoom reports its own programmatic changes with no originalEvent.
+      // Those must not count as a user adjustment, or the card would stop
+      // maintaining the configured view after its very first update.
+      element.dispatchEvent(
+        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+          detail: {
+            x: 3,
+            y: 4,
+            scale: 2,
+            isSVG: false,
+          } as unknown as PanzoomEventDetail,
+        }),
+      );
+
+      setElementToDefaultCardSize(element);
+      triggerResizeObserver();
+
+      expect(panzoom.zoom).toHaveBeenCalledTimes(2);
+    });
+
     it('when not yet activated', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);

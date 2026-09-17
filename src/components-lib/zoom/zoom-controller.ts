@@ -39,7 +39,19 @@ export class ZoomController {
   private _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
   private _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
 
-  private _resizeObserver = new ResizeObserver(this._debouncedUpdater);
+  // Whether the user has zoomed or panned away from the configured view. Once
+  // they have, a resize must not overwrite what they did.
+  private _userAdjusted = false;
+
+  // A resize changes the element dimensions that percentage-based pan values
+  // are relative to, so the configured pan/zoom is recomputed against the new
+  // size. That must not clobber a zoom the user performed themselves: the
+  // configured scale would be re-applied on every resize, springing them back.
+  private _resizeObserver = new ResizeObserver(() => {
+    if (!this._userAdjusted) {
+      this._debouncedUpdater();
+    }
+  });
 
   private _events = isHoverableDevice()
     ? {
@@ -186,16 +198,22 @@ export class ZoomController {
     this._resizeObserver.disconnect();
     this._element.removeEventListener('panzoomchange', this._debouncedChangeHandler);
 
+    this._userAdjusted = false;
     this._panzoom = null;
   }
 
   public setDefaultSettings(config: PartialZoomSettings | null): void {
     this._defaultSettings = config;
+
+    // A newly supplied configuration takes precedence over the user's own
+    // adjustment, including a request to reset back to the default.
+    this._userAdjusted = false;
     this._debouncedUpdater();
   }
 
   public setSettings(config: PartialZoomSettings | null): void {
     this._settings = config;
+    this._userAdjusted = false;
     this._debouncedUpdater();
   }
 
@@ -210,6 +228,13 @@ export class ZoomController {
   private _changeHandler(ev: Event): void {
     const pz = (<CustomEvent<PanzoomEventDetail>>ev).detail;
     const unzoomed = this._isUnzoomed(pz.scale);
+
+    // Panzoom reports an originalEvent only when the change came from a user
+    // gesture. Programmatic zoom/pan from _updateBasedOnConfig carries none, so
+    // this distinguishes the user's own adjustments from the card's.
+    if (pz.originalEvent) {
+      this._userAdjusted = true;
+    }
 
     // Take care here to only dispatch the zoomed/unzoomed events when the
     // absolute state changes (rather than on every single zoom adjustment).
