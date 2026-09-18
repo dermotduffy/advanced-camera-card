@@ -60,7 +60,7 @@ describe('resolveThumbnailDetailsStyle', () => {
       expect(
         resolveThumbnailDetailsStyle(
           createConfig({ details_style: 'auto', size: 100 }),
-          createContext({ placement: 'surround-vertical', availableWidth: 299 }),
+          createContext({ placement: 'surround-vertical', availableWidth: 249 }),
         ),
       ).toBe('overlay');
     });
@@ -74,13 +74,13 @@ describe('resolveThumbnailDetailsStyle', () => {
       ).toBe('panel');
     });
 
-    it('should overlay in a popup', () => {
+    it('should use a panel in a popup', () => {
       expect(
         resolveThumbnailDetailsStyle(
           createConfig({ details_style: 'auto', size: 75 }),
           createContext({ placement: 'popup' }),
         ),
-      ).toBe('overlay');
+      ).toBe('panel');
     });
 
     it('should use a panel in a vertical surround', () => {

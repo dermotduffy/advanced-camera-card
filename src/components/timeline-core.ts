@@ -1,4 +1,5 @@
 import {
+  css,
   html,
   LitElement,
   unsafeCSS,
@@ -51,6 +52,19 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
 
   @property({ attribute: 'details-style' })
   public detailsStyle?: ResolvedThumbnailDetailsStyle;
+
+  // The thumbnail lives in this wrapper's shadow root, one shadow boundary
+  // deeper than timeline-core. The selector rules in timeline-core.scss cannot
+  // cross that boundary, so the sizing rules are repeated here.
+  static styles = css`
+    advanced-camera-card-thumbnail {
+      height: var(--advanced-camera-card-thumbnail-size);
+      width: var(--advanced-camera-card-thumbnail-size);
+    }
+    advanced-camera-card-thumbnail[details-style='panel'] {
+      width: var(--advanced-camera-card-thumbnail-with-details-panel-width);
+    }
+  `;
 
   /**
    * Master render method.

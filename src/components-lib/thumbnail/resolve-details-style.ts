@@ -33,9 +33,8 @@ const resolveAutoThumbnailDetailsStyle = (
     return 'overlay';
   }
 
-  // It does not make sense to have "hover" over a popup.
   if (context.placement === 'popup') {
-    return 'overlay';
+    return 'panel';
   }
 
   // A panel costs width. Vertical drawers have "width for free".
