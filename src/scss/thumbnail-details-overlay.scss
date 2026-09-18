@@ -234,6 +234,10 @@
   .headline {
     display: contents;
   }
+  .in-progress {
+    grid-column: 1;
+    align-self: center;
+  }
   .label,
   .detail {
     grid-column: 1;

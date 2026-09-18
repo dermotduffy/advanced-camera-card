@@ -14,6 +14,7 @@ import type { UnifiedQuery } from '../../view/unified-query';
 import type { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import type { View } from '../../view/view';
 import {
+  DETAILS_PANEL_WIDTH,
   resolveThumbnailDetailsStyle,
   type ResolvedThumbnailDetailsStyle,
 } from '../thumbnail/resolve-details-style';
@@ -31,10 +32,8 @@ declare module 'view' {
   }
 }
 
-const MEDIA_DETAILS_PANEL_WIDTH = 200;
-
 // The narrowest a media column may be, regardless of the thumbnail size.
-const MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN = 300;
+const MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN = 250;
 
 // A folder details panel shows only a name, a count and a date range so needs
 // less space.
@@ -137,7 +136,7 @@ export class GalleryController implements ReactiveController {
 
     return this._foldersOnly
       ? size + FOLDER_DETAILS_PANEL_WIDTH
-      : Math.max(MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN, size + MEDIA_DETAILS_PANEL_WIDTH);
+      : Math.max(MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN, size + DETAILS_PANEL_WIDTH);
   }
 
   public getColumnCountRoundMethod(): GalleryColumnCountRoundMethod {

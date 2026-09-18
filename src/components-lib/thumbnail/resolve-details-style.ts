@@ -17,7 +17,7 @@ export interface ThumbnailDetailsStyleContext {
 
 // Matches `--advanced-camera-card-thumbnail-details-panel-width-min`, which caps
 // the image so the panel keeps this much beside it.
-const DETAILS_PANEL_WIDTH_ALLOWANCE = 200;
+export const DETAILS_PANEL_WIDTH = 150;
 
 // A gallery thumbnail smaller than this uses overlay instead.
 const HOVER_SIZE_MIN = 200;
@@ -28,7 +28,7 @@ const resolveAutoThumbnailDetailsStyle = (
 ): ResolvedThumbnailDetailsStyle => {
   if (
     context.availableWidth !== undefined &&
-    context.availableWidth < config.size + DETAILS_PANEL_WIDTH_ALLOWANCE
+    context.availableWidth < config.size + DETAILS_PANEL_WIDTH
   ) {
     return 'overlay';
   }
