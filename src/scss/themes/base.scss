@@ -54,7 +54,7 @@
 
   // The color of a favorited or reviewed item, wherever its control is shown.
   --advanced-camera-card-favorite-color: #{rgba(gold, 0.75)};
-  --advanced-camera-card-review-color: var(--advanced-camera-card-active-color);
+  --advanced-camera-card-review-color: var(--success-color, #4caf50);
 
   /*********
    * Buttons
