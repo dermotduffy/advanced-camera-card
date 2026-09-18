@@ -386,10 +386,13 @@
   /**************
    * Notification (popup)
    **************/
+  // Background must be opaque enough to read the foreground without the
+  // backdrop filter, as browser are free to decline that (e.g. Android Chrome
+  // does when it is saving power).
   --advanced-camera-card-notification-popup-background: linear-gradient(
     135deg,
-    rgba(35, 35, 35, 0.75) 0%,
-    rgba(15, 15, 15, 0.65) 100%
+    rgba(35, 35, 35, 0.87) 0%,
+    rgba(15, 15, 15, 0.82) 100%
   );
   --advanced-camera-card-notification-popup-backdrop-filter: blur(20px) saturate(180%);
   --advanced-camera-card-notification-popup-border: 1px solid rgba(255, 255, 255, 0.1);

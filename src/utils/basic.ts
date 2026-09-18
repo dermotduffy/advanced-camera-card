@@ -129,6 +129,11 @@ export function errorToConsole(e: unknown, func: CallableFunction = console.warn
   }
 }
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
 interface Box {
   left: number;
   right: number;
@@ -141,7 +146,7 @@ interface Box {
  * @param box The box.
  * @returns `true` if the point is inside the box or on its edge.
  */
-export const isPointInBox = (point: { x: number; y: number }, box: Box): boolean =>
+export const isPointInBox = (point: Point, box: Box): boolean =>
   point.x >= box.left &&
   point.x <= box.right &&
   point.y >= box.top &&

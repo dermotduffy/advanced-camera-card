@@ -1,6 +1,11 @@
 import { assert, describe, expect, it } from 'vitest';
 
-import { clickElement, deepQuery, hoverElement } from '../../browser/dom';
+import {
+  clickElement,
+  deepQuery,
+  hoverElement,
+  waitForTransition,
+} from '../../browser/dom';
 import {
   createTestFrigateEvent,
   EVENT_TIME_NEWER,
@@ -65,9 +70,7 @@ describe('AdvancedCameraCardThumbnailControls', () => {
     const info = deepQuery(getControls(card), 'advanced-camera-card-icon.info');
     assert(info);
 
-    const shown = new Promise<void>((resolve) =>
-      info.addEventListener('transitionend', () => resolve(), { once: true }),
-    );
+    const shown = waitForTransition(info);
     await hoverElement(thumbnail);
     await shown;
 
@@ -80,7 +83,7 @@ describe('AdvancedCameraCardThumbnailControls', () => {
 
     const isRevealed = (): string =>
       getComputedStyle(thumbnail)
-        .getPropertyValue('--advanced-camera-card-thumbnail-revealed')
+        .getPropertyValue('--advanced-camera-card-thumbnail-hovered')
         .trim();
 
     expect(isRevealed()).toBe('0');
@@ -99,42 +102,27 @@ describe('AdvancedCameraCardThumbnailControls', () => {
     );
     assert(favorite);
 
+    const arrived = waitForTransition(favorite);
+    await hoverElement(thumbnail);
+    await arrived;
+
     await clickElement(favorite);
 
     expect(thumbnail.matches(':focus-within')).toBe(false);
   });
 
-  it('should keep a control on show at rest when its state is set', async () => {
-    const card = await mountGallery(true);
-    const controls = getControls(card);
-
-    const favorite = deepQuery(controls, 'advanced-camera-card-icon.favorite');
-    assert(favorite);
-    expect(favorite.classList.contains('active')).toBe(true);
-    expect(getOpacity(favorite)).toBe(1);
-
-    expect(getOpacity(deepQuery(controls, 'advanced-camera-card-icon.info'))).toBe(0);
-  });
-
-  it('should park every control but the first past the trailing edge', async () => {
+  it('should park the control row above the thumbnail at rest', async () => {
     const card = await mountGallery(true);
     const thumbnail = getThumbnails(card.card)[0];
-    const controls = getControls(card);
+    const row = deepQuery(getControls(card), '.controls');
+    assert(row);
 
-    const favorite = deepQuery(controls, 'advanced-camera-card-icon.favorite');
-    const info = deepQuery(controls, 'advanced-camera-card-icon.info');
-    assert(favorite && info);
+    expect(row.getBoundingClientRect().height).toBeGreaterThan(0);
 
-    const thumbnailRect = thumbnail.getBoundingClientRect();
-
-    // The favorite is the control that reports a state, so it is the one left
-    // visible.
-    expect(favorite.getBoundingClientRect().right).toBeLessThanOrEqual(
-      thumbnailRect.right,
+    // Hidden above the thumbnail at rest.
+    expect(row.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      thumbnail.getBoundingClientRect().top,
     );
-
-    // Everything behind it is clipped.
-    expect(info.getBoundingClientRect().right).toBeGreaterThan(thumbnailRect.right);
   });
 
   it('should render no row at all for an item with no controls', async () => {

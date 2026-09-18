@@ -18,13 +18,18 @@ import {
   waitForThumbnails,
 } from '../../browser/test-utils';
 
-const mountGalleryWithThumbnailSize = async (size: number): Promise<MountedCard> => {
+const mountGalleryWithThumbnailSize = async (
+  size: number,
+  width?: string,
+): Promise<MountedCard> => {
   const { card } = await mountCardWithFrigate(
     [createTestFrigateEvent('event', EVENT_TIME_NEWER)],
     {
       view: { default: 'clips' },
       media_gallery: { controls: { thumbnails: { size, details_style: 'panel' } } },
     },
+    [],
+    width ? { width } : undefined,
   );
   await waitForThumbnails(card, 1);
   return card;
@@ -47,6 +52,13 @@ const mountReviewGallery = async (reviewed: boolean): Promise<MountedCard> => {
   await waitForThumbnails(card, 1);
   return card;
 };
+
+const getMinPanelWidth = (thumbnail: Element): number =>
+  parseFloat(
+    getComputedStyle(thumbnail).getPropertyValue(
+      '--advanced-camera-card-thumbnail-details-panel-width-min',
+    ),
+  );
 
 const getDetails = (card: MountedCard): Element => {
   const details = deepQuery(card.card, 'advanced-camera-card-thumbnail-details-panel');
@@ -90,6 +102,38 @@ const METADATA_RATIO = 0.86;
 const STANDARD_LINE_HEIGHT = 1.25;
 
 describe('AdvancedCameraCardThumbnailDetailsPanel', () => {
+  it('should draw the image smaller rather than starve the panel', async () => {
+    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_MAX);
+
+    const thumbnail = deepQuery(card.card, 'advanced-camera-card-thumbnail');
+    const picture = deepQuery(card.card, 'advanced-camera-card-thumbnail-feature');
+    assert(thumbnail && picture);
+
+    const pictureWidth = picture.getBoundingClientRect().width;
+
+    expect(pictureWidth).toBeCloseTo(
+      thumbnail.getBoundingClientRect().width - getMinPanelWidth(thumbnail),
+      0,
+    );
+
+    expect(pictureWidth).toBeGreaterThan(0);
+    expect(pictureWidth).toBeLessThan(THUMBNAIL_SIZE_MAX);
+  });
+
+  it('should keep the image square when the panel beside it is taller', async () => {
+    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_MAX, '260px');
+
+    const picture = deepQuery(card.card, 'advanced-camera-card-thumbnail-feature');
+    assert(picture);
+    const pictureBox = picture.getBoundingClientRect();
+
+    expect(pictureBox.width).toBeGreaterThan(0);
+    expect(getDetails(card).getBoundingClientRect().height).toBeGreaterThan(
+      pictureBox.height,
+    );
+    expect(pictureBox.height).toBeCloseTo(pictureBox.width, 0);
+  });
+
   afterEach(() => {
     document.body.style.removeProperty('line-height');
     document.documentElement.style.removeProperty('--ha-font-size-scale');

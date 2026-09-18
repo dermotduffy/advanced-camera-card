@@ -52,6 +52,23 @@
   opacity: 0.88;
 }
 
+// Favorite vignette.
+.favorite {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  border-radius: var(--advanced-camera-card-border-radius-final);
+  box-shadow: inset 0 0 14px 3px var(--advanced-camera-card-favorite-color);
+
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+:host([favorite]) .favorite {
+  opacity: 1;
+}
+
 .media {
   filter: var(--advanced-camera-card-thumbnail-media-filter, none);
   transition: filter 0.2s ease-in-out;
@@ -121,12 +138,11 @@ advanced-camera-card-icon.background {
   --mdc-icon-size: 100%;
 }
 
-// Text shown in place of an image. `.media` is excluded: it is `position:
-// relative`, so a `z-index` here would lift the picture above the details
-// overlay.
-div:not(.media) {
+:host > div:not(.media) {
   text-align: center;
   color: var(--primary-text-color);
+
+  // Above the image (auto), below the controls (2).
   z-index: 1;
 }
 div.title {

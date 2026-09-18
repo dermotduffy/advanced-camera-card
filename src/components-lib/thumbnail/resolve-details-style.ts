@@ -15,10 +15,11 @@ export interface ThumbnailDetailsStyleContext {
   availableWidth?: number;
 }
 
-// Room a details panel needs beside the thumbnail.
+// Matches `--advanced-camera-card-thumbnail-details-panel-width-min`, which caps
+// the image so the panel keeps this much beside it.
 const DETAILS_PANEL_WIDTH_ALLOWANCE = 200;
 
-// The smallest grid thumbnail that reveals its details on hover.
+// A gallery thumbnail smaller than this uses overlay instead.
 const HOVER_SIZE_MIN = 200;
 
 const resolveAutoThumbnailDetailsStyle = (
@@ -32,28 +33,24 @@ const resolveAutoThumbnailDetailsStyle = (
     return 'overlay';
   }
 
-  // The popup itself only appears under the pointer.
+  // It does not make sense to have "hover" over a popup.
   if (context.placement === 'popup') {
-    return 'hover';
+    return 'overlay';
   }
 
+  // A panel costs width. Vertical drawers have "width for free".
   if (context.placement === 'surround-vertical') {
     return 'panel';
   }
 
-  // Without the info control there is no popup to reach the truncated
-  // details in, so show all of them in place.
-  if (!config.show_info_control) {
-    return 'hover';
-  }
-
+  // A details panel on a horizontal drawer will consume space that could be
+  // filled with other thumbnails.
   if (context.placement === 'surround-horizontal') {
     return 'hover';
   }
 
-  // A larger thumbnail is worth seeing unobstructed, so don't show details
-  // until there's a hover. A smaller thumbnail is hard to identify without the
-  // details, so overlay them.
+  // A small thumbnail cannot be identified from its picture alone, so it keeps
+  // the details on screen.
   return config.size >= HOVER_SIZE_MIN ? 'hover' : 'overlay';
 };
 

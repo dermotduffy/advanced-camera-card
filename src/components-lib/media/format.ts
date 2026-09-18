@@ -36,7 +36,7 @@ export const getMediaWhere = (item?: ViewItem): string | null =>
 
 /**
  * @param item The item.
- * @returns How long the media lasted: `41s`, `In progress...`, or both.
+ * @returns How long the media lasted: `41s`, `In progress`, or both.
  */
 export const getMediaDuration = (item?: ViewItem): string | null => {
   const startTime = ViewItemClassifier.isMedia(item) ? item.getStartTime() : null;

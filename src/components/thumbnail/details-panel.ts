@@ -49,6 +49,9 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
   @property({ attribute: false })
   public size?: number;
 
+  @property({ attribute: false })
+  public filterFavorite?: boolean;
+
   private _controller = new ThumbnailDetailsPanelController();
 
   protected willUpdate(changedProperties: PropertyValues): void {
@@ -81,18 +84,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
       return;
     }
 
-    showMediaInfoNotification(
-      this,
-      this.item,
-      {
-        hass: this.hass,
-        viewItemManager: this.viewItemManager,
-        viewManagerEpoch: this.viewManagerEpoch,
-        capabilities: this.viewItemManager?.getCapabilities(this.item),
-        filterReviewed: this.filterReviewed,
-      },
-      this.cameraManager,
-    );
+    showMediaInfoNotification(this, this.item, this);
   }
 
   protected render(): TemplateResult | void {

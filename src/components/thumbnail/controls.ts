@@ -77,7 +77,7 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
       detailsStyle: this.detailsStyle,
     });
 
-    this.toggleAttribute('single-control', this._controller.isSingleControl());
+    this.toggleAttribute('touch', this._controller.isTouch());
     this.setAttribute('tier', this._controller.getTier());
   }
 
@@ -106,19 +106,7 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
         );
         break;
       case 'info':
-        showMediaInfoNotification(
-          this,
-          item,
-          {
-            hass: this.hass,
-            viewItemManager: this.viewItemManager,
-            viewManagerEpoch: this.viewManagerEpoch,
-            capabilities: this.viewItemManager?.getCapabilities(item),
-            filterReviewed: this.filterReviewed,
-            filterFavorite: this.filterFavorite,
-          },
-          this.cameraManager,
-        );
+        showMediaInfoNotification(this, item, this);
         break;
       case 'timeline':
         navigateToTimeline(item, this.viewManagerEpoch);

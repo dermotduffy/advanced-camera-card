@@ -29,6 +29,7 @@ import {
   getBlockNotificationText,
   getMediaViewerMediaURLs,
   getThumbnails,
+  holdThumbnail,
   waitForThumbnails,
 } from '../../browser/test-utils';
 
@@ -102,6 +103,8 @@ describe('AdvancedCameraCardGallery', () => {
     const frameRect = frame.getBoundingClientRect();
     const iconRect = icon.getBoundingClientRect();
 
+    expect(boxRect.width).toBeGreaterThan(0);
+
     const expectClose = (actual: number, expected: number): void =>
       expect(Math.abs(actual - expected)).toBeLessThanOrEqual(
         Math.max(
@@ -130,6 +133,7 @@ describe('AdvancedCameraCardGallery', () => {
 
     const rect = getThumbnails(card.card)[0].getBoundingClientRect();
 
+    expect(rect.width).toBeGreaterThan(0);
     expect(Math.abs(rect.width - rect.height)).toBeLessThanOrEqual(1);
   });
 
@@ -182,6 +186,17 @@ describe('AdvancedCameraCardGallery', () => {
     ]);
   });
 
+  it('should show the media information for a held thumbnail', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    await waitForThumbnails(card, 1);
+
+    await holdThumbnail(card.card, 0);
+
+    await card.waitForSelector('advanced-camera-card-notification');
+
+    expect(deepQuery(card.card, 'advanced-camera-card-viewer-carousel')).toBeNull();
+  });
+
   it('should have tab stopped thumbnails', async () => {
     const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
     await waitForThumbnails(card, 1);
@@ -200,6 +215,7 @@ describe('AdvancedCameraCardGallery', () => {
     await waitForThumbnails(card, 1);
 
     getThumbnails(card.card)[0].focus();
+    getThumbnails(card.card)[0].focus();
     await pressKey(key);
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
 
@@ -207,6 +223,28 @@ describe('AdvancedCameraCardGallery', () => {
 
     expect(getMediaViewerMediaURLs(card.card)).toEqual([
       expect.stringContaining('clip.webm?event=newer'),
+    ]);
+  });
+
+  it('should open the media with a key press made after a hold begins', async () => {
+    const card = await mountCard([
+      createTestFrigateEvent('older', EVENT_TIME_OLDER),
+      createTestFrigateEvent('newer', EVENT_TIME_NEWER),
+    ]);
+    await waitForThumbnails(card, 2);
+
+    // The directive's `held` flag persists until a mousedown clears it, and a
+    // key press never sends mousedown.
+    await holdThumbnail(card.card, 0);
+    await card.waitForSelector('advanced-camera-card-notification');
+
+    // The newest event is shown first, so index 1 is the older of the two.
+    getThumbnails(card.card)[1].focus();
+    await pressKey('Enter');
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+
+    expect(getMediaViewerMediaURLs(card.card)).toEqual([
+      expect.stringContaining('clip.webm?event=older'),
     ]);
   });
 
@@ -223,28 +261,44 @@ describe('AdvancedCameraCardGallery', () => {
     expect(getComputedStyle(media).filter).toContain('brightness');
   });
 
-  it('should outline the selected thumbnail', async () => {
-    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)], {
-      view: { default: 'clips' },
-      menu: { style: 'outside', buttons: { clips: { enabled: true } } },
-    });
-    await waitForThumbnails(card, 1);
+  it('should draw the selection ring over the image', async () => {
+    const card = await mountCard(
+      [
+        createTestFrigateEvent('older', EVENT_TIME_OLDER),
+        createTestFrigateEvent('newer', EVENT_TIME_NEWER),
+      ],
+      {
+        view: { default: 'clips' },
+        menu: { style: 'outside', buttons: { clips: { enabled: true } } },
+      },
+    );
+    await waitForThumbnails(card, 2);
 
     await clickThumbnail(card.card, 0);
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
     await card.clickControl('Clips gallery');
-    await waitForThumbnails(card, 1);
+    await waitForThumbnails(card, 2);
 
     const thumbnail = await card.waitForRender(
-      () =>
-        getThumbnails(card.card).find((one) => one.classList.contains('selected')) ??
-        null,
+      () => getThumbnails(card.card).find((one) => one.hasAttribute('selected')) ?? null,
       'the selected thumbnail',
     );
+    const unselected = getThumbnails(card.card).find(
+      (one) => !one.hasAttribute('selected'),
+    );
+    assert(unselected);
 
-    const style = getComputedStyle(thumbnail);
-    expect(style.outlineStyle).toBe('solid');
-    expect(style.outlineWidth).toBe('2px');
+    const ring = deepQuery(thumbnail, '.selection');
+    assert(ring);
+
+    expect(getComputedStyle(ring).borderWidth).toBe('2px');
+
+    expect(deepQuery(unselected, '.selection')).toBeNull();
+
+    const ringBox = ring.getBoundingClientRect();
+    const thumbnailBox = thumbnail.getBoundingClientRect();
+    expect(ringBox.width).toBeCloseTo(thumbnailBox.width, 0);
+    expect(ringBox.height).toBeCloseTo(thumbnailBox.height, 0);
   });
 
   it('should show the media filter', async () => {

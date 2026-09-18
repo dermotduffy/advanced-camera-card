@@ -2,7 +2,7 @@ import { assert, describe, expect, it } from 'vitest';
 
 import type { FrigateReview } from '../../../src/camera-manager/frigate/types';
 import type { CameraMediaReviewedFilter } from '../../../src/config/schema/cameras';
-import { clickElement, deepQuery } from '../../browser/dom';
+import { clickElement, deepQuery, hoverElement } from '../../browser/dom';
 import {
   createTestFrigateEvent,
   createTestFrigateReview,
@@ -93,6 +93,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
 
     expect(deepQuery(card.card, 'advanced-camera-card-effect-check')).toBeNull();
 
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(getReviewControl(card));
 
     await card.waitForSelector('advanced-camera-card-effect-check');
@@ -107,6 +108,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
       'advanced-camera-card-icon.info',
     );
     assert(info);
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(info);
 
     const control = await card.waitForRender(
@@ -126,6 +128,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
 
     expect(getReviewControl(card).classList.contains('active')).toBe(false);
 
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(getReviewControl(card));
 
     await card.waitForRender(
@@ -153,8 +156,6 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
 
     await clickElement(button);
 
-    // Thumbnail should show the new state, even though the review action was
-    // via the menu.
     await card.waitForRender(
       () => (getReviewControl(card).classList.contains('active') ? true : null),
       'a reviewed review control on the thumbnail',
@@ -178,6 +179,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
       'advanced-camera-card-icon.info',
     );
     assert(info);
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(info);
 
     const star = await card.waitForRender(
@@ -186,7 +188,6 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     );
     await clickElement(star);
 
-    // The thumbnail behind the notification shows the new state.
     await card.waitForRender(
       () => (isStarred() ? true : null),
       'a starred favorite control on the thumbnail',
@@ -211,6 +212,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     await setMediaFilter(card, 'Favorite', 'favorite');
     await waitForThumbnails(card, 2);
 
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(getFavoriteControls(card)[0]);
 
     await waitForThumbnails(card, 1);

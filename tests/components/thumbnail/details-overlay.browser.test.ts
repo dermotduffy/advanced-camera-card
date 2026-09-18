@@ -231,6 +231,8 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
     const details = deepQuery(overlay, '.details');
     assert(label && details);
 
+    expect(label.getBoundingClientRect().width).toBeGreaterThan(0);
+
     expect(
       label.getBoundingClientRect().left - details.getBoundingClientRect().left,
     ).toBeLessThan(10);

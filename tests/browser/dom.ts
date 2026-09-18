@@ -1,4 +1,8 @@
+import { vi } from 'vitest';
 import { userEvent } from 'vitest/browser';
+
+import { ACTION_HANDLER_HOLD_SECONDS } from '../../src/const';
+import { sleep } from '../../src/utils/sleep';
 
 // `querySelectorAll` does not look inside a shadow root, so a full search has
 // to step through them a level at a time. The node's own root counts because a
@@ -100,6 +104,42 @@ export const clickElement = async (element: Element): Promise<void> =>
 
 export const hoverElement = async (element: Element): Promise<void> =>
   await userEvent.hover(element);
+
+export const waitForTransition = (element: Element): Promise<void> =>
+  new Promise<void>((resolve) =>
+    element.addEventListener('transitionend', () => resolve(), { once: true }),
+  );
+
+const waitForHold = async (): Promise<void> => {
+  if (vi.isFakeTimers()) {
+    await vi.advanceTimersByTimeAsync(ACTION_HANDLER_HOLD_SECONDS * 1000);
+  } else {
+    await sleep(ACTION_HANDLER_HOLD_SECONDS);
+  }
+};
+
+/**
+ * Press an element and keep holding it until the card takes the press as a
+ * hold.
+ *
+ * Assembled from events rather than driven with a real pointer, because
+ * `userEvent` offers whole gestures only (click, hover, drag) and none of them
+ * stops between the press and the release.
+ */
+export const holdElement = async (element: HTMLElement): Promise<void> => {
+  // Composed as well as bubbling: a real press crosses the shadow boundaries
+  // between an element and whatever is listening above it.
+  const press = { bubbles: true, composed: true };
+  element.dispatchEvent(new MouseEvent('mousedown', press));
+
+  await waitForHold();
+
+  element.dispatchEvent(new MouseEvent('mouseup', press));
+
+  // The card takes the click, not the mouseup, as the end of a press (and
+  // carries the clickcount).
+  element.dispatchEvent(new MouseEvent('click', { ...press, detail: 1 }));
+};
 
 /**
  * Send a `pointerdown` to an element without moving a real pointer, so the page

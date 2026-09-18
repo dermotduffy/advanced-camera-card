@@ -43,6 +43,9 @@ describe('ThumbnailControlsController', () => {
     const controller = createController({
       ...ALL_CONTROLS,
       capabilities: CAPABILITIES,
+
+      // The largest thumbnail (the only one with space for all controls).
+      size: THUMBNAIL_SIZE_MAX,
       item: new TestViewMedia({
         id: 'id',
         mediaType: ViewMediaType.Review,
@@ -189,6 +192,20 @@ describe('ThumbnailControlsController', () => {
     expect(getControlNames(controller)).toContain('favorite');
   });
 
+  it('should show the info control beside a details panel without a pointer', () => {
+    const controller = createController(
+      {
+        ...ALL_CONTROLS,
+        capabilities: CAPABILITIES,
+        detailsStyle: 'panel',
+        item: new TestViewMedia({ id: 'id' }),
+      },
+      false,
+    );
+
+    expect(getControlNames(controller)).toContain('info');
+  });
+
   describe('should say which tier the thumbnail is in', () => {
     it.each([
       ['compact', THUMBNAIL_SIZE_MIN],
@@ -200,7 +217,7 @@ describe('ThumbnailControlsController', () => {
     });
   });
 
-  describe('should reduce the controls without a pointer', () => {
+  describe('should fit the number of controls to the thumbnail', () => {
     const createEveryControl = (
       isHoverable: boolean,
       size = THUMBNAIL_SIZE_MAX,
@@ -220,10 +237,10 @@ describe('ThumbnailControlsController', () => {
         isHoverable,
       );
 
-    it('should keep every control where there is a pointer', () => {
+    it('should keep every control on the largest thumbnail', () => {
       const controller = createEveryControl(true);
 
-      expect(controller.isSingleControl()).toBe(false);
+      expect(controller.isTouch()).toBe(false);
       expect(getControlNames(controller)).toEqual([
         'favorite',
         'info',
@@ -232,42 +249,32 @@ describe('ThumbnailControlsController', () => {
       ]);
     });
 
-    it('should keep every control on a small thumbnail with a pointer', () => {
+    it('should keep only the controls that fit a small thumbnail with a pointer', () => {
       const controller = createEveryControl(true, THUMBNAIL_SIZE_MIN);
 
-      expect(getControlNames(controller)).toEqual([
-        'favorite',
-        'info',
-        'timeline',
-        'download',
-      ]);
+      expect(getControlNames(controller)).toEqual(['favorite', 'info']);
     });
 
-    it.each([[100], [174], [175], [THUMBNAIL_SIZE_MAX]])(
-      'should reduce to the info control at size %s',
-      (size) => {
-        const controller = createEveryControl(false, size);
+    it.each([
+      // The compact tier keeps none: a finger-sized target reaches the middle of
+      // a picture that small, so it would compete with opening the media.
+      [THUMBNAIL_SIZE_MIN, []],
+      [99, []],
+      [100, ['info']],
+      [174, ['info']],
+      [175, ['favorite', 'info', 'timeline']],
+      [THUMBNAIL_SIZE_MAX, ['favorite', 'info', 'timeline', 'download']],
+    ])('should keep the controls that fit at size %s', (size, expected) => {
+      const controller = createEveryControl(false, size);
 
-        expect(controller.isSingleControl()).toBe(true);
-        expect(getControlNames(controller)).toEqual(['info']);
-      },
-    );
+      expect(controller.isTouch()).toBe(true);
+      expect(getControlNames(controller)).toEqual(expected);
+    });
 
-    it.each([[THUMBNAIL_SIZE_MIN], [99]])(
-      'should not show any control at size %s where a finger has insufficient space',
-      (size) => {
-        const controller = createEveryControl(false, size);
+    it('should keep the controls that fit when there is no info control', () => {
+      const controller = createEveryControl(false, 100, false);
 
-        expect(controller.isSingleControl()).toBe(false);
-        expect(controller.getControls()).toEqual([]);
-      },
-    );
-
-    it('should not show any control without an info control to replace the others', () => {
-      const controller = createEveryControl(false, THUMBNAIL_SIZE_MAX, false);
-
-      expect(controller.isSingleControl()).toBe(false);
-      expect(controller.getControls()).toEqual([]);
+      expect(getControlNames(controller)).toEqual(['favorite']);
     });
   });
 });

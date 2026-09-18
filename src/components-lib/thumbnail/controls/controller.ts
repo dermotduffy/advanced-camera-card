@@ -33,31 +33,55 @@ export interface ThumbnailControlsOptions {
   detailsStyle?: ResolvedThumbnailDetailsStyle;
 }
 
+const TOUCH_CONTROL_CAPACITY: Record<ThumbnailTier, number> = {
+  // A finger-sized control would reach the middle of a thumbnail this small.
+  compact: 0,
+  standard: 1,
+  comfortable: 3,
+  poster: 4,
+};
+
+const POINTER_CONTROL_CAPACITY: Record<ThumbnailTier, number> = {
+  compact: 2,
+  standard: 2,
+  comfortable: 4,
+  poster: 4,
+};
+
 export class ThumbnailControlsController {
   private _tier: ThumbnailTier = 'standard';
   private _controls: ThumbnailControl[] = [];
 
-  // The info control alone, at a size a finger can hit.
-  private _isSingleControl = false;
+  private _isTouch = false;
 
   public calculate(options: ThumbnailControlsOptions): void {
     const controls = this._calculateControls(options);
 
-    // A touch device shows only the info control, and only where a finger-sized
-    // target fits. The popup carries the other controls.
     this._tier = getThumbnailTier(options.size);
-    const hasRoomForAFinger = this._tier !== 'compact';
+    this._isTouch = !isHoverableDevice();
+    this._controls = this._getControlsThatFit(
+      controls,
+      (this._isTouch ? TOUCH_CONTROL_CAPACITY : POINTER_CONTROL_CAPACITY)[this._tier],
+    );
+  }
 
-    this._isSingleControl =
-      !isHoverableDevice() &&
-      hasRoomForAFinger &&
-      controls.some((control) => control.name === 'info');
-
-    if (this._isSingleControl) {
-      this._controls = controls.filter((control) => control.name === 'info');
-    } else {
-      this._controls = isHoverableDevice() ? controls : [];
+  private _getControlsThatFit(
+    controls: ThumbnailControl[],
+    capacity: number,
+  ): ThumbnailControl[] {
+    if (capacity <= 0) {
+      return [];
     }
+
+    // The info control is the last one that is evicted due to space (since it
+    // enables access to everything else).
+    const info = controls.find((control) => control.name === 'info');
+    const rest = controls.filter((control) => control.name !== 'info');
+    const kept = new Set([
+      ...(info ? [info] : []),
+      ...rest.slice(0, Math.max(capacity - (info ? 1 : 0), 0)),
+    ]);
+    return controls.filter((control) => kept.has(control));
   }
 
   private _calculateControls(options: ThumbnailControlsOptions): ThumbnailControl[] {
@@ -92,8 +116,9 @@ export class ThumbnailControlsController {
 
     if (
       options.showInfoControl &&
-      // Don't show 'i' when the panel already has the media information.
-      options.detailsStyle !== 'panel' &&
+      // The panel already carries the media information, so the 'i' is only
+      // worth its space where it is also the way to reach the other controls.
+      (options.detailsStyle !== 'panel' || !isHoverableDevice()) &&
       ViewItemClassifier.isMedia(options.item)
     ) {
       controls.push({
@@ -137,7 +162,7 @@ export class ThumbnailControlsController {
     return this._tier;
   }
 
-  public isSingleControl(): boolean {
-    return this._isSingleControl;
+  public isTouch(): boolean {
+    return this._isTouch;
   }
 }

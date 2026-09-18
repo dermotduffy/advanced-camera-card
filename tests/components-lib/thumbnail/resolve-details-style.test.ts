@@ -44,7 +44,7 @@ describe('resolveThumbnailDetailsStyle', () => {
     ).toBe(detailsStyle);
   });
 
-  it('should overlay rather than reveal on a device with no pointer', () => {
+  it('should fall back to overlay on a device with no pointer', () => {
     stubMatchMedia().mockReturnValue({ matches: false });
 
     expect(
@@ -74,13 +74,13 @@ describe('resolveThumbnailDetailsStyle', () => {
       ).toBe('panel');
     });
 
-    it('should reveal on hover in a popup', () => {
+    it('should overlay in a popup', () => {
       expect(
         resolveThumbnailDetailsStyle(
           createConfig({ details_style: 'auto', size: 75 }),
           createContext({ placement: 'popup' }),
         ),
-      ).toBe('hover');
+      ).toBe('overlay');
     });
 
     it('should use a panel in a vertical surround', () => {
@@ -92,20 +92,11 @@ describe('resolveThumbnailDetailsStyle', () => {
       ).toBe('panel');
     });
 
-    it('should reveal on hover in a horizontal surround', () => {
+    it('should hover in a horizontal surround', () => {
       expect(
         resolveThumbnailDetailsStyle(
           createConfig({ details_style: 'auto' }),
           createContext({ placement: 'surround-horizontal' }),
-        ),
-      ).toBe('hover');
-    });
-
-    it('should reveal on hover when the info control is disabled', () => {
-      expect(
-        resolveThumbnailDetailsStyle(
-          createConfig({ details_style: 'auto', size: 75, show_info_control: false }),
-          createContext(),
         ),
       ).toBe('hover');
     });
@@ -119,7 +110,7 @@ describe('resolveThumbnailDetailsStyle', () => {
       ).toBe('overlay');
     });
 
-    it('should reveal on hover on large grid thumbnails', () => {
+    it('should hover on large grid thumbnails', () => {
       expect(
         resolveThumbnailDetailsStyle(
           createConfig({ details_style: 'auto', size: 200 }),

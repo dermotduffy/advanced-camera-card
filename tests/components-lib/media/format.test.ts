@@ -136,7 +136,7 @@ describe('getMediaDuration', () => {
           inProgress: true,
         }),
       ),
-    ).toBe('In progress...');
+    ).toBe('In progress');
   });
 
   it('should give both where the media has a duration and is still being written', () => {
@@ -148,7 +148,7 @@ describe('getMediaDuration', () => {
           inProgress: true,
         }),
       ),
-    ).toBe('41s In progress...');
+    ).toBe('41s In progress');
   });
 
   it('should give nothing for media with no times at all', () => {

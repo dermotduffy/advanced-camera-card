@@ -4,7 +4,11 @@ import Panzoom, {
 } from '@dermotduffy/panzoom';
 import { round, throttle } from 'lodash-es';
 
-import { arefloatsApproximatelyEqual, isHoverableDevice } from '../../utils/basic';
+import {
+  arefloatsApproximatelyEqual,
+  isHoverableDevice,
+  type Point,
+} from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import {
   isZoomEmpty,
@@ -334,11 +338,7 @@ export class ZoomController {
    * @param scale The desired (not current) scale.
    * @returns An object with x/y pan % values or null on error.
    */
-  private _convertPercentToXYPan(
-    x: number,
-    y: number,
-    scale: number,
-  ): { x: number; y: number } | null {
+  private _convertPercentToXYPan(x: number, y: number, scale: number): Point | null {
     const minMax = this._getTransformMinMax(scale, this._panzoom?.getScale());
     if (minMax === null) {
       return null;
@@ -350,11 +350,7 @@ export class ZoomController {
     };
   }
 
-  private _convertXYPanToPercent(
-    x: number,
-    y: number,
-    scale: number,
-  ): { x: number; y: number } | null {
+  private _convertXYPanToPercent(x: number, y: number, scale: number): Point | null {
     const minMax = this._getTransformMinMax(scale, this._panzoom?.getScale());
     if (minMax === null) {
       return null;

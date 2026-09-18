@@ -43,6 +43,11 @@
   inset-inline-start: 0;
   max-width: 100%;
 
+  // On small thumbnails, the control row shares space with a label. Fade it to
+  // 25% if hovered.
+  opacity: calc(1 - 0.75 * var(--advanced-camera-card-thumbnail-hovered, 0));
+  transition: opacity 0.22s ease;
+
   box-sizing: border-box;
   height: 16px;
   padding: 0 6px;
@@ -256,22 +261,24 @@
 }
 
 /*****************************************************************************
- * `hover`: the details are only on screen while the pointer is hovering, so can
- * afford to cover more of the thumbnail: the two smallest tiers give the label
- * and the time a line each rather than sharing.
+ * `hover`: details are hidden until the thumbnail is hovered. The control row
+ * appears on that same hover, so the rules below leave it space.
  *****************************************************************************/
 :host([hover]) {
   .details {
     // `thumbnail.scss` sets this to 1 while the thumbnail is hovered or
     // focused.
-    opacity: var(--advanced-camera-card-thumbnail-revealed, 0);
+    opacity: var(--advanced-camera-card-thumbnail-hovered, 0);
     transform: translateY(
-      calc(100% * (1 - var(--advanced-camera-card-thumbnail-revealed, 0)))
+      calc(100% * (1 - var(--advanced-camera-card-thumbnail-hovered, 0)))
     );
 
     transition:
       transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
       opacity 0.16s ease;
+
+    // The control row occupies the top 32px, so the details stop 4px short.
+    max-height: calc(100% - 36px);
   }
 
   // Every detail after the first is dimmer than the first.
@@ -285,9 +292,6 @@
 :host([hover][tier='standard']) {
   .details {
     height: auto;
-  }
-  .headline {
-    display: block;
   }
 }
 

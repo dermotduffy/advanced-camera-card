@@ -82,6 +82,9 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   @property({ attribute: true, type: Boolean })
   public clickable = false;
 
+  @property({ attribute: true, type: Boolean, reflect: true })
+  public selected = false;
+
   constructor() {
     super();
     this.addEventListener('keydown', (ev: KeyboardEvent) => this._keydown(ev));
@@ -153,9 +156,11 @@ export class AdvancedCameraCardThumbnail extends LitElement {
             .viewItemManager=${this.viewItemManager}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .filterReviewed=${this.filterReviewed}
+            .filterFavorite=${this.filterFavorite}
             .size=${this.size}
           ></advanced-camera-card-thumbnail-details-panel>`
         : ''}
+      ${this.selected ? html`<div class="selection"></div>` : ''}
     `;
   }
 

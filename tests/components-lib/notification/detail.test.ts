@@ -163,7 +163,7 @@ describe('getNotificationDetails', () => {
       });
 
       expect(getNotificationDetails({ item })).toContainEqual({
-        text: 'In progress...',
+        text: 'In progress',
         tooltip: 'Duration',
         icon: 'mdi:clock-outline',
       });
@@ -177,7 +177,7 @@ describe('getNotificationDetails', () => {
       });
 
       expect(getNotificationDetails({ item })).toContainEqual({
-        text: '1m 0s In progress...',
+        text: '1m 0s In progress',
         tooltip: 'Duration',
         icon: 'mdi:clock-outline',
       });

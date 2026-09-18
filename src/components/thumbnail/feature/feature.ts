@@ -19,6 +19,7 @@ import type { HomeAssistant } from '../../../ha/types';
 import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss?inline';
 import { setOrRemoveAttribute } from '../../../utils/basic';
 import type { ViewItem } from '../../../view/item';
+import { ViewItemClassifier } from '../../../view/item-classifier';
 
 import '../controls.js';
 import './thumbnail.js';
@@ -92,6 +93,11 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       'review',
       isReviewed ? 'reviewed' : 'unreviewed',
     );
+
+    this.toggleAttribute(
+      'favorite',
+      ViewItemClassifier.isMedia(this.item) && this.item.isFavorite() === true,
+    );
   }
 
   protected render(): TemplateResult | void {
@@ -130,6 +136,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
                 .icon=${{ icon: this._controller.getIcon() }}
               ></advanced-camera-card-icon>`
             : ''}
+        <div class="favorite"></div>
       </div>
       <advanced-camera-card-thumbnail-controls
         .hass=${this.hass}

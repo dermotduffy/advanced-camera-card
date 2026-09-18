@@ -87,11 +87,8 @@ export class ThumbnailDetailsOverlayController {
     return this._isInProgress;
   }
 
-  // The two smallest permanent overlays give the label and the time a single
-  // shared line. A hover overlay grows taller instead, so it always has room
-  // for both.
   public isOneLineHeadline(): boolean {
-    return !this._isHover && (this._tier === 'compact' || this._tier === 'standard');
+    return this._tier === 'compact' || this._tier === 'standard';
   }
 
   public getCornerLabel(): string | null {
@@ -102,10 +99,10 @@ export class ThumbnailDetailsOverlayController {
     return this._isLabelInCorner() ? null : this._label;
   }
 
-  // Place the label in the corner when a compact overlay is permanently on
-  // screen and the item has a time: its single line fits either the label or
-  // the time, not both. A hover overlay grows tall enough to show them on
-  // separate lines.
+  // The compact tier's single line fits either the label or the time, not both,
+  // so the overlay style moves the label to the corner. The hover style (when
+  // hovered) shares the line instead, since the control row covers that edge
+  // as it appears.
   private _isLabelInCorner(): boolean {
     return this._tier === 'compact' && !this._isHover && !!this._startTime;
   }

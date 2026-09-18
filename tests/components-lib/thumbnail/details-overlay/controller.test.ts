@@ -108,7 +108,7 @@ describe('ThumbnailDetailsOverlayController', () => {
       expect(controller.getHeadlineLabel()).toBeNull();
     });
 
-    it('should keep the label in the overlay when it is revealed on hover', () => {
+    it('should keep the label in the headline when hovered', () => {
       expect(createController('hover', 75).getHeadlineLabel()).toBe('Person');
     });
 
@@ -150,8 +150,8 @@ describe('ThumbnailDetailsOverlayController', () => {
       });
     });
 
-    it('should show the seconds on the smallest revealed overlay', () => {
-      expect(createController('hover', 75).getTime()?.seconds).toBe(':47');
+    it('should show no seconds at the smallest hover size', () => {
+      expect(createController('hover', 75).getTime()?.seconds).toBeUndefined();
     });
 
     it('should show no time without a start time', () => {
@@ -171,11 +171,11 @@ describe('ThumbnailDetailsOverlayController', () => {
       expect(createController('overlay', 100).getDetails()).toEqual([]);
     });
 
-    it('should show no details on the smallest revealed overlay', () => {
+    it('should show no details at the smallest hover size', () => {
       expect(createController('hover', 75).getDetails()).toEqual([]);
     });
 
-    it('should show the duration and camera on a revealed standard overlay', () => {
+    it('should show the duration and camera when hovered at standard size', () => {
       expect(createController('hover', 100).getDetails()).toEqual(['41s · Office']);
     });
 
@@ -183,7 +183,7 @@ describe('ThumbnailDetailsOverlayController', () => {
       expect(createController('overlay', 175).getDetails()).toEqual(['41s · Office']);
     });
 
-    it('should separate the details on a comfortable revealed overlay', () => {
+    it('should separate the details when hovered at comfortable size', () => {
       expect(createController('hover', 175).getDetails()).toEqual([
         '41s',
         'Office · Driveway',
@@ -290,8 +290,8 @@ describe('ThumbnailDetailsOverlayController', () => {
       expect(createController('overlay', size).isOneLineHeadline()).toBe(false);
     });
 
-    it('should give each its own line on a revealed overlay', () => {
-      expect(createController('hover', 100).isOneLineHeadline()).toBe(false);
+    it('should share the line on when hovered', () => {
+      expect(createController('hover', 100).isOneLineHeadline()).toBe(true);
     });
   });
 });

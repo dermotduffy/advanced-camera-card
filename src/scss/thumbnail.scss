@@ -1,3 +1,5 @@
+@use 'const.scss';
+
 :host {
   display: flex;
   flex-direction: row;
@@ -15,7 +17,7 @@
   // As the overlay doesn't take pointer events, it cannot itself determine if
   // it's being hovered over or focused. Read by
   // `thumbnail-details-overlay.scss` and `thumbnail-controls.scss`.
-  --advanced-camera-card-thumbnail-revealed: 0;
+  --advanced-camera-card-thumbnail-hovered: 0;
 
   // Applied to the image by `thumbnail-feature.scss`.
   --advanced-camera-card-thumbnail-media-filter: none;
@@ -30,10 +32,18 @@
   background-color: var(--advanced-camera-card-thumbnail-details-background);
 }
 
-:host(:hover),
 :host(:focus-within) {
-  --advanced-camera-card-thumbnail-revealed: 1;
+  --advanced-camera-card-thumbnail-hovered: 1;
   --advanced-camera-card-thumbnail-media-filter: brightness(1.13) contrast(1.05);
+}
+
+// Android Chrome leaves `:hover` applied after a tap, which would strand a
+// thumbnail brightened with its controls showing. Use "real" hover only.
+@media (hover: hover) {
+  :host(:hover) {
+    --advanced-camera-card-thumbnail-hovered: 1;
+    --advanced-camera-card-thumbnail-media-filter: brightness(1.13) contrast(1.05);
+  }
 }
 
 // The focus ring is two stacked shadows: 2px of the color behind the
@@ -48,10 +58,35 @@
     0 0 0 4px var(--advanced-camera-card-thumbnail-focus-color);
 }
 
+// To indicate selection: an element rather than an `outline`, drawn after the
+// image so the image cannot cover it.
+.selection {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  border: 2px solid var(--advanced-camera-card-thumbnail-selected-color);
+  border-radius: var(--advanced-camera-card-border-radius-final);
+  box-sizing: border-box;
+}
 // A flex item will not shrink narrower than its own text unless `min-width` is
 // set. Without it the rows push out of the thumbnail instead of being cut off
 // with an ellipsis.
 advanced-camera-card-thumbnail-details-panel {
   flex: 1;
   min-width: 0;
+}
+
+:host([details-style='panel']) advanced-camera-card-thumbnail-feature {
+  // An image width may shrink to ensure sufficient space for a details panel.
+  width: min(
+    var(--advanced-camera-card-thumbnail-size),
+    calc(100% - var(--advanced-camera-card-thumbnail-details-panel-width-min))
+  );
+
+  // Keep the image square as it shrinks.
+  height: auto;
+
+  // Opt out of `align-items: stretch`.
+  align-self: center;
 }

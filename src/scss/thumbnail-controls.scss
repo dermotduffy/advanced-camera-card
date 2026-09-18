@@ -3,9 +3,6 @@
 // The width and height of one control. A touch device overrides it below.
 $control-size: 22px;
 
-// The space the row of them leaves at each of its ends.
-$row-padding-inline: 5px;
-
 :host {
   position: absolute;
   inset: 0;
@@ -24,19 +21,19 @@ $row-padding-inline: 5px;
   gap: 1px;
 
   box-sizing: border-box;
-  padding: 3px $row-padding-inline;
+  padding: 3px;
   border-radius: 999px;
 
   pointer-events: auto;
 
-  // At rest the row sits off the trailing edge, all but its first control.
-  transform: translateX(
-    calc(
-      (100% - #{$control-size} - #{$row-padding-inline}) *
-        (1 - var(--advanced-camera-card-thumbnail-revealed, 0))
-    )
+  // At rest no control sits on the picture: the control row waits past the top
+  // edge and drops in as the details rise from the bottom, so the two arrive
+  // together. `inset-block-start` holds it 4px down, so clearing that edge
+  // takes its own height plus the 4px.
+  transform: translateY(
+    calc((-100% - 4px) * (1 - var(--advanced-camera-card-thumbnail-hovered, 0)))
   );
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 // The background sits on a pseudo-element so that it can fade in without
@@ -50,7 +47,7 @@ $row-padding-inline: 5px;
 
   @include frosted;
 
-  opacity: var(--advanced-camera-card-thumbnail-revealed, 0);
+  opacity: var(--advanced-camera-card-thumbnail-hovered, 0);
   transition: opacity 0.2s ease-in-out;
 }
 
@@ -66,7 +63,7 @@ advanced-camera-card-icon {
 
   cursor: pointer;
 
-  opacity: var(--advanced-camera-card-thumbnail-revealed, 0);
+  opacity: var(--advanced-camera-card-thumbnail-hovered, 0);
 
   transition:
     opacity 0.2s ease-in-out,
@@ -74,11 +71,13 @@ advanced-camera-card-icon {
 
   --mdc-icon-size: 18px;
 }
-advanced-camera-card-icon.active {
-  opacity: 1;
-}
-advanced-camera-card-icon:hover {
-  color: var(--advanced-camera-card-active-color);
+
+// Android Chrome leaves `:hover` applied after a tap, only apply the treatment
+// on "real" hover.
+@media (hover: hover) {
+  advanced-camera-card-icon:hover {
+    color: var(--advanced-camera-card-active-color);
+  }
 }
 
 advanced-camera-card-icon.favorite.active {
@@ -88,47 +87,73 @@ advanced-camera-card-icon.review.active {
   color: var(--advanced-camera-card-thumbnail-icon-review-color);
 }
 
-// A touch device gets the info control alone, at the size a finger needs.
-// Nothing hovers to reveal it, so it neither slides nor fades.
-:host([single-control]) .controls {
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  padding: 0;
-
-  transform: none;
+// A control that carries a state of its own highlights in that state's color
+// rather than the card's active color, so hovering previews what setting it
+// looks like.
+@media (hover: hover) {
+  advanced-camera-card-icon.favorite:hover {
+    color: var(--advanced-camera-card-thumbnail-icon-favorite-color);
+  }
+  advanced-camera-card-icon.review:hover {
+    color: var(--advanced-camera-card-thumbnail-icon-review-color);
+  }
 }
 
-// Inset, so the background is smaller than the finger-sized control.
-:host([single-control]) .controls::before {
-  inset: 7px;
+:host([touch]) .controls {
+  transform: none;
+
+  // Avoid padding as it would put the control row beyond the middle of the
+  // thumbnail, increasing the odds a touch is mis-targeted.
+  padding: 0;
+}
+
+:host([touch]) .controls::before {
+  // Shrink the disc (not the control), to avoid dominating small thumbnails.
+  inset: 2px;
 
   background: rgba(16, 16, 18, 0.35);
+
+  // On touch devices, the control row never hides, so a `backdrop-filter` would
+  // blur behind every thumbnail at once (unnecessary performance cost).
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 
   opacity: 1;
 }
-:host([single-control]) advanced-camera-card-icon.info {
-  width: 48px;
-  height: 48px;
-  padding: 13px;
-
+:host([touch]) advanced-camera-card-icon {
   opacity: 1;
-
-  --mdc-icon-size: 22px;
 }
 
-// A 48px target in the corner of a 100px thumbnail reaches its middle, so a
-// finger aimed at the picture opens the popup instead of the media. 36px is
-// deliberate, not a size to "correct" back: it is still well above the 24px
-// minimum the WCAG 2.2 accessibility guidelines set for a touch target.
-:host([single-control][tier='standard']) advanced-camera-card-icon.info {
+// Sized so a tier's control row fits the narrowest thumbnail that tier is drawn
+// at: in a gallery `size: 100` draws thumbnails *up to* 100px rather than at
+// 100px. Each size still clears the 24px minimum WCAG 2.2 sets for a touch
+// target. The poster tier is smaller than the comfortable one because it holds
+// four controls rather than three.
+:host([touch][tier='compact']) advanced-camera-card-icon {
+  width: 28px;
+  height: 28px;
+  padding: 7px;
+
+  --mdc-icon-size: 14px;
+}
+:host([touch][tier='standard']) advanced-camera-card-icon {
+  width: 30px;
+  height: 30px;
+  padding: 7px;
+
+  --mdc-icon-size: 16px;
+}
+:host([touch][tier='comfortable']) advanced-camera-card-icon {
   width: 36px;
   height: 36px;
-  padding: 9px;
+  padding: 8px;
+
+  --mdc-icon-size: 20px;
+}
+:host([touch][tier='poster']) advanced-camera-card-icon {
+  width: 34px;
+  height: 34px;
+  padding: 8px;
 
   --mdc-icon-size: 18px;
-}
-:host([single-control][tier='standard']) .controls::before {
-  inset: 5px;
 }

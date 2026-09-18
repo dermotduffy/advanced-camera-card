@@ -7,8 +7,8 @@ import {
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { classMap } from 'lit/directives/class-map.js';
 
+import { actionHandler } from '../../action-handler-directive.js';
 import type { CameraManager } from '../../camera-manager/manager.js';
 import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
@@ -28,7 +28,12 @@ import type { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import galleryStyle from '../../scss/gallery.scss?inline';
+import type { Interaction } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
+import {
+  showMediaInfoNotification,
+  type MediaInfoContext,
+} from '../../utils/media-actions.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewFolder, ViewItem } from '../../view/item.js';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder.js';
@@ -109,6 +114,15 @@ export class AdvancedCameraCardGallery extends LitElement {
       : null;
   }
 
+  private _getInfoContext(): MediaInfoContext {
+    return {
+      hass: this.hass,
+      cameraManager: this.cameraManager,
+      viewItemManager: this.viewItemManager,
+      viewManagerEpoch: this.viewManagerEpoch,
+    };
+  }
+
   private _renderUpFolder(): TemplateResult | void {
     if (!this._upFolderItem) {
       return;
@@ -134,57 +148,70 @@ export class AdvancedCameraCardGallery extends LitElement {
     const selected = view?.queryResults?.getSelectedResult();
 
     return html`
-      ${this._controller.getItems()?.map(
-        (item) =>
-          html`<advanced-camera-card-thumbnail
-            clickable
-            class=${classMap({
-              selected: item === selected,
-            })}
-            .hass=${this.hass}
-            .cameraManager=${this.cameraManager}
-            .viewItemManager=${this.viewItemManager}
-            .item=${item}
-            .viewManagerEpoch=${this.viewManagerEpoch}
-            ?selected=${item === selected}
-            .detailsStyle=${this._controller.getResolvedThumbnailDetailsStyle() ??
-            undefined}
-            .size=${this.galleryConfig?.controls.thumbnails.size}
-            ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
-              .show_favorite_control}
-            ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
-              .show_timeline_control}
-            ?show_download_control=${!!this.galleryConfig?.controls.thumbnails
-              .show_download_control}
-            ?show_review_control=${!!this.galleryConfig?.controls.thumbnails
-              .show_review_control}
-            ?show_info_control=${!!this.galleryConfig?.controls.thumbnails
-              .show_info_control}
-            .filterReviewed=${getBooleanQueryFilter('reviewed', view?.query, item) ??
-            undefined}
-            .filterFavorite=${getBooleanQueryFilter('favorite', view?.query, item) ??
-            undefined}
-            @click=${(ev: Event) => {
-              stopEventFromActivatingCardWideActions(ev);
-              if (ViewItemClassifier.isMedia(item) && this.viewManagerEpoch) {
-                navigateToMedia(item, {
-                  viewManagerEpoch: this.viewManagerEpoch,
-                  modifiers: [
-                    new RemoveContextViewModifier(['timeline', 'mediaViewer']),
-                    new MergeContextViewModifier({
-                      gallery: {
-                        originView: this.viewManagerEpoch.manager.getView()?.view,
-                      },
-                    }),
-                  ],
-                });
-              } else if (ViewItemClassifier.isFolder(item)) {
-                navigateToFolder(item, this._getFolderNavigationParameters());
-              }
-            }}
-          >
-          </advanced-camera-card-thumbnail>`,
-      )}
+      ${this._controller.getItems()?.map((item) => {
+        const filterReviewed =
+          getBooleanQueryFilter('reviewed', view?.query, item) ?? undefined;
+        const filterFavorite =
+          getBooleanQueryFilter('favorite', view?.query, item) ?? undefined;
+
+        return html`<advanced-camera-card-thumbnail
+          clickable
+          .hass=${this.hass}
+          .cameraManager=${this.cameraManager}
+          .viewItemManager=${this.viewItemManager}
+          .item=${item}
+          .viewManagerEpoch=${this.viewManagerEpoch}
+          .selected=${item === selected}
+          .detailsStyle=${this._controller.getResolvedThumbnailDetailsStyle() ??
+          undefined}
+          .size=${this.galleryConfig?.controls.thumbnails.size}
+          ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
+            .show_favorite_control}
+          ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
+            .show_timeline_control}
+          ?show_download_control=${!!this.galleryConfig?.controls.thumbnails
+            .show_download_control}
+          ?show_review_control=${!!this.galleryConfig?.controls.thumbnails
+            .show_review_control}
+          ?show_info_control=${!!this.galleryConfig?.controls.thumbnails
+            .show_info_control}
+          .filterReviewed=${filterReviewed}
+          .filterFavorite=${filterFavorite}
+          .actionHandler=${actionHandler({ hasHold: true })}
+          @action=${(ev: CustomEvent<Interaction>) => {
+            stopEventFromActivatingCardWideActions(ev);
+
+            if (ev.detail.action === 'hold') {
+              showMediaInfoNotification(this, item, {
+                ...this._getInfoContext(),
+                filterReviewed,
+                filterFavorite,
+              });
+              return;
+            }
+            if (ev.detail.action !== 'tap') {
+              return;
+            }
+
+            if (ViewItemClassifier.isMedia(item) && this.viewManagerEpoch) {
+              navigateToMedia(item, {
+                viewManagerEpoch: this.viewManagerEpoch,
+                modifiers: [
+                  new RemoveContextViewModifier(['timeline', 'mediaViewer']),
+                  new MergeContextViewModifier({
+                    gallery: {
+                      originView: this.viewManagerEpoch.manager.getView()?.view,
+                    },
+                  }),
+                ],
+              });
+            } else if (ViewItemClassifier.isFolder(item)) {
+              navigateToFolder(item, this._getFolderNavigationParameters());
+            }
+          }}
+        >
+        </advanced-camera-card-thumbnail>`;
+      })}
     `;
   }
 
