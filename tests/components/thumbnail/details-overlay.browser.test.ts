@@ -246,7 +246,7 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
 
       expect(overlay.hasAttribute('one-line')).toBe(false);
       expect(
-        getComputedStyle(deepQuery(overlay, '.in-progress-label') as Element).display,
+        getComputedStyle(deepQuery(overlay, '.in-progress .label') as Element).display,
       ).not.toBe('none');
     });
 
@@ -257,12 +257,12 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
 
       expect(overlay.hasAttribute('one-line')).toBe(true);
 
-      const label = deepQuery(overlay, '.in-progress-label');
+      const label = deepQuery(overlay, '.in-progress .label');
       assert(label);
       expect(getComputedStyle(label).display).toBe('none');
 
       // A 'fat' dot is all that is left to carry the state.
-      const dot = deepQuery(overlay, '.in-progress-dot');
+      const dot = deepQuery(overlay, '.in-progress .dot');
       assert(dot);
       expect(dot.getBoundingClientRect().width).toBeGreaterThan(
         parseFloat(getComputedStyle(dot).fontSize) * 0.5,

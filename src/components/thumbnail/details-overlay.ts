@@ -73,8 +73,8 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
             <div class="headline">
               ${isInProgress
                 ? html`<span class="in-progress" title=${localize('common.in_progress')}
-                    ><span class="in-progress-dot"></span
-                    ><span class="in-progress-label"
+                    ><span class="dot"></span
+                    ><span class="label"
                       >${localize('thumbnail.in_progress')}</span
                     ></span
                   >`

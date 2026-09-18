@@ -47,6 +47,7 @@ export class ThumbnailDetailsPanelController {
   private _tier: ThumbnailTier = 'standard';
   private _label: string | null = null;
   private _time: ThumbnailDetailsPanelTime | null = null;
+  private _isInProgress = false;
   private _details: string[] = [];
   private _seekTime: string | null = null;
   private _hiddenDetailCount = 0;
@@ -54,6 +55,8 @@ export class ThumbnailDetailsPanelController {
   public calculate(options: ThumbnailDetailsPanelOptions): void {
     this._tier = getThumbnailTier(options.size);
     this._label = getMediaLabel(options.cameraManager, options.item);
+    this._isInProgress =
+      ViewItemClassifier.isMedia(options.item) && options.item.inProgress() === true;
     this._seekTime = options.seek ? format(options.seek, 'HH:mm:ss') : null;
 
     const startTime = ViewItemClassifier.isMedia(options.item)
@@ -68,7 +71,7 @@ export class ThumbnailDetailsPanelController {
     this._fitLines(
       this._groupLines({
         date: startTime ? formatDay(startTime) : null,
-        duration: getMediaDuration(options.item),
+        duration: getMediaDuration(options.item, { excludeInProgress: true }),
         camera: cameraTitle === this._label ? null : cameraTitle,
         where: getMediaWhere(options.item),
         tags: getMediaTags(options.item),
@@ -100,7 +103,10 @@ export class ThumbnailDetailsPanelController {
 
   private _fitLines(lines: string[][]): void {
     const available =
-      LINES_BY_TIER[this._tier] - (this._label ? 1 : 0) - (this._seekTime ? 1 : 0);
+      LINES_BY_TIER[this._tier] -
+      (this._label ? 1 : 0) -
+      (this._isInProgress ? 1 : 0) -
+      (this._seekTime ? 1 : 0);
 
     // The "More details" chip takes a line of its own.
     const kept =
@@ -119,6 +125,10 @@ export class ThumbnailDetailsPanelController {
 
   public getLabel(): string | null {
     return this._label;
+  }
+
+  public isInProgress(): boolean {
+    return this._isInProgress;
   }
 
   public getTime(): ThumbnailDetailsPanelTime | null {

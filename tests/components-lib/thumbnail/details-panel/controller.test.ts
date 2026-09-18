@@ -168,6 +168,48 @@ describe('ThumbnailDetailsPanelController', () => {
     expect(createController(175).getSeekTime()).toBeNull();
   });
 
+  it('should report an in-progress recording', () => {
+    const controller = createController(
+      300,
+      new TestViewMedia({
+        cameraID: 'camera_1',
+        startTime: new Date('2026-09-08T16:55:47'),
+        inProgress: true,
+      }),
+    );
+
+    expect(controller.isInProgress()).toBe(true);
+  });
+
+  it('should not report a finished recording as in progress', () => {
+    expect(createController(300).isInProgress()).toBe(false);
+  });
+
+  it('should give the in-progress pill a line of the budget', () => {
+    const controller = new ThumbnailDetailsPanelController();
+
+    controller.calculate({
+      cameraManager: createCameraManagerWithMetadata({
+        title: 'Office',
+        icon: { icon: 'mdi:cctv' },
+      }),
+      item: new TestViewMedia({
+        cameraID: 'camera_1',
+        startTime: new Date('2026-09-08T16:55:47'),
+        endTime: new Date('2026-09-08T16:56:28'),
+        what: ['person'],
+        where: ['driveway'],
+        tags: ['delivery'],
+        inProgress: true,
+      }),
+      size: 100,
+    });
+
+    // Standard budget is 4: heading + pill + one detail line + chip.
+    expect(controller.getDetails()).toEqual(['2026-09-08 · 41s']);
+    expect(controller.getHiddenDetailCount()).toBe(3);
+  });
+
   it('should give the details a line more where there is no label', () => {
     const controller = new ThumbnailDetailsPanelController();
 

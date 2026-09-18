@@ -69,7 +69,7 @@ export class ThumbnailDetailsOverlayController {
     this._startTime = ViewItemClassifier.isMedia(options.item)
       ? options.item.getStartTime()
       : null;
-    this._duration = getMediaDuration(options.item);
+    this._duration = getMediaDuration(options.item, { excludeInProgress: true });
     this._cameraTitle = getMediaCameraTitle(options.cameraManager, options.item);
     this._where = getMediaWhere(options.item);
     this._tags = getMediaTags(options.item);

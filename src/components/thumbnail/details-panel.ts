@@ -90,11 +90,20 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
   protected render(): TemplateResult | void {
     const label = this._controller.getLabel();
     const time = this._controller.getTime();
+    const isInProgress = this._controller.isInProgress();
     const details = this._controller.getDetails();
     const seekTime = this._controller.getSeekTime();
     const hiddenDetailCount = this._controller.getHiddenDetailCount();
 
     return html`
+      ${isInProgress
+        ? html`<span class="in-progress" title=${localize('common.in_progress')}
+            ><span class="dot"></span
+            ><span class="label"
+              >${localize('thumbnail.in_progress')}</span
+            ></span
+          >`
+        : ''}
       ${label || time
         ? html`<div class="heading">
             ${label ? html`<span title=${label}>${label}</span>` : ''}

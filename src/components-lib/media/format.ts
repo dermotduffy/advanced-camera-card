@@ -35,14 +35,21 @@ export const getMediaWhere = (item?: ViewItem): string | null =>
     : undefined) ?? null;
 
 /**
- * @param item The item.
  * @returns How long the media lasted: `41s`, `In progress`, or both.
  */
-export const getMediaDuration = (item?: ViewItem): string | null => {
+export const getMediaDuration = (
+  item?: ViewItem,
+  options?: { excludeInProgress?: boolean },
+): string | null => {
   const startTime = ViewItemClassifier.isMedia(item) ? item.getStartTime() : null;
   const endTime = ViewItemClassifier.isMedia(item) ? item.getEndTime() : null;
 
   const duration = startTime && endTime ? getDurationString(startTime, endTime) : null;
+
+  if (options?.excludeInProgress) {
+    return duration;
+  }
+
   const inProgress =
     ViewItemClassifier.isMedia(item) && item.inProgress()
       ? localize('common.in_progress')

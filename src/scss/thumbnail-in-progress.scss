@@ -1,0 +1,47 @@
+// The "REC" pill and its pulsing dot.
+@mixin in-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.36em;
+
+  box-sizing: border-box;
+  height: 1.3em;
+  padding: 0 0.5em;
+  border-radius: 0.64em;
+
+  // A `normal` line height is computed from the font, so the pill would be a
+  // different height on a phone than on a desktop.
+  line-height: 1;
+
+  background: var(--advanced-camera-card-thumbnail-in-progress-background);
+  color: var(--advanced-camera-card-thumbnail-in-progress-color);
+
+  font-size: 0.71em;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+
+  .label {
+    @supports (text-box: trim-both cap alphabetic) {
+      text-box: trim-both cap alphabetic;
+    }
+  }
+
+  .dot {
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: currentcolor;
+
+    animation: pulse 1.6s ease-in-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+  }
+}

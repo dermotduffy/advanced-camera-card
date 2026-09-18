@@ -1,4 +1,5 @@
 @use 'color-mix.scss' as *;
+@use 'thumbnail-in-progress.scss' as *;
 
 :host {
   display: flex;
@@ -76,6 +77,12 @@ div {
 }
 :host > div:not(.heading):not(.seek) ~ div:not(.heading):not(.seek) {
   opacity: 0.55;
+}
+
+.in-progress {
+  @include in-progress;
+
+  width: fit-content;
 }
 
 // The time the user is seeking to (not directly related to the media so
