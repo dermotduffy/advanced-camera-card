@@ -45,9 +45,7 @@
   --advanced-camera-card-foreground-severity-high-color: var(
     --ha-color-fill-danger-loud-resting
   );
-  --advanced-camera-card-foreground-severity-medium-color: var(
-    --ha-color-fill-warning-loud-resting
-  );
+  --advanced-camera-card-foreground-severity-medium-color: var(--warning-color, orange);
   --advanced-camera-card-foreground-severity-low-color: var(
     --ha-color-fill-neutral-loud-resting
   );
