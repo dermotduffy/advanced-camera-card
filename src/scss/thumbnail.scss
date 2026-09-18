@@ -69,6 +69,18 @@
   border-radius: var(--advanced-camera-card-border-radius-final);
   box-sizing: border-box;
 }
+:host([severity='high']) .selection {
+  border-color: var(--advanced-camera-card-thumbnail-icon-severity-high-color);
+  opacity: 0.75;
+}
+:host([severity='medium']) .selection {
+  border-color: var(--advanced-camera-card-thumbnail-icon-severity-medium-color);
+  opacity: 0.75;
+}
+:host([severity='low']) .selection {
+  border-color: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
+  opacity: 0.75;
+}
 // A flex item will not shrink narrower than its own text unless `min-width` is
 // set. Without it the rows push out of the thumbnail instead of being cut off
 // with an ellipsis.

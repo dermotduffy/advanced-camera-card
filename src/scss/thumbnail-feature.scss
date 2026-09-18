@@ -34,6 +34,8 @@
   inset-block-start: 0;
   inset-inline: 0;
   z-index: 3;
+
+  opacity: 0.75;
 }
 :host([severity='high'])::before {
   height: 4px;

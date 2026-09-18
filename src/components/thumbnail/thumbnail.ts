@@ -12,10 +12,12 @@ import type { CameraManager } from '../../camera-manager/manager.js';
 import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { getMediaSeverity } from '../../components-lib/media/format.js';
 import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style.js';
 import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
+import { setOrRemoveAttribute } from '../../utils/basic.js';
 import type { ViewItem } from '../../view/item.js';
 
 import './details-overlay.js';
@@ -109,6 +111,11 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         this.removeAttribute('role');
         this.removeAttribute('aria-label');
       }
+    }
+
+    if (changedProperties.has('item')) {
+      const severity = getMediaSeverity(this.item);
+      setOrRemoveAttribute(this, !!severity, 'severity', severity);
     }
   }
 
