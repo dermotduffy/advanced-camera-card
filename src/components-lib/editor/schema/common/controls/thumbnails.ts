@@ -24,29 +24,29 @@ export const getThumbnailsSchema = (options?: {
     }),
   };
 
-  const detailsStyleField: HAFormSchema = {
-    name: 'details_style',
-    label: localize('config.common.controls.thumbnails.details_style'),
+  const thumbnailStyleField: HAFormSchema = {
+    name: 'style',
+    label: localize('config.common.controls.thumbnails.style'),
     selector: createSelectSelector([
       {
         value: 'auto',
-        label: localize('config.common.controls.thumbnails.details_styles.auto'),
+        label: localize('config.common.controls.thumbnails.styles.auto'),
       },
       {
         value: 'none',
-        label: localize('config.common.controls.thumbnails.details_styles.none'),
+        label: localize('config.common.controls.thumbnails.styles.none'),
       },
       {
         value: 'overlay',
-        label: localize('config.common.controls.thumbnails.details_styles.overlay'),
+        label: localize('config.common.controls.thumbnails.styles.overlay'),
       },
       {
         value: 'hover',
-        label: localize('config.common.controls.thumbnails.details_styles.hover'),
+        label: localize('config.common.controls.thumbnails.styles.hover'),
       },
       {
         value: 'panel',
-        label: localize('config.common.controls.thumbnails.details_styles.panel'),
+        label: localize('config.common.controls.thumbnails.styles.panel'),
       },
     ]),
   };
@@ -89,7 +89,7 @@ export const getThumbnailsSchema = (options?: {
   } else {
     schema.push(sizeField);
   }
-  schema.push(detailsStyleField);
+  schema.push(thumbnailStyleField);
   schema.push(
     createGrid([
       {

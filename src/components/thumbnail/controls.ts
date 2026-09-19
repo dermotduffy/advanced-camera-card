@@ -8,7 +8,7 @@ import {
   ThumbnailControlsController,
   type ThumbnailControl,
 } from '../../components-lib/thumbnail/controls/controller';
-import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style';
+import type { ResolvedThumbnailStyle } from '../../components-lib/thumbnail/resolve-style';
 import type { HomeAssistant } from '../../ha/types';
 import thumbnailControlsStyle from '../../scss/thumbnail-controls.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action';
@@ -43,7 +43,7 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
   public size?: number;
 
   @property({ attribute: false })
-  public detailsStyle?: ResolvedThumbnailDetailsStyle;
+  public thumbnailStyle?: ResolvedThumbnailStyle;
 
   @property({ attribute: true, type: Boolean })
   public show_favorite_control = false;
@@ -74,7 +74,7 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
       showDownloadControl: this.show_download_control,
       showReviewControl: this.show_review_control,
       showInfoControl: this.show_info_control,
-      detailsStyle: this.detailsStyle,
+      thumbnailStyle: this.thumbnailStyle,
     });
 
     this.toggleAttribute('touch', this._controller.isTouch());

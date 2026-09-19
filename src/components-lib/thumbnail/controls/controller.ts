@@ -4,7 +4,7 @@ import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../../view/types';
 import { isMediaReviewed } from '../../media/format';
-import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
+import type { ResolvedThumbnailStyle } from '../resolve-style';
 import { getThumbnailTier, type ThumbnailTier } from '../tier';
 
 type ThumbnailControlName = 'review' | 'favorite' | 'info' | 'timeline' | 'download';
@@ -30,7 +30,7 @@ export interface ThumbnailControlsOptions {
   showReviewControl?: boolean;
   showInfoControl?: boolean;
 
-  detailsStyle?: ResolvedThumbnailDetailsStyle;
+  thumbnailStyle?: ResolvedThumbnailStyle;
 }
 
 const TOUCH_CONTROL_CAPACITY: Record<ThumbnailTier, number> = {
@@ -120,7 +120,7 @@ export class ThumbnailControlsController {
       options.showInfoControl &&
       // The panel already carries the media information, so the 'i' is only
       // worth its space where it is also the way to reach the other controls.
-      (options.detailsStyle !== 'panel' || !isHoverableDevice()) &&
+      (options.thumbnailStyle !== 'panel' || !isHoverableDevice()) &&
       ViewItemClassifier.isMedia(options.item)
     ) {
       controls.push({

@@ -23,9 +23,9 @@ import {
   type FolderNavigationParamaters,
 } from '../components-lib/navigation.js';
 import {
-  resolveThumbnailDetailsStyle,
-  type ResolvedThumbnailDetailsStyle,
-} from '../components-lib/thumbnail/resolve-details-style.js';
+  resolveThumbnailStyle,
+  type ResolvedThumbnailStyle,
+} from '../components-lib/thumbnail/resolve-style.js';
 import type { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import type { CardWideConfig } from '../config/schema/types.js';
 import type { HomeAssistant } from '../ha/types.js';
@@ -182,7 +182,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       item.includesTime(seekTarget)
         ? seekTarget
         : undefined}
-      .detailsStyle=${this._getResolvedThumbnailDetailsStyle() ?? undefined}
+      .thumbnailStyle=${this._getResolvedThumbnailStyle() ?? undefined}
       .size=${this.config?.size}
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}
@@ -258,11 +258,11 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     return null;
   }
 
-  private _getResolvedThumbnailDetailsStyle(): ResolvedThumbnailDetailsStyle | null {
+  private _getResolvedThumbnailStyle(): ResolvedThumbnailStyle | null {
     if (!this.config) {
       return null;
     }
-    return resolveThumbnailDetailsStyle(this.config, {
+    return resolveThumbnailStyle(this.config, {
       placement:
         this._getDirection() === 'vertical'
           ? 'surround-vertical'

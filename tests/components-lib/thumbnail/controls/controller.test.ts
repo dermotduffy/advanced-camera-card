@@ -187,7 +187,7 @@ describe('ThumbnailControlsController', () => {
     const controller = createController({
       ...ALL_CONTROLS,
       capabilities: CAPABILITIES,
-      detailsStyle: 'panel',
+      thumbnailStyle: 'panel',
       item: new TestViewMedia({ id: 'id' }),
     });
 
@@ -200,7 +200,7 @@ describe('ThumbnailControlsController', () => {
       {
         ...ALL_CONTROLS,
         capabilities: CAPABILITIES,
-        detailsStyle: 'panel',
+        thumbnailStyle: 'panel',
         item: new TestViewMedia({ id: 'id' }),
       },
       false,

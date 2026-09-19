@@ -26,7 +26,7 @@ const mountGalleryWithThumbnailSize = async (
     [createTestFrigateEvent('event', EVENT_TIME_NEWER)],
     {
       view: { default: 'clips' },
-      media_gallery: { controls: { thumbnails: { size, details_style: 'panel' } } },
+      media_gallery: { controls: { thumbnails: { size, style: 'panel' } } },
     },
     [],
     width ? { width } : undefined,
@@ -41,7 +41,7 @@ const mountReviewGallery = async (reviewed: boolean): Promise<MountedCard> => {
     {
       view: { default: 'reviews' },
       cameras: [{ ...createStillImageCameraConfig(), media: { reviewed: 'all' } }],
-      media_gallery: { controls: { thumbnails: { details_style: 'panel' } } },
+      media_gallery: { controls: { thumbnails: { style: 'panel' } } },
     },
     [
       createTestFrigateReview('review', EVENT_TIME_NEWER, {

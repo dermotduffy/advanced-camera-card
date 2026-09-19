@@ -43,7 +43,7 @@ const createThumbnailConfig = (
   config?: Partial<ThumbnailsControlBaseConfig>,
 ): ThumbnailsControlBaseConfig => ({
   size: THUMBNAIL_SIZE_DEFAULT,
-  details_style: 'panel',
+  style: 'panel',
   show_favorite_control: true,
   show_timeline_control: true,
   show_download_control: true,
@@ -164,9 +164,7 @@ describe('GalleryController', () => {
     it('should return size if details are hidden', () => {
       const controller = new GalleryController(createLitElement());
 
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ size: 123, details_style: 'none' }),
-      );
+      controller.setThumbnailConfig(createThumbnailConfig({ size: 123, style: 'none' }));
 
       expect(controller.getColumnWidth()).toBe(123);
     });
@@ -180,9 +178,9 @@ describe('GalleryController', () => {
         new ViewMedia(ViewMediaType.Clip),
       ]);
       controller.setItemsFromView(view);
-      controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'panel' }));
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'panel' }));
 
-      expect(controller.getColumnWidth()).toBe(300);
+      expect(controller.getColumnWidth()).toBe(250);
     });
 
     it('should return folder width if details are shown and items are all folders', () => {
@@ -194,7 +192,7 @@ describe('GalleryController', () => {
         new ViewFolder(mock<FolderConfig>(), []),
       ]);
       controller.setItemsFromView(view);
-      controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'panel' }));
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'panel' }));
 
       expect(controller.getColumnWidth()).toBe(270);
     });
@@ -203,20 +201,20 @@ describe('GalleryController', () => {
       const controller = new GalleryController(createLitElement());
 
       controller.setThumbnailConfig(
-        createThumbnailConfig({ size: THUMBNAIL_SIZE_MIN, details_style: 'panel' }),
+        createThumbnailConfig({ size: THUMBNAIL_SIZE_MIN, style: 'panel' }),
       );
 
-      expect(controller.getColumnWidth()).toBe(300);
+      expect(controller.getColumnWidth()).toBe(250);
     });
 
     it('should grow the column with the thumbnail size', () => {
       const controller = new GalleryController(createLitElement());
 
       controller.setThumbnailConfig(
-        createThumbnailConfig({ size: 300, details_style: 'panel' }),
+        createThumbnailConfig({ size: 300, style: 'panel' }),
       );
 
-      expect(controller.getColumnWidth()).toBe(500);
+      expect(controller.getColumnWidth()).toBe(450);
     });
 
     it('should grow the folder column with the thumbnail size', () => {
@@ -229,64 +227,56 @@ describe('GalleryController', () => {
       ]);
       controller.setItemsFromView(view);
       controller.setThumbnailConfig(
-        createThumbnailConfig({ size: 300, details_style: 'panel' }),
+        createThumbnailConfig({ size: 300, style: 'panel' }),
       );
 
       expect(controller.getColumnWidth()).toBe(470);
     });
   });
 
-  describe('getResolvedThumbnailDetailsStyle', () => {
+  describe('getResolvedThumbnailStyle', () => {
     it('should have no details without config', () => {
       const controller = new GalleryController(createLitElement());
-      expect(controller.getResolvedThumbnailDetailsStyle()).toBeNull();
+      expect(controller.getResolvedThumbnailStyle()).toBeNull();
     });
 
-    it('should return the configured presentation', () => {
+    it('should return the configured thumbnail style', () => {
       const controller = new GalleryController(createLitElement());
 
-      controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'overlay' }));
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'overlay' }));
 
-      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('overlay');
+      expect(controller.getResolvedThumbnailStyle()).toBe('overlay');
     });
 
     it('should resolve automatically from the size', () => {
       const controller = new GalleryController(createLitElement());
 
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ details_style: 'auto', size: 100 }),
-      );
-      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('overlay');
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'auto', size: 100 }));
+      expect(controller.getResolvedThumbnailStyle()).toBe('overlay');
 
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ details_style: 'auto', size: 200 }),
-      );
-      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('hover');
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'auto', size: 200 }));
+      expect(controller.getResolvedThumbnailStyle()).toBe('hover');
     });
 
     it('should resolve automatically from the gallery width', () => {
       const host = createLitElement();
       const controller = new GalleryController(host);
       controller.hostConnected();
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ details_style: 'auto', size: 200 }),
-      );
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'auto', size: 200 }));
 
       Object.defineProperty(host, 'clientWidth', { value: 240, configurable: true });
       callResizeHandler([{ target: host, width: 240, height: 100 }]);
 
-      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('overlay');
+      expect(controller.getResolvedThumbnailStyle()).toBe('overlay');
     });
   });
 
   describe('resize', () => {
-    it('should request an update when the presentation changes', () => {
+    it('should request an update when the thumbnail style changes', () => {
       const host = createLitElement();
       const controller = new GalleryController(host);
       controller.hostConnected();
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ details_style: 'auto', size: 200 }),
-      );
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'auto', size: 200 }));
 
       Object.defineProperty(host, 'clientWidth', { value: 240, configurable: true });
       callResizeHandler([{ target: host, width: 240, height: 100 }]);
@@ -294,13 +284,11 @@ describe('GalleryController', () => {
       expect(host.requestUpdate).toHaveBeenCalledTimes(1);
     });
 
-    it('should not request an update when the presentation is unchanged', () => {
+    it('should not request an update when the thumbnail style is unchanged', () => {
       const host = createLitElement();
       const controller = new GalleryController(host);
       controller.hostConnected();
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ details_style: 'auto', size: 200 }),
-      );
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'auto', size: 200 }));
 
       Object.defineProperty(host, 'clientWidth', { value: 800, configurable: true });
       callResizeHandler([{ target: host, width: 800, height: 100 }]);
@@ -314,9 +302,7 @@ describe('GalleryController', () => {
       const host = createLitElement();
       const controller = new GalleryController(host);
       controller.hostConnected();
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ details_style: 'auto', size: 200 }),
-      );
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'auto', size: 200 }));
 
       Object.defineProperty(host, 'clientWidth', { value: 240, configurable: true });
       callResizeHandler([{ target: host, width: 240, height: 100 }]);
@@ -329,25 +315,23 @@ describe('GalleryController', () => {
       const host = createLitElement();
       const controller = new GalleryController(host);
       controller.hostConnected();
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ details_style: 'auto', size: 200 }),
-      );
+      controller.setThumbnailConfig(createThumbnailConfig({ style: 'auto', size: 200 }));
 
       Object.defineProperty(host, 'clientWidth', { value: 240, configurable: true });
       callResizeHandler([{ target: host, width: 240, height: 100 }]);
       controller.hostDisconnected();
 
-      expect(controller.getResolvedThumbnailDetailsStyle()).toBe('hover');
+      expect(controller.getResolvedThumbnailStyle()).toBe('hover');
     });
   });
 
   it('should get column count round method', () => {
     const controller = new GalleryController(createLitElement());
 
-    controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'panel' }));
+    controller.setThumbnailConfig(createThumbnailConfig({ style: 'panel' }));
     expect(controller.getColumnCountRoundMethod()).toBe('floor');
 
-    controller.setThumbnailConfig(createThumbnailConfig({ details_style: 'none' }));
+    controller.setThumbnailConfig(createThumbnailConfig({ style: 'none' }));
     expect(controller.getColumnCountRoundMethod()).toBe('ceil');
 
     controller.setThumbnailConfig();

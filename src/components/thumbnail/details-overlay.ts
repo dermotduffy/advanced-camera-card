@@ -4,7 +4,7 @@ import { customElement, property } from 'lit/decorators.js';
 import type { CameraManager } from '../../camera-manager/manager';
 import { isMediaReviewed } from '../../components-lib/media/format';
 import { ThumbnailDetailsOverlayController } from '../../components-lib/thumbnail/details-overlay/controller';
-import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style';
+import type { ResolvedThumbnailStyle } from '../../components-lib/thumbnail/resolve-style';
 import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails';
 import { localize } from '../../localize/localize';
 import thumbnailDetailsOverlayStyle from '../../scss/thumbnail-details-overlay.scss?inline';
@@ -22,7 +22,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
   public item?: ViewItem;
 
   @property({ attribute: false })
-  public detailsStyle?: ResolvedThumbnailDetailsStyle;
+  public thumbnailStyle?: ResolvedThumbnailStyle;
 
   @property({ attribute: false })
   public size: number = THUMBNAIL_SIZE_DEFAULT;
@@ -33,7 +33,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
     this._controller.calculate({
       cameraManager: this.cameraManager,
       item: this.item,
-      detailsStyle: this.detailsStyle,
+      thumbnailStyle: this.thumbnailStyle,
       size: this.size,
     });
     this.setAttribute('tier', this._controller.getTier());

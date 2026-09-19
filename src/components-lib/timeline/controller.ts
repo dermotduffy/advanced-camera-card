@@ -38,7 +38,7 @@ import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 import { mergeViewContext } from '../../view/view';
-import { resolveThumbnailDetailsStyle } from '../thumbnail/resolve-details-style';
+import { resolveThumbnailStyle } from '../thumbnail/resolve-style';
 import {
   canMediaBeShownAsTimelineItem,
   TimelineDataSource,
@@ -1017,7 +1017,7 @@ export class TimelineController {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'advanced-camera-card-timeline-thumbnail': ['details-style', 'item'],
+            'advanced-camera-card-timeline-thumbnail': ['thumbnail-style', 'item'],
             div: ['title'],
             span: ['style'],
           },
@@ -1038,8 +1038,8 @@ export class TimelineController {
       return '';
     }
 
-    const detailsStyle = this._thumbnailConfig
-      ? resolveThumbnailDetailsStyle(this._thumbnailConfig, { placement: 'popup' })
+    const thumbnailStyle = this._thumbnailConfig
+      ? resolveThumbnailStyle(this._thumbnailConfig, { placement: 'popup' })
       : null;
 
     // Cannot use Lit data-bindings as visjs requires a string for tooltips.
@@ -1048,7 +1048,7 @@ export class TimelineController {
     return `
         <advanced-camera-card-timeline-thumbnail
           item='${item.id}'
-          ${detailsStyle ? `details-style='${detailsStyle}'` : ''}
+          ${thumbnailStyle ? `thumbnail-style='${thumbnailStyle}'` : ''}
         >
         </advanced-camera-card-timeline-thumbnail>`;
   }

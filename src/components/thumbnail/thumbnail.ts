@@ -13,7 +13,7 @@ import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { getMediaSeverity } from '../../components-lib/media/format.js';
-import type { ResolvedThumbnailDetailsStyle } from '../../components-lib/thumbnail/resolve-details-style.js';
+import type { ResolvedThumbnailStyle } from '../../components-lib/thumbnail/resolve-style.js';
 import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
@@ -52,8 +52,8 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   @property({ attribute: false })
   public item?: ViewItem;
 
-  @property({ attribute: 'details-style', reflect: true })
-  public detailsStyle?: ResolvedThumbnailDetailsStyle;
+  @property({ attribute: 'thumbnail-style', reflect: true })
+  public thumbnailStyle?: ResolvedThumbnailStyle;
 
   @property({ attribute: false })
   public size: number = THUMBNAIL_SIZE_DEFAULT;
@@ -137,7 +137,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
     return html`
       <advanced-camera-card-thumbnail-feature
         .cameraManager=${this.cameraManager}
-        .detailsStyle=${this.detailsStyle}
+        .thumbnailStyle=${this.thumbnailStyle}
         .hass=${this.hass}
         .item=${this.item}
         .size=${this.size}
@@ -152,15 +152,15 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .filterFavorite=${this.filterFavorite}
       >
       </advanced-camera-card-thumbnail-feature>
-      ${this.detailsStyle === 'overlay' || this.detailsStyle === 'hover'
+      ${this.thumbnailStyle === 'overlay' || this.thumbnailStyle === 'hover'
         ? html`<advanced-camera-card-thumbnail-details-overlay
             .cameraManager=${this.cameraManager}
             .item=${this.item}
-            .detailsStyle=${this.detailsStyle}
+            .thumbnailStyle=${this.thumbnailStyle}
             .size=${this.size}
           ></advanced-camera-card-thumbnail-details-overlay>`
         : ''}
-      ${this.detailsStyle === 'panel'
+      ${this.thumbnailStyle === 'panel'
         ? html`<advanced-camera-card-thumbnail-details-panel
             .hass=${this.hass}
             .item=${this.item ?? undefined}

@@ -23,15 +23,15 @@
   --advanced-camera-card-thumbnail-media-filter: none;
 }
 
-:host(:not([details-style='panel'])) {
+:host(:not([thumbnail-style='panel'])) {
   aspect-ratio: 1 / 1;
 }
 
-:host([details-style='overlay']) {
+:host([thumbnail-style='overlay']) {
   --advanced-camera-card-thumbnail-feature-placeholder-offset: 15%;
 }
 
-:host([details-style='panel']) {
+:host([thumbnail-style='panel']) {
   border-radius: var(--advanced-camera-card-border-radius-final);
   background-color: var(--advanced-camera-card-thumbnail-details-background);
 }
@@ -98,7 +98,7 @@ advanced-camera-card-thumbnail-details-panel {
   min-width: 0;
 }
 
-:host([details-style='panel']) advanced-camera-card-thumbnail-feature {
+:host([thumbnail-style='panel']) advanced-camera-card-thumbnail-feature {
   // An image width may shrink to ensure sufficient space for a details panel.
   width: min(
     var(--advanced-camera-card-thumbnail-size),

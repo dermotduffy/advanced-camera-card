@@ -28,7 +28,7 @@ const mountGallery = async (favorite?: boolean): Promise<MountedCard> => {
         controls: {
           thumbnails: {
             size: 200,
-            details_style: 'overlay',
+            style: 'overlay',
             show_favorite_control: true,
             show_info_control: true,
             show_timeline_control: true,

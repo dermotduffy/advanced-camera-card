@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from 'vitest';
 
 import type { FrigateReview } from '../../../src/camera-manager/frigate/types';
-import type { ThumbnailDetailsStyle } from '../../../src/config/schema/common/controls/thumbnails';
+import type { ThumbnailStyle } from '../../../src/config/schema/common/controls/thumbnails';
 import {
   createFrontDoorFolderMedia,
   FRONT_DOOR_FOLDER_CONTENT_ID,
@@ -24,7 +24,7 @@ import {
 } from '../../browser/test-utils';
 
 const mountGallery = async (
-  detailsStyle: ThumbnailDetailsStyle,
+  thumbnailStyle: ThumbnailStyle,
   size: number,
   inProgress?: boolean,
 ): Promise<MountedCard> => {
@@ -37,7 +37,7 @@ const mountGallery = async (
     {
       view: { default: 'clips' },
       media_gallery: {
-        controls: { thumbnails: { size, details_style: detailsStyle } },
+        controls: { thumbnails: { size, style: thumbnailStyle } },
       },
     },
   );
@@ -56,7 +56,7 @@ const mountReviewGallery = async (
       media_gallery: {
         controls: {
           thumbnails: {
-            details_style: 'overlay',
+            style: 'overlay',
             show_review_control: false,
             show_favorite_control: false,
           },
@@ -87,7 +87,7 @@ const mountFolderGallery = async (size: number): Promise<MountedCard> => {
       view: { default: 'folders' },
       folders: [{ type: 'ha', ha: { path: [{ id: FRONT_DOOR_FOLDER_CONTENT_ID }] } }],
       media_gallery: {
-        controls: { thumbnails: { size, details_style: 'overlay' } },
+        controls: { thumbnails: { size, style: 'overlay' } },
       },
     }),
     hass,

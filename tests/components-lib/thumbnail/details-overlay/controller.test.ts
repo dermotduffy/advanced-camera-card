@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ThumbnailDetailsOverlayController } from '../../../../src/components-lib/thumbnail/details-overlay/controller';
-import type { ResolvedThumbnailDetailsStyle } from '../../../../src/components-lib/thumbnail/resolve-details-style';
+import type { ResolvedThumbnailStyle } from '../../../../src/components-lib/thumbnail/resolve-style';
 import { ViewFolder, ViewMediaType } from '../../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../../camera-manager/test-utils';
 import { createFolder } from '../../../test-utils';
@@ -19,7 +19,7 @@ const createEvent = (): TestViewMedia =>
   });
 
 const createController = (
-  detailsStyle: ResolvedThumbnailDetailsStyle,
+  thumbnailStyle: ResolvedThumbnailStyle,
   size: number,
   item = createEvent(),
 ): ThumbnailDetailsOverlayController => {
@@ -30,7 +30,7 @@ const createController = (
       icon: { icon: 'mdi:cctv' },
     }),
     item,
-    detailsStyle,
+    thumbnailStyle,
     size,
   });
   return controller;
@@ -55,8 +55,8 @@ describe('ThumbnailDetailsOverlayController', () => {
   describe('should show nothing without an overlay', () => {
     it.each([['none' as const], ['panel' as const]])(
       'should show nothing for %s',
-      (detailsStyle) => {
-        const controller = createController(detailsStyle, 100);
+      (thumbnailStyle) => {
+        const controller = createController(thumbnailStyle, 100);
 
         expect(controller.getCornerLabel()).toBeNull();
         expect(controller.getHeadlineLabel()).toBeNull();
@@ -91,7 +91,7 @@ describe('ThumbnailDetailsOverlayController', () => {
           icon: { icon: 'mdi:cctv' },
         }),
         item: new ViewFolder(createFolder(), [], { title: 'Recordings' }),
-        detailsStyle: 'hover',
+        thumbnailStyle: 'hover',
         size: 100,
       });
 
@@ -125,7 +125,7 @@ describe('ThumbnailDetailsOverlayController', () => {
           icon: { icon: 'mdi:cctv' },
         }),
         item: new ViewFolder(createFolder(), [], { title: 'Recordings' }),
-        detailsStyle: 'overlay',
+        thumbnailStyle: 'overlay',
         size: 75,
       });
 
@@ -225,7 +225,7 @@ describe('ThumbnailDetailsOverlayController', () => {
           cameraID: 'camera_1',
           startTime: new Date('2026-09-08T16:55:47'),
         }),
-        detailsStyle: 'overlay',
+        thumbnailStyle: 'overlay',
         size: 175,
       });
 
@@ -258,7 +258,7 @@ describe('ThumbnailDetailsOverlayController', () => {
         icon: { icon: 'mdi:cctv' },
       }),
       item: new ViewFolder(createFolder(), [], { title: 'Recordings' }),
-      detailsStyle: 'overlay',
+      thumbnailStyle: 'overlay',
       size: 175,
     });
 

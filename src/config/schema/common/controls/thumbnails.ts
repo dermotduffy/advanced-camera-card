@@ -4,18 +4,12 @@ export const THUMBNAIL_SIZE_MIN = 75;
 export const THUMBNAIL_SIZE_DEFAULT = 100;
 export const THUMBNAIL_SIZE_MAX = 300;
 
-const thumbnailDetailsStyleSchema = z.enum([
-  'auto',
-  'none',
-  'overlay',
-  'hover',
-  'panel',
-]);
-export type ThumbnailDetailsStyle = z.infer<typeof thumbnailDetailsStyleSchema>;
+const thumbnailStyleSchema = z.enum(['auto', 'none', 'overlay', 'hover', 'panel']);
+export type ThumbnailStyle = z.infer<typeof thumbnailStyleSchema>;
 
 export const thumbnailsControlBaseDefaults = {
   size: THUMBNAIL_SIZE_DEFAULT,
-  details_style: 'auto' as const,
+  style: 'auto' as const,
   show_favorite_control: true,
   show_timeline_control: false,
   show_download_control: false,
@@ -30,9 +24,7 @@ export const thumbnailsControlBaseSchema = z.object({
     .min(THUMBNAIL_SIZE_MIN)
     .max(THUMBNAIL_SIZE_MAX)
     .default(thumbnailsControlBaseDefaults.size),
-  details_style: thumbnailDetailsStyleSchema.default(
-    thumbnailsControlBaseDefaults.details_style,
-  ),
+  style: thumbnailStyleSchema.default(thumbnailsControlBaseDefaults.style),
   show_favorite_control: z
     .boolean()
     .default(thumbnailsControlBaseDefaults.show_favorite_control),

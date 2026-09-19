@@ -15,9 +15,9 @@ import type { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import type { View } from '../../view/view';
 import {
   DETAILS_PANEL_WIDTH,
-  resolveThumbnailDetailsStyle,
-  type ResolvedThumbnailDetailsStyle,
-} from '../thumbnail/resolve-details-style';
+  resolveThumbnailStyle,
+  type ResolvedThumbnailStyle,
+} from '../thumbnail/resolve-style';
 import type { GalleryColumnCountRoundMethod } from './gallery-core-controller';
 
 interface GalleryViewContext {
@@ -46,7 +46,7 @@ export class GalleryController implements ReactiveController {
   private _width: number | null = null;
 
   private _thumbnailConfig: ThumbnailsControlBaseConfig | null = null;
-  private _resolvedDetailsStyle: ResolvedThumbnailDetailsStyle | null = null;
+  private _resolvedStyle: ResolvedThumbnailStyle | null = null;
 
   private _resizeObserver: ResizeObserver;
 
@@ -64,7 +64,7 @@ export class GalleryController implements ReactiveController {
   public hostDisconnected(): void {
     this._resizeObserver.disconnect();
     this._width = null;
-    this._setResolvedDetailsStyle();
+    this._setResolvedStyle();
   }
 
   public getItems(): ViewItem[] | null {
@@ -78,20 +78,20 @@ export class GalleryController implements ReactiveController {
     }
     this._width = width;
 
-    if (this._setResolvedDetailsStyle()) {
+    if (this._setResolvedStyle()) {
       this._host.requestUpdate();
     }
   }
 
-  private _setResolvedDetailsStyle(): boolean {
-    const previous = this._resolvedDetailsStyle;
-    this._resolvedDetailsStyle = this._thumbnailConfig
-      ? resolveThumbnailDetailsStyle(this._thumbnailConfig, {
+  private _setResolvedStyle(): boolean {
+    const previous = this._resolvedStyle;
+    this._resolvedStyle = this._thumbnailConfig
+      ? resolveThumbnailStyle(this._thumbnailConfig, {
           placement: 'grid',
           availableWidth: this._width ?? undefined,
         })
       : null;
-    return this._resolvedDetailsStyle !== previous;
+    return this._resolvedStyle !== previous;
   }
 
   /**
@@ -116,7 +116,7 @@ export class GalleryController implements ReactiveController {
 
   public setThumbnailConfig(thumbnailConfig?: ThumbnailsControlBaseConfig): void {
     this._thumbnailConfig = thumbnailConfig ?? null;
-    this._setResolvedDetailsStyle();
+    this._setResolvedStyle();
 
     this._host.style.setProperty(
       '--advanced-camera-card-thumbnail-size',
@@ -124,13 +124,13 @@ export class GalleryController implements ReactiveController {
     );
   }
 
-  public getResolvedThumbnailDetailsStyle(): ResolvedThumbnailDetailsStyle | null {
-    return this._resolvedDetailsStyle;
+  public getResolvedThumbnailStyle(): ResolvedThumbnailStyle | null {
+    return this._resolvedStyle;
   }
 
   public getColumnWidth(): number {
     const size = this._thumbnailConfig?.size ?? THUMBNAIL_SIZE_DEFAULT;
-    if (this._resolvedDetailsStyle !== 'panel') {
+    if (this._resolvedStyle !== 'panel') {
       return size;
     }
 
@@ -140,7 +140,7 @@ export class GalleryController implements ReactiveController {
   }
 
   public getColumnCountRoundMethod(): GalleryColumnCountRoundMethod {
-    return this._resolvedDetailsStyle === 'panel' ? 'floor' : 'ceil';
+    return this._resolvedStyle === 'panel' ? 'floor' : 'ceil';
   }
 
   public async extend(

@@ -120,7 +120,7 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
-            details_style: 'auto',
+            style: 'auto',
             mode: 'right',
             show_download_control: false,
             show_favorite_control: true,
@@ -167,7 +167,7 @@ describe('config defaults', () => {
             mode: 'right',
           },
           thumbnails: {
-            details_style: 'auto',
+            style: 'auto',
             show_download_control: false,
             show_favorite_control: true,
             show_info_control: true,
@@ -200,7 +200,7 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
-            details_style: 'auto',
+            style: 'auto',
             mode: 'right',
             show_download_control: false,
             show_favorite_control: true,
@@ -495,7 +495,7 @@ describe('config defaults', () => {
         clustering_threshold: 3,
         controls: {
           thumbnails: {
-            details_style: 'auto',
+            style: 'auto',
             mode: 'right',
             show_download_control: false,
             show_favorite_control: true,

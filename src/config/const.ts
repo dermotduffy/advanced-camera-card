@@ -56,8 +56,8 @@ export const CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER =
   `${CONF_VIEW_TRIGGERS_ACTIONS}.untrigger` as const;
 
 const CONF_MEDIA_GALLERY = 'media_gallery' as const;
-export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_DETAILS_STYLE =
-  `${CONF_MEDIA_GALLERY}.controls.thumbnails.details_style` as const;
+export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_STYLE =
+  `${CONF_MEDIA_GALLERY}.controls.thumbnails.style` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_favorite_control` as const;
 
@@ -74,8 +74,8 @@ export const CONF_MEDIA_VIEWER_CONTROLS_BUILTIN =
   `${CONF_MEDIA_VIEWER}.controls.builtin` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.next_previous.style` as const;
-export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_DETAILS_STYLE =
-  `${CONF_MEDIA_VIEWER}.controls.thumbnails.details_style` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_STYLE =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
@@ -95,8 +95,8 @@ export const CONF_LIVE_AUTO_MUTE = `${CONF_LIVE}.auto_mute` as const;
 export const CONF_LIVE_AUTO_UNMUTE = `${CONF_LIVE}.auto_unmute` as const;
 export const CONF_LIVE_CONTROLS_BUILTIN = `${CONF_LIVE}.controls.builtin` as const;
 
-export const CONF_LIVE_CONTROLS_THUMBNAILS_DETAILS_STYLE =
-  `${CONF_LIVE}.controls.thumbnails.details_style` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_STYLE =
+  `${CONF_LIVE}.controls.thumbnails.style` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_LIVE}.controls.thumbnails.mode` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
@@ -117,8 +117,8 @@ export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
 
 const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_SHOW_RECORDINGS = `${CONF_TIMELINE}.show_recordings` as const;
-export const CONF_TIMELINE_CONTROLS_THUMBNAILS_DETAILS_STYLE =
-  `${CONF_TIMELINE}.controls.thumbnails.details_style` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_STYLE =
+  `${CONF_TIMELINE}.controls.thumbnails.style` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_TIMELINE}.controls.thumbnails.mode` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =

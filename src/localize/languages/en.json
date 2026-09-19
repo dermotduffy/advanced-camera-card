@@ -288,8 +288,8 @@
           }
         },
         "thumbnails": {
-          "details_style": "Details style",
-          "details_styles": {
+          "style": "Style",
+          "styles": {
             "auto": "Automatic",
             "hover": "Details on hover",
             "none": "No details",

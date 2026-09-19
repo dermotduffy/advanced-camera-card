@@ -6586,7 +6586,7 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    describe('controls.thumbnails.show_details -> controls.thumbnails.details_style', () => {
+    describe('controls.thumbnails.show_details -> controls.thumbnails.style', () => {
       it('should rename the key in every section', () => {
         const config = {
           type: 'custom:advanced-camera-card',
@@ -6600,10 +6600,10 @@ describe('should handle version specific upgrades', () => {
         expect(config).toEqual({
           type: 'custom:advanced-camera-card',
           cameras: [{}],
-          live: { controls: { thumbnails: { details_style: 'panel' } } },
-          media_gallery: { controls: { thumbnails: { details_style: 'none' } } },
-          media_viewer: { controls: { thumbnails: { details_style: 'panel' } } },
-          timeline: { controls: { thumbnails: { details_style: 'none' } } },
+          live: { controls: { thumbnails: { style: 'panel' } } },
+          media_gallery: { controls: { thumbnails: { style: 'none' } } },
+          media_viewer: { controls: { thumbnails: { style: 'panel' } } },
+          timeline: { controls: { thumbnails: { style: 'none' } } },
         });
         postUpgradeChecks(config);
       });
@@ -6639,7 +6639,7 @@ describe('should handle version specific upgrades', () => {
                 },
               ],
               merge: {
-                live: { controls: { thumbnails: { details_style: 'panel' } } },
+                live: { controls: { thumbnails: { style: 'panel' } } },
               },
             },
           ],

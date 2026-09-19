@@ -1,14 +1,14 @@
 import type {
-  ThumbnailDetailsStyle,
   ThumbnailsControlBaseConfig,
+  ThumbnailStyle,
 } from '../../config/schema/common/controls/thumbnails';
 import { isHoverableDevice } from '../../utils/basic';
 
-export type ResolvedThumbnailDetailsStyle = Exclude<ThumbnailDetailsStyle, 'auto'>;
+export type ResolvedThumbnailStyle = Exclude<ThumbnailStyle, 'auto'>;
 
 type ThumbnailPlacement = 'grid' | 'surround-vertical' | 'surround-horizontal' | 'popup';
 
-export interface ThumbnailDetailsStyleContext {
+export interface ThumbnailStyleContext {
   placement: ThumbnailPlacement;
 
   // The width the thumbnails and their details have to fit into.
@@ -22,10 +22,10 @@ export const DETAILS_PANEL_WIDTH = 150;
 // A gallery thumbnail smaller than this uses overlay instead.
 const HOVER_SIZE_MIN = 200;
 
-const resolveAutoThumbnailDetailsStyle = (
+const resolveAutoThumbnailStyle = (
   config: ThumbnailsControlBaseConfig,
-  context: ThumbnailDetailsStyleContext,
-): ResolvedThumbnailDetailsStyle => {
+  context: ThumbnailStyleContext,
+): ResolvedThumbnailStyle => {
   if (
     context.availableWidth !== undefined &&
     context.availableWidth < config.size + DETAILS_PANEL_WIDTH
@@ -53,14 +53,12 @@ const resolveAutoThumbnailDetailsStyle = (
   return config.size >= HOVER_SIZE_MIN ? 'hover' : 'overlay';
 };
 
-export const resolveThumbnailDetailsStyle = (
+export const resolveThumbnailStyle = (
   config: ThumbnailsControlBaseConfig,
-  context: ThumbnailDetailsStyleContext,
-): ResolvedThumbnailDetailsStyle => {
+  context: ThumbnailStyleContext,
+): ResolvedThumbnailStyle => {
   const style =
-    config.details_style === 'auto'
-      ? resolveAutoThumbnailDetailsStyle(config, context)
-      : config.details_style;
+    config.style === 'auto' ? resolveAutoThumbnailStyle(config, context) : config.style;
 
   return style === 'hover' && !isHoverableDevice() ? 'overlay' : style;
 };
