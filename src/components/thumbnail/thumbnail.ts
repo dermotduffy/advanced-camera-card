@@ -94,8 +94,11 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   }
 
   private _keydown(ev: KeyboardEvent): void {
-    if (this.clickable && (ev.key === 'Enter' || ev.key === ' ')) {
-      // Space would otherwise scroll the page.
+    if (!this.clickable) {
+      return;
+    }
+
+    if (ev.key === ' ') {
       ev.preventDefault();
       this.click();
     }
