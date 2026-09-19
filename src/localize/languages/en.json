@@ -626,6 +626,7 @@
         "media_chunk_size": "Media chunk size"
       },
       "style": {
+        "backdrop_filter": "Blur effects",
         "border_radius": "Curves",
         "box_shadow": "Shadows",
         "editor_label": "Style Options"

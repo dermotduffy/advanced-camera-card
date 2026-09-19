@@ -41,6 +41,7 @@ it('should contain expected defaults', () => {
     'performance.features.card_loading_effects': false,
     'performance.features.max_simultaneous_engine_requests': 1,
     'performance.features.media_chunk_size': 10,
+    'performance.style.backdrop_filter': false,
     'performance.style.border_radius': false,
     'performance.style.box_shadow': false,
     'status_bar.style': 'none',

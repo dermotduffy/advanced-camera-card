@@ -13,6 +13,7 @@ export const performanceConfigDefault = {
     media_chunk_size: MEDIA_CHUNK_SIZE_DEFAULT,
   },
   style: {
+    backdrop_filter: true,
     border_radius: true,
     box_shadow: true,
   },
@@ -41,6 +42,9 @@ export const performanceConfigSchema = z
       .default(performanceConfigDefault.features),
     style: z
       .object({
+        backdrop_filter: z
+          .boolean()
+          .default(performanceConfigDefault.style.backdrop_filter),
         border_radius: z.boolean().default(performanceConfigDefault.style.border_radius),
         box_shadow: z.boolean().default(performanceConfigDefault.style.box_shadow),
       })
