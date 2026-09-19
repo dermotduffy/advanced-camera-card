@@ -1,5 +1,3 @@
-import { format } from 'date-fns';
-
 import type { CameraManager } from '../../../camera-manager/manager';
 import type { CameraManagerCameraMetadata } from '../../../camera-manager/types';
 import {
@@ -9,18 +7,13 @@ import {
 } from '../../../ha/brands-url';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
-import { isIdentifiedByThumbnail } from '../is-identified-by-thumbnail';
-import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
 
 export interface ThumbnailFeatureOptions {
   cameraManager?: CameraManager;
   item?: ViewItem;
-  detailsStyle?: ResolvedThumbnailDetailsStyle;
 }
 
 export class ThumbnailFeatureController {
-  private _title: string | null = null;
-  private _subtitles: string[] = [];
   private _icon: string | null = null;
   private _thumbnail: string | null = null;
   private _thumbnailClass: string | null = null;
@@ -34,37 +27,6 @@ export class ThumbnailFeatureController {
       : null;
 
     this._calculateVisuals(cameraMetadata, options);
-    this._calculateTitles(cameraMetadata, options);
-  }
-
-  private _calculateTitles(
-    cameraMetadata: CameraManagerCameraMetadata | null,
-    options: ThumbnailFeatureOptions,
-  ): void {
-    const hasDetails = !!options.detailsStyle && options.detailsStyle !== 'none';
-
-    // If there are details being rendered, or the thumbnail is itself
-    // sufficient to distinguish items, there is no need to render additional
-    // titles.
-    if (hasDetails || isIdentifiedByThumbnail(options.item)) {
-      this._title = null;
-      this._subtitles = [];
-      return;
-    }
-
-    const startTime =
-      ViewItemClassifier.isEvent(options.item) ||
-      ViewItemClassifier.isRecording(options.item)
-        ? options.item.getStartTime()
-        : null;
-
-    this._title = startTime ? format(startTime, 'HH:mm') : null;
-
-    const day = startTime ? format(startTime, 'MMM do') : null;
-    const itemTitle = options.item?.getTitle() ?? null;
-    const src = cameraMetadata?.title ?? itemTitle ?? null;
-
-    this._subtitles = [...(day ? [day] : []), ...(src ? [src] : [])];
   }
 
   private _calculateVisuals(
@@ -101,14 +63,6 @@ export class ThumbnailFeatureController {
       this._thumbnailClass = null;
       this._icon = options.item?.getIcon() ?? cameraMetadata?.engineIcon ?? null;
     }
-  }
-
-  public getTitle(): string | null {
-    return this._title;
-  }
-
-  public getSubtitles(): string[] {
-    return this._subtitles;
   }
 
   public getIcon(): string | null {

@@ -28,10 +28,9 @@ describe('drawer', () => {
 
     await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
-    const drawer =
-      await card.waitForSelector<AdvancedCameraCardDrawer>(
-        'advanced-camera-card-drawer[location="left"]',
-      );
+    const drawer = await card.waitForSelector<AdvancedCameraCardDrawer>(
+      'advanced-camera-card-drawer[location="left"]',
+    );
 
     drawer.open = true;
     drawer.pinned = true;
@@ -66,10 +65,9 @@ describe('drawer', () => {
 
     await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
-    const drawer =
-      await card.waitForSelector<AdvancedCameraCardDrawer>(
-        'advanced-camera-card-drawer[location="left"]',
-      );
+    const drawer = await card.waitForSelector<AdvancedCameraCardDrawer>(
+      'advanced-camera-card-drawer[location="left"]',
+    );
 
     drawer.open = true;
     await drawer.updateComplete;
@@ -103,10 +101,9 @@ describe('drawer', () => {
 
     await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
-    const drawer =
-      await card.waitForSelector<AdvancedCameraCardDrawer>(
-        'advanced-camera-card-drawer[location="left"]',
-      );
+    const drawer = await card.waitForSelector<AdvancedCameraCardDrawer>(
+      'advanced-camera-card-drawer[location="left"]',
+    );
 
     drawer.open = true;
     drawer.pinned = true;

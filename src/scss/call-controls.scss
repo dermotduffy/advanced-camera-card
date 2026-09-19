@@ -33,7 +33,10 @@
     0 10px 30px rgba(0, 0, 0, 0.25)
   );
   backdrop-filter: var(--advanced-camera-card-backdrop-filter-override, blur(10px));
-  -webkit-backdrop-filter: var(--advanced-camera-card-backdrop-filter-override, blur(10px));
+  -webkit-backdrop-filter: var(
+    --advanced-camera-card-backdrop-filter-override,
+    blur(10px)
+  );
 
   @include pop-in;
 }

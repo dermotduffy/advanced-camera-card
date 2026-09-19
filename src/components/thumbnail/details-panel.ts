@@ -99,9 +99,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
       ${isInProgress
         ? html`<span class="in-progress" title=${localize('common.in_progress')}
             ><span class="dot"></span
-            ><span class="label"
-              >${localize('thumbnail.in_progress')}</span
-            ></span
+            ><span class="label">${localize('thumbnail.in_progress')}</span></span
           >`
         : ''}
       ${label || time

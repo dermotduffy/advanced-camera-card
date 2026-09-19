@@ -99,6 +99,31 @@ advanced-camera-card-icon.review.active {
   }
 }
 
+// Without a pointer, `--advanced-camera-card-thumbnail-hovered` is never set,
+// so the controls stay hidden. `:focus-within` makes them reachable via Tab.
+.controls:focus-within {
+  transform: none;
+}
+.controls:focus-within::before {
+  opacity: 1;
+}
+.controls:focus-within advanced-camera-card-icon {
+  opacity: 1;
+}
+
+advanced-camera-card-icon:focus-visible {
+  outline: 2px solid var(--advanced-camera-card-active-color);
+  outline-offset: -2px;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .controls {
+    transform: none;
+    transition: opacity 0.16s ease;
+  }
+}
+
 :host([touch]) .controls {
   transform: none;
 

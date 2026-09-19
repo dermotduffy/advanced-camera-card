@@ -9,10 +9,6 @@
 }
 
 img {
-  display: block;
-}
-
-img {
   // Safari will occasionally not load thumbnails correctly with display block.
   display: inline-block;
 
@@ -36,8 +32,7 @@ img {
 :host(.placeholder) {
   aspect-ratio: auto;
 }
-:host(.placeholder) img,
-:host(.has-text) img {
+:host(.placeholder) img {
   object-fit: contain;
 }
 

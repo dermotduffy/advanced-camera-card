@@ -71,15 +71,10 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
   private _controller = new ThumbnailFeatureController();
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    if (
-      ['item', 'detailsStyle', 'cameraManager'].some((prop) =>
-        changedProperties.has(prop),
-      )
-    ) {
+    if (['item', 'cameraManager'].some((prop) => changedProperties.has(prop))) {
       this._controller.calculate({
         cameraManager: this.cameraManager,
         item: this.item,
-        detailsStyle: this.detailsStyle,
       });
     }
 

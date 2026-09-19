@@ -129,13 +129,22 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
           html`<advanced-camera-card-icon
             class="${control.name} ${control.active ? 'active' : ''}"
             title=${control.title}
+            tabindex="0"
+            role="button"
             .icon=${{ icon: control.icon }}
             @mousedown=${(ev: Event) =>
-              // Don't take focus (as it will hold the controls pill open).
+              // Prevent click-focus so the pill hides when the pointer leaves.
               ev.preventDefault()}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               await this._activate(control);
+            }}
+            @keydown=${async (ev: KeyboardEvent) => {
+              if (ev.key === 'Enter' || ev.key === ' ') {
+                ev.preventDefault();
+                stopEventFromActivatingCardWideActions(ev);
+                await this._activate(control);
+              }
             }}
           ></advanced-camera-card-icon>`,
       )}

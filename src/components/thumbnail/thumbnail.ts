@@ -18,8 +18,8 @@ import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thum
 import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
 import { setOrRemoveAttribute } from '../../utils/basic.js';
-import type { ViewItem } from '../../view/item.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
+import type { ViewItem } from '../../view/item.js';
 
 import './details-overlay.js';
 import './details-panel.js';
