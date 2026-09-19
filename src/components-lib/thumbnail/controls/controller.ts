@@ -45,7 +45,7 @@ const POINTER_CONTROL_CAPACITY: Record<ThumbnailTier, number> = {
   compact: 2,
   standard: 2,
   comfortable: 4,
-  poster: 4,
+  poster: 5,
 };
 
 export class ThumbnailControlsController {
@@ -100,7 +100,9 @@ export class ThumbnailControlsController {
           : localize('common.set_reviews.reviewed'),
         active: isReviewed,
       });
-    } else if (
+    }
+
+    if (
       options.showFavoriteControl &&
       options.capabilities?.canFavorite &&
       ViewItemClassifier.isMedia(options.item)

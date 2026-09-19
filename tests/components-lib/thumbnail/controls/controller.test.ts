@@ -56,6 +56,7 @@ describe('ThumbnailControlsController', () => {
 
     expect(getControlNames(controller)).toEqual([
       'review',
+      'favorite',
       'info',
       'timeline',
       'download',
@@ -71,11 +72,12 @@ describe('ThumbnailControlsController', () => {
     expect(controller.getControls()).toEqual([]);
   });
 
-  describe('should choose between the review and favorite controls', () => {
-    it('should prioritize the review control', () => {
+  describe('should show both the review and favorite controls independently', () => {
+    it('should show both when the item is reviewable and favoritable', () => {
       const controller = createController({
         ...ALL_CONTROLS,
         capabilities: CAPABILITIES,
+        size: THUMBNAIL_SIZE_MAX,
         item: new TestViewMedia({
           mediaType: ViewMediaType.Review,
           reviewed: false,
@@ -84,10 +86,10 @@ describe('ThumbnailControlsController', () => {
       });
 
       expect(getControlNames(controller)).toContain('review');
-      expect(getControlNames(controller)).not.toContain('favorite');
+      expect(getControlNames(controller)).toContain('favorite');
     });
 
-    it('should prioritize the favorite control for media that cannot be reviewed', () => {
+    it('should show only the favorite control for media that cannot be reviewed', () => {
       const controller = createController({
         ...ALL_CONTROLS,
         capabilities: CAPABILITIES,
@@ -95,6 +97,7 @@ describe('ThumbnailControlsController', () => {
       });
 
       expect(getControlNames(controller)).toContain('favorite');
+      expect(getControlNames(controller)).not.toContain('review');
     });
   });
 

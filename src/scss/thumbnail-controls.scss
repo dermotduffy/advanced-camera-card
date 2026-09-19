@@ -128,7 +128,7 @@ advanced-camera-card-icon.review.active {
 // at: in a gallery `size: 100` draws thumbnails *up to* 100px rather than at
 // 100px. Each size still clears the 24px minimum WCAG 2.2 sets for a touch
 // target. The poster tier is smaller than the comfortable one because it holds
-// four controls rather than three.
+// five controls rather than three.
 :host([touch][tier='compact']) advanced-camera-card-icon {
   width: 28px;
   height: 28px;
