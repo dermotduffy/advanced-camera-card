@@ -19,6 +19,7 @@ import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
 import { setOrRemoveAttribute } from '../../utils/basic.js';
 import type { ViewItem } from '../../view/item.js';
+import { ViewItemClassifier } from '../../view/item-classifier.js';
 
 import './details-overlay.js';
 import './details-panel.js';
@@ -116,6 +117,11 @@ export class AdvancedCameraCardThumbnail extends LitElement {
     if (changedProperties.has('item')) {
       const severity = getMediaSeverity(this.item);
       setOrRemoveAttribute(this, !!severity, 'severity', severity);
+
+      this.toggleAttribute(
+        'favorite',
+        ViewItemClassifier.isMedia(this.item) && this.item.isFavorite() === true,
+      );
     }
   }
 

@@ -105,10 +105,6 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       return;
     }
 
-    const title = this._controller.getTitle();
-    const subtitles = this._controller.getSubtitles();
-    const hasText = !!title || !!subtitles.length;
-
     const mainIconClasses = {
       placeholder: true,
     };
@@ -117,11 +113,10 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
     const thumbnailClass = this._controller.getThumbnailClass();
     const thumbnailClasses = classMap({
       ...(thumbnailClass && { [thumbnailClass]: true }),
-      'has-text': hasText,
     });
 
     return html`
-      <div class=${classMap({ media: true, 'has-text': hasText })}>
+      <div class="media">
         ${thumbnail
           ? html` <advanced-camera-card-thumbnail-feature-thumbnail
               class="${thumbnailClasses}"
@@ -154,18 +149,6 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
         ?show_review_control=${this.show_review_control}
         ?show_info_control=${this.show_info_control}
       ></advanced-camera-card-thumbnail-controls>
-      ${hasText
-        ? html`
-            ${title ? html`<div class="title">${title}</div>` : ''}
-            ${subtitles.length
-              ? html`<div>
-                  ${subtitles.map(
-                    (subtitle) => html`<div class="subtitle">${subtitle}</div>`,
-                  )}
-                </div>`
-              : ''}
-          `
-        : html``}
     `;
   }
 

@@ -120,6 +120,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  // The overlay is `pointer-events: none` so that clicks reach the thumbnail.
+  // Re-enable pointer-events so the browser shows the title tooltip on hover.
+  pointer-events: auto;
 }
 
 /*****************************************************************************

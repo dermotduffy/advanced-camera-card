@@ -217,7 +217,13 @@
   );
 
   // Background behind a thumbnail's image (e.g. when it's a placeholder icon).
-  --advanced-camera-card-thumbnail-image-background: var(--secondary-background-color);
+  @include color-mixed(
+    --advanced-camera-card-thumbnail-image-background,
+    --advanced-camera-card-background,
+    15%,
+    var(--advanced-camera-card-text-color),
+    $fallback: opaque
+  );
   --advanced-camera-card-thumbnail-icon-favorite-color: var(
     --advanced-camera-card-favorite-color
   );

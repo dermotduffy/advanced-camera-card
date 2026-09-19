@@ -72,17 +72,17 @@ describe('ThumbnailDetailsOverlayController', () => {
       expect(createController('hover', 100).isHover()).toBe(true);
     });
 
-    it('should keep the details of media with no thumbnail', () => {
+    it('should hide the details of media with no thumbnail', () => {
       const controller = createController(
         'hover',
         100,
         new TestViewMedia({ cameraID: 'camera_1' }),
       );
 
-      expect(controller.isHover()).toBe(false);
+      expect(controller.isHover()).toBe(true);
     });
 
-    it('should keep the details of a folder', () => {
+    it('should hide the details of a folder', () => {
       const controller = new ThumbnailDetailsOverlayController();
 
       controller.calculate({
@@ -95,7 +95,7 @@ describe('ThumbnailDetailsOverlayController', () => {
         size: 100,
       });
 
-      expect(controller.isHover()).toBe(false);
+      expect(controller.isHover()).toBe(true);
       expect(controller.getHeadlineLabel()).toBe('Recordings');
     });
   });
@@ -139,6 +139,7 @@ describe('ThumbnailDetailsOverlayController', () => {
       (size) => {
         expect(createController('overlay', size).getTime()).toEqual({
           hoursMinutes: '16:55',
+          hoursMinutesSeconds: '16:55:47',
         });
       },
     );
@@ -147,6 +148,7 @@ describe('ThumbnailDetailsOverlayController', () => {
       expect(createController('overlay', 175).getTime()).toEqual({
         hoursMinutes: '16:55',
         seconds: ':47',
+        hoursMinutesSeconds: '16:55:47',
       });
     });
 

@@ -30,10 +30,12 @@ img {
   object-fit: cover;
 }
 
-// Both are shown whole rather than cropped. A placeholder (a brand logo, a
-// folder icon) is not a preview of content. Text leaves a thumbnail only half
-// the tile (a box twice as wide as it is tall), which would crop away half of
-// the image otherwise.
+// A placeholder (a brand logo) is shown whole, not cropped. Dropping
+// aspect-ratio: 1/1 lets the container stay rectangular so wide logos
+// fill its width.
+:host(.placeholder) {
+  aspect-ratio: auto;
+}
 :host(.placeholder) img,
 :host(.has-text) img {
   object-fit: contain;

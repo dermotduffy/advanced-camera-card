@@ -58,7 +58,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
 
     // A time reads left to right even where the language around it does not.
     const renderTime = (): TemplateResult =>
-      html`<span class="time" dir="ltr"
+      html`<span class="time" dir="ltr" title=${time?.hoursMinutesSeconds ?? ''}
         >${time?.hoursMinutes}${time?.seconds
           ? html`<span class="seconds">${time.seconds}</span>`
           : ''}</span

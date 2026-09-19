@@ -85,10 +85,6 @@
   min-height: 0;
   overflow: hidden;
 }
-.media.has-text {
-  flex: 0 0 50%;
-}
-
 // Regular camera thumbnails: fill the media container
 advanced-camera-card-thumbnail-feature-thumbnail:not(.placeholder) {
   width: 100%;
@@ -98,29 +94,24 @@ advanced-camera-card-thumbnail-feature-thumbnail:not(.placeholder) {
   left: 0;
 }
 
-// Placeholder icons/thumbnails: nearly fill the .media container so wide logos
-// can use the full width. Per-image fit (contain vs cover) is handled inside
-// the inner thumbnail/icon.
-//
-// The two size rules look inverted (95% with text, 40% without) because the
-// percentages are relative to .media, which itself differs by case:
-//   .has-text       → .media is 100% × 50% of tile, so 95% ≈ 47% of tile height
-//   :not(.has-text) → .media is 100% × 100% of tile, so 40% = 40% of tile height
-// Without the no-text shrink the placeholder would fill the entire tile and
-// stop reading as an icon.
+// Shift placeholders upward to center them visually above the overlay strip.
+// Only applies when the strip is visible at rest (overlay), not hover or none.
 advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
 advanced-camera-card-icon.placeholder {
+  margin-bottom: var(--advanced-camera-card-thumbnail-feature-placeholder-offset, 0%);
+}
+
+// Placeholder images (brand logos) need a wide rectangle so horizontal logos
+// like Frigate's use the full width under object-fit: contain.
+advanced-camera-card-thumbnail-feature-thumbnail.placeholder {
+  width: 85%;
+  height: 65%;
+}
+
+advanced-camera-card-icon.placeholder {
   --mdc-icon-size: 100%;
-}
-.media.has-text > advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
-.media.has-text > advanced-camera-card-icon.placeholder {
-  width: 95%;
-  height: 95%;
-}
-.media:not(.has-text) > advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
-.media:not(.has-text) > advanced-camera-card-icon.placeholder {
-  width: 40%;
-  height: 40%;
+  width: 50%;
+  height: 50%;
 }
 
 advanced-camera-card-icon.background {
@@ -140,23 +131,6 @@ advanced-camera-card-icon.background {
   --mdc-icon-size: 100%;
 }
 
-:host > div:not(.media) {
-  text-align: center;
-  color: var(--primary-text-color);
-
-  // Above the image (auto), below the controls (2).
-  z-index: 1;
-}
-div.title {
-  font-size: 1rem;
-  line-height: 1.2;
-}
-div.subtitle {
-  font-size: 0.75rem;
-  line-height: 1.2;
-}
-
 advanced-camera-card-thumbnail-controls {
-  // Above the media and its text.
   z-index: 2;
 }

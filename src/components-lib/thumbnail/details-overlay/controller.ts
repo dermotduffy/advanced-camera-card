@@ -12,7 +12,6 @@ import {
   getMediaWhere,
   joinValues,
 } from '../../media/format';
-import { isIdentifiedByThumbnail } from '../is-identified-by-thumbnail';
 import type { ResolvedThumbnailDetailsStyle } from '../resolve-details-style';
 import { getThumbnailTier, type ThumbnailTier } from '../tier';
 
@@ -28,6 +27,9 @@ interface ThumbnailDetailsOverlayTime {
 
   // Dropped where the overlay has only one line to give the time.
   seconds?: string;
+
+  // Full time (for the tooltip).
+  hoursMinutesSeconds: string;
 }
 
 export class ThumbnailDetailsOverlayController {
@@ -46,10 +48,7 @@ export class ThumbnailDetailsOverlayController {
   public calculate(options: ThumbnailDetailsOverlayOptions): void {
     this._tier = getThumbnailTier(options.size);
 
-    // Hover if that's the configured style and the thumbnail alone is
-    // sufficient to identify the distinction between neighboring items.
-    this._isHover =
-      options.detailsStyle === 'hover' && isIdentifiedByThumbnail(options.item);
+    this._isHover = options.detailsStyle === 'hover';
 
     if (options.detailsStyle !== 'overlay' && options.detailsStyle !== 'hover') {
       this._label = null;
@@ -112,11 +111,12 @@ export class ThumbnailDetailsOverlayController {
       return null;
     }
 
-    // Seconds need a line the label is not also using.
+    const hoursMinutesSeconds = format(this._startTime, 'HH:mm:ss');
     const showSeconds = !this.isOneLineHeadline();
     return {
-      hoursMinutes: format(this._startTime, 'HH:mm'),
-      ...(showSeconds && { seconds: format(this._startTime, ':ss') }),
+      hoursMinutes: hoursMinutesSeconds.slice(0, 5),
+      ...(showSeconds && { seconds: hoursMinutesSeconds.slice(5) }),
+      hoursMinutesSeconds,
     };
   }
 

@@ -27,6 +27,10 @@
   aspect-ratio: 1 / 1;
 }
 
+:host([details-style='overlay']) {
+  --advanced-camera-card-thumbnail-feature-placeholder-offset: 15%;
+}
+
 :host([details-style='panel']) {
   border-radius: var(--advanced-camera-card-border-radius-final);
   background-color: var(--advanced-camera-card-thumbnail-details-background);
@@ -79,6 +83,10 @@
 }
 :host([severity='low']) .selection {
   border-color: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
+  opacity: 0.75;
+}
+:host([favorite]) .selection {
+  border-color: var(--advanced-camera-card-thumbnail-icon-favorite-color);
   opacity: 0.75;
 }
 // A flex item will not shrink narrower than its own text unless `min-width` is
