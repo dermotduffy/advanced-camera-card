@@ -133,7 +133,7 @@ describe('NotificationPopupController', () => {
       expect(document.activeElement).toBe(before);
     });
 
-    it('should return focus without a visible focus ring', () => {
+    it('should return focus without overriding the browser indicator', () => {
       const before = document.createElement('button');
       document.body.appendChild(before);
       before.focus();
@@ -146,7 +146,8 @@ describe('NotificationPopupController', () => {
 
       controller.hostDisconnected();
 
-      expect(focus).toHaveBeenCalledWith({ focusVisible: false });
+      // No options should have been passed.
+      expect(focus).toHaveBeenCalledWith();
     });
 
     it('should leave focus alone when something else has taken it', () => {

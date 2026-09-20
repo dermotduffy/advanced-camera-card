@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 
 import type { Notification } from '../../../src/config/schema/actions/types';
 import { createLogAction } from '../../../src/utils/action';
@@ -6,6 +6,7 @@ import {
   clickElement,
   deepQuery,
   getFocusedElement,
+  isFocusIndicatorDrawn,
   pressKey,
   pressTab,
 } from '../../browser/dom';
@@ -57,12 +58,24 @@ const showNotification = async (card: MountedCard): Promise<HTMLElement> => {
   return await card.waitForSelector<HTMLElement>('.notification');
 };
 
-const dismissNotification = async (card: MountedCard): Promise<void> => {
-  await pressKey('Escape');
+const waitForNotificationRemoval = async (card: MountedCard): Promise<void> => {
   await card.waitForRender(
     () => (deepQuery(card.card, '.notification') ? null : true),
     'the notification to be removed',
   );
+};
+
+const dismissNotificationWithKeyboard = async (card: MountedCard): Promise<void> => {
+  await pressKey('Escape');
+  await waitForNotificationRemoval(card);
+};
+
+const dismissNotificationWithPointer = async (card: MountedCard): Promise<void> => {
+  const close = deepQuery<HTMLElement>(card.card, 'button.close');
+  assert(close);
+
+  await clickElement(close);
+  await waitForNotificationRemoval(card);
 };
 
 describe('NotificationPopupController', () => {
@@ -140,27 +153,56 @@ describe('NotificationPopupController', () => {
     await showNotification(card);
     expect(getFocusedElement()).not.toBe(elsewhere);
 
-    await dismissNotification(card);
+    await dismissNotificationWithKeyboard(card);
 
     expect(getFocusedElement()).toBe(elsewhere);
   });
 
-  it('should return focus without a visible focus ring', async () => {
+  it('should not draw an indicator when it returns focus to a pointer user', async () => {
     const card = await mount();
     await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
     const elsewhere = document.createElement('button');
+    elsewhere.textContent = 'elsewhere';
     document.body.appendChild(elsewhere);
 
-    // Focused as a pointer press leaves it: with no ring, which is the state
-    // the return of focus must not change.
-    elsewhere.focus({ focusVisible: false });
+    await clickElement(elsewhere);
+    expect(isFocusIndicatorDrawn(elsewhere)).toBe(false);
 
     await showNotification(card);
-    await dismissNotification(card);
+    await dismissNotificationWithPointer(card);
 
     expect(getFocusedElement()).toBe(elsewhere);
-    expect(elsewhere.matches(':focus-visible')).toBe(false);
+
+    expect(isFocusIndicatorDrawn(elsewhere)).toBe(false);
+  });
+
+  it('should draw an indicator when it returns focus to a keyboard user', async () => {
+    const card = await mount();
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
+
+    // Only a real Tab makes the browser draw the indicator, and `previous` sits
+    // immediately before `elsewhere` so that one press reaches it.
+    const previous = document.createElement('button');
+    previous.textContent = 'previous';
+    document.body.appendChild(previous);
+
+    const elsewhere = document.createElement('button');
+    elsewhere.textContent = 'elsewhere';
+    document.body.appendChild(elsewhere);
+
+    previous.focus();
+    await pressTab();
+
+    expect(getFocusedElement()).toBe(elsewhere);
+    expect(isFocusIndicatorDrawn(elsewhere)).toBe(true);
+
+    await showNotification(card);
+    await dismissNotificationWithKeyboard(card);
+
+    expect(getFocusedElement()).toBe(elsewhere);
+
+    expect(isFocusIndicatorDrawn(elsewhere)).toBe(true);
   });
 
   it('should activate a notification control from the keyboard', async () => {

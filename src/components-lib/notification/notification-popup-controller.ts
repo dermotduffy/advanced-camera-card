@@ -55,7 +55,10 @@ export class NotificationPopupController implements ReactiveController {
       this._elementFocusedBeforePopup instanceof HTMLElement &&
       document.activeElement === document.body
     ) {
-      this._elementFocusedBeforePopup.focus({ focusVisible: false });
+      // Browser will decide whether or not to draw a focus ring. Don't use
+      // `focusVisible: false` here since a user can dismiss the popup with the
+      // keyboard, and `false` would then incorrectly take the focus ring away.
+      this._elementFocusedBeforePopup.focus();
     }
     this._elementFocusedBeforePopup = null;
   }
