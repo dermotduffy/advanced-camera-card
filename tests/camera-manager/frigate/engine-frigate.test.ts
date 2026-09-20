@@ -849,6 +849,37 @@ describe('FrigateCameraManagerEngine', () => {
       expect(getEvents).toHaveBeenCalledTimes(2);
     });
 
+    it('should cache each instance query independently', async () => {
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const config1 = createCameraConfig({
+        frigate: { camera_name: 'cam1', client_id: 'instance-1' },
+      });
+      const config2 = createCameraConfig({
+        frigate: { camera_name: 'cam2', client_id: 'instance-2' },
+      });
+      const store = createStore([
+        { cameraID: 'camera-1', config: config1 },
+        { cameraID: 'camera-2', config: config2 },
+      ]);
+      const query = {
+        type: QueryType.Event as const,
+        source: QuerySource.Camera as const,
+        cameraIDs: new Set(['camera-1', 'camera-2']),
+      };
+
+      vi.mocked(getEvents).mockResolvedValue([]);
+
+      const first = await engine.getEvents(createHASS(), store, query);
+      const second = await engine.getEvents(createHASS(), store, query);
+
+      expect(getEvents).toHaveBeenCalledTimes(2);
+      assert(first);
+      assert(second);
+      expect(first.size).toBe(2);
+      expect(second.size).toBe(2);
+    });
+
     it('should send empty cameras list when camera_name is empty', async () => {
       const hass = createHASS();
       const config = createCameraConfig({
@@ -1041,6 +1072,37 @@ describe('FrigateCameraManagerEngine', () => {
       });
 
       expect(getReviews).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cache each instance query independently', async () => {
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const config1 = createCameraConfig({
+        frigate: { camera_name: 'cam1', client_id: 'instance-1' },
+      });
+      const config2 = createCameraConfig({
+        frigate: { camera_name: 'cam2', client_id: 'instance-2' },
+      });
+      const store = createStore([
+        { cameraID: 'camera-1', config: config1 },
+        { cameraID: 'camera-2', config: config2 },
+      ]);
+      const query = {
+        type: QueryType.Review as const,
+        source: QuerySource.Camera as const,
+        cameraIDs: new Set(['camera-1', 'camera-2']),
+      };
+
+      vi.mocked(getReviews).mockResolvedValue([]);
+
+      const first = await engine.getReviews(createHASS(), store, query);
+      const second = await engine.getReviews(createHASS(), store, query);
+
+      expect(getReviews).toHaveBeenCalledTimes(2);
+      assert(first);
+      assert(second);
+      expect(first.size).toBe(2);
+      expect(second.size).toBe(2);
     });
 
     it('should pass query parameters to review request', async () => {
