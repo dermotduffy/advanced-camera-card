@@ -17,6 +17,7 @@ export interface ThumbnailDataRequest {
   media?: ViewMedia;
   viewManagerEpoch?: ViewManagerEpoch;
   viewItemManager?: ViewItemManager;
+  size?: number;
 }
 
 export class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}

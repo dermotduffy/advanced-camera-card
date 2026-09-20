@@ -1,7 +1,8 @@
 import { assert, describe, expect, it } from 'vitest';
 
+import type { FrigateReview } from '../../../src/camera-manager/frigate/types';
 import type { CameraMediaReviewedFilter } from '../../../src/config/schema/cameras';
-import { clickElement, deepQuery } from '../../browser/dom';
+import { clickElement, deepQuery, hoverElement } from '../../browser/dom';
 import {
   createTestFrigateEvent,
   createTestFrigateReview,
@@ -21,16 +22,19 @@ import {
 const REVIEW_ID = 'review-1';
 
 const mountCardWithReview = async (
-  reviewed: CameraMediaReviewedFilter = 'unreviewed',
+  reviewedFilter: CameraMediaReviewedFilter = 'unreviewed',
+  review?: Partial<FrigateReview>,
 ): Promise<MountedCard> => {
   const { card } = await mountCardWithFrigate(
     [],
     {
       view: { default: 'reviews' },
-      cameras: [{ ...createStillImageCameraConfig(), media: { reviewed } }],
+      cameras: [
+        { ...createStillImageCameraConfig(), media: { reviewed: reviewedFilter } },
+      ],
       menu: { style: 'outside' },
     },
-    [createTestFrigateReview(REVIEW_ID, EVENT_TIME_NEWER)],
+    [createTestFrigateReview(REVIEW_ID, EVENT_TIME_NEWER, review)],
   );
 
   await waitForThumbnails(card, 1);
@@ -60,7 +64,10 @@ const getReviewControl = (card: MountedCard): HTMLElement => {
 
 const getFavoriteControls = (card: MountedCard): HTMLElement[] =>
   getThumbnails(card.card).map((thumbnail) => {
-    const control = deepQuery<HTMLElement>(thumbnail, 'advanced-camera-card-icon.star');
+    const control = deepQuery<HTMLElement>(
+      thumbnail,
+      'advanced-camera-card-icon.favorite',
+    );
     if (!control) {
       throw new Error('The thumbnail has no favorite control');
     }
@@ -68,11 +75,25 @@ const getFavoriteControls = (card: MountedCard): HTMLElement[] =>
   });
 
 describe('AdvancedCameraCardThumbnailFeature', () => {
+  it('should dim the picture of a reviewed item', async () => {
+    const opacity = async (hasBeenReviewed: boolean): Promise<number> => {
+      const card = await mountCardWithReview('all', {
+        has_been_reviewed: hasBeenReviewed,
+      });
+      const media = deepQuery(getThumbnails(card.card)[0], '.media');
+      assert(media);
+      return parseFloat(getComputedStyle(media).opacity);
+    };
+
+    expect(await opacity(true)).toBeLessThan(await opacity(false));
+  });
+
   it('should show the check effect when an item is reviewed from its thumbnail', async () => {
     const card = await mountCardWithReview();
 
     expect(deepQuery(card.card, 'advanced-camera-card-effect-check')).toBeNull();
 
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(getReviewControl(card));
 
     await card.waitForSelector('advanced-camera-card-effect-check');
@@ -87,6 +108,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
       'advanced-camera-card-icon.info',
     );
     assert(info);
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(info);
 
     const control = await card.waitForRender(
@@ -104,12 +126,13 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     // need to show both reviewed/unreviewed.
     const card = await mountCardWithReview('all');
 
-    expect(getReviewControl(card).classList.contains('reviewed')).toBe(false);
+    expect(getReviewControl(card).classList.contains('active')).toBe(false);
 
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(getReviewControl(card));
 
     await card.waitForRender(
-      () => (getReviewControl(card).classList.contains('reviewed') ? true : null),
+      () => (getReviewControl(card).classList.contains('active') ? true : null),
       'a reviewed review control',
     );
   });
@@ -129,14 +152,12 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     await clickThumbnail(card.card, 0);
 
     const button = await card.findControl('Mark as reviewed');
-    expect(getReviewControl(card).classList.contains('reviewed')).toBe(false);
+    expect(getReviewControl(card).classList.contains('active')).toBe(false);
 
     await clickElement(button);
 
-    // Thumbnail should show the new state, even though the review action was
-    // via the menu.
     await card.waitForRender(
-      () => (getReviewControl(card).classList.contains('reviewed') ? true : null),
+      () => (getReviewControl(card).classList.contains('active') ? true : null),
       'a reviewed review control on the thumbnail',
     );
   });
@@ -149,7 +170,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     await waitForThumbnails(card, 1);
 
     const isStarred = (): boolean =>
-      getFavoriteControls(card)[0].classList.contains('starred');
+      getFavoriteControls(card)[0].classList.contains('active');
 
     expect(isStarred()).toBe(false);
 
@@ -158,6 +179,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
       'advanced-camera-card-icon.info',
     );
     assert(info);
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(info);
 
     const star = await card.waitForRender(
@@ -166,7 +188,6 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     );
     await clickElement(star);
 
-    // The thumbnail behind the notification shows the new state.
     await card.waitForRender(
       () => (isStarred() ? true : null),
       'a starred favorite control on the thumbnail',
@@ -191,6 +212,7 @@ describe('AdvancedCameraCardThumbnailFeature', () => {
     await setMediaFilter(card, 'Favorite', 'favorite');
     await waitForThumbnails(card, 2);
 
+    await hoverElement(getThumbnails(card.card)[0]);
     await clickElement(getFavoriteControls(card)[0]);
 
     await waitForThumbnails(card, 1);

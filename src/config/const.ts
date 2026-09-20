@@ -56,8 +56,8 @@ export const CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER =
   `${CONF_VIEW_TRIGGERS_ACTIONS}.untrigger` as const;
 
 const CONF_MEDIA_GALLERY = 'media_gallery' as const;
-export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-  `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_details` as const;
+export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_STYLE =
+  `${CONF_MEDIA_GALLERY}.controls.thumbnails.style` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_favorite_control` as const;
 
@@ -74,10 +74,10 @@ export const CONF_MEDIA_VIEWER_CONTROLS_BUILTIN =
   `${CONF_MEDIA_VIEWER}.controls.builtin` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.next_previous.style` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_STYLE =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.mode` as const;
-export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_details` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_favorite_control` as const;
 
@@ -95,10 +95,10 @@ export const CONF_LIVE_AUTO_MUTE = `${CONF_LIVE}.auto_mute` as const;
 export const CONF_LIVE_AUTO_UNMUTE = `${CONF_LIVE}.auto_unmute` as const;
 export const CONF_LIVE_CONTROLS_BUILTIN = `${CONF_LIVE}.controls.builtin` as const;
 
+export const CONF_LIVE_CONTROLS_THUMBNAILS_STYLE =
+  `${CONF_LIVE}.controls.thumbnails.style` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_LIVE}.controls.thumbnails.mode` as const;
-export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-  `${CONF_LIVE}.controls.thumbnails.show_details` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
@@ -117,10 +117,10 @@ export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
 
 const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_SHOW_RECORDINGS = `${CONF_TIMELINE}.show_recordings` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_STYLE =
+  `${CONF_TIMELINE}.controls.thumbnails.style` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_TIMELINE}.controls.thumbnails.mode` as const;
-export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-  `${CONF_TIMELINE}.controls.thumbnails.show_details` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_favorite_control` as const;
 
@@ -153,6 +153,7 @@ export const CONF_PERFORMANCE_FEATURES_CARD_LOADING_EFFECTS = `${CONF_PERFORMANC
 export const CONF_PERFORMANCE_FEATURES_CARD_LOADING_INDICATOR = `${CONF_PERFORMANCE}.features.card_loading_indicator`;
 export const CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE = `${CONF_PERFORMANCE}.features.media_chunk_size`;
 export const CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS = `${CONF_PERFORMANCE}.features.max_simultaneous_engine_requests`;
+export const CONF_PERFORMANCE_STYLE_BACKDROP_FILTER = `${CONF_PERFORMANCE}.style.backdrop_filter`;
 export const CONF_PERFORMANCE_STYLE_BOX_SHADOW = `${CONF_PERFORMANCE}.style.box_shadow`;
 export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.border_radius`;
 

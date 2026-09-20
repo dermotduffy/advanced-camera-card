@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
+import { actionHandler } from '../action-handler-directive.js';
 import type { CameraManager } from '../camera-manager/manager.js';
 import type { FoldersManager } from '../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../card-controller/view/item-manager.js';
@@ -21,13 +22,19 @@ import {
   navigateUp,
   type FolderNavigationParamaters,
 } from '../components-lib/navigation.js';
+import {
+  resolveThumbnailStyle,
+  type ResolvedThumbnailStyle,
+} from '../components-lib/thumbnail/resolve-style.js';
 import type { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import type { CardWideConfig } from '../config/schema/types.js';
 import type { HomeAssistant } from '../ha/types.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss?inline';
+import type { Interaction } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import type { CarouselDirection } from '../utils/embla/carousel-controller.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
+import { showMediaInfoNotification } from '../utils/media-actions.js';
 import { ViewItemClassifier } from '../view/item-classifier.js';
 import type { ViewItem, ViewMedia } from '../view/item.js';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder.js';
@@ -161,6 +168,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     };
 
     return html` <advanced-camera-card-thumbnail
+      clickable
       class="${classMap(classes)}"
       .cameraManager=${this.cameraManager}
       .hass=${this.hass}
@@ -174,13 +182,30 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       item.includesTime(seekTarget)
         ? seekTarget
         : undefined}
-      ?details=${!!this.config?.show_details}
+      .thumbnailStyle=${this._getResolvedThumbnailStyle() ?? undefined}
+      .size=${this.config?.size}
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}
       ?show_download_control=${this.config?.show_download_control}
       ?show_review_control=${this.config?.show_review_control}
       ?show_info_control=${this.config?.show_info_control}
-      @click=${(ev: Event) => clickCallback(item, ev)}
+      .actionHandler=${actionHandler({ hasHold: true })}
+      @action=${(ev: CustomEvent<Interaction>) => {
+        stopEventFromActivatingCardWideActions(ev);
+
+        if (ev.detail.action === 'tap') {
+          clickCallback(item, ev);
+        } else if (ev.detail.action === 'hold') {
+          showMediaInfoNotification(this, item, {
+            hass: this.hass,
+            cameraManager: this.cameraManager,
+            viewItemManager: this.viewItemManager,
+            viewManagerEpoch: this.viewManagerEpoch,
+            filterReviewed,
+            filterFavorite,
+          });
+        }
+      }}
     >
     </advanced-camera-card-thumbnail>`;
   }
@@ -231,6 +256,18 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       return 'horizontal';
     }
     return null;
+  }
+
+  private _getResolvedThumbnailStyle(): ResolvedThumbnailStyle | null {
+    if (!this.config) {
+      return null;
+    }
+    return resolveThumbnailStyle(this.config, {
+      placement:
+        this._getDirection() === 'vertical'
+          ? 'surround-vertical'
+          : 'surround-horizontal',
+    });
   }
 
   protected render(): TemplateResult | void {

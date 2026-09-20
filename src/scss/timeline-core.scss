@@ -28,14 +28,6 @@
   height: 100%;
 }
 
-advanced-camera-card-thumbnail {
-  height: var(--advanced-camera-card-thumbnail-size);
-  width: var(--advanced-camera-card-thumbnail-size);
-}
-advanced-camera-card-thumbnail[details] {
-  width: var(--advanced-camera-card-thumbnail-details-width);
-}
-
 div.timeline {
   flex: 1;
 }

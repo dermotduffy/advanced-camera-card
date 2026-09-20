@@ -9,8 +9,11 @@
 
   aspect-ratio: 1 / 1;
 
-  border: 1px solid var(--secondary-color);
-  background-color: var(--secondary-background-color);
+  // WebKit will not size this from the aspect ratio alone, so take the height
+  // from the thumbnail.
+  height: 100%;
+
+  background-color: var(--advanced-camera-card-thumbnail-image-background);
   border-radius: var(--advanced-camera-card-border-radius-final);
 
   box-sizing: border-box;
@@ -21,7 +24,57 @@
   position: relative;
 }
 
+// A review's severity, along the top of the thumbnail. The bar is ranked by
+// height as well as colored, so it still reads at the smallest thumbnail size
+// and for a user who cannot tell the colors apart.
+:host([severity])::before {
+  content: '';
+
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 3;
+
+  opacity: 0.75;
+}
+:host([severity='high'])::before {
+  height: 4px;
+  background: var(--advanced-camera-card-thumbnail-icon-severity-high-color);
+}
+:host([severity='medium'])::before {
+  height: 3px;
+  background: var(--advanced-camera-card-thumbnail-icon-severity-medium-color);
+}
+:host([severity='low'])::before {
+  height: 2px;
+  background: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
+}
+
+:host([review='reviewed']) .media {
+  opacity: 0.88;
+}
+
+// Favorite vignette.
+.favorite {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  border-radius: var(--advanced-camera-card-border-radius-final);
+  box-shadow: inset 0 0 14px 3px var(--advanced-camera-card-favorite-color);
+
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+:host([favorite]) .favorite {
+  opacity: 1;
+}
+
 .media {
+  filter: var(--advanced-camera-card-thumbnail-media-filter, none);
+  transition: filter 0.2s ease-in-out;
+
   // Relative for thumbnail.
   position: relative;
   width: 100%;
@@ -32,10 +85,6 @@
   min-height: 0;
   overflow: hidden;
 }
-.media.has-text {
-  flex: 0 0 50%;
-}
-
 // Regular camera thumbnails: fill the media container
 advanced-camera-card-thumbnail-feature-thumbnail:not(.placeholder) {
   width: 100%;
@@ -45,29 +94,24 @@ advanced-camera-card-thumbnail-feature-thumbnail:not(.placeholder) {
   left: 0;
 }
 
-// Placeholder icons/thumbnails: nearly fill the .media container so wide logos
-// can use the full width. Per-image fit (contain vs cover) is handled inside
-// the inner thumbnail/icon.
-//
-// The two size rules look inverted (95% with text, 60% without) because the
-// percentages are relative to .media, which itself differs by case:
-//   .has-text       → .media is 100% × 50% of tile, so 95% ≈ 47% of tile height
-//   :not(.has-text) → .media is 100% × 100% of tile, so 60% = 60% of tile height
-// Both cases land at roughly half-tile visible; without the no-text shrink the
-// placeholder would fill the entire tile and stop reading as an icon.
+// Shift placeholders upward to center them visually above the overlay strip.
+// Only applies when the strip is visible at rest (overlay), not hover or none.
 advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
 advanced-camera-card-icon.placeholder {
+  margin-bottom: var(--advanced-camera-card-thumbnail-feature-placeholder-offset, 0%);
+}
+
+// Placeholder images (brand logos) need a wide rectangle so horizontal logos
+// like Frigate's use the full width under object-fit: contain.
+advanced-camera-card-thumbnail-feature-thumbnail.placeholder {
+  width: 85%;
+  height: 65%;
+}
+
+advanced-camera-card-icon.placeholder {
   --mdc-icon-size: 100%;
-}
-.media.has-text > advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
-.media.has-text > advanced-camera-card-icon.placeholder {
-  width: 95%;
-  height: 95%;
-}
-.media:not(.has-text) > advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
-.media:not(.has-text) > advanced-camera-card-icon.placeholder {
-  width: 60%;
-  height: 60%;
+  width: 50%;
+  height: 50%;
 }
 
 advanced-camera-card-icon.background {
@@ -87,64 +131,6 @@ advanced-camera-card-icon.background {
   --mdc-icon-size: 100%;
 }
 
-div {
-  text-align: center;
-  color: var(--primary-text-color);
-  z-index: 1;
-}
-div.title {
-  font-size: 1rem;
-  line-height: 1.2;
-}
-div.subtitle {
-  font-size: 0.75rem;
-  line-height: 1.2;
-}
-
-advanced-camera-card-icon:not(.placeholder):not(.background) {
-  position: absolute;
-  border-radius: 50%;
-  color: var(--advanced-camera-card-thumbnail-icon-color);
+advanced-camera-card-thumbnail-controls {
   z-index: 2;
-
-  cursor: pointer;
-
-  transition:
-    opacity 0.2s ease-in-out,
-    color 0.4s ease-in-out;
-}
-advanced-camera-card-icon:not(.placeholder):not(.background):hover {
-  opacity: 1;
-  color: var(--advanced-camera-card-active-color);
-}
-
-advanced-camera-card-icon.star,
-advanced-camera-card-icon.review {
-  top: 2px;
-  left: 2px;
-}
-
-advanced-camera-card-icon.star.starred {
-  color: var(--advanced-camera-card-thumbnail-icon-favorite-color);
-}
-
-advanced-camera-card-icon.review.reviewed {
-  color: var(--advanced-camera-card-thumbnail-icon-review-color);
-}
-
-advanced-camera-card-icon.timeline {
-  left: 2px;
-  bottom: 2px;
-}
-
-advanced-camera-card-icon.info {
-  right: 2px;
-  top: 2px;
-
-  cursor: default;
-}
-
-advanced-camera-card-icon.download {
-  right: 2px;
-  bottom: 2px;
 }

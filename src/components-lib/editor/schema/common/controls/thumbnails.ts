@@ -1,6 +1,6 @@
 import {
-  THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
+  THUMBNAIL_SIZE_MAX,
+  THUMBNAIL_SIZE_MIN,
 } from '../../../../../config/schema/common/controls/thumbnails';
 import type { HAFormExpandableSchema, HAFormSchema } from '../../../../../ha/types';
 import { localize } from '../../../../../localize/localize';
@@ -19,9 +19,36 @@ export const getThumbnailsSchema = (options?: {
     name: 'size',
     label: localize('config.common.controls.thumbnails.size'),
     selector: createNumberSelector({
-      min: THUMBNAIL_WIDTH_MIN,
-      max: THUMBNAIL_WIDTH_MAX,
+      min: THUMBNAIL_SIZE_MIN,
+      max: THUMBNAIL_SIZE_MAX,
     }),
+  };
+
+  const thumbnailStyleField: HAFormSchema = {
+    name: 'style',
+    label: localize('config.common.controls.thumbnails.style'),
+    selector: createSelectSelector([
+      {
+        value: 'auto',
+        label: localize('config.common.controls.thumbnails.styles.auto'),
+      },
+      {
+        value: 'plain',
+        label: localize('config.common.controls.thumbnails.styles.plain'),
+      },
+      {
+        value: 'overlay',
+        label: localize('config.common.controls.thumbnails.styles.overlay'),
+      },
+      {
+        value: 'hover',
+        label: localize('config.common.controls.thumbnails.styles.hover'),
+      },
+      {
+        value: 'panel',
+        label: localize('config.common.controls.thumbnails.styles.panel'),
+      },
+    ]),
   };
 
   const schema: HAFormSchema[] = [];
@@ -62,13 +89,9 @@ export const getThumbnailsSchema = (options?: {
   } else {
     schema.push(sizeField);
   }
+  schema.push(thumbnailStyleField);
   schema.push(
     createGrid([
-      {
-        name: 'show_details',
-        label: localize('config.common.controls.thumbnails.show_details'),
-        selector: { boolean: {} },
-      },
       {
         name: 'show_favorite_control',
         label: localize('config.common.controls.thumbnails.show_favorite_control'),

@@ -22,6 +22,7 @@ import {
   ignoreFunctionIdentity,
   isHoverableDevice,
   isHTMLElement,
+  isPointInBox,
   isSuperset,
   isTruthy,
   isValidDate,
@@ -177,6 +178,22 @@ describe('errorToConsole', () => {
     spy.mockClear();
     errorToConsole(null);
     expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+describe('isPointInBox', () => {
+  const box = { left: 10, right: 110, top: 20, bottom: 70 };
+
+  it.each([
+    ['inside', 50, 40, true],
+    ['on the leading edge', 10, 40, true],
+    ['on the trailing edge', 110, 70, true],
+    ['left of the box', 9, 40, false],
+    ['right of the box', 111, 40, false],
+    ['above the box', 50, 19, false],
+    ['below the box', 50, 71, false],
+  ])('should say a point %s is %s', (_name, x, y, expected) => {
+    expect(isPointInBox({ x, y }, box)).toBe(expected);
   });
 });
 

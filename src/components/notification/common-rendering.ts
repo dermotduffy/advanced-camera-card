@@ -48,6 +48,9 @@ export function renderControl(
     control: true,
     [`severity-${control.severity}`]: !!control.severity,
     ...(control.className && { [control.className]: true }),
+
+    // Marks a control that carries styling of its own.
+    styled: !!control.severity || !!control.className,
   };
   return html`
     <div

@@ -47,8 +47,7 @@
     filter: brightness(1.2);
   }
 
-  // Base control hover color transition (from dimmed to full).
-  &:not(.severity-low):not(.severity-medium):not(.severity-high):hover {
+  &:not(.styled):hover {
     color: var(--notification-control-color);
   }
 

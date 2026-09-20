@@ -1,10 +1,15 @@
+import type { CameraManager } from '../camera-manager/manager';
+import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request';
 import type { ViewItemManager } from '../card-controller/view/item-manager';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context';
 import { RemoveItemViewModifier } from '../card-controller/view/modifiers/remove-item';
 import { UpdateItemViewModifier } from '../card-controller/view/modifiers/update-item';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
+import { MediaNotificationController } from '../components-lib/notification/media-controller';
+import type { HomeAssistant } from '../ha/types';
 import type { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
+import { createNotificationAction } from './action';
 import { errorToConsole } from './basic';
 import { fireAdvancedCameraCardEvent } from './fire-advanced-camera-card-event';
 
@@ -109,5 +114,38 @@ export function navigateToTimeline(
         .selectResultIfFound((media) => item.isSameAs(media)),
     },
     modifiers: [new RemoveContextViewModifier(['timeline'])],
+  });
+}
+
+export interface MediaInfoContext {
+  hass?: HomeAssistant;
+  cameraManager?: CameraManager;
+  viewItemManager?: ViewItemManager;
+  viewManagerEpoch?: ViewManagerEpoch;
+  filterReviewed?: boolean;
+  filterFavorite?: boolean;
+}
+
+export function showMediaInfoNotification(
+  host: HTMLElement,
+  item: ViewItem,
+  context: MediaInfoContext,
+): void {
+  const notificationController = new MediaNotificationController(item);
+  notificationController.calculate({ cameraManager: context.cameraManager });
+
+  dispatchActionExecutionRequest(host, {
+    actions: [
+      createNotificationAction(
+        notificationController.getNotification({
+          hass: context.hass,
+          viewItemManager: context.viewItemManager,
+          viewManagerEpoch: context.viewManagerEpoch,
+          capabilities: context.viewItemManager?.getCapabilities(item),
+          filterReviewed: context.filterReviewed,
+          filterFavorite: context.filterFavorite,
+        }),
+      ),
+    ],
   });
 }

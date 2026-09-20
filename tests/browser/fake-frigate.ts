@@ -19,7 +19,7 @@ import {
   createFixtureURL,
   SNAPSHOT_FIXTURE_FILENAME,
 } from './fixtures';
-import { MountedCardFactory, type MountedCard } from './mounted-card';
+import { MountedCardFactory, type MountedCard, type MountOptions } from './mounted-card';
 import {
   CAMERA_ENTITY,
   createCameraHASS,
@@ -105,6 +105,7 @@ export const mountCardWithFrigate = async (
   events: FrigateEvent[],
   config?: PartialAdvancedCameraCardConfig,
   reviews?: FrigateReview[],
+  options?: MountOptions,
 ): Promise<CardWithFrigate> => {
   const hass = createCameraHASS([createFrigateCameraDescription()]);
   const frigate = new FakeFrigate(hass);
@@ -114,6 +115,7 @@ export const mountCardWithFrigate = async (
   const card = await MountedCardFactory.createFromSource(
     createStillImageCardConfig(config),
     hass,
+    options,
   );
 
   return { card, frigate, hass };

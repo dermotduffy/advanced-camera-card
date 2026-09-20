@@ -7,7 +7,7 @@ import {
   FRONT_DOOR_FOLDER_CONTENT_ID,
   registerFrontDoorFolder,
 } from '../../browser/browse-media';
-import { deepQuery } from '../../browser/dom';
+import { deepQuery, hoverElement, pressKey } from '../../browser/dom';
 import {
   createFrigateCameraDescription,
   createTestFrigateEvent,
@@ -29,6 +29,7 @@ import {
   getBlockNotificationText,
   getMediaViewerMediaURLs,
   getThumbnails,
+  holdThumbnail,
   waitForThumbnails,
 } from '../../browser/test-utils';
 
@@ -102,6 +103,8 @@ describe('AdvancedCameraCardGallery', () => {
     const frameRect = frame.getBoundingClientRect();
     const iconRect = icon.getBoundingClientRect();
 
+    expect(boxRect.width).toBeGreaterThan(0);
+
     const expectClose = (actual: number, expected: number): void =>
       expect(Math.abs(actual - expected)).toBeLessThanOrEqual(
         Math.max(
@@ -120,6 +123,18 @@ describe('AdvancedCameraCardGallery', () => {
     expectClose(iconRect.height, frameRect.height / 2);
     expectClose(iconRect.left - frameRect.left, (frameRect.width - iconRect.width) / 2);
     expectClose(iconRect.top - frameRect.top, (frameRect.height - iconRect.height) / 2);
+  });
+
+  it('should keep a thumbnail square', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)], {
+      media_gallery: { controls: { thumbnails: { size: 200 } } },
+    });
+    await waitForThumbnails(card, 1);
+
+    const rect = getThumbnails(card.card)[0].getBoundingClientRect();
+
+    expect(rect.width).toBeGreaterThan(0);
+    expect(Math.abs(rect.width - rect.height)).toBeLessThanOrEqual(1);
   });
 
   it('should say there is nothing to view when the camera has no events', async () => {
@@ -169,6 +184,123 @@ describe('AdvancedCameraCardGallery', () => {
     expect(getMediaViewerMediaURLs(card.card)).toEqual([
       expect.stringContaining('clip.webm?event=older'),
     ]);
+  });
+
+  it('should show the media information for a held thumbnail', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    await waitForThumbnails(card, 1);
+
+    await holdThumbnail(card.card, 0);
+
+    await card.waitForSelector('advanced-camera-card-notification');
+
+    expect(deepQuery(card.card, 'advanced-camera-card-viewer-carousel')).toBeNull();
+  });
+
+  it('should have tab stopped thumbnails', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    await waitForThumbnails(card, 1);
+
+    const thumbnail = getThumbnails(card.card)[0];
+    expect(thumbnail.getAttribute('tabindex')).toBe('0');
+    expect(thumbnail.getAttribute('role')).toBe('button');
+    expect(thumbnail.getAttribute('aria-label')).not.toBe('');
+  });
+
+  it.each([
+    { name: 'Enter', key: 'Enter' },
+    { name: 'Space', key: ' ' },
+  ])('should open the media with keypress: $name', async ({ key }) => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    await waitForThumbnails(card, 1);
+
+    getThumbnails(card.card)[0].focus();
+    getThumbnails(card.card)[0].focus();
+    await pressKey(key);
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+
+    await card.waitForSelector('advanced-camera-card-viewer-carousel');
+
+    expect(getMediaViewerMediaURLs(card.card)).toEqual([
+      expect.stringContaining('clip.webm?event=newer'),
+    ]);
+  });
+
+  it('should open the media with a key press made after a hold begins', async () => {
+    const card = await mountCard([
+      createTestFrigateEvent('older', EVENT_TIME_OLDER),
+      createTestFrigateEvent('newer', EVENT_TIME_NEWER),
+    ]);
+    await waitForThumbnails(card, 2);
+
+    // The directive's `held` flag persists until a mousedown clears it, and a
+    // key press never sends mousedown.
+    await holdThumbnail(card.card, 0);
+    await card.waitForSelector('advanced-camera-card-notification');
+
+    // The newest event is shown first, so index 1 is the older of the two.
+    getThumbnails(card.card)[1].focus();
+    await pressKey('Enter');
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+
+    expect(getMediaViewerMediaURLs(card.card)).toEqual([
+      expect.stringContaining('clip.webm?event=older'),
+    ]);
+  });
+
+  it('should brighten the media on hover without moving the thumbnail', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)]);
+    await waitForThumbnails(card, 1);
+
+    const thumbnail = getThumbnails(card.card)[0];
+    await hoverElement(thumbnail);
+
+    const media = deepQuery(thumbnail, '.media');
+    assert(media);
+
+    expect(getComputedStyle(media).filter).toContain('brightness');
+  });
+
+  it('should draw the selection ring over the image', async () => {
+    const card = await mountCard(
+      [
+        createTestFrigateEvent('older', EVENT_TIME_OLDER),
+        createTestFrigateEvent('newer', EVENT_TIME_NEWER),
+      ],
+      {
+        view: { default: 'clips' },
+        menu: { style: 'outside', buttons: { clips: { enabled: true } } },
+      },
+    );
+    await waitForThumbnails(card, 2);
+
+    await clickThumbnail(card.card, 0);
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+    await card.clickControl('Clips gallery');
+    await waitForThumbnails(card, 2);
+
+    const thumbnail = await card.waitForRender(
+      () => getThumbnails(card.card).find((one) => one.hasAttribute('selected')) ?? null,
+      'the selected thumbnail',
+    );
+    const unselected = getThumbnails(card.card).find(
+      (one) => !one.hasAttribute('selected'),
+    );
+    assert(unselected);
+
+    const ring = deepQuery(thumbnail, '.ring');
+    assert(ring);
+
+    expect(getComputedStyle(ring).borderWidth).toBe('2px');
+
+    const unselectedRing = deepQuery(unselected, '.ring');
+    assert(unselectedRing);
+    expect(getComputedStyle(unselectedRing).borderColor).toBe('rgba(0, 0, 0, 0)');
+
+    const ringBox = ring.getBoundingClientRect();
+    const thumbnailBox = thumbnail.getBoundingClientRect();
+    expect(ringBox.width).toBeCloseTo(thumbnailBox.width, 0);
+    expect(ringBox.height).toBeCloseTo(thumbnailBox.height, 0);
   });
 
   it('should show the media filter', async () => {
@@ -327,7 +459,7 @@ describe('AdvancedCameraCardGallery with a folder', () => {
     );
   };
 
-  it('should show a folder picture in full rather than cropped', async () => {
+  it('should crop a folder picture to fill the thumbnail', async () => {
     const card = await mountCardWithAThumbnailedFolder();
 
     // The folder and the tile that navigates "up".
@@ -340,7 +472,7 @@ describe('AdvancedCameraCardGallery with a folder', () => {
       'the folder picture',
     );
 
-    expect(getComputedStyle(picture).objectFit).toBe('contain');
+    expect(getComputedStyle(picture).objectFit).toBe('cover');
   });
 
   it('should show folder media with a matching image as its thumbnail', async () => {

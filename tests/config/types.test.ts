@@ -120,8 +120,8 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
+            style: 'auto',
             mode: 'right',
-            show_details: true,
             show_download_control: false,
             show_favorite_control: true,
             show_info_control: true,
@@ -167,7 +167,7 @@ describe('config defaults', () => {
             mode: 'right',
           },
           thumbnails: {
-            show_details: false,
+            style: 'auto',
             show_download_control: false,
             show_favorite_control: true,
             show_info_control: true,
@@ -200,8 +200,8 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
+            style: 'auto',
             mode: 'right',
-            show_details: true,
             show_download_control: false,
             show_favorite_control: true,
             show_info_control: true,
@@ -442,6 +442,7 @@ describe('config defaults', () => {
           media_chunk_size: 50,
         },
         style: {
+          backdrop_filter: true,
           border_radius: true,
           box_shadow: true,
         },
@@ -494,8 +495,8 @@ describe('config defaults', () => {
         clustering_threshold: 3,
         controls: {
           thumbnails: {
+            style: 'auto',
             mode: 'right',
-            show_details: true,
             show_download_control: false,
             show_favorite_control: true,
             show_info_control: true,

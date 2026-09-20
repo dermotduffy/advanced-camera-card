@@ -9,7 +9,7 @@
     "close": "Close",
     "event": "Event",
     "folder": "Folder",
-    "in_progress": "In progress...",
+    "in_progress": "In progress",
     "no_media": "No media to display",
     "retry": "Retry",
     "set_reviews": {
@@ -22,7 +22,9 @@
       "medium": "Medium"
     },
     "severity": "Severity",
-    "up": "Up"
+    "today": "Today",
+    "up": "Up",
+    "yesterday": "Yesterday"
   },
   "config": {
     "cameras": {
@@ -286,6 +288,14 @@
           }
         },
         "thumbnails": {
+          "style": "Style",
+          "styles": {
+            "auto": "Automatic",
+            "hover": "Thumbnail with details on hover",
+            "plain": "Thumbnail without details",
+            "overlay": "Thumbnail with details overlay",
+            "panel": "Thumbnail with details panel"
+          },
           "editor_label": "Thumbnails",
           "mode": "Mode",
           "modes": {
@@ -295,7 +305,6 @@
             "none": "None",
             "right": "Right drawer"
           },
-          "show_details": "Show details",
           "show_download_control": "Show download control",
           "show_favorite_control": "Show favorite control",
           "show_info_control": "Show info control",
@@ -617,6 +626,7 @@
         "media_chunk_size": "Media chunk size"
       },
       "style": {
+        "backdrop_filter": "Blur effects",
         "border_radius": "Curves",
         "box_shadow": "Shadows",
         "editor_label": "Style Options"
@@ -973,13 +983,14 @@
     "camera": "Camera",
     "download": "Download media",
     "duration": "Duration",
+    "in_progress": "REC",
+    "more_details": "+{count} details",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Retain media indefinitely",
     "seek": "Seek",
     "start": "Start",
     "tag": "Tag",
     "timeline": "See media in timeline",
-    "title": "Title",
     "where": "Where"
   },
   "timeline": {

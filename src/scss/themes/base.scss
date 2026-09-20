@@ -45,16 +45,14 @@
   --advanced-camera-card-foreground-severity-high-color: var(
     --ha-color-fill-danger-loud-resting
   );
-  --advanced-camera-card-foreground-severity-medium-color: var(
-    --ha-color-fill-warning-loud-resting
-  );
+  --advanced-camera-card-foreground-severity-medium-color: var(--warning-color, orange);
   --advanced-camera-card-foreground-severity-low-color: var(
     --ha-color-fill-neutral-loud-resting
   );
 
   // The color of a favorited or reviewed item, wherever its control is shown.
   --advanced-camera-card-favorite-color: #{rgba(gold, 0.75)};
-  --advanced-camera-card-review-color: var(--advanced-camera-card-active-color);
+  --advanced-camera-card-review-color: var(--success-color, #4caf50);
 
   /*********
    * Buttons
@@ -186,9 +184,7 @@
    * Thumbnails
    ************/
 
-  --advanced-camera-card-thumbnail-icon-color: var(
-    --advanced-camera-card-foreground-primary
-  );
+  --advanced-camera-card-thumbnail-icon-color: #ffffff;
   --advanced-camera-card-thumbnail-icon-severity-high-color: var(
     --advanced-camera-card-foreground-severity-high-color
   );
@@ -199,10 +195,35 @@
     --advanced-camera-card-foreground-severity-low-color
   );
 
-  --advanced-camera-card-thumbnail-border-color: var(
+  --advanced-camera-card-thumbnail-selected-color: var(
+    --advanced-camera-card-active-color
+  );
+  --advanced-camera-card-thumbnail-focus-color: var(
     --advanced-camera-card-foreground-primary
   );
-  --advanced-camera-card-thumbnail-background: var(--advanced-camera-card-background);
+
+  // Background behind the thumbnails (i.e. the gallery and drawer backgrounds).
+  @include color-mixed(
+    --advanced-camera-card-thumbnails-background,
+    --advanced-camera-card-background,
+    6%,
+    var(--advanced-camera-card-text-color),
+    $fallback: opaque
+  );
+
+  // Background behind a thumbnail's details panel.
+  --advanced-camera-card-thumbnail-details-background: var(
+    --advanced-camera-card-background
+  );
+
+  // Background behind a thumbnail's image (e.g. when it's a placeholder icon).
+  @include color-mixed(
+    --advanced-camera-card-thumbnail-image-background,
+    --advanced-camera-card-background,
+    15%,
+    var(--advanced-camera-card-text-color),
+    $fallback: opaque
+  );
   --advanced-camera-card-thumbnail-icon-favorite-color: var(
     --advanced-camera-card-favorite-color
   );
@@ -210,6 +231,36 @@
     --advanced-camera-card-review-color
   );
   --advanced-camera-card-thumbnail-text-color: var(--advanced-camera-card-text-color);
+
+  // The block shown in place of a thumbnail while it is fetched, and the lighter
+  // shimmer that moves across it.
+  @include color-mixed(
+    --advanced-camera-card-thumbnail-skeleton-background,
+    --advanced-camera-card-foreground-primary,
+    88%
+  );
+  @include color-mixed(
+    --advanced-camera-card-thumbnail-skeleton-shimmer-color,
+    --advanced-camera-card-foreground-primary,
+    78%
+  );
+
+  // Media a camera is still writing to (i.e. being recorded). Red carries the
+  // meaning on its own, so the pair is fixed rather than taken from the theme.
+  --advanced-camera-card-thumbnail-in-progress-background: #c62828;
+  --advanced-camera-card-thumbnail-in-progress-color: #ffffff;
+
+  // The details overlaid on a thumbnail. Defaults to the same translucent blur
+  // as the notification popup, so the two look alike.
+  --advanced-camera-card-thumbnail-details-overlay-background: rgba(16, 16, 18, 0.5);
+  --advanced-camera-card-thumbnail-details-overlay-backdrop-filter: blur(20px)
+    saturate(180%);
+  --advanced-camera-card-thumbnail-details-overlay-border-top: 1px solid
+    rgba(255, 255, 255, 0.2);
+  --advanced-camera-card-thumbnail-details-overlay-color: #ffffff;
+
+  // Scales the overlay's text, independently of the dashboard's own font size.
+  --advanced-camera-card-thumbnail-text-size: var(--ha-font-size-m, 14px);
 
   /**********
    * Timeline
@@ -339,10 +390,13 @@
   /**************
    * Notification (popup)
    **************/
+  // Background must be opaque enough to read the foreground without the
+  // backdrop filter, as browser are free to decline that (e.g. Android Chrome
+  // does when it is saving power).
   --advanced-camera-card-notification-popup-background: linear-gradient(
     135deg,
-    rgba(35, 35, 35, 0.75) 0%,
-    rgba(15, 15, 15, 0.65) 100%
+    rgba(35, 35, 35, 0.87) 0%,
+    rgba(15, 15, 15, 0.82) 100%
   );
   --advanced-camera-card-notification-popup-backdrop-filter: blur(20px) saturate(180%);
   --advanced-camera-card-notification-popup-border: 1px solid rgba(255, 255, 255, 0.1);

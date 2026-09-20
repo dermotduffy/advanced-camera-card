@@ -587,9 +587,21 @@ describe('GalleryCoreController', () => {
 
   describe('should handle content change', () => {
     describe('should scroll selected into view', () => {
-      it('should scroll selected into view on first load', async () => {
-        const selectedChild = document.createElement('div');
-        selectedChild.setAttribute('selected', '');
+      const createScrollHost = (
+        selectedChild: HTMLElement,
+        options: { thumbnailHeight: number; galleryHeight: number },
+      ): { host: LitElement; slot: HTMLSlotElement } => {
+        vi.spyOn(selectedChild, 'getBoundingClientRect').mockReturnValue({
+          x: 0,
+          y: 0,
+          width: 100,
+          height: options.thumbnailHeight,
+          top: 0,
+          right: 100,
+          bottom: options.thumbnailHeight,
+          left: 0,
+          toJSON: () => ({}),
+        });
 
         const slot = createSlot();
         const host = createSlotHost({
@@ -599,6 +611,19 @@ describe('GalleryCoreController', () => {
             document.createElement('div'),
             selectedChild,
           ],
+        });
+        Object.defineProperty(host, 'clientHeight', { value: options.galleryHeight });
+
+        return { host, slot };
+      };
+
+      it('should scroll to the center of the selected thumbnail on first load', async () => {
+        const selectedChild = document.createElement('div');
+        selectedChild.setAttribute('selected', '');
+
+        const { host, slot } = createScrollHost(selectedChild, {
+          thumbnailHeight: 100,
+          galleryHeight: 235,
         });
 
         const controller = createController({
@@ -610,6 +635,27 @@ describe('GalleryCoreController', () => {
         expect(scrollIntoView).toHaveBeenCalledWith(selectedChild, {
           boundary: host,
           block: 'center',
+        });
+      });
+
+      it('should scroll to the top of the selected thumbnail when it is taller than the gallery', async () => {
+        const selectedChild = document.createElement('div');
+        selectedChild.setAttribute('selected', '');
+
+        const { host, slot } = createScrollHost(selectedChild, {
+          thumbnailHeight: 248,
+          galleryHeight: 235,
+        });
+
+        const controller = createController({
+          host,
+          getSlot: () => slot,
+        });
+        controller.updateContents();
+
+        expect(scrollIntoView).toHaveBeenCalledWith(selectedChild, {
+          boundary: host,
+          block: 'start',
         });
       });
 

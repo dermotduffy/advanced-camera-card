@@ -13,7 +13,7 @@ import {
   GalleryCoreController,
   type GalleryColumnCountRoundMethod,
 } from '../../components-lib/gallery/gallery-core-controller.js';
-import { THUMBNAIL_WIDTH_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
+import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import galleryCoreStyle from '../../scss/gallery-core.scss?inline';
@@ -28,7 +28,7 @@ export class AdvancedCameraCardGalleryCore extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public columnWidth: number = THUMBNAIL_WIDTH_DEFAULT;
+  public columnWidth: number = THUMBNAIL_SIZE_DEFAULT;
 
   @property({ attribute: false })
   public columnCountRoundMethod?: GalleryColumnCountRoundMethod;

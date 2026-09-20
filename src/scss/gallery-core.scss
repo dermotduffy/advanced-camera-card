@@ -13,6 +13,8 @@
   // Hide scrollbar: Firefox
   scrollbar-width: none;
 
+  background-color: var(--advanced-camera-card-thumbnails-background);
+
   --advanced-camera-card-gallery-gap: 3px;
   --advanced-camera-card-gallery-columns: 4;
 }
@@ -23,7 +25,7 @@
     var(--advanced-camera-card-gallery-columns),
     minmax(0, 1fr)
   );
-  grid-auto-rows: var(--advanced-camera-card-thumbnail-size);
+  grid-auto-rows: auto;
   gap: var(--advanced-camera-card-gallery-gap);
 }
 

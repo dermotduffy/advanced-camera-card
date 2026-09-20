@@ -11,7 +11,7 @@ import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { isTruthy } from '../../src/utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../src/utils/fire-advanced-camera-card-event';
-import { clickElement, deepQuery, deepQueryAll } from './dom';
+import { clickElement, deepQuery, deepQueryAll, holdElement } from './dom';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
 import type { MountedCard } from './mounted-card';
@@ -261,6 +261,14 @@ export const clickThumbnail = async (root: ParentNode, index: number): Promise<v
     throw new Error(`There is no thumbnail at index ${index} to click`);
   }
   await clickElement(thumbnail);
+};
+
+export const holdThumbnail = async (root: ParentNode, index: number): Promise<void> => {
+  const thumbnail = getThumbnails(root)[index];
+  if (!thumbnail) {
+    throw new Error(`There is no thumbnail at index ${index} to hold`);
+  }
+  await holdElement(thumbnail);
 };
 
 export const waitForThumbnails = async (

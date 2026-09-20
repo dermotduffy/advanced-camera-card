@@ -64,9 +64,13 @@
 
   // Glassmorphism background
   background: var(--advanced-camera-card-notification-popup-background);
-  backdrop-filter: var(--advanced-camera-card-notification-popup-backdrop-filter);
+  backdrop-filter: var(
+    --advanced-camera-card-backdrop-filter-override,
+    var(--advanced-camera-card-notification-popup-backdrop-filter)
+  );
   -webkit-backdrop-filter: var(
-    --advanced-camera-card-notification-popup-backdrop-filter
+    --advanced-camera-card-backdrop-filter-override,
+    var(--advanced-camera-card-notification-popup-backdrop-filter)
   );
 
   // Borders & Edge highlights

@@ -129,6 +129,29 @@ export function errorToConsole(e: unknown, func: CallableFunction = console.warn
   }
 }
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+interface Box {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/**
+ * @param point A point, in the coordinates the box is measured in.
+ * @param box The box.
+ * @returns `true` if the point is inside the box or on its edge.
+ */
+export const isPointInBox = (point: Point, box: Box): boolean =>
+  point.x >= box.left &&
+  point.x <= box.right &&
+  point.y >= box.top &&
+  point.y <= box.bottom;
+
 /**
  * Determine if the device supports hovering.
  * @returns `true` if the device supports hovering, `false` otherwise.
@@ -238,7 +261,7 @@ export const setOrRemoveAttribute = <T extends string>(
   element: HTMLElement,
   set: boolean,
   name: string,
-  value?: T,
+  value?: T | null,
 ): void => {
   if (set) {
     element.setAttribute(name, value ?? '');
