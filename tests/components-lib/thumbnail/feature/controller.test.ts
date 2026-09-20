@@ -87,6 +87,14 @@ describe('ThumbnailFeatureController', () => {
       expect(controller.getThumbnailClass()).toBeNull();
     });
 
+    it('should set no icon without an item', () => {
+      const controller = new ThumbnailFeatureController();
+
+      controller.calculate({});
+
+      expect(controller.getIcon()).toBeNull();
+    });
+
     it('should fall back to camera metadata icon when there is no thumbnail', () => {
       const controller = new ThumbnailFeatureController();
       const cameraManager = createCameraManagerWithMetadata({

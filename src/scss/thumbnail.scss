@@ -37,7 +37,7 @@
 }
 
 :host(:focus-visible),
-:host(:has(:focus-visible)) {
+:host(:focus-within) {
   --advanced-camera-card-thumbnail-hovered: 1;
   --advanced-camera-card-thumbnail-media-filter: brightness(1.13) contrast(1.05);
 }
