@@ -833,10 +833,16 @@ describe('ViewQueryExecutor', () => {
             type: 'ha',
             id: 'office',
             title: 'Office',
+            navigation: 'restricted',
           });
           vi.mocked(api.getFoldersManager().getDefaultQueryParameters).mockReturnValue({
             source: QuerySource.Folder,
-            folder: { type: 'ha', id: 'office', title: 'Office' },
+            folder: {
+              type: 'ha',
+              id: 'office',
+              title: 'Office',
+              navigation: 'restricted',
+            },
             path: [{ ha: { id: 'media-source://' } }],
           });
 
@@ -879,6 +885,7 @@ describe('ViewQueryExecutor', () => {
           type: 'ha',
           id: 'office',
           title: 'Office',
+          navigation: 'restricted',
         });
         vi.mocked(api.getFoldersManager().getDefaultQueryParameters).mockReturnValue(
           null,

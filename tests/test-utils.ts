@@ -700,6 +700,7 @@ export const createFolder = (config?: Partial<FolderConfig>): FolderConfig => {
   return {
     type: 'ha',
     id: crypto.randomUUID(),
+    navigation: 'restricted',
     ha: {
       path: [{ id: 'media-source://' }],
     },

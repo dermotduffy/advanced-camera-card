@@ -112,7 +112,7 @@ describe('HAFoldersEngine', () => {
     });
 
     it('should start at the media source root when no path is configured', () => {
-      const folder: FolderConfig = { type: 'ha', id: 'test' };
+      const folder: FolderConfig = { type: 'ha', id: 'test', navigation: 'restricted' };
       const engine = new HAFoldersEngine(templateManager);
 
       expect(engine.getDefaultQueryParameters(folder)).toEqual({
@@ -137,7 +137,7 @@ describe('HAFoldersEngine', () => {
     it('should expand folder with cache by default', async () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
+        folder: { type: 'ha', id: 'test', navigation: 'restricted' },
         path: [{ ha: { id: 'media-source://id' } }],
       };
 
@@ -175,7 +175,7 @@ describe('HAFoldersEngine', () => {
     it('should expand folder without cache when requested', async () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
+        folder: { type: 'ha', id: 'test', navigation: 'restricted' },
         path: [{ ha: { id: 'media-source://id' } }],
       };
 
@@ -273,7 +273,7 @@ describe('HAFoldersEngine', () => {
       // added after the parser component that found it.
       const query: FolderQuery = {
         source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
+        folder: { type: 'ha', id: 'test', navigation: 'restricted' },
         path: [
           { ha: { id: LANDING } },
           { ha: { parsers: [{ type: 'thumbnail' }] } },
@@ -339,7 +339,7 @@ describe('HAFoldersEngine', () => {
       // before it are never browsed.
       const query: FolderQuery = {
         source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
+        folder: { type: 'ha', id: 'test', navigation: 'restricted' },
         path: [
           { ha: { id: LANDING } },
           { ha: { parsers: [{ type: 'thumbnail' }] } },
@@ -361,7 +361,7 @@ describe('HAFoldersEngine', () => {
 
       const query: FolderQuery = {
         source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
+        folder: { type: 'ha', id: 'test', navigation: 'restricted' },
         path: [
           {
             folder: new BrowseMediaViewFolder(createFolder(), [], browseMedia),
@@ -390,7 +390,7 @@ describe('HAFoldersEngine', () => {
     it('should not expand without a folder with an id', async () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
+        folder: { type: 'ha', id: 'test', navigation: 'restricted' },
         // There's no component in the query with an id to start from.
         path: [{ ha: {} }],
       };
@@ -401,7 +401,7 @@ describe('HAFoldersEngine', () => {
     it('should return every matching media item without a cap', async () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
+        folder: { type: 'ha', id: 'test', navigation: 'restricted' },
         path: [{ ha: { id: 'media-source://id' } }],
       };
 
@@ -455,7 +455,7 @@ describe('HAFoldersEngine', () => {
       ])('%s', async (_name: string, matcher: Matcher, expectedMatches: number) => {
         const query: FolderQuery = {
           source: QuerySource.Folder,
-          folder: { type: 'ha', id: 'test' },
+          folder: { type: 'ha', id: 'test', navigation: 'restricted' },
           path: [{ ha: { id: 'media-source://' } }, { ha: { matchers: [matcher] } }, {}],
         };
 
@@ -495,7 +495,7 @@ describe('HAFoldersEngine', () => {
     it('should give media a thumbnail from a sibling image', async () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
-        folder: { type: 'ha', id: 'test' },
+        folder: { type: 'ha', id: 'test', navigation: 'restricted' },
         path: [
           { ha: { id: 'media-source://id' } },
           { ha: { parsers: [{ type: 'thumbnail' }] } },

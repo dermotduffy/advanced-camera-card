@@ -54,6 +54,20 @@ describe('transformPathURLToPathArray', () => {
     });
   });
 
+  describe('should strip an empty media class from a path component', () => {
+    it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
+      const url =
+        `${urlPrefix}media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/` +
+        '%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2FLanding';
+      const result = transformPathURLToPathArray(url);
+      expect(result).toEqual([
+        { id: 'media-source://' },
+        { id: 'media-source://media_source' },
+        { id: 'media-source://media_source/local/Landing' },
+      ]);
+    });
+  });
+
   describe('should return the root for unknown URLs', () => {
     it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
       const url = `${urlPrefix}something-completely-different`;
@@ -108,6 +122,7 @@ describe('should be able to re-parse a folder', () => {
 
     const expectedFolder: FolderConfigWithoutID = {
       type: 'ha',
+      navigation: 'restricted',
       ha: {
         url: [
           {

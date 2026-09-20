@@ -7,6 +7,7 @@
   - [2-way audio](2-way-audio.md)
   - [Casting](casting.md)
   - [Custom Icons](custom-icons.md)
+  - [Folder Navigation](folder-navigation.md)
   - [Keyboard Shortcuts](keyboard-shortcuts.md)
   - [URL Actions](url-actions.md)
 

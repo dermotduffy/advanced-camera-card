@@ -9,9 +9,13 @@ import { regexSchema } from './common/regex';
 export const folderTypeSchema = z.enum(['ha']);
 export type FolderType = z.infer<typeof folderTypeSchema>;
 
+export const folderNavigationSchema = z.enum(['restricted', 'unrestricted']);
+export type FolderNavigation = z.infer<typeof folderNavigationSchema>;
+
 const folderConfigDefault = {
   type: 'ha' as const,
   ha: {},
+  navigation: 'restricted' as const,
 };
 
 const startdateParserSchema = z.object({
@@ -120,10 +124,10 @@ export const transformPathURLToPathArray = (
   //    root
   //  - Each subsequent component will start with `media-source://<path>`
   //  - All components except the last will additionally include
-  //    '/<media-class>'.
+  //    '/<media-class>', which may be empty.
   const folderPath: NonEmptyTuple<HAFolderPathComponent> = [
     { id: HA_MEDIA_SOURCE_ROOT },
-    ...splitPath.slice(0, -1).map((split) => ({ id: split.replace(/\/[^/]+$/, '') })),
+    ...splitPath.slice(0, -1).map((split) => ({ id: split.replace(/\/[^/]*$/, '') })),
     ...splitPath.slice(-1).map((split) => ({ id: split })),
   ];
 
@@ -152,6 +156,7 @@ const folderConfigSchema = z.object({
   ha: haFolderConfigSchema.default(folderConfigDefault.ha).optional(),
   title: z.string().optional(),
   icon: z.string().optional(),
+  navigation: folderNavigationSchema.default(folderConfigDefault.navigation),
 });
 export type FolderConfigWithoutID = z.infer<typeof folderConfigSchema>;
 

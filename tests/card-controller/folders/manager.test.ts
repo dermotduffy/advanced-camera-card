@@ -47,6 +47,7 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(createCardAPI());
       const folder: FolderConfigWithoutID = {
         type: 'ha' as const,
+        navigation: 'restricted' as const,
         title: 'Title',
         ha: {
           path: [{ id: 'media-source://' }],
