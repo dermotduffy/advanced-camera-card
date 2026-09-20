@@ -288,12 +288,14 @@ describe('AdvancedCameraCardGallery', () => {
     );
     assert(unselected);
 
-    const ring = deepQuery(thumbnail, '.selection');
+    const ring = deepQuery(thumbnail, '.ring');
     assert(ring);
 
     expect(getComputedStyle(ring).borderWidth).toBe('2px');
 
-    expect(deepQuery(unselected, '.selection')).toBeNull();
+    const unselectedRing = deepQuery(unselected, '.ring');
+    assert(unselectedRing);
+    expect(getComputedStyle(unselectedRing).borderColor).toBe('rgba(0, 0, 0, 0)');
 
     const ringBox = ring.getBoundingClientRect();
     const thumbnailBox = thumbnail.getBoundingClientRect();

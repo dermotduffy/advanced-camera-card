@@ -110,23 +110,33 @@ describe('AdvancedCameraCardThumbnailDetailsPanel', () => {
     assert(thumbnail && picture);
 
     const pictureWidth = picture.getBoundingClientRect().width;
+    const thumbnailWidth = thumbnail.getBoundingClientRect().width;
+    const panelMin = getMinPanelWidth(thumbnail);
 
+    // CSS caps the image at --advanced-camera-card-thumbnail-size via min().
     expect(pictureWidth).toBeCloseTo(
-      thumbnail.getBoundingClientRect().width - getMinPanelWidth(thumbnail),
+      Math.min(THUMBNAIL_SIZE_MAX, thumbnailWidth - panelMin),
       0,
     );
 
     expect(pictureWidth).toBeGreaterThan(0);
-    expect(pictureWidth).toBeLessThan(THUMBNAIL_SIZE_MAX);
+    expect(pictureWidth).toBeLessThan(thumbnailWidth);
   });
 
   it('should keep the image square when the panel beside it is taller', async () => {
-    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_MAX, '260px');
+    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_MAX, '200px');
 
+    const thumbnail = deepQuery(card.card, 'advanced-camera-card-thumbnail');
     const picture = deepQuery(card.card, 'advanced-camera-card-thumbnail-feature');
-    assert(picture);
+    assert(thumbnail && picture);
     const pictureBox = picture.getBoundingClientRect();
+    const panelMin = getMinPanelWidth(thumbnail);
+    const thumbnailWidth = thumbnail.getBoundingClientRect().width;
 
+    expect(pictureBox.width).toBeCloseTo(
+      Math.min(THUMBNAIL_SIZE_MAX, thumbnailWidth - panelMin),
+      0,
+    );
     expect(pictureBox.width).toBeGreaterThan(0);
     expect(getDetails(card).getBoundingClientRect().height).toBeGreaterThan(
       pictureBox.height,
