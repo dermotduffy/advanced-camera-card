@@ -7,6 +7,10 @@ import { createLitElement } from '../../test-utils';
 // @vitest-environment jsdom
 describe('NotificationPopupController', () => {
   const create = (getNotificationElement?: () => HTMLElement | null) => {
+    const focusReturnElement = document.createElement('div');
+    focusReturnElement.setAttribute('tabindex', '0');
+    document.body.appendChild(focusReturnElement);
+
     const host = createLitElement();
     document.body.appendChild(host);
     const popup = document.createElement('div');
@@ -14,6 +18,7 @@ describe('NotificationPopupController', () => {
     const controller = new NotificationPopupController(
       host,
       getNotificationElement ?? (() => popup),
+      () => focusReturnElement,
     );
     controller.hostConnected();
 
@@ -24,7 +29,7 @@ describe('NotificationPopupController', () => {
       document.body.replaceChildren();
     });
 
-    return { host, popup, controller };
+    return { focusReturnElement, host, popup, controller };
   };
 
   it('should add itself to the host', () => {
@@ -40,7 +45,11 @@ describe('NotificationPopupController', () => {
     });
 
     it('should do nothing when there is no notification element', () => {
-      const controller = new NotificationPopupController(createLitElement(), () => null);
+      const controller = new NotificationPopupController(
+        createLitElement(),
+        () => null,
+        () => null,
+      );
       expect(() => controller.dismiss()).not.toThrow();
     });
   });
@@ -51,14 +60,6 @@ describe('NotificationPopupController', () => {
       const outside = document.createElement('div');
       document.body.appendChild(outside);
       outside.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
-      expect(popup.classList.contains('exiting')).toBe(true);
-    });
-
-    it('should dismiss on a focus outside the host', () => {
-      const { popup } = create();
-      const outside = document.createElement('div');
-      document.body.appendChild(outside);
-      outside.dispatchEvent(new Event('focusin', { bubbles: true, composed: true }));
       expect(popup.classList.contains('exiting')).toBe(true);
     });
 
@@ -118,29 +119,21 @@ describe('NotificationPopupController', () => {
       expect(() => controller.hostUpdated()).not.toThrow();
     });
 
-    it('should return focus to the element that had it', () => {
-      const before = document.createElement('button');
-      document.body.appendChild(before);
-      before.focus();
-
+    it('should hand focus back once dismissed', () => {
       const popup = createFocusablePopup();
-      const { controller } = create(() => popup);
+      const { focusReturnElement, controller } = create(() => popup);
       controller.hostUpdated();
       popup.remove();
 
       controller.hostDisconnected();
 
-      expect(document.activeElement).toBe(before);
+      expect(document.activeElement).toBe(focusReturnElement);
     });
 
-    it('should return focus without overriding the browser indicator', () => {
-      const before = document.createElement('button');
-      document.body.appendChild(before);
-      before.focus();
-      const focus = vi.spyOn(before, 'focus');
-
+    it('should hand focus back without overriding the browser indicator', () => {
       const popup = createFocusablePopup();
-      const { controller } = create(() => popup);
+      const { focusReturnElement, controller } = create(() => popup);
+      const focus = vi.spyOn(focusReturnElement, 'focus');
       controller.hostUpdated();
       popup.remove();
 
@@ -150,11 +143,24 @@ describe('NotificationPopupController', () => {
       expect(focus).toHaveBeenCalledWith();
     });
 
-    it('should leave focus alone when something else has taken it', () => {
-      const before = document.createElement('button');
-      document.body.appendChild(before);
-      before.focus();
+    it('should do nothing when there is nowhere to hand focus back to', () => {
+      const host = createLitElement();
+      document.body.appendChild(host);
+      const popup = createFocusablePopup();
 
+      const controller = new NotificationPopupController(
+        host,
+        () => popup,
+        () => null,
+      );
+      controller.hostConnected();
+      controller.hostUpdated();
+      popup.remove();
+
+      expect(() => controller.hostDisconnected()).not.toThrow();
+    });
+
+    it('should leave focus alone when something else has taken it', () => {
       const { controller } = create();
 
       const elsewhere = document.createElement('button');

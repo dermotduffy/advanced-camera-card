@@ -3,32 +3,31 @@ import type { ReactiveController, ReactiveControllerHost } from 'lit';
 import { hasPopOutAnimationEnded } from '../../utils/animation.js';
 import { dispatchDismissNotificationEvent } from '../../utils/notification.js';
 
-// Manages the popup notification's modal interaction: dismiss on outside
-// interaction or Escape, hold focus while it is shown, and emit the dismiss
-// event once the pop-out animation finishes.
+// Manages the popup notification's interaction: dismiss on outside interaction
+// or Escape, hold focus while it is shown, and emit the dismiss event once the
+// pop-out animation finishes.
 export class NotificationPopupController implements ReactiveController {
   private _host: ReactiveControllerHost & HTMLElement;
   private _getNotificationElement: () => HTMLElement | null;
-  private _elementFocusedBeforePopup: Element | null = null;
+  private _getFocusReturnElement: () => HTMLElement | null;
   private _hasTakenFocus = false;
 
   constructor(
     host: ReactiveControllerHost & HTMLElement,
     getNotificationElement: () => HTMLElement | null,
+    getFocusReturnElement: () => HTMLElement | null,
   ) {
     this._host = host;
     this._getNotificationElement = getNotificationElement;
+    this._getFocusReturnElement = getFocusReturnElement;
     host.addController(this);
   }
 
   public hostConnected(): void {
-    this._elementFocusedBeforePopup = document.activeElement;
-
     window.addEventListener('click', this._handleOutsideInteraction);
-    window.addEventListener('focusin', this._handleOutsideInteraction);
 
-    // Escape is claimed in the capture phase: the popup is a modal surface and
-    // must consume Escape before non-modal background controls (e.g. the call
+    // Escape is claimed in the capture phase: the popup sits on top of the card
+    // and must consume Escape before background controls (e.g. the call
     // controls) that also listen on `window`.
     window.addEventListener('keydown', this._handleKeyDown, { capture: true });
   }
@@ -44,23 +43,21 @@ export class NotificationPopupController implements ReactiveController {
 
   public hostDisconnected(): void {
     window.removeEventListener('click', this._handleOutsideInteraction);
-    window.removeEventListener('focusin', this._handleOutsideInteraction);
     window.removeEventListener('keydown', this._handleKeyDown, { capture: true });
 
     this._hasTakenFocus = false;
 
-    // Focus returns to whatever held it before the popup appeared, unless
-    // something else has taken focus since.
-    if (
-      this._elementFocusedBeforePopup instanceof HTMLElement &&
-      document.activeElement === document.body
-    ) {
-      // Browser will decide whether or not to draw a focus ring. Don't use
-      // `focusVisible: false` here since a user can dismiss the popup with the
-      // keyboard, and `false` would then incorrectly take the focus ring away.
-      this._elementFocusedBeforePopup.focus();
+    // The popup took focus when it appeared, so it hands focus back rather than
+    // leaving the user with nothing in focus. Where focus returns is up to the
+    // caller.
+    //
+    // Browser will decide whether or not to draw a focus ring. Don't use
+    // `focusVisible: false` here since a user can dismiss the popup with the
+    // keyboard, and `false` would then incorrectly take the focus ring away.
+    const focusReturnElement = this._getFocusReturnElement();
+    if (focusReturnElement && document.activeElement === document.body) {
+      focusReturnElement.focus();
     }
-    this._elementFocusedBeforePopup = null;
   }
 
   public dismiss = (): void => {

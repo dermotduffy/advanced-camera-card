@@ -142,67 +142,76 @@ describe('NotificationPopupController', () => {
     expect(getFocusedElement()).toBe(close);
   });
 
-  it('should return focus to where it was once dismissed', async () => {
+  it('should ARIA-label itself by its heading', async () => {
     const card = await mount();
     await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
-    const elsewhere = document.createElement('button');
-    document.body.appendChild(elsewhere);
-    elsewhere.focus();
+    const notification = await showNotification(card);
 
-    await showNotification(card);
-    expect(getFocusedElement()).not.toBe(elsewhere);
+    expect(notification.getAttribute('role')).toBe('alertdialog');
 
-    await dismissNotificationWithKeyboard(card);
-
-    expect(getFocusedElement()).toBe(elsewhere);
+    const labelledBy = notification.getAttribute('aria-labelledby');
+    assert(labelledBy);
+    expect(deepQuery(card.card, `#${labelledBy}`)?.textContent).toContain(
+      NOTIFICATION.heading?.text,
+    );
+    expect(notification.hasAttribute('aria-label')).toBe(false);
   });
 
-  it('should not draw an indicator when it returns focus to a pointer user', async () => {
+  it('should ARIA-label itself when it has no heading', async () => {
+    const card = await mount({ body: { text: BODY_TEXT } });
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
+
+    const notification = await showNotification(card);
+
+    expect(notification.getAttribute('aria-label')).toBe('Notification');
+    expect(notification.hasAttribute('aria-labelledby')).toBe(false);
+  });
+
+  it('should hand focus to the card once dismissed', async () => {
     const card = await mount();
     await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
     const elsewhere = document.createElement('button');
     elsewhere.textContent = 'elsewhere';
     document.body.appendChild(elsewhere);
-
     await clickElement(elsewhere);
-    expect(isFocusIndicatorDrawn(elsewhere)).toBe(false);
+
+    await showNotification(card);
+    await dismissNotificationWithKeyboard(card);
+
+    // Notification returns focus back to the card.
+    expect(getFocusedElement()).toBe(card.card);
+  });
+
+  it('should not draw an indicator on the card for a pointer user', async () => {
+    const card = await mount();
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
+
+    await clickElement(await card.waitForSelector('advanced-camera-card-live-provider'));
 
     await showNotification(card);
     await dismissNotificationWithPointer(card);
 
-    expect(getFocusedElement()).toBe(elsewhere);
+    expect(getFocusedElement()).toBe(card.card);
 
-    expect(isFocusIndicatorDrawn(elsewhere)).toBe(false);
+    expect(isFocusIndicatorDrawn(card.card)).toBe(false);
   });
 
-  it('should draw an indicator when it returns focus to a keyboard user', async () => {
+  it('should draw an indicator on the card for a keyboard user', async () => {
     const card = await mount();
     await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
-    // Only a real Tab makes the browser draw the indicator, and `previous` sits
-    // immediately before `elsewhere` so that one press reaches it.
-    const previous = document.createElement('button');
-    previous.textContent = 'previous';
-    document.body.appendChild(previous);
-
-    const elsewhere = document.createElement('button');
-    elsewhere.textContent = 'elsewhere';
-    document.body.appendChild(elsewhere);
-
-    previous.focus();
     await pressTab();
-
-    expect(getFocusedElement()).toBe(elsewhere);
-    expect(isFocusIndicatorDrawn(elsewhere)).toBe(true);
+    expect(getFocusedElement()).toBe(card.card);
+    expect(isFocusIndicatorDrawn(card.card)).toBe(true);
 
     await showNotification(card);
     await dismissNotificationWithKeyboard(card);
 
-    expect(getFocusedElement()).toBe(elsewhere);
+    expect(getFocusedElement()).toBe(card.card);
 
-    expect(isFocusIndicatorDrawn(elsewhere)).toBe(true);
+    expect(isFocusIndicatorDrawn(card.card)).toBe(true);
   });
 
   it('should activate a notification control from the keyboard', async () => {
