@@ -31,7 +31,7 @@ describe('resolveThumbnailStyle', () => {
   });
 
   it.each([
-    ['none' as const],
+    ['plain' as const],
     ['overlay' as const],
     ['hover' as const],
     ['panel' as const],

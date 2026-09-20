@@ -6601,9 +6601,9 @@ describe('should handle version specific upgrades', () => {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
           live: { controls: { thumbnails: { style: 'panel' } } },
-          media_gallery: { controls: { thumbnails: { style: 'none' } } },
+          media_gallery: { controls: { thumbnails: { style: 'plain' } } },
           media_viewer: { controls: { thumbnails: { style: 'panel' } } },
-          timeline: { controls: { thumbnails: { style: 'none' } } },
+          timeline: { controls: { thumbnails: { style: 'plain' } } },
         });
         postUpgradeChecks(config);
       });
@@ -6662,5 +6662,6 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
     });
+
   });
 });

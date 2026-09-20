@@ -33,8 +33,8 @@ export const getThumbnailsSchema = (options?: {
         label: localize('config.common.controls.thumbnails.styles.auto'),
       },
       {
-        value: 'none',
-        label: localize('config.common.controls.thumbnails.styles.none'),
+        value: 'plain',
+        label: localize('config.common.controls.thumbnails.styles.plain'),
       },
       {
         value: 'overlay',

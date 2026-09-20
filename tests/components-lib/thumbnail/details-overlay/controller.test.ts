@@ -53,7 +53,7 @@ describe('ThumbnailDetailsOverlayController', () => {
   });
 
   describe('should show nothing without an overlay', () => {
-    it.each([['none' as const], ['panel' as const]])(
+    it.each([['plain' as const], ['panel' as const]])(
       'should show nothing for %s',
       (thumbnailStyle) => {
         const controller = createController(thumbnailStyle, 100);

@@ -1671,8 +1671,8 @@ const removeFromArrayTransform = (
 
 const showDetailsToStyleTransform = (
   value: unknown,
-): Extract<ThumbnailStyle, 'none' | 'panel'> | null =>
-  value === true ? 'panel' : value === false ? 'none' : null;
+): Extract<ThumbnailStyle, 'plain' | 'panel'> | null =>
+  value === true ? 'panel' : value === false ? 'plain' : null;
 
 const UPGRADES = [
   // v5.2.0 -> v6.0.0

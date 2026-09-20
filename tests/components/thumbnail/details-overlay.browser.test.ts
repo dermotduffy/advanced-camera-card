@@ -134,7 +134,7 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
   });
 
   it('should render no overlay when details are off', async () => {
-    const card = await mountGallery('none', 100);
+    const card = await mountGallery('plain', 100);
 
     expect(getOverlay(card)).toBeNull();
   });

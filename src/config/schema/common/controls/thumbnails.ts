@@ -4,7 +4,7 @@ export const THUMBNAIL_SIZE_MIN = 75;
 export const THUMBNAIL_SIZE_DEFAULT = 100;
 export const THUMBNAIL_SIZE_MAX = 300;
 
-const thumbnailStyleSchema = z.enum(['auto', 'none', 'overlay', 'hover', 'panel']);
+const thumbnailStyleSchema = z.enum(['auto', 'plain', 'overlay', 'hover', 'panel']);
 export type ThumbnailStyle = z.infer<typeof thumbnailStyleSchema>;
 
 export const thumbnailsControlBaseDefaults = {

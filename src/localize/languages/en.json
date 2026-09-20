@@ -291,10 +291,10 @@
           "style": "Style",
           "styles": {
             "auto": "Automatic",
-            "hover": "Details on hover",
-            "none": "No details",
-            "overlay": "Details on the thumbnail",
-            "panel": "Details panel beside the thumbnail"
+            "hover": "Thumbnail with details on hover",
+            "plain": "Thumbnail without details",
+            "overlay": "Thumbnail with details overlay",
+            "panel": "Thumbnail with details panel"
           },
           "editor_label": "Thumbnails",
           "mode": "Mode",

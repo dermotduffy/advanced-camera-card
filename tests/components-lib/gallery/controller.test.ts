@@ -164,7 +164,9 @@ describe('GalleryController', () => {
     it('should return size if details are hidden', () => {
       const controller = new GalleryController(createLitElement());
 
-      controller.setThumbnailConfig(createThumbnailConfig({ size: 123, style: 'none' }));
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ size: 123, style: 'plain' }),
+      );
 
       expect(controller.getColumnWidth()).toBe(123);
     });
@@ -331,7 +333,7 @@ describe('GalleryController', () => {
     controller.setThumbnailConfig(createThumbnailConfig({ style: 'panel' }));
     expect(controller.getColumnCountRoundMethod()).toBe('floor');
 
-    controller.setThumbnailConfig(createThumbnailConfig({ style: 'none' }));
+    controller.setThumbnailConfig(createThumbnailConfig({ style: 'plain' }));
     expect(controller.getColumnCountRoundMethod()).toBe('ceil');
 
     controller.setThumbnailConfig();
