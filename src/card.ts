@@ -560,6 +560,7 @@ export class AdvancedCameraCard extends LitElement {
                 .notification=${this._controller
                   .getNotificationManager()
                   .getNotification()}
+                .focusReturnElement=${this}
               ></advanced-camera-card-notification>`
             : ''}
         </ha-card>`,

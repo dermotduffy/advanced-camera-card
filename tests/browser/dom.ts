@@ -174,6 +174,38 @@ export const getElementAtPoint = (x: number, y: number): Element | null => {
 };
 
 /**
+ * Whether an outline is being drawn on an element that has focus.
+ * `:focus-visible` cannot answer this: it matches focus taken by script even
+ * where no indicator is drawn.
+ */
+export const isFocusIndicatorDrawn = (element: Element): boolean => {
+  const style = getComputedStyle(element);
+  return (
+    element.matches(':focus') &&
+    style.outlineStyle !== 'none' &&
+    parseFloat(style.outlineWidth) > 0
+  );
+};
+
+/**
+ * Whether the browser supports the `focusVisible` focus option, which older
+ * Chrome and Safari accept but ignore. Asked of a detached element, which the
+ * browser reads the options from without moving focus anywhere.
+ */
+export const doesBrowserSupportFocusVisible = (): boolean => {
+  let read = false;
+
+  document.createElement('div').focus({
+    get focusVisible(): boolean {
+      read = true;
+      return false;
+    },
+  });
+
+  return read;
+};
+
+/**
  * The element that actually has focus. `document.activeElement` names the
  * outermost shadow host in the way, since focus is reported per tree.
  */

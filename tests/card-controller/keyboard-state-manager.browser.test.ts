@@ -11,8 +11,10 @@ import { isRecord } from '../../src/utils/basic';
 import {
   clickElement,
   dispatchPointerDown,
+  doesBrowserSupportFocusVisible,
   getFocusedElement,
   holdKey,
+  isFocusIndicatorDrawn,
   pressKey,
   pressTab,
   releaseKey,
@@ -240,10 +242,14 @@ describe('KeyboardStateManager', () => {
 
     expect(getFocusedElement()).toBe(card.card);
 
-    // Focus taken by script counts as keyboard-driven, and the browser rings
-    // the whole card for it: a bright border around a card the user only
-    // pressed.
-    expect(card.card.matches(':focus-visible')).toBe(false);
+    // Focus taken by script counts as keyboard-driven, so the browser draws its
+    // indicator around the whole card for a press the user made with a pointer.
+    // The card asks for it to be skipped, which older browsers ignore.
+    if (!doesBrowserSupportFocusVisible()) {
+      return;
+    }
+
+    expect(isFocusIndicatorDrawn(card.card)).toBe(false);
   });
 
   it('should draw a focus indicator when it is reached with the keyboard', async () => {
@@ -255,7 +261,7 @@ describe('KeyboardStateManager', () => {
 
     // The card is in the tab order, and a user who arrives on it that way needs
     // to be able to see where they are.
-    expect(card.card.matches(':focus-visible')).toBe(true);
+    expect(isFocusIndicatorDrawn(card.card)).toBe(true);
   });
 
   it('should not scroll the page when it takes focus', async () => {
