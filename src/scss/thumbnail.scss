@@ -51,44 +51,42 @@
   }
 }
 
-// The focus ring is two stacked shadows: 2px of the color behind the
-// thumbnail, then 2px of the focus color outside that. The first is a spacer,
-// so the ring never touches the image and stays visible on a light or busy
-// photo. The browser's own outline is turned off because a selected thumbnail
-// already draws one.
 :host(:focus-visible) {
   outline: none;
-  box-shadow:
-    0 0 0 2px var(--advanced-camera-card-exterior),
-    0 0 0 4px var(--advanced-camera-card-thumbnail-focus-color);
 }
 
-// To indicate selection: an element rather than an `outline`, drawn after the
-// image so the image cannot cover it.
-.selection {
+.ring {
   position: absolute;
   inset: 0;
   pointer-events: none;
 
-  border: 2px solid var(--advanced-camera-card-thumbnail-selected-color);
+  border: 2px solid transparent;
   border-radius: var(--advanced-camera-card-border-radius-final);
   box-sizing: border-box;
 }
-:host([severity='high']) .selection {
+:host([selected]) .ring {
+  border-color: var(--advanced-camera-card-thumbnail-selected-color);
+}
+:host([selected][severity='high']) .ring {
   border-color: var(--advanced-camera-card-thumbnail-icon-severity-high-color);
   opacity: 0.75;
 }
-:host([severity='medium']) .selection {
+:host([selected][severity='medium']) .ring {
   border-color: var(--advanced-camera-card-thumbnail-icon-severity-medium-color);
   opacity: 0.75;
 }
-:host([severity='low']) .selection {
+:host([selected][severity='low']) .ring {
   border-color: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
   opacity: 0.75;
 }
-:host([favorite]) .selection {
+:host([selected][favorite]) .ring {
   border-color: var(--advanced-camera-card-thumbnail-icon-favorite-color);
   opacity: 0.75;
+}
+:host(:focus-visible) .ring,
+:host(:focus-visible[selected]) .ring {
+  border-color: var(--advanced-camera-card-thumbnail-focus-color);
+  opacity: 1;
 }
 // A flex item will not shrink narrower than its own text unless `min-width` is
 // set. Without it the rows push out of the thumbnail instead of being cut off

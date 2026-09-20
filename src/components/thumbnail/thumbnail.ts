@@ -176,7 +176,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
             .size=${this.size}
           ></advanced-camera-card-thumbnail-details-panel>`
         : ''}
-      ${this.selected ? html`<div class="selection"></div>` : ''}
+      <div class="ring"></div>
     `;
   }
 
