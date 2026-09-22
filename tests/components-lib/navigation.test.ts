@@ -1,18 +1,20 @@
-import type { NonEmptyTuple } from 'type-fest';
 import { assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { CameraManager } from '../../src/camera-manager/manager';
 import { QueryType, type EventQuery } from '../../src/camera-manager/types';
 import type { FoldersManager } from '../../src/card-controller/folders/manager';
-import type { FolderPathComponent } from '../../src/card-controller/folders/types';
+import type {
+  FolderPathLevel,
+  FolderQuery,
+} from '../../src/card-controller/folders/types';
 import type {
   ViewManagerEpoch,
   ViewModifier,
 } from '../../src/card-controller/view/types';
 import {
   getUpFolderItem,
-  navigateToFolder,
+  navigateDownIntoFolder,
   navigateToMedia,
   navigateUp,
   type FolderNavigationParamaters,
@@ -27,7 +29,7 @@ import { createView, createViewWithMedia } from '../view/test-utils';
 
 const createFolderQuery = (
   folder: ReturnType<typeof createFolder>,
-  path: NonEmptyTuple<FolderPathComponent> = [{}],
+  path: FolderPathLevel[] = [{}],
 ): UnifiedQuery => {
   const query = new UnifiedQuery();
   query.addNode({
@@ -50,6 +52,40 @@ const createCameraQuery = (): UnifiedQuery => {
   return query;
 };
 
+const createHarness = (options?: {
+  query?: UnifiedQuery;
+  upQuery?: FolderQuery | null;
+  downQuery?: FolderQuery | null;
+}) => {
+  const api = createCardAPI();
+  vi.mocked(api.getViewManager().getView).mockReturnValue(
+    createView({ query: options?.query }),
+  );
+  vi.mocked(api.getViewManager().setViewByParametersWithExistingQuery).mockResolvedValue(
+    undefined,
+  );
+
+  const foldersManager = mock<FoldersManager>();
+  foldersManager.getUpQuery.mockReturnValue(options?.upQuery ?? null);
+  foldersManager.getDownQuery.mockReturnValue(options?.downQuery ?? null);
+
+  const navigationParameters: FolderNavigationParamaters = {
+    viewManagerEpoch: { manager: api.getViewManager() },
+    foldersManager,
+    builder: new UnifiedQueryBuilder(mock<CameraManager>(), foldersManager),
+  };
+
+  return { api, foldersManager, navigationParameters };
+};
+
+const getNavigatedNode = (api: ReturnType<typeof createCardAPI>): unknown => {
+  const query = vi.mocked(api.getViewManager().setViewByParametersWithExistingQuery).mock
+    .calls[0][0]?.params?.query;
+  const nodes = query?.getNodes();
+  expect(nodes).toHaveLength(1);
+  return nodes?.[0];
+};
+
 describe('navigateUp', () => {
   it('should do nothing with null options', () => {
     navigateUp(null);
@@ -57,55 +93,27 @@ describe('navigateUp', () => {
     // No error thrown
   });
 
-  it('should ignore non-folder query', () => {
-    const api = createCardAPI();
-    const view = createView({
+  it('should ignore a non-folder query', () => {
+    const { api, foldersManager, navigationParameters } = createHarness({
       query: createCameraQuery(),
     });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
 
-    const epoch: ViewManagerEpoch = {
-      manager: api.getViewManager(),
-    };
+    navigateUp(navigationParameters);
 
-    const builder = new UnifiedQueryBuilder(
-      mock<CameraManager>(),
-      mock<FoldersManager>(),
-    );
-    const options: FolderNavigationParamaters = {
-      builder,
-      viewManagerEpoch: epoch,
-    };
-
-    navigateUp(options);
-
+    expect(foldersManager.getUpQuery).not.toHaveBeenCalled();
     expect(
       api.getViewManager().setViewByParametersWithExistingQuery,
     ).not.toHaveBeenCalled();
   });
 
-  it('should ignore folder query without parent to go up to', () => {
-    const api = createCardAPI();
+  it('should ignore a folder without a parent to go up to', () => {
     const folder = createFolder();
-    const view = createView({
-      query: createFolderQuery(folder, [{ ha: { id: 'root' } }]),
+    const { api, navigationParameters } = createHarness({
+      query: createFolderQuery(folder),
+      upQuery: null,
     });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
 
-    const epoch: ViewManagerEpoch = {
-      manager: api.getViewManager(),
-    };
-
-    const builder = new UnifiedQueryBuilder(
-      mock<CameraManager>(),
-      mock<FoldersManager>(),
-    );
-    const options: FolderNavigationParamaters = {
-      builder,
-      viewManagerEpoch: epoch,
-    };
-
-    navigateUp(options);
+    navigateUp(navigationParameters);
 
     expect(
       api.getViewManager().setViewByParametersWithExistingQuery,
@@ -113,135 +121,145 @@ describe('navigateUp', () => {
   });
 
   it('should go up in the folder hierarchy', () => {
-    const api = createCardAPI();
     const folder = createFolder();
-    const view = createView({
-      query: createFolderQuery(folder, [
-        { ha: { id: 'one' } },
-        { ha: { id: 'two' } },
-        { ha: { id: 'three' } },
-      ]),
-    });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
-
-    const epoch: ViewManagerEpoch = {
-      manager: api.getViewManager(),
-    };
-
-    const builder = new UnifiedQueryBuilder(
-      mock<CameraManager>(),
-      mock<FoldersManager>(),
-    );
-    const options: FolderNavigationParamaters = {
-      builder,
-      viewManagerEpoch: epoch,
-    };
-
-    navigateUp(options);
-
-    expect(
-      api.getViewManager().setViewByParametersWithExistingQuery,
-    ).toHaveBeenCalledWith({
-      params: {
-        query: expect.any(UnifiedQuery),
-      },
-    });
-
-    const query = vi.mocked(api.getViewManager().setViewByParametersWithExistingQuery)
-      .mock.calls[0][0]?.params?.query as UnifiedQuery;
-    const nodes = query.getNodes();
-    expect(nodes).toHaveLength(1);
-    expect(nodes[0]).toMatchObject({
+    const query = createFolderQuery(folder, [{}, {}, {}]);
+    const upQuery: FolderQuery = {
       source: QuerySource.Folder,
       folder,
-      path: [{ ha: { id: 'one' } }, { ha: { id: 'two' } }],
+      path: [{}, {}],
+    };
+    const { api, foldersManager, navigationParameters } = createHarness({
+      query,
+      upQuery,
     });
+
+    navigateUp(navigationParameters);
+
+    expect(foldersManager.getUpQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ folder }),
+    );
+    expect(getNavigatedNode(api)).toMatchObject({
+      source: QuerySource.Folder,
+      folder,
+      path: upQuery.path,
+    });
+  });
+
+  it('should ignore a failure to change the view', async () => {
+    const folder = createFolder();
+    const { api, navigationParameters } = createHarness({
+      query: createFolderQuery(folder, [{}, {}, {}]),
+      upQuery: { source: QuerySource.Folder, folder, path: [{}, {}] },
+    });
+    vi.mocked(
+      api.getViewManager().setViewByParametersWithExistingQuery,
+    ).mockRejectedValue(new Error('Could not set view'));
+
+    navigateUp(navigationParameters);
+
+    // An unhandled rejection would fail the test.
+    await Promise.resolve();
   });
 });
 
-describe('navigateToFolder', () => {
+describe('navigateDownIntoFolder', () => {
   it('should do nothing with null options', () => {
-    const folder = createFolder();
-    const item = new ViewFolder(folder, [{ ha: { id: 'root' } }]);
+    const item = new ViewFolder(createFolder(), [{}]);
 
-    navigateToFolder(item, null);
+    navigateDownIntoFolder(item, null);
 
     // No error thrown
   });
 
-  it('should navigate into folder', () => {
-    const api = createCardAPI();
+  it('should ignore an item without a path to descend to', () => {
     const folder = createFolder();
-    const view = createView({
-      query: createFolderQuery(folder, [{ ha: { id: 'root' } }]),
+    const { api, navigationParameters } = createHarness({
+      query: createFolderQuery(folder),
+      downQuery: null,
     });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
 
-    const epoch: ViewManagerEpoch = {
-      manager: api.getViewManager(),
-    };
-
-    const builder = new UnifiedQueryBuilder(
-      mock<CameraManager>(),
-      mock<FoldersManager>(),
-    );
-    const options: FolderNavigationParamaters = {
-      builder,
-      viewManagerEpoch: epoch,
-    };
-
-    const item = new ViewFolder(folder, [{ ha: { id: 'root' } }]);
-    navigateToFolder(item, options);
+    navigateDownIntoFolder(new ViewFolder(folder, [{}]), navigationParameters);
 
     expect(
       api.getViewManager().setViewByParametersWithExistingQuery,
-    ).toHaveBeenCalledWith({
-      params: {
-        query: expect.any(UnifiedQuery),
-      },
-    });
+    ).not.toHaveBeenCalled();
+  });
 
-    const query = vi.mocked(api.getViewManager().setViewByParametersWithExistingQuery)
-      .mock.calls[0][0]?.params?.query;
-    const nodes = query?.getNodes();
-    expect(nodes).toHaveLength(1);
-    expect(nodes?.[0]).toMatchObject({
+  it('should navigate into a folder', () => {
+    const folder = createFolder();
+    const item = new ViewFolder(folder, [{}]);
+    const downQuery: FolderQuery = {
       source: QuerySource.Folder,
       folder,
+      path: [{ folder: item }, {}],
+    };
+    const { api, foldersManager, navigationParameters } = createHarness({
+      query: createFolderQuery(folder),
+      downQuery,
     });
-    expect(nodes?.[0]).toHaveProperty('path');
-    expect((nodes?.[0] as { path: readonly unknown[] }).path).toHaveLength(2);
+
+    navigateDownIntoFolder(item, navigationParameters);
+
+    expect(foldersManager.getDownQuery).toHaveBeenCalledWith(item);
+    expect(getNavigatedNode(api)).toMatchObject({
+      source: QuerySource.Folder,
+      folder,
+      path: downQuery.path,
+    });
   });
 });
 
 describe('getUpFolderItem', () => {
-  it('should return null for null query', () => {
+  it('should return null without options', () => {
     expect(getUpFolderItem(null)).toBeNull();
   });
 
-  it('should return null for non-folder query', () => {
-    expect(getUpFolderItem(createCameraQuery())).toBeNull();
+  it('should return null for a non-folder query', () => {
+    const { navigationParameters } = createHarness({ query: createCameraQuery() });
+
+    expect(getUpFolderItem(navigationParameters)).toBeNull();
   });
 
-  it('should return null for folder query with single path element', () => {
-    const folder = createFolder();
-    expect(
-      getUpFolderItem(createFolderQuery(folder, [{ ha: { id: 'root' } }])),
-    ).toBeNull();
+  it('should return null for a folder without a parent to go up to', () => {
+    const { navigationParameters } = createHarness({
+      query: createFolderQuery(createFolder()),
+      upQuery: null,
+    });
+
+    expect(getUpFolderItem(navigationParameters)).toBeNull();
   });
 
-  it('should return ViewFolder for navigable folder query', () => {
+  it('should return null when the view shows more than one folder', () => {
     const folder = createFolder();
-    const query = createFolderQuery(folder, [
-      { ha: { id: 'one' } },
-      { ha: { id: 'two' } },
-      { ha: { id: 'three' } },
-    ]);
+    const query = createFolderQuery(folder);
+    query.addNode({ source: QuerySource.Folder, folder: createFolder(), path: [{}] });
 
-    const folderItem = getUpFolderItem(query);
+    const { foldersManager, navigationParameters } = createHarness({
+      query,
+      upQuery: { source: QuerySource.Folder, folder, path: [{}, {}] },
+    });
+
+    expect(getUpFolderItem(navigationParameters)).toBeNull();
+    expect(foldersManager.getUpQuery).not.toHaveBeenCalled();
+  });
+
+  it('should return an up folder for a navigable folder query', () => {
+    const folder = createFolder();
+    const upQuery: FolderQuery = {
+      source: QuerySource.Folder,
+      folder,
+      path: [{}, {}],
+    };
+    const { navigationParameters } = createHarness({
+      query: createFolderQuery(folder, [{}, {}, {}]),
+      upQuery,
+    });
+
+    const folderItem = getUpFolderItem(navigationParameters);
 
     expect(folderItem).toBeInstanceOf(ViewFolder);
     expect(folderItem?.getIcon()).toBe('mdi:arrow-up-left');
+    expect(folderItem?.getPath()).toBe(upQuery.path);
   });
 });
 

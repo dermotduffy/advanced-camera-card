@@ -82,6 +82,9 @@ export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public locked?: boolean;
 
+  @property({ attribute: false })
+  public drawerPinned?: boolean;
+
   @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
@@ -179,6 +182,7 @@ export class AdvancedCameraCardViews extends LitElement {
       .viewItemManager=${this.viewItemManager}
       .cardWideConfig=${this.cardWideConfig}
       .locked=${this.locked}
+      .drawerPinned=${this.drawerPinned}
     >
       ${!this.hide && view?.is('image')
         ? html` <advanced-camera-card-image

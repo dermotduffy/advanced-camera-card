@@ -8,13 +8,42 @@ import type { ViewManager } from '../../src/card-controller/view/view-manager';
 import {
   downloadMedia,
   navigateToTimeline,
+  showMediaInfoNotification,
   toggleFavorite,
   toggleReviewed,
 } from '../../src/utils/media-actions';
 import { ViewMediaType, type ViewItem } from '../../src/view/item';
-import type { QueryResults } from '../../src/view/query-results';
+import { QueryResults } from '../../src/view/query-results';
 import type { View } from '../../src/view/view';
-import { TestViewMedia } from '../view/test-utils';
+import { createView, TestViewMedia } from '../view/test-utils';
+
+const createReviewItem = (id: string): TestViewMedia =>
+  new TestViewMedia({ id, mediaType: ViewMediaType.Review, reviewed: false });
+
+const createViewManagerWithResults = (
+  results: ViewItem[],
+): { viewManager: ViewManager; viewManagerEpoch: ViewManagerEpoch } => {
+  const viewManager = mock<ViewManager>();
+  const viewManagerEpoch = mock<ViewManagerEpoch>();
+  const view = mock<View>();
+
+  viewManagerEpoch.manager = viewManager;
+  viewManager.getView.mockReturnValue(view);
+  view.queryResults = new QueryResults({ results });
+
+  return { viewManager, viewManagerEpoch };
+};
+
+const getQueryResultsAfterModifiers = (
+  viewManager: ViewManager,
+): QueryResults | null => {
+  const modifiers = vi.mocked(viewManager.setViewWithModifiers).mock.calls[0]?.[0] ?? [];
+  const view = createView({
+    queryResults: viewManager.getView()?.queryResults?.clone() ?? null,
+  });
+  modifiers.forEach((modifier) => modifier.modify(view));
+  return view.queryResults;
+};
 
 describe('MediaActions', () => {
   describe('toggleReviewed', () => {
@@ -34,30 +63,22 @@ describe('MediaActions', () => {
       expect(await toggleReviewed(host, item)).toBe(false);
     });
 
-    it('should toggle review status and update view', async () => {
+    it('should remove a reviewed item from an unreviewed-only gallery', async () => {
       const host = mock<HTMLElement>();
-      const item = new TestViewMedia({
-        mediaType: ViewMediaType.Review,
-        reviewed: false,
-      });
+      const item = createReviewItem('review-1');
+      const other = createReviewItem('review-2');
       const viewItemManager = mock<ViewItemManager>();
-      const viewManagerEpoch = mock<ViewManagerEpoch>();
-      const viewManager = mock<ViewManager>();
-      const view = mock<View>();
-      const queryResults = mock<QueryResults>();
-
-      viewManagerEpoch.manager = viewManager;
-      viewManager.getView.mockReturnValue(view);
-      view.queryResults = queryResults;
-      queryResults.clone.mockReturnValue(queryResults);
-      queryResults.removeItem.mockReturnValue(queryResults);
+      const { viewManager, viewManagerEpoch } = createViewManagerWithResults([
+        item,
+        other,
+      ]);
 
       expect(
         await toggleReviewed(host, item, viewItemManager, viewManagerEpoch, false),
       ).toBe(true);
       expect(viewItemManager.reviewMedia).toHaveBeenCalledWith(item, true);
-      expect(item.isReviewed()).toBe(true);
-      expect(viewManager.setViewByParameters).toHaveBeenCalled();
+
+      expect(getQueryResultsAfterModifiers(viewManager)?.getResults()).toEqual([other]);
       expect(host.dispatchEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'advanced-camera-card:media:reviewed',
@@ -66,25 +87,91 @@ describe('MediaActions', () => {
       );
     });
 
-    it('should not update view if queryResults is missing', async () => {
+    it('should update the item in the view', async () => {
       const host = mock<HTMLElement>();
-      const item = new TestViewMedia({
-        mediaType: ViewMediaType.Review,
-        reviewed: false,
-      });
+      const item = createReviewItem('review-1');
+      const other = createReviewItem('review-2');
       const viewItemManager = mock<ViewItemManager>();
-      const viewManagerEpoch = mock<ViewManagerEpoch>();
-      const viewManager = mock<ViewManager>();
-      const view = mock<View>();
+      const { viewManager, viewManagerEpoch } = createViewManagerWithResults([
+        item,
+        other,
+      ]);
 
-      viewManagerEpoch.manager = viewManager;
-      viewManager.getView.mockReturnValue(view);
-      view.queryResults = null;
+      expect(await toggleReviewed(host, item, viewItemManager, viewManagerEpoch)).toBe(
+        true,
+      );
 
-      expect(
-        await toggleReviewed(host, item, viewItemManager, viewManagerEpoch, false),
-      ).toBe(true);
-      expect(viewManager.setViewByParameters).not.toHaveBeenCalled();
+      const results = getQueryResultsAfterModifiers(viewManager)?.getResults();
+      expect(results?.[0]).not.toBe(item);
+      expect(results?.[0]?.getID()).toBe('review-1');
+
+      expect(results?.[1]).toBe(other);
+    });
+
+    it('should update every result with a matching id', async () => {
+      const host = mock<HTMLElement>();
+      const item = createReviewItem('event-1');
+      const duplicate = createReviewItem('event-1');
+      const viewItemManager = mock<ViewItemManager>();
+      const { viewManager, viewManagerEpoch } = createViewManagerWithResults([
+        item,
+        duplicate,
+      ]);
+
+      expect(await toggleReviewed(host, item, viewItemManager, viewManagerEpoch)).toBe(
+        true,
+      );
+
+      const results = getQueryResultsAfterModifiers(viewManager)?.getResults();
+      expect(results?.[0]).not.toBe(item);
+      expect(results?.[1]).not.toBe(duplicate);
+    });
+
+    it('should update the item when the view is rebuilt during the request', async () => {
+      const host = mock<HTMLElement>();
+      const item = createReviewItem('review-1');
+      const viewItemManager = mock<ViewItemManager>();
+      const { viewManager, viewManagerEpoch } = createViewManagerWithResults([item]);
+
+      // The view is rebuilt while the remote write is in flight, so the object
+      // on screen afterwards is not the one that was clicked.
+      const rebuilt = createReviewItem('review-1');
+      viewItemManager.reviewMedia.mockImplementation(async () => {
+        const view = mock<View>();
+        view.queryResults = new QueryResults({ results: [rebuilt] });
+        vi.mocked(viewManager.getView).mockReturnValue(view);
+      });
+
+      expect(await toggleReviewed(host, item, viewItemManager, viewManagerEpoch)).toBe(
+        true,
+      );
+
+      const results = getQueryResultsAfterModifiers(viewManager)?.getResults();
+      expect(results?.[0]).not.toBe(rebuilt);
+      expect(results?.[0]?.getID()).toBe('review-1');
+    });
+
+    it('should succeed without a view', async () => {
+      const host = mock<HTMLElement>();
+      const item = createReviewItem('review-1');
+      const viewItemManager = mock<ViewItemManager>();
+
+      expect(await toggleReviewed(host, item, viewItemManager)).toBe(true);
+      expect(host.dispatchEvent).toHaveBeenCalled();
+    });
+
+    it('should leave the results alone if the item is not in them', async () => {
+      const host = mock<HTMLElement>();
+      const item = createReviewItem('review-1');
+      const other = createReviewItem('review-2');
+      const viewItemManager = mock<ViewItemManager>();
+      const { viewManager, viewManagerEpoch } = createViewManagerWithResults([other]);
+
+      expect(await toggleReviewed(host, item, viewItemManager, viewManagerEpoch)).toBe(
+        true,
+      );
+
+      expect(getQueryResultsAfterModifiers(viewManager)?.getResults()).toEqual([other]);
     });
 
     it('should handle manager error', async () => {
@@ -133,6 +220,61 @@ describe('MediaActions', () => {
       expect(viewItemManager.favorite).toHaveBeenCalledWith(item, true);
     });
 
+    it('should update the item in the view', async () => {
+      const item = new TestViewMedia({
+        id: 'clip-1',
+        mediaType: ViewMediaType.Clip,
+        favorite: false,
+      });
+      const viewItemManager = mock<ViewItemManager>();
+      const { viewManager, viewManagerEpoch } = createViewManagerWithResults([item]);
+
+      expect(await toggleFavorite(item, viewItemManager, viewManagerEpoch)).toBe(true);
+
+      const results = getQueryResultsAfterModifiers(viewManager)?.getResults();
+      expect(results?.[0]).not.toBe(item);
+      expect(results?.[0]?.getID()).toBe('clip-1');
+    });
+
+    it('should remove an un-favorited item from a favorites-only gallery', async () => {
+      const item = new TestViewMedia({
+        id: 'clip-1',
+        mediaType: ViewMediaType.Clip,
+        favorite: true,
+      });
+      const other = new TestViewMedia({ id: 'clip-2', mediaType: ViewMediaType.Clip });
+      const viewItemManager = mock<ViewItemManager>();
+      const { viewManager, viewManagerEpoch } = createViewManagerWithResults([
+        item,
+        other,
+      ]);
+
+      expect(await toggleFavorite(item, viewItemManager, viewManagerEpoch, true)).toBe(
+        true,
+      );
+
+      expect(viewItemManager.favorite).toHaveBeenCalledWith(item, false);
+      expect(getQueryResultsAfterModifiers(viewManager)?.getResults()).toEqual([other]);
+    });
+
+    it('should keep a favorited item in a favorites-only gallery', async () => {
+      const item = new TestViewMedia({
+        id: 'clip-1',
+        mediaType: ViewMediaType.Clip,
+        favorite: false,
+      });
+      const viewItemManager = mock<ViewItemManager>();
+      const { viewManager, viewManagerEpoch } = createViewManagerWithResults([item]);
+
+      expect(await toggleFavorite(item, viewItemManager, viewManagerEpoch, true)).toBe(
+        true,
+      );
+
+      const results = getQueryResultsAfterModifiers(viewManager)?.getResults();
+      expect(results?.[0]).not.toBe(item);
+      expect(results?.[0]?.getID()).toBe('clip-1');
+    });
+
     it('should handle manager error', async () => {
       const item = new TestViewMedia({
         mediaType: ViewMediaType.Clip,
@@ -178,6 +320,32 @@ describe('MediaActions', () => {
       expect(consoleSpy).toHaveBeenCalledWith(error.message);
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('showMediaInfo', () => {
+    it('should dispatch an action to open a notification', () => {
+      const host = mock<HTMLElement>();
+      const item = new TestViewMedia({
+        mediaType: ViewMediaType.Clip,
+        what: ['person'],
+      });
+
+      showMediaInfoNotification(host, item, {});
+
+      expect(host.dispatchEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({
+            actions: [
+              expect.objectContaining({
+                notification: expect.objectContaining({
+                  heading: expect.objectContaining({ text: 'Person' }),
+                }),
+              }),
+            ],
+          }),
+        }),
+      );
     });
   });
 

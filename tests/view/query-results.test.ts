@@ -321,9 +321,16 @@ describe('dispatchViewContextChangeEvent', () => {
       const outsideItem = generateViewMediaArray({ cameraIDs: ['other'] })[0];
       const countBefore = results.getResultsCount();
 
-      results.removeItem(outsideItem);
+      expect(results.removeItem(outsideItem)).toBeNull();
 
       expect(results.getResultsCount()).toBe(countBefore);
+    });
+
+    it('should report success when the item is removed', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults });
+
+      expect(results.removeItem(testResults[50])).toBe(results);
     });
 
     it('should adjust selection when removing selected item', () => {
@@ -424,17 +431,27 @@ describe('dispatchViewContextChangeEvent', () => {
       expect(results.getSlice('kitchen')?.getResults().includes(oldItem)).toBeFalsy();
     });
 
-    it('should fail to replace item not in main slice', () => {
+    it('should report failure for an item that is not in results', () => {
       const results = new QueryResults({ results: generateViewMediaArray() });
 
       const outsideItem = generateViewMediaArray({ cameraIDs: ['other'] })[0];
-      const newItem = outsideItem.clone();
 
-      expect(results.replaceItem(outsideItem, newItem)).toBe(results);
+      expect(results.replaceItem(outsideItem, outsideItem.clone())).toBeNull();
     });
 
-    it('should replace folder in main slice', () => {
-      const folder = new ViewFolder(createFolder(), []);
+    it('should preserve the selection', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults, selectedIndex: 42 });
+
+      const newItem = testResults[42].clone();
+      results.replaceItem(testResults[42], newItem);
+
+      expect(results.getSelectedIndex()).toBe(42);
+      expect(results.getSelectedResult()).toBe(newItem);
+    });
+
+    it('should replace a folder', () => {
+      const folder = new ViewFolder(createFolder(), [], { id: 'folder-1' });
       const results = new QueryResults({ results: [folder] });
 
       const newFolder = folder.clone();

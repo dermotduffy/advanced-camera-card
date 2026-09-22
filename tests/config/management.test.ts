@@ -6585,5 +6585,82 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
     });
+
+    describe('controls.thumbnails.show_details -> controls.thumbnails.style', () => {
+      it('should rename the key in every section', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { controls: { thumbnails: { show_details: true } } },
+          media_gallery: { controls: { thumbnails: { show_details: false } } },
+          media_viewer: { controls: { thumbnails: { show_details: true } } },
+          timeline: { controls: { thumbnails: { show_details: false } } },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { controls: { thumbnails: { style: 'panel' } } },
+          media_gallery: { controls: { thumbnails: { style: 'plain' } } },
+          media_viewer: { controls: { thumbnails: { style: 'panel' } } },
+          timeline: { controls: { thumbnails: { style: 'plain' } } },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should rename the key in overrides', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          overrides: [
+            {
+              conditions: [
+                {
+                  condition: 'media_loaded' as const,
+                  media_loaded: true,
+                },
+              ],
+              merge: {
+                live: { controls: { thumbnails: { show_details: true } } },
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          overrides: [
+            {
+              conditions: [
+                {
+                  condition: 'media_loaded' as const,
+                  media_loaded: true,
+                },
+              ],
+              merge: {
+                live: { controls: { thumbnails: { style: 'panel' } } },
+              },
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should drop a value that was never valid', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { controls: { thumbnails: { show_details: 'overlay' } } },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { controls: { thumbnails: {} } },
+        });
+        postUpgradeChecks(config);
+      });
+    });
   });
 });

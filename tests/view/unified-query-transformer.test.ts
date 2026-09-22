@@ -4,6 +4,8 @@ import { mock } from 'vitest-mock-extended';
 import type { CameraManager } from '../../src/camera-manager/manager';
 import type { CameraManagerStore } from '../../src/camera-manager/store';
 import type { FoldersManager } from '../../src/card-controller/folders/manager';
+import { QuerySource } from '../../src/query-source';
+import { UnifiedQuery } from '../../src/view/unified-query';
 import { UnifiedQueryBuilder } from '../../src/view/unified-query-builder';
 import { UnifiedQueryTransformer } from '../../src/view/unified-query-transformer';
 import { createCapabilities } from '../camera-manager/test-utils';
@@ -47,10 +49,10 @@ describe('UnifiedQueryTransformer', () => {
     });
 
     it('should not affect folder queries', () => {
-      const { cameraManager, foldersManager } = createMocks();
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
       const folder = createFolder({ id: 'f1', title: 'Test' });
-      const query = builder.buildFolderQueryWithPath(folder, [{ ha: { id: 'Root' } }]);
+      const query = new UnifiedQuery([
+        { source: QuerySource.Folder, folder, path: [{}] },
+      ]);
 
       const stripped = UnifiedQueryTransformer.stripTimeRange(query);
       const node = stripped.getNodes()[0];
@@ -83,10 +85,10 @@ describe('UnifiedQueryTransformer', () => {
     });
 
     it('should not affect folder queries', () => {
-      const { cameraManager, foldersManager } = createMocks();
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
       const folder = createFolder({ id: 'f1', title: 'Test' });
-      const query = builder.buildFolderQueryWithPath(folder, [{ ha: { id: 'Root' } }]);
+      const query = new UnifiedQuery([
+        { source: QuerySource.Folder, folder, path: [{}] },
+      ]);
 
       const rebuilt = UnifiedQueryTransformer.rebuildQuery(query, {
         start: new Date(),
@@ -128,10 +130,10 @@ describe('UnifiedQueryTransformer', () => {
     });
 
     it('should not affect folder queries', () => {
-      const { cameraManager, foldersManager } = createMocks();
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
       const folder = createFolder({ id: 'f1', title: 'Test' });
-      const query = builder.buildFolderQueryWithPath(folder, [{ ha: { id: 'Root' } }]);
+      const query = new UnifiedQuery([
+        { source: QuerySource.Folder, folder, path: [{}] },
+      ]);
 
       const converted = UnifiedQueryTransformer.convertToClips(query);
       const node = converted.getNodes()[0];

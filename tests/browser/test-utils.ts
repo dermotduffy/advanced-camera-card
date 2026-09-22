@@ -1,4 +1,8 @@
 import type {
+  AdvancedCameraCardSelect,
+  SelectValues,
+} from '../../src/components/select';
+import type {
   PartialAdvancedCameraCardConfig,
   RawAdvancedCameraCardConfig,
 } from '../../src/config/types';
@@ -6,12 +10,14 @@ import type { Entity } from '../../src/ha/registry/entity/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { isTruthy } from '../../src/utils/basic';
-import { clickElement, deepQuery, deepQueryAll } from './dom';
+import { fireAdvancedCameraCardEvent } from '../../src/utils/fire-advanced-camera-card-event';
+import { clickElement, deepQuery, deepQueryAll, holdElement } from './dom';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
 import type { MountedCard } from './mounted-card';
 
 export const CAMERA_ENTITY = 'camera.office';
+export const CAMERA_NAME = 'office';
 
 // A same-origin still red image, served by the Vite dev server. The same image
 // is handed on by the worker in test-media.ts, which can be asked to misbehave
@@ -219,6 +225,28 @@ export const getMediaViewerMediaURLs = (root: ParentNode): string[] =>
     .filter((url) => url !== null);
 
 /**
+ * Set one of the media filter's selectors, named by the label it shows (e.g.
+ * 'Media Type'), without opening its dropdown. The media filter reads the
+ * select element's value when the change event fires, so both are set by hand.
+ */
+export const setMediaFilter = async (
+  card: MountedCard,
+  label: string,
+  value: SelectValues,
+): Promise<void> => {
+  const select = deepQuery<AdvancedCameraCardSelect>(
+    card.card,
+    `advanced-camera-card-select[label="${label}"]`,
+  );
+  if (!select) {
+    throw new Error(`There is no media filter selector labelled: ${label}`);
+  }
+  select.value = value;
+  fireAdvancedCameraCardEvent(select, 'select:change', value);
+  await card.updateComplete;
+};
+
+/**
  * The thumbnails on screen.
  */
 export const getThumbnails = (root: ParentNode): HTMLElement[] =>
@@ -235,12 +263,20 @@ export const clickThumbnail = async (root: ParentNode, index: number): Promise<v
   await clickElement(thumbnail);
 };
 
+export const holdThumbnail = async (root: ParentNode, index: number): Promise<void> => {
+  const thumbnail = getThumbnails(root)[index];
+  if (!thumbnail) {
+    throw new Error(`There is no thumbnail at index ${index} to hold`);
+  }
+  await holdElement(thumbnail);
+};
+
 export const waitForThumbnails = async (
   card: MountedCard,
   count: number,
 ): Promise<void> => {
   await card.waitForRender(
-    () => (getThumbnails(card.card).length >= count ? true : null),
+    () => (getThumbnails(card.card).length === count ? true : null),
     `${count} thumbnail(s)`,
   );
 };

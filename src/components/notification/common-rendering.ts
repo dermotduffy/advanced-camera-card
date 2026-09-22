@@ -1,8 +1,9 @@
-import { html, type TemplateResult } from 'lit';
+import { html, nothing, type TemplateResult } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { actionHandler } from '../../action-handler-directive.js';
 import type {
+  InternalNotificationControl,
   Notification,
   NotificationControl,
   NotificationDetail,
@@ -13,6 +14,11 @@ import {
 } from '../../utils/action.js';
 
 import '../icon.js';
+
+// A screen reader announces the popup by name, and the name is its visible
+// heading. `aria-labelledby` can only refer to that heading by id, so the
+// heading is given this id.
+export const HEADING_ID = 'heading';
 
 export function renderDetail(
   detail: NotificationDetail,
@@ -26,7 +32,7 @@ export function renderDetail(
     [`severity-${detail.severity}`]: !!detail.severity,
   };
   return html`
-    <div class="${classMap(classes)}">
+    <div id=${role === 'heading' ? HEADING_ID : nothing} class="${classMap(classes)}">
       ${iconOverride ??
       (detail.icon
         ? html`<advanced-camera-card-icon
@@ -40,12 +46,16 @@ export function renderDetail(
 }
 
 export function renderControl(
-  control: NotificationControl,
+  control: InternalNotificationControl,
   onAction: (ev: CustomEvent<{ action: string }>, control: NotificationControl) => void,
 ): TemplateResult {
   const classes = {
     control: true,
     [`severity-${control.severity}`]: !!control.severity,
+    ...(control.className && { [control.className]: true }),
+
+    // Marks a control that carries styling of its own.
+    styled: !!control.severity || !!control.className,
   };
   return html`
     <div

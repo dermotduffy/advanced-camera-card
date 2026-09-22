@@ -20,6 +20,7 @@ import {
   contentsChanged,
   getChildrenFromElement,
   isHoverableDevice,
+  isPointInBox,
 } from '../utils/basic.js';
 
 import './icon.js';
@@ -42,6 +43,9 @@ export class AdvancedCameraCardDrawer extends LitElement {
 
   @property({ type: Boolean, reflect: true, attribute: true })
   public locked?: boolean;
+
+  @property({ type: Boolean })
+  public pinned = false;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public icons?: DrawerIcons;
@@ -77,6 +81,21 @@ export class AdvancedCameraCardDrawer extends LitElement {
 
   protected willUpdate(): void {
     if (this.locked && this.open) {
+      this.open = false;
+    }
+  }
+
+  protected updated(changedProperties: PropertyValues): void {
+    // If the pinned property changes, check whether the drawer should be
+    // closed.
+    if (
+      changedProperties.has('pinned') &&
+      !this.pinned &&
+      changedProperties.get('pinned') &&
+      this.open &&
+      this._isHoverableDevice &&
+      !this.matches(':hover')
+    ) {
       this.open = false;
     }
   }
@@ -117,7 +136,21 @@ export class AdvancedCameraCardDrawer extends LitElement {
         ${ref(this._refDrawer)}
         location="${this.location}"
         ?open=${this.open}
-        @mouseleave=${() => {
+        @mouseleave=${(ev: MouseEvent) => {
+          if (!this._isHoverableDevice) {
+            return;
+          }
+
+          // Only close the drawer if the pointer has left the drawer area.
+          const box = this._refDrawer.value?.getBoundingClientRect();
+          if (box && isPointInBox({ x: ev.clientX, y: ev.clientY }, box)) {
+            return;
+          }
+
+          if (this.pinned) {
+            return;
+          }
+
           this.open = false;
         }}
       >

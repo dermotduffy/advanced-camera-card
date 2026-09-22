@@ -1,12 +1,15 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { TemplateManager } from '../../../src/card-controller/templates/index';
+import type { ObjectConstructorWithHasOwn } from '../../../src/utils/object-has-own';
 import { createConfig } from '../../config/test-utils';
 import {
   createHASS,
   createStateEntity,
   stubConnectedHomeAssistant,
 } from '../../test-utils';
+
+const objectConstructor: ObjectConstructorWithHasOwn = Object;
 
 // ha-nunjucks reads `window`/`document` at import and renders via a
 // `window.haNunjucks` global, so the renderer needs a DOM environment.
@@ -42,6 +45,24 @@ describe('TemplateManager', () => {
         conditionState: { camera: 'camera.office' },
       });
       expect(result).toBe('camera.office');
+    });
+
+    it('should give the renderer an Object.hasOwn the browser may lack', async () => {
+      const original = objectConstructor.hasOwn;
+
+      // Emulates an older browser (e.g. a Chromecast receiver).
+      delete objectConstructor.hasOwn;
+
+      try {
+        const load = new TemplateManager().loadRenderer();
+
+        // Asserted before the load settles as the load itself depends upon it.
+        expect(objectConstructor.hasOwn).toBeDefined();
+
+        await load;
+      } finally {
+        objectConstructor.hasOwn = original;
+      }
     });
 
     it('should pass a non-template string through unchanged before loading', () => {
@@ -292,6 +313,40 @@ describe('TemplateManager', () => {
         conditionState: {},
       });
       expect(result).toBe('Value:');
+    });
+  });
+
+  describe('renderer errors', () => {
+    const BROKEN_TEMPLATE = '{{ acc.camera | nosuchfilter }}';
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('should return the template as written', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const manager = new TemplateManager();
+      await manager.loadRenderer();
+
+      expect(manager.renderRecursively(createHASS(), BROKEN_TEMPLATE)).toBe(
+        BROKEN_TEMPLATE,
+      );
+
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should warn once per distinct error', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const manager = new TemplateManager();
+      await manager.loadRenderer();
+      const hass = createHASS();
+
+      manager.renderRecursively(hass, BROKEN_TEMPLATE);
+      manager.renderRecursively(hass, BROKEN_TEMPLATE);
+      expect(warn).toHaveBeenCalledTimes(1);
+
+      manager.renderRecursively(hass, '{{ acc.camera | anothermissingfilter }}');
+      expect(warn).toHaveBeenCalledTimes(2);
     });
   });
 

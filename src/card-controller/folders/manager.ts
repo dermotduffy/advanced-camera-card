@@ -6,7 +6,7 @@ import { localize } from '../../localize/localize';
 import { hasUnsupportedFilters } from '../../query-source.js';
 import type { Endpoint } from '../../types';
 import { getFolderID } from '../../utils/folder';
-import type { ViewItem } from '../../view/item';
+import type { ViewFolder, ViewItem } from '../../view/item';
 import type { ViewItemCapabilities } from '../../view/types';
 import type { CardFoldersAPI } from '../types';
 import { FoldersExecutor } from './executor';
@@ -86,6 +86,14 @@ export class FoldersManager {
 
   public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {
     return this._executor.areResultsFresh(resultsTimestamp, query);
+  }
+
+  public getUpQuery(query: FolderQuery): FolderQuery | null {
+    return this._executor.getUpQuery(query);
+  }
+
+  public getDownQuery(item: ViewFolder): FolderQuery | null {
+    return this._executor.getDownQuery(item);
   }
 
   public getItemCapabilities(item: ViewItem): ViewItemCapabilities | null {

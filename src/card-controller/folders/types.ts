@@ -1,7 +1,5 @@
-import type { NonEmptyTuple } from 'type-fest';
-
 import type { ConditionState } from '../../condition-trigger/conditions/types';
-import type { FolderConfig, HAFolderPathComponent } from '../../config/schema/folders';
+import type { FolderConfig } from '../../config/schema/folders';
 import type { ResolvedMediaCache } from '../../ha/resolved-media';
 import type { HomeAssistant } from '../../ha/types';
 import type { BaseQuery, QueryFilters, QuerySource } from '../../query-source';
@@ -24,11 +22,9 @@ export class FolderInitializationError extends AdvancedCameraCardError {}
 // Folder Query
 // ============
 
-interface FolderPathComponentMetadata {
-  ha?: HAFolderPathComponent;
-}
-
-export interface FolderPathComponent extends FolderPathComponentMetadata {
+export interface FolderPathLevel {
+  // A folder the user navigated into at this level. If unspecified, the level
+  // is taken from the folder configuration instead.
   folder?: ViewFolder;
 }
 
@@ -36,9 +32,9 @@ export interface FolderQuery extends BaseQuery, QueryFilters {
   source: QuerySource.Folder;
   folder: FolderConfig;
 
-  // A trail of paths to navigate back to the "root", with the last path being
-  // the path that this query directly refers to.
-  path: NonEmptyTuple<FolderPathComponent>;
+  // One entry per level of the media hierarchy, outermost first. The last entry
+  // is the level this query refers to.
+  path: FolderPathLevel[];
 }
 
 // ===============
@@ -51,6 +47,9 @@ export interface DownloadHelpers {
 
 export interface FoldersEngine {
   getDefaultQueryParameters(folder: FolderConfig): FolderQuery | null;
+
+  getUpQuery(query: FolderQuery): FolderQuery | null;
+  getDownQuery(item: ViewFolder): FolderQuery;
 
   expandFolder(
     hass: HomeAssistant,

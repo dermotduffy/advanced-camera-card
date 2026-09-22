@@ -281,6 +281,7 @@ describe('ConfigManager', () => {
           media_chunk_size: 50,
         },
         style: {
+          backdrop_filter: true,
           border_radius: true,
           box_shadow: false,
         },

@@ -1,4 +1,5 @@
 @use 'vis-timeline/dist/vis-timeline-graph2d.css';
+@use 'color-mix.scss' as *;
 @use 'drawer';
 @use 'const.scss';
 @use 'locked.scss';
@@ -25,14 +26,6 @@
 :host(:not([mini])) {
   // Timeline covers 100% of the parent unless it's in mini-mode.
   height: 100%;
-}
-
-advanced-camera-card-thumbnail {
-  height: var(--advanced-camera-card-thumbnail-size);
-  width: var(--advanced-camera-card-thumbnail-size);
-}
-advanced-camera-card-thumbnail[details] {
-  width: var(--advanced-camera-card-thumbnail-details-width);
 }
 
 div.timeline {
@@ -95,12 +88,15 @@ div.timeline {
 .vis-item.vis-selected {
   border-color: var(--advanced-camera-card-timeline-item-current-color);
   background-color: var(--advanced-camera-card-timeline-item-current-color);
-  outline: 1px solid
-    color-mix(
-      in oklab,
-      var(--advanced-camera-card-timeline-item-current-color),
-      black 20%
-    );
+  outline: 1px solid;
+  @include color-mixed(
+    outline-color,
+    --advanced-camera-card-timeline-item-current-color,
+    20%,
+    black,
+    opaque
+  );
+
   box-shadow: var(
     --advanced-camera-card-box-shadow-override,
     0px 0px 5px 1px var(--advanced-camera-card-timeline-item-current-color)
@@ -160,10 +156,10 @@ div.timeline {
   transition: background-color 0.5s ease-out;
 }
 :host([recordings]) .vis-text.vis-minor:hover {
-  background-color: color-mix(
-    in oklab,
-    var(--advanced-camera-card-timeline-text-color),
-    transparent 80%
+  @include color-mixed(
+    background-color,
+    --advanced-camera-card-timeline-text-color,
+    80%
   );
 }
 
@@ -228,11 +224,13 @@ div.vis-tooltip {
 
   // The tools sit over the bottom of the timeline, where visjs draws the time
   // axis labels. A near-opaque background keeps the icons legible.
-  background-color: color-mix(
-    in oklab,
-    var(--advanced-camera-card-timeline-background),
-    transparent 20%
+  @include color-mixed(
+    background-color,
+    --advanced-camera-card-timeline-background,
+    20%,
+    $fallback: opaque
   );
+
   border-top-left-radius: var(--advanced-camera-card-border-radius-final);
 
   z-index: 10;

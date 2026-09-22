@@ -123,14 +123,8 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
   public isReviewed(): boolean | null {
     return this._reviewed;
   }
-  public setReviewed(reviewed: boolean): void {
-    this._reviewed = reviewed;
-  }
   public isFavorite(): boolean | null {
     return this._favorite;
-  }
-  public setFavorite(favorite: boolean): void {
-    this._favorite = favorite;
   }
 }
 
@@ -210,8 +204,8 @@ export const createReviewQuery = (
 
 export const createFolderQuery = (folderId: string): FolderQuery => ({
   source: QuerySource.Folder,
-  folder: { id: folderId, type: 'ha', title: folderId },
-  path: [{ ha: { id: 'Root' } }],
+  folder: { id: folderId, type: 'ha', title: folderId, navigation: 'restricted' },
+  path: [{}],
 });
 
 export const isEventQuery = (node: {

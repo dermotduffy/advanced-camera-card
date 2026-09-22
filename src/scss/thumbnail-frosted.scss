@@ -1,0 +1,12 @@
+// The translucent blur the thumbnail draws its details and its controls on.
+@mixin frosted {
+  background: var(--advanced-camera-card-thumbnail-details-overlay-background);
+  backdrop-filter: var(
+    --advanced-camera-card-backdrop-filter-override,
+    var(--advanced-camera-card-thumbnail-details-overlay-backdrop-filter)
+  );
+  -webkit-backdrop-filter: var(
+    --advanced-camera-card-backdrop-filter-override,
+    var(--advanced-camera-card-thumbnail-details-overlay-backdrop-filter)
+  );
+}

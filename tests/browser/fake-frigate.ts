@@ -19,7 +19,7 @@ import {
   createFixtureURL,
   SNAPSHOT_FIXTURE_FILENAME,
 } from './fixtures';
-import { MountedCardFactory, type MountedCard } from './mounted-card';
+import { MountedCardFactory, type MountedCard, type MountOptions } from './mounted-card';
 import {
   CAMERA_ENTITY,
   createCameraHASS,
@@ -105,6 +105,7 @@ export const mountCardWithFrigate = async (
   events: FrigateEvent[],
   config?: PartialAdvancedCameraCardConfig,
   reviews?: FrigateReview[],
+  options?: MountOptions,
 ): Promise<CardWithFrigate> => {
   const hass = createCameraHASS([createFrigateCameraDescription()]);
   const frigate = new FakeFrigate(hass);
@@ -114,6 +115,7 @@ export const mountCardWithFrigate = async (
   const card = await MountedCardFactory.createFromSource(
     createStillImageCardConfig(config),
     hass,
+    options,
   );
 
   return { card, frigate, hass };
@@ -329,6 +331,12 @@ export class FakeFrigate {
     );
 
     hass.registerCommand(
+      'frigate/event/retain',
+      this._answerAsFrigate(['event_id', 'retain'], (message) =>
+        this._setEventRetained(message),
+      ),
+    );
+    hass.registerCommand(
       'frigate/reviews/get',
       this._answerAsFrigate(
         [
@@ -451,6 +459,23 @@ export class FakeFrigate {
       }
       review.has_been_reviewed = viewed;
     }
+
+    return { success: true, message: '' };
+  }
+
+  // Retain an event indefinitely, which the card calls favoriting.
+  private _setEventRetained(message: MessageBase): {
+    success: boolean;
+    message: string;
+  } {
+    const id = readParameter(message, 'event_id', isString, 'a string') ?? '';
+    const retain = readParameter(message, 'retain', isBoolean, 'true or false') ?? true;
+
+    const event = this._getEvent(id);
+    if (!event) {
+      throw new Error(`FakeFrigate has no such event: ${id}`);
+    }
+    event.retain_indefinitely = retain;
 
     return { success: true, message: '' };
   }

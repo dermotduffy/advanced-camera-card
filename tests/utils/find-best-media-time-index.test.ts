@@ -6,7 +6,10 @@ import { TestViewMedia } from '../view/test-utils';
 
 describe('findBestMediaTimeIndex', () => {
   it('should handle non-media items', () => {
-    const folder = new ViewFolder({ id: 'folder', type: 'ha', title: 'folder' }, []);
+    const folder = new ViewFolder(
+      { id: 'folder', type: 'ha', title: 'folder', navigation: 'restricted' },
+      [],
+    );
     const media = new TestViewMedia({
       startTime: new Date('2024-01-01T10:00:00'),
       endTime: new Date('2024-01-01T11:00:00'),

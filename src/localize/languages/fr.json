@@ -211,7 +211,6 @@
             "none": "Aucune vignette",
             "right": "Vignettes dans un menu à droite"
           },
-          "show_details": "Afficher les détails avec des vignettes",
           "show_download_control": "Afficher le contrôle de téléchargement sur les vignettes",
           "show_favorite_control": "Afficher le contrôle favori sur les vignettes",
           "show_timeline_control": "Afficher le contrôle de la chronologie sur les vignettes",

@@ -16,15 +16,16 @@ export class ZoomRequestViewModifier implements ViewModifier {
     this._requested = requested;
   }
 
-  public modify(view: View): void {
+  public modify(view: View): boolean {
     const target = view.context?.zoom?.[this._targetID];
     if (target) {
       target.requested = this._requested;
-      return;
+      return true;
     }
 
     view.mergeInContext(
       generateViewContextForZoom(this._targetID, { requested: this._requested }),
     );
+    return true;
   }
 }

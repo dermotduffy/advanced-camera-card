@@ -243,9 +243,15 @@ export class GalleryCoreController implements ReactiveController {
         // should not cause the gallery to rescroll to the item that happens to
         // be selected.
         // See: https://github.com/dermotduffy/advanced-camera-card/issues/885
+        //
+        // Centering a thumbnail that is taller than the gallery would put its
+        // top above the top of the view.
+        const fitsInGallery =
+          firstSelected.getBoundingClientRect().height <= this._host.clientHeight;
+
         scrollIntoView(firstSelected, {
           boundary: this._host,
-          block: 'center',
+          block: fitsInGallery ? 'center' : 'start',
         });
       }
 

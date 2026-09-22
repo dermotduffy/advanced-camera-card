@@ -1,8 +1,12 @@
 # The oldest release of each browser the card supports. Matching user-facing
-# documentation in `docs/README.md`
+# documentation in `docs/troubleshooting.md`
 
-# Chrome (March 2023)
-chrome >= 111
+# Chrome (July 2021). Kept this old only for the Chromecast built-in receiver,
+# which runs Chrome 92 on older firmware; Chrome 111 is the fully supported
+# floor (see `docs/troubleshooting.md`), but Chrome 92 is maintained as a
+# build target to enable the "Partially supported tier" as described in
+# troubleshooting.md .
+chrome >= 92
 
 # Edge (March 2023)
 edge >= 111

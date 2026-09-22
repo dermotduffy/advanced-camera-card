@@ -1,3 +1,5 @@
+$center: translate(-50%, -50%);
+
 :host {
   position: absolute;
 
@@ -6,9 +8,10 @@
 
   font-size: var(--size, 1em);
 
-  // Center the shamrock on its position.
+  // Center the shamrock on its position. The centering, rotation and scale are
+  // written as one `transform` to ensure compatibility with supported browsers.
   transform-origin: center center;
-  translate: -50% -50%;
+  transform: $center;
 
   user-select: none;
   -webkit-user-select: none;
@@ -22,23 +25,20 @@
 
 @keyframes shamrock-pulse {
   0% {
-    scale: 0;
-    rotate: -20deg;
+    transform: $center rotate(-20deg) scale(0);
     opacity: 0;
   }
   20% {
     opacity: var(--max-opacity, 1);
   }
   50% {
-    scale: 1;
-    rotate: 10deg;
+    transform: $center rotate(10deg) scale(1);
   }
   80% {
     opacity: var(--max-opacity, 1);
   }
   100% {
-    scale: 0;
-    rotate: 25deg;
+    transform: $center rotate(25deg) scale(0);
     opacity: 0;
   }
 }

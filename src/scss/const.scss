@@ -1,6 +1,8 @@
 :host {
-  --advanced-camera-card-thumbnail-size-max: 300px;
-  --advanced-camera-card-thumbnail-details-width: calc(
-    var(--advanced-camera-card-thumbnail-size) + 200px
+  --advanced-camera-card-thumbnail-details-panel-width-min: 150px;
+
+  --advanced-camera-card-thumbnail-with-details-panel-width: calc(
+    var(--advanced-camera-card-thumbnail-size) +
+      var(--advanced-camera-card-thumbnail-details-panel-width-min)
   );
 }

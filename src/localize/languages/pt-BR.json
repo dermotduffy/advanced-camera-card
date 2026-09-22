@@ -123,7 +123,6 @@
             "none": "Sem miniaturas",
             "right": "Miniaturas em uma gaveta à direita"
           },
-          "show_details": "Mostrar detalhes com miniaturas",
           "show_download_control": "Mostrar controle de download nas miniaturas",
           "show_favorite_control": "Mostrar controle de favorito nas miniaturas",
           "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",

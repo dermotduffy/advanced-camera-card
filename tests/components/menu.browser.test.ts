@@ -113,9 +113,8 @@ describe('AdvancedCameraCardMenu', () => {
         hass,
       );
 
-      // Two thumbnails: 'Up' + media.
-      await waitForThumbnails(card, 2);
-      await clickThumbnail(card.card, 1);
+      await waitForThumbnails(card, 1);
+      await clickThumbnail(card.card, 0);
 
       expect(await card.findControl('Download')).not.toBeNull();
     });

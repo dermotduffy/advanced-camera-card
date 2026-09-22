@@ -15,6 +15,11 @@ See [Casting](casting.md) for documentation on casting the card.
 
 See [Custom Icons](custom-icons.md) for custom icons this card supports.
 
+### Folder Navigation
+
+See [Folder Navigation](folder-navigation.md) for documentation on how to
+navigate folder media and subfolders.
+
 ### URL Actions
 
 See [URL Actions](url-actions.md) for documentation on acting based on URL contents.
