@@ -468,7 +468,11 @@ export class FrigateCameraManagerEngine
       };
 
       if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(instanceQuery, { ...result, cached: true }, result.expiry);
+        this._requestCache.set(
+          instanceQuery,
+          { ...result, cached: true },
+          result.expiry,
+        );
       }
       output.set(instanceQuery, result);
     };
@@ -557,7 +561,11 @@ export class FrigateCameraManagerEngine
       };
 
       if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(instanceQuery, { ...result, cached: true }, result.expiry);
+        this._requestCache.set(
+          instanceQuery,
+          { ...result, cached: true },
+          result.expiry,
+        );
       }
       output.set(instanceQuery, result);
     };
