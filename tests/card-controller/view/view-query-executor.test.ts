@@ -843,7 +843,7 @@ describe('ViewQueryExecutor', () => {
               title: 'Office',
               navigation: 'restricted',
             },
-            path: [{ ha: { id: 'media-source://' } }],
+            path: [{}],
           });
 
           const viewQueryExecutor = new ViewQueryExecutor(api);

@@ -6,7 +6,7 @@ import {
 } from '../../config/schema/folders';
 import type { HomeAssistant } from '../../ha/types';
 import type { Endpoint } from '../../types';
-import type { ViewItem } from '../../view/item';
+import type { ViewFolder, ViewItem } from '../../view/item';
 import type { ViewItemCapabilities } from '../../view/types';
 import type { TemplateRenderer } from '../templates';
 import { sortItems } from '../view/sort';
@@ -43,6 +43,14 @@ export class FoldersExecutor {
         engineOptions,
       )) ?? null;
     return results ? sortItems(results) : null;
+  }
+
+  public getUpQuery(query: FolderQuery): FolderQuery | null {
+    return this._getFolderEngine(query.folder.type)?.getUpQuery(query) ?? null;
+  }
+
+  public getDownQuery(item: ViewFolder): FolderQuery | null {
+    return this._getFolderEngine(item.getFolder()?.type)?.getDownQuery(item) ?? null;
   }
 
   public getItemCapabilities(item: ViewItem): ViewItemCapabilities | null {

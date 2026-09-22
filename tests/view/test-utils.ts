@@ -205,7 +205,7 @@ export const createReviewQuery = (
 export const createFolderQuery = (folderId: string): FolderQuery => ({
   source: QuerySource.Folder,
   folder: { id: folderId, type: 'ha', title: folderId, navigation: 'restricted' },
-  path: [{ ha: { id: 'Root' } }],
+  path: [{}],
 });
 
 export const isEventQuery = (node: {

@@ -22,6 +22,61 @@ describe('FoldersExecutor', () => {
     vi.clearAllMocks();
   });
 
+  describe('getUpQuery', () => {
+    it('should not get a query for a non-existent folder engine', () => {
+      const query = {
+        source: QuerySource.Folder,
+        folder: { type: 'UNKNOWN' },
+        path: [{}],
+      } as unknown as FolderQuery;
+      const executor = new FoldersExecutor(templateManager);
+
+      expect(executor.getUpQuery(query)).toBeNull();
+    });
+
+    it('should get a query from the HA folder engine', () => {
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: createFolder(),
+        path: [{}, {}],
+      };
+      const upQuery: FolderQuery = { ...query, path: [{}] };
+      const haFolderEngine = mock<HAFoldersEngine>();
+      haFolderEngine.getUpQuery.mockReturnValue(upQuery);
+
+      const executor = new FoldersExecutor(templateManager, { ha: haFolderEngine });
+
+      expect(executor.getUpQuery(query)).toBe(upQuery);
+      expect(haFolderEngine.getUpQuery).toHaveBeenCalledWith(query);
+    });
+  });
+
+  describe('getDownQuery', () => {
+    it('should not get a query for a non-existent folder engine', () => {
+      const folder: FolderConfig = { type: 'UNKNOWN' } as unknown as FolderConfig;
+      const executor = new FoldersExecutor(templateManager);
+
+      expect(executor.getDownQuery(new ViewFolder(folder, []))).toBeNull();
+    });
+
+    it('should get a query from the HA folder engine', () => {
+      const folder = createFolder();
+      const item = new ViewFolder(folder, []);
+      const downQuery: FolderQuery = {
+        source: QuerySource.Folder,
+        folder,
+        path: [{ folder: item }, {}],
+      };
+      const haFolderEngine = mock<HAFoldersEngine>();
+      haFolderEngine.getDownQuery.mockReturnValue(downQuery);
+
+      const executor = new FoldersExecutor(templateManager, { ha: haFolderEngine });
+
+      expect(executor.getDownQuery(item)).toBe(downQuery);
+      expect(haFolderEngine.getDownQuery).toHaveBeenCalledWith(item);
+    });
+  });
+
   describe('getItemCapabilities', () => {
     it('should not get capabilities for non-folder media', () => {
       const item = new TestViewMedia({ folder: null });
@@ -155,7 +210,7 @@ describe('FoldersExecutor', () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
         folder,
-        path: [{ ha: { id: 'media-source://' } }],
+        path: [{}],
       };
 
       const mediaItem = new TestViewMedia({

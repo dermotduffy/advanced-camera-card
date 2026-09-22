@@ -1,6 +1,5 @@
-import type { NonEmptyTuple } from 'type-fest';
-
-import type { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
+import type { FoldersManager } from '../card-controller/folders/manager';
+import type { FolderQuery } from '../card-controller/folders/types';
 import type { ViewManagerEpoch, ViewModifier } from '../card-controller/view/types';
 import { localize } from '../localize/localize';
 import { ViewFolder, type ViewMedia } from '../view/item';
@@ -9,6 +8,7 @@ import type { UnifiedQueryBuilder } from '../view/unified-query-builder';
 
 export interface FolderNavigationParamaters {
   viewManagerEpoch: ViewManagerEpoch;
+  foldersManager: FoldersManager;
   builder: UnifiedQueryBuilder;
 }
 
@@ -19,60 +19,58 @@ export interface MediaNavigationParamaters {
 }
 
 /**
- * Get a navigable-up folder query from a UnifiedQuery. Returns the query only
- * if there's exactly one folder query and it has depth > 1.
+ * The view's folder query, or null if it does not have exactly one.
  */
-const getSingleNavigableUpFolderQuery = (
-  query?: UnifiedQuery | null,
-): FolderQuery | null => {
+const getSingleFolderQuery = (query?: UnifiedQuery | null): FolderQuery | null => {
   const folderQueries = query?.getFolderQueries();
-  if (folderQueries?.length !== 1) {
-    return null;
-  }
-  const folderQuery = folderQueries[0];
-  return folderQuery.path.length > 1 ? folderQuery : null;
+  return folderQueries?.length === 1 ? folderQueries[0] : null;
+};
+
+const getUpQuery = (options: FolderNavigationParamaters): FolderQuery | null => {
+  const folderQuery = getSingleFolderQuery(
+    options.viewManagerEpoch.manager.getView()?.query,
+  );
+  return folderQuery ? options.foldersManager.getUpQuery(folderQuery) : null;
+};
+
+const setFolderView = (
+  folderQuery: FolderQuery,
+  options: FolderNavigationParamaters,
+): void => {
+  options.viewManagerEpoch.manager
+    .setViewByParametersWithExistingQuery({
+      params: { query: options.builder.buildFolderQuery(folderQuery) },
+    })
+    .catch(() => {});
 };
 
 export const navigateUp = (options?: FolderNavigationParamaters | null): void => {
-  const folderQuery = getSingleNavigableUpFolderQuery(
-    options?.viewManagerEpoch.manager.getView()?.query,
-  );
-  if (!folderQuery || folderQuery.path.length < 2) {
+  if (!options) {
     return;
   }
 
-  const parentPath = folderQuery.path.slice(0, -1);
-  const nonEmptyPath: NonEmptyTuple<FolderPathComponent> = [
-    parentPath[0],
-    ...parentPath.slice(1),
-  ];
-  const query = options?.builder.buildFolderQueryWithPath(
-    folderQuery.folder,
-    nonEmptyPath,
-  );
+  const upQuery = getUpQuery(options);
+  if (!upQuery) {
+    return;
+  }
 
-  void options?.viewManagerEpoch.manager.setViewByParametersWithExistingQuery({
-    params: { query },
-  });
+  setFolderView(upQuery, options);
 };
 
-export const navigateToFolder = (
+export const navigateDownIntoFolder = (
   item: ViewFolder,
   options?: FolderNavigationParamaters | null,
 ): void => {
-  const newPath = [...item.getPath(), { folder: item }];
-  const nonEmptyPath: NonEmptyTuple<FolderPathComponent> = [
-    newPath[0],
-    ...newPath.slice(1),
-  ];
-  const query = options?.builder.buildFolderQueryWithPath(
-    item.getFolder(),
-    nonEmptyPath,
-  );
+  if (!options) {
+    return;
+  }
 
-  void options?.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
-    params: { query },
-  });
+  const downQuery = options.foldersManager.getDownQuery(item);
+  if (!downQuery) {
+    return;
+  }
+
+  setFolderView(downQuery, options);
 };
 
 export const navigateToMedia = (
@@ -101,14 +99,17 @@ export const navigateToMedia = (
   });
 };
 
-/**
- * Get up-folder item for display. Returns a ViewFolder if there's exactly one
- * folder query and it's navigable-up.
- */
-export const getUpFolderItem = (query?: UnifiedQuery | null): ViewFolder | null => {
-  const folderQuery = getSingleNavigableUpFolderQuery(query);
-  return folderQuery
-    ? new ViewFolder(folderQuery.folder, folderQuery.path, {
+export const getUpFolderItem = (
+  options?: FolderNavigationParamaters | null,
+): ViewFolder | null => {
+  if (!options) {
+    return null;
+  }
+
+  const upQuery = getUpQuery(options);
+
+  return upQuery
+    ? new ViewFolder(upQuery.folder, upQuery.path, {
         icon: 'mdi:arrow-up-left',
         title: localize('common.up'),
       })

@@ -17,7 +17,7 @@ import { RemoveContextViewModifier } from '../card-controller/view/modifiers/rem
 import type { ViewManagerEpoch } from '../card-controller/view/types.js';
 import {
   getUpFolderItem,
-  navigateToFolder,
+  navigateDownIntoFolder,
   navigateToMedia,
   navigateUp,
   type FolderNavigationParamaters,
@@ -80,10 +80,11 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   private _builder: UnifiedQueryBuilder | null = null;
 
   private _getFolderNavOptions(): FolderNavigationParamaters | undefined {
-    return this._builder && this.viewManagerEpoch
+    return this.viewManagerEpoch && this.foldersManager && this._builder
       ? {
-          builder: this._builder,
           viewManagerEpoch: this.viewManagerEpoch,
+          foldersManager: this.foldersManager,
+          builder: this._builder,
         }
       : undefined;
   }
@@ -136,7 +137,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     if (selectedIndex === null) {
       return null;
     }
-    const hasUpFolder = !!getUpFolderItem(view?.query);
+    const hasUpFolder = !!getUpFolderItem(this._getFolderNavOptions());
     return hasUpFolder ? selectedIndex + 1 : selectedIndex;
   }
 
@@ -211,9 +212,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   }
 
   private _renderThumbnails(): TemplateResult[] {
-    const upFolderItem = getUpFolderItem(
-      this.viewManagerEpoch?.manager.getView()?.query,
-    );
+    const upFolderItem = getUpFolderItem(this._getFolderNavOptions());
     const thumbnails: TemplateResult[] = upFolderItem
       ? [
           this._renderThumbnail(upFolderItem, false, (_item: ViewItem, ev: Event) => {
@@ -231,7 +230,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
         if (ViewItemClassifier.isMedia(item)) {
           this._handleMediaClick(item);
         } else if (ViewItemClassifier.isFolder(item)) {
-          navigateToFolder(item, this._getFolderNavOptions());
+          navigateDownIntoFolder(item, this._getFolderNavOptions());
         }
       };
       thumbnails.push(

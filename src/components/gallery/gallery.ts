@@ -18,7 +18,7 @@ import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { GalleryController } from '../../components-lib/gallery/controller.js';
 import {
   getUpFolderItem,
-  navigateToFolder,
+  navigateDownIntoFolder,
   navigateToMedia,
   navigateUp,
   type FolderNavigationParamaters,
@@ -97,7 +97,7 @@ export class AdvancedCameraCardGallery extends LitElement {
     if (changedProps.has('viewManagerEpoch')) {
       const view = this.viewManagerEpoch?.manager.getView();
       this._controller.setItemsFromView(view, this.viewManagerEpoch?.oldView);
-      this._upFolderItem = getUpFolderItem(view?.query);
+      this._upFolderItem = getUpFolderItem(this._getFolderNavigationParameters());
     }
 
     if (changedProps.has('galleryConfig')) {
@@ -106,10 +106,11 @@ export class AdvancedCameraCardGallery extends LitElement {
   }
 
   private _getFolderNavigationParameters(): FolderNavigationParamaters | null {
-    return this._builder && this.viewManagerEpoch
+    return this.viewManagerEpoch && this.foldersManager && this._builder
       ? {
-          builder: this._builder,
           viewManagerEpoch: this.viewManagerEpoch,
+          foldersManager: this.foldersManager,
+          builder: this._builder,
         }
       : null;
   }
@@ -205,7 +206,7 @@ export class AdvancedCameraCardGallery extends LitElement {
                 ],
               });
             } else if (ViewItemClassifier.isFolder(item)) {
-              navigateToFolder(item, this._getFolderNavigationParameters());
+              navigateDownIntoFolder(item, this._getFolderNavigationParameters());
             }
           }}
         >
