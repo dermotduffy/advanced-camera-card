@@ -754,6 +754,58 @@ describe('HAFoldersEngine', () => {
         ]);
       });
 
+      it('should carry parsed metadata downwards during navigation', async () => {
+        const MONTH = `${ROOT}2026-08`;
+        const month = createBrowseMedia({
+          media_content_id: MONTH,
+          title: '2026-08',
+          can_expand: true,
+          children: [
+            createBrowseMedia({ media_content_id: `${MONTH}/28`, title: '28' }),
+          ],
+        });
+        const tree: Record<string, BrowseMedia> = {
+          [ROOT]: createBrowseMedia({
+            media_content_id: ROOT,
+            can_expand: true,
+            children: [month],
+          }),
+          [MONTH]: month,
+        };
+        vi.mocked(homeAssistantWSRequest).mockImplementation(
+          async (_hass, _schema, request) => {
+            const mediaContentID: unknown = request.media_content_id;
+            return typeof mediaContentID === 'string' ? tree[mediaContentID] : null;
+          },
+        );
+
+        const engine = new HAFoldersEngine(templateManager);
+        const folder = createFolder({
+          navigation: 'unrestricted',
+          ha: {
+            path: [{ id: ROOT }, { parsers: [{ type: 'date', format: 'yyyy-MM' }] }],
+          },
+        });
+
+        const listing = await engine.expandFolder(
+          createHASS(),
+          createDefaultQuery(engine, folder),
+        );
+        const monthItem = listing?.[0];
+        assert(monthItem instanceof BrowseMediaViewFolder);
+
+        const results = await engine.expandFolder(
+          createHASS(),
+          engine.getDownQuery(monthItem),
+        );
+
+        // No level is configured below the month, so the day can only be dated
+        // by inheriting the parsed date from above.
+        const day = results?.[0];
+        assert(day instanceof ViewMedia);
+        expect(day.getStartTime()).toEqual(new Date(2026, 7, 1));
+      });
+
       it('should keep filtering with configured matchers', async () => {
         mockTree();
         const engine = new HAFoldersEngine(templateManager);
