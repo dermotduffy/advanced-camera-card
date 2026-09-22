@@ -7,7 +7,7 @@ import {
   FRONT_DOOR_FOLDER_CONTENT_ID,
   registerFrontDoorFolder,
 } from '../../browser/browse-media';
-import { deepQuery, hoverElement, pressKey } from '../../browser/dom';
+import { deepQuery, deepQueryAll, hoverElement, pressKey } from '../../browser/dom';
 import {
   createFrigateCameraDescription,
   createTestFrigateEvent,
@@ -422,14 +422,25 @@ describe('AdvancedCameraCardGallery with a folder', () => {
   const mountCardWithAThumbnailedFolder = async (): Promise<MountedCard> => {
     const hass = createCameraHASS([createFrigateCameraDescription()]);
 
+    const dateFolder = {
+      ...createFrontDoorFolderMedia('2026-08-28', 'directory'),
+      can_play: false,
+      can_expand: true,
+    };
+
     registerFrontDoorFolder(hass, [
-      {
-        ...createFrontDoorFolderMedia('2026-08-28', 'directory'),
-        can_play: false,
-        can_expand: true,
-      },
+      dateFolder,
       createFrontDoorFolderMedia('2026-08-28.jpg', 'image'),
     ]);
+    hass.registerBrowsableMedia({
+      ...dateFolder,
+      children: [
+        {
+          ...createFrontDoorFolderMedia('one.mp4', 'video'),
+          media_content_id: `${FRONT_DOOR_FOLDER_CONTENT_ID}/2026-08-28/one.mp4`,
+        },
+      ],
+    });
 
     hass.registerMediaSource(/\.jpg$/, async () => ({
       url: IMAGE_PATH,
@@ -472,6 +483,35 @@ describe('AdvancedCameraCardGallery with a folder', () => {
     );
 
     expect(getComputedStyle(picture).objectFit).toBe('cover');
+  });
+
+  const getUpThumbnails = (root: ParentNode): HTMLElement[] =>
+    deepQueryAll<HTMLElement>(root, 'advanced-camera-card-thumbnail[aria-label="Up"]');
+
+  it('should restore the configured listing after going into a folder and back up', async () => {
+    const card = await mountCardWithAThumbnailedFolder();
+
+    // The date folder alone, no up navigation allowed.
+    await waitForThumbnails(card, 1);
+    expect(getUpThumbnails(card.card)).toHaveLength(0);
+
+    await clickThumbnail(card.card, 0);
+
+    // The clip, and "Up".
+    await waitForThumbnails(card, 2);
+    expect(getUpThumbnails(card.card)).toHaveLength(1);
+
+    await clickThumbnail(card.card, 0);
+
+    // A second thumbnail would mean the thumbnail parser was not applied.
+    await waitForThumbnails(card, 1);
+    expect(getUpThumbnails(card.card)).toHaveLength(0);
+
+    const image = await card.waitForRender(
+      () => deepQuery<HTMLImageElement>(card.card, 'img'),
+      'the thumbnail picture',
+    );
+    expect(image.src).toMatch(/^data:image\/png;base64,/);
   });
 
   it('should show folder media with a matching image as its thumbnail', async () => {

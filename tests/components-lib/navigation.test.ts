@@ -229,6 +229,20 @@ describe('getUpFolderItem', () => {
     expect(getUpFolderItem(navigationParameters)).toBeNull();
   });
 
+  it('should return null when the view shows more than one folder', () => {
+    const folder = createFolder();
+    const query = createFolderQuery(folder);
+    query.addNode({ source: QuerySource.Folder, folder: createFolder(), path: [{}] });
+
+    const { foldersManager, navigationParameters } = createHarness({
+      query,
+      upQuery: { source: QuerySource.Folder, folder, path: [{}, {}] },
+    });
+
+    expect(getUpFolderItem(navigationParameters)).toBeNull();
+    expect(foldersManager.getUpQuery).not.toHaveBeenCalled();
+  });
+
   it('should return an up folder for a navigable folder query', () => {
     const folder = createFolder();
     const upQuery: FolderQuery = {
