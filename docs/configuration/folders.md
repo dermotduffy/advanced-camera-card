@@ -12,13 +12,14 @@ folders:
   # [...]
 ```
 
-| Option  | Default | Description                                                                                                                                                                                                                                                                                   |
-| ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`    |         | An optional folder `id` which can be used by [camera `media` configuration](./cameras/README.md#media) (see [worked example](../examples.md?id=show-a-folder-as-a-cameras-default-media)) or [`folder` actions](./actions/custom/README.md?id=folder) to show a particular folder's contents. |
-| `ha`    |         | Options for `ha` folder types. See [`ha`](#ha).                                                                                                                                                                                                                                               |
-| `icon`  |         | An optional folder icon.                                                                                                                                                                                                                                                                      |
-| `title` |         | An optional folder title.                                                                                                                                                                                                                                                                     |
-| `type`  | `ha`    | The type of folder, `ha` for Home Assistant media folders (currently the only supported type of folder).                                                                                                                                                                                      |
+| Option       | Default      | Description                                                                                                                                                                                                                                                                                   |
+| ------------ | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`         |              | An optional folder `id` which can be used by [camera `media` configuration](./cameras/README.md#media) (see [worked example](../examples.md?id=show-a-folder-as-a-cameras-default-media)) or [`folder` actions](./actions/custom/README.md?id=folder) to show a particular folder's contents. |
+| `ha`         |              | Options for `ha` folder types. See [`ha`](#ha).                                                                                                                                                                                                                                               |
+| `icon`       |              | An optional folder icon.                                                                                                                                                                                                                                                                      |
+| `navigation` | `restricted` | Whether the user may navigate above the configured folder. `restricted` treats the configured folder as the root, `unrestricted` allows the user to navigate above it. See [Folder Navigation](../usage/folder-navigation.md) for usage information.                                          |
+| `title`      |              | An optional folder title.                                                                                                                                                                                                                                                                     |
+| `type`       | `ha`         | The type of folder, `ha` for Home Assistant media folders (currently the only supported type of folder).                                                                                                                                                                                      |
 
 ## `ha`
 
@@ -66,6 +67,10 @@ folders:
 > [!TIP]
 > To match everything at a given level while parsing nothing would simply be
 > represented by an empty object `{}`
+
+> [!TIP]
+> See [Folder Navigation](../usage/folder-navigation.md) for how these levels
+> behave as the user navigates into and out of folders.
 
 #### Matchers
 

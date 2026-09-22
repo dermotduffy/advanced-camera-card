@@ -451,6 +451,11 @@
       },
       "icon": "Icon",
       "id": "Unique ID",
+      "navigation": "Navigation",
+      "navigations": {
+        "restricted": "Restricted to this folder or below",
+        "unrestricted": "Allowed above this folder"
+      },
       "title": "Title",
       "type": "Type",
       "types": {

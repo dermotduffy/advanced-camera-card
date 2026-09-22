@@ -2501,7 +2501,7 @@ describe('MenuButtonController', () => {
       const folderNode: FolderQuery = {
         source: QuerySource.Folder,
         folder: folder,
-        path: [{ ha: { id: 'one' } }],
+        path: [{}],
       };
       const buttons = calculateButtons(controller, {
         foldersManager,
@@ -2541,7 +2541,7 @@ describe('MenuButtonController', () => {
       const selectedFolderNode: FolderQuery = {
         source: QuerySource.Folder,
         folder: selectedFolder,
-        path: [{ ha: { id: 'id' } }],
+        path: [{}],
       };
       const view = createView({
         view: 'folder',
@@ -2794,7 +2794,7 @@ describe('MenuButtonController', () => {
         const folderNode: FolderQuery = {
           source: QuerySource.Folder,
           folder: folder,
-          path: [{ ha: { id: 'one' } }],
+          path: [{}],
         };
         const view = createView({
           view: action,
@@ -2854,7 +2854,7 @@ describe('MenuButtonController', () => {
       const folderNode: FolderQuery = {
         source: QuerySource.Folder,
         folder: folder,
-        path: [{ ha: { id: 'one' } }],
+        path: [{}],
       };
       // Opening a media item from a folder keeps the folder query but changes
       // the view to the media viewer, so emphasis must follow the folder query

@@ -1,5 +1,3 @@
-import type { NonEmptyTuple } from 'type-fest';
-
 import type { CameraManager } from '../camera-manager/manager';
 import {
   QueryType,
@@ -9,9 +7,8 @@ import {
   type ReviewQuery,
 } from '../camera-manager/types';
 import type { FoldersManager } from '../card-controller/folders/manager';
-import type { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
+import type { FolderQuery } from '../card-controller/folders/types';
 import type { CameraMediaType } from '../config/schema/cameras';
-import type { FolderConfig } from '../config/schema/folders';
 import { QuerySource, type QueryFilters } from '../query-source.js';
 import { VIEW_MEDIA_TYPES, type ViewMediaType } from '../types';
 import { arrayify } from '../utils/basic';
@@ -264,20 +261,6 @@ export class UnifiedQueryBuilder {
   // Folder Query Builders
   // =========================================================================
 
-  public buildFolderQueryWithPath(
-    folder: FolderConfig,
-    path: NonEmptyTuple<FolderPathComponent>,
-  ): UnifiedQuery {
-    const query = new UnifiedQuery();
-    const folderQuery: FolderQuery = {
-      source: QuerySource.Folder,
-      folder,
-      path,
-    };
-    query.addNode(folderQuery);
-    return query;
-  }
-
   public buildDefaultFolderQuery(
     folderID?: string,
     options?: QueryFilters,
@@ -285,6 +268,10 @@ export class UnifiedQueryBuilder {
     const query = new UnifiedQuery();
     this._addNode(query, this._buildFolderQueryNode(folderID, options));
     return query.hasNodes() ? query : null;
+  }
+
+  public buildFolderQuery(node: FolderQuery): UnifiedQuery {
+    return this._addNode(new UnifiedQuery(), node);
   }
 
   private _buildFolderQueryNodesForCameras(

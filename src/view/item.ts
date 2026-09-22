@@ -1,6 +1,6 @@
 import { clone } from 'lodash-es';
 
-import type { FolderPathComponent } from '../card-controller/folders/types';
+import type { FolderPathLevel } from '../card-controller/folders/types';
 import type { FolderConfig } from '../config/schema/folders';
 import type { Severity } from '../severity';
 
@@ -14,7 +14,7 @@ export enum ViewMediaType {
 export interface ViewMediaSourceOptions {
   cameraID?: string;
   folder?: FolderConfig;
-  path?: readonly FolderPathComponent[];
+  path?: readonly FolderPathLevel[];
 }
 
 export class ViewMedia {
@@ -145,7 +145,7 @@ interface ViewFolderParameters {
 
 export class ViewFolder {
   private _folder: FolderConfig;
-  private _path: readonly FolderPathComponent[];
+  private _path: readonly FolderPathLevel[];
 
   private _icon: string | null;
   private _id: string | null;
@@ -155,7 +155,7 @@ export class ViewFolder {
 
   constructor(
     folder: FolderConfig,
-    path: readonly FolderPathComponent[],
+    path: readonly FolderPathLevel[],
     params?: ViewFolderParameters,
   ) {
     this._folder = folder;
@@ -171,7 +171,7 @@ export class ViewFolder {
   public getFolder(): FolderConfig {
     return this._folder;
   }
-  public getPath(): readonly FolderPathComponent[] {
+  public getPath(): readonly FolderPathLevel[] {
     return this._path;
   }
   public getID(): string | null {

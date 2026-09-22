@@ -92,8 +92,7 @@ const mountFolderGallery = async (size: number): Promise<MountedCard> => {
     }),
     hass,
   );
-  // The gallery renders the folder plus an "up" thumbnail to its parent.
-  await waitForThumbnails(card, 2);
+  await waitForThumbnails(card, 1);
   return card;
 };
 
