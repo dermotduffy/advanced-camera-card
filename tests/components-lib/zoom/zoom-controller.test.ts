@@ -661,14 +661,71 @@ describe('ZoomController', () => {
       );
 
       // A resize must leave that zoom alone rather than springing back to the
-      // configured scale.
-      setElementToDefaultCardSize(element);
+      // configured scale, and must carry the user's pan over to the new size.
+      setElementToDefaultCardSize(element, 2);
       triggerResizeObserver();
       expect(panzoom.zoom).toHaveBeenCalledTimes(1);
+      expect(panzoom.pan).toHaveBeenNthCalledWith(2, 20, 40, { animate: false });
 
       // A newly supplied configuration takes precedence again.
       controller.setSettings({ zoom: 3, pan: { x: 5, y: 6 } });
       expect(panzoom.zoom).toHaveBeenNthCalledWith(2, 3, { animate: false });
+    });
+
+    it('should not re-pan when scale is 1', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+
+      createAndRegisterZoom(element);
+
+      element.dispatchEvent(
+        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+          detail: {
+            x: 0,
+            y: 0,
+            scale: 1,
+            isSVG: false,
+            originalEvent: new PointerEvent('pointermove'),
+          },
+        }),
+      );
+
+      setElementToDefaultCardSize(element, 2);
+      triggerResizeObserver();
+
+      expect(panzoom.pan).not.toHaveBeenCalled();
+    });
+
+    it('should not re-pan when the element has no size', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+
+      createAndRegisterZoom(element);
+
+      vi.mocked(panzoom.getScale).mockReturnValue(4);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 10, y: 20 });
+      element.dispatchEvent(
+        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+          detail: {
+            x: 10,
+            y: 20,
+            scale: 4,
+            isSVG: false,
+            originalEvent: new PointerEvent('pointermove'),
+          },
+        }),
+      );
+
+      setElementToDefaultCardSize(element, 0);
+      triggerResizeObserver();
+
+      expect(panzoom.pan).not.toHaveBeenCalled();
     });
 
     it('should still apply config after a programmatic zoom change', () => {
@@ -689,20 +746,90 @@ describe('ZoomController', () => {
       // Those must not count as a user adjustment, or the card would stop
       // maintaining the configured view after its very first update.
       element.dispatchEvent(
-        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+        new CustomEvent('panzoomchange', {
           detail: {
             x: 3,
             y: 4,
             scale: 2,
             isSVG: false,
-          } as unknown as PanzoomEventDetail,
+          },
         }),
       );
 
-      setElementToDefaultCardSize(element);
+      setElementToDefaultCardSize(element, 2);
       triggerResizeObserver();
 
       expect(panzoom.zoom).toHaveBeenCalledTimes(2);
+    });
+
+    it('should apply new default settings after a user zoom', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+
+      const controller = createAndRegisterZoom(element);
+
+      vi.mocked(panzoom.getScale).mockReturnValue(4);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 10, y: 20 });
+      element.dispatchEvent(
+        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+          detail: {
+            x: 10,
+            y: 20,
+            scale: 4,
+            isSVG: false,
+            originalEvent: new PointerEvent('pointermove'),
+          },
+        }),
+      );
+
+      // Change configured settings.
+      controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+      expect(panzoom.zoom).toHaveBeenNthCalledWith(1, 2, { animate: false });
+
+      setElementToDefaultCardSize(element, 2);
+      triggerResizeObserver();
+
+      // Resize will respect configured (not user) values.
+      expect(panzoom.zoom).toHaveBeenNthCalledWith(2, 2, { animate: false });
+    });
+
+    it('should apply the configuration again after reactivation', () => {
+      const firstPanzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(firstPanzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+
+      const controller = createAndRegisterZoom(element);
+      controller.setSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+
+      vi.mocked(firstPanzoom.getScale).mockReturnValue(4);
+      vi.mocked(firstPanzoom.getPan).mockReturnValue({ x: 10, y: 20 });
+      element.dispatchEvent(
+        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+          detail: {
+            x: 10,
+            y: 20,
+            scale: 4,
+            isSVG: false,
+            originalEvent: new PointerEvent('pointermove'),
+          },
+        }),
+      );
+
+      controller.deactivate();
+
+      // Deactivation discards the user adjustment, so the resize follows config.
+      const secondPanzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(secondPanzoom);
+      controller.activate();
+
+      setElementToDefaultCardSize(element, 2);
+      triggerResizeObserver();
+      expect(secondPanzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
     });
 
     it('when not yet activated', () => {
