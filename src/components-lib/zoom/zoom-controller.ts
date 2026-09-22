@@ -34,6 +34,16 @@ export class ZoomController {
   // through untouched (used to yield to PTZ gesture mode).
   private _zoom = true;
 
+  // Whether the user has zoomed/panned themselves. Panzoom holds a single
+  // transform that both the card and the user write to, so the controller must
+  // know whose values to maintain (e.g. in the event of a resize). A newly
+  // supplied configuration supersedes the user.
+  private _userAdjusted = false;
+
+  // Where the user panned to in the percentages (to survive an element resize).
+  // Unset at scale 1, where there is nothing to pan.
+  private _userPan: Point | null = null;
+
   private _defaultSettings: PartialZoomSettings | null;
   private _settings: PartialZoomSettings | null;
 
@@ -43,7 +53,23 @@ export class ZoomController {
   private _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
   private _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
 
-  private _resizeObserver = new ResizeObserver(this._debouncedUpdater);
+  // A resize changes the element size that pan percentages are measured
+  // against, so the pan is re-derived at the new size (from the card's
+  // percentages or the user's depending on who moved last).
+  private _debouncedResizeUpdater = throttle(() => {
+    const panzoom = this._panzoom;
+    if (!panzoom) {
+      return;
+    }
+
+    if (this._userAdjusted) {
+      this._updateBasedOnUserPan(panzoom);
+    } else {
+      this._updateBasedOnConfig();
+    }
+  }, 50);
+
+  private _resizeObserver = new ResizeObserver(this._debouncedResizeUpdater);
 
   private _events = isHoverableDevice()
     ? {
@@ -190,16 +216,19 @@ export class ZoomController {
     this._resizeObserver.disconnect();
     this._element.removeEventListener('panzoomchange', this._debouncedChangeHandler);
 
+    this._clearUserAdjustment();
     this._panzoom = null;
   }
 
   public setDefaultSettings(config: PartialZoomSettings | null): void {
     this._defaultSettings = config;
+    this._clearUserAdjustment();
     this._debouncedUpdater();
   }
 
   public setSettings(config: PartialZoomSettings | null): void {
     this._settings = config;
+    this._clearUserAdjustment();
     this._debouncedUpdater();
   }
 
@@ -228,6 +257,16 @@ export class ZoomController {
     }
 
     const converted = this._convertXYPanToPercent(pz.x, pz.y, pz.scale);
+
+    // Panzoom sets originalEvent only for a change that a gesture drove.
+    if (pz.originalEvent) {
+      this._userAdjusted = true;
+
+      if (converted) {
+        this._userPan = converted;
+      }
+    }
+
     const observed: ZoomSettingsObserved = {
       pan: {
         x: converted?.x ?? ZOOM_DEFAULT_PAN_X,
@@ -267,6 +306,31 @@ export class ZoomController {
 
   private _getConfigToUse(): PartialZoomSettings | null {
     return isZoomEmpty(this._settings) ? this._defaultSettings : this._settings;
+  }
+
+  private _clearUserAdjustment(): void {
+    this._userAdjusted = false;
+    this._userPan = null;
+  }
+
+  // Re-derives the user's pan for the current element size, at the scale they
+  // chose (panzoom's scale does not depend on the element size, so that is left
+  // untouched).
+  private _updateBasedOnUserPan(panzoom: PanzoomObject): void {
+    if (!this._userPan) {
+      return;
+    }
+
+    const converted = this._convertPercentToXYPan(
+      this._userPan.x,
+      this._userPan.y,
+      panzoom.getScale(),
+    );
+    if (!converted) {
+      return;
+    }
+
+    panzoom.pan(converted.x, converted.y, { animate: false });
   }
 
   private _updateBasedOnConfig(): void {
