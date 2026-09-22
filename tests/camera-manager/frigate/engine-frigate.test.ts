@@ -1098,6 +1098,50 @@ describe('FrigateCameraManagerEngine', () => {
       expect(getEvents).toHaveBeenCalledTimes(2);
     });
 
+    it('should serve each instance its own cached events', async () => {
+      const engine = createEngine();
+      const config1 = createCameraConfig({
+        frigate: { camera_name: 'cam1', client_id: 'instance-1' },
+      });
+      const config2 = createCameraConfig({
+        frigate: { camera_name: 'cam2', client_id: 'instance-2' },
+      });
+      const store = createStore([
+        { cameraID: 'camera-1', config: config1 },
+        { cameraID: 'camera-2', config: config2 },
+      ]);
+      const query = {
+        type: QueryType.Event as const,
+        source: QuerySource.Camera as const,
+        cameraIDs: new Set(['camera-1', 'camera-2']),
+      };
+
+      vi.mocked(getEvents).mockImplementation(async (_hass, nativeQuery) => {
+        assert(nativeQuery);
+        return [createFrigateEvent({ id: `${nativeQuery.instance_id}-event` })];
+      });
+
+      await engine.getEvents(createHASS(), store, query);
+      const cached = await engine.getEvents(createHASS(), store, query);
+
+      // One call per instance on the first query, none on the second.
+      expect(getEvents).toHaveBeenCalledTimes(2);
+
+      assert(cached);
+      expect([...cached.values()]).toEqual([
+        expect.objectContaining({
+          instanceID: 'instance-1',
+          cached: true,
+          events: [createFrigateEvent({ id: 'instance-1-event' })],
+        }),
+        expect.objectContaining({
+          instanceID: 'instance-2',
+          cached: true,
+          events: [createFrigateEvent({ id: 'instance-2-event' })],
+        }),
+      ]);
+    });
+
     it('should send empty cameras list when camera_name is empty', async () => {
       const hass = createHASS();
       const config = createCameraConfig({
@@ -1290,6 +1334,49 @@ describe('FrigateCameraManagerEngine', () => {
       });
 
       expect(getReviews).toHaveBeenCalledTimes(1);
+    });
+
+    it('should serve each instance its own cached reviews', async () => {
+      const engine = createEngine();
+      const config1 = createCameraConfig({
+        frigate: { camera_name: 'cam1', client_id: 'instance-1' },
+      });
+      const config2 = createCameraConfig({
+        frigate: { camera_name: 'cam2', client_id: 'instance-2' },
+      });
+      const store = createStore([
+        { cameraID: 'camera-1', config: config1 },
+        { cameraID: 'camera-2', config: config2 },
+      ]);
+      const query = {
+        type: QueryType.Review as const,
+        source: QuerySource.Camera as const,
+        cameraIDs: new Set(['camera-1', 'camera-2']),
+      };
+
+      vi.mocked(getReviews).mockImplementation(async (_hass, nativeQuery) => [
+        createFrigateReview({ id: `${nativeQuery.instance_id}-review` }),
+      ]);
+
+      await engine.getReviews(createHASS(), store, query);
+      const cached = await engine.getReviews(createHASS(), store, query);
+
+      // One call per instance on the first query, none on the second.
+      expect(getReviews).toHaveBeenCalledTimes(2);
+
+      assert(cached);
+      expect([...cached.values()]).toEqual([
+        expect.objectContaining({
+          instanceID: 'instance-1',
+          cached: true,
+          reviews: [createFrigateReview({ id: 'instance-1-review' })],
+        }),
+        expect.objectContaining({
+          instanceID: 'instance-2',
+          cached: true,
+          reviews: [createFrigateReview({ id: 'instance-2-review' })],
+        }),
+      ]);
     });
 
     it('should pass query parameters to review request', async () => {

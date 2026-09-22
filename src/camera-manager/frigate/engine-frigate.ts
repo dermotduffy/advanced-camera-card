@@ -466,7 +466,7 @@ export class FrigateCameraManagerEngine
       const cachedResult =
         engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
-        output.set(query, cachedResult as EventQueryResults);
+        output.set(instanceQuery, cachedResult as EventQueryResults);
         return;
       }
 
@@ -495,7 +495,11 @@ export class FrigateCameraManagerEngine
       };
 
       if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+        this._requestCache.set(
+          instanceQuery,
+          { ...result, cached: true },
+          result.expiry,
+        );
       }
       output.set(instanceQuery, result);
     };
@@ -545,7 +549,7 @@ export class FrigateCameraManagerEngine
       const cachedResult =
         engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
-        output.set(query, cachedResult as FrigateReviewQueryResults);
+        output.set(instanceQuery, cachedResult as FrigateReviewQueryResults);
         return;
       }
 
@@ -584,7 +588,11 @@ export class FrigateCameraManagerEngine
       };
 
       if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+        this._requestCache.set(
+          instanceQuery,
+          { ...result, cached: true },
+          result.expiry,
+        );
       }
       output.set(instanceQuery, result);
     };
