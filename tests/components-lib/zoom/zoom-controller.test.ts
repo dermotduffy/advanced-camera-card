@@ -9,6 +9,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi,
   type Mock,
 } from 'vitest';
@@ -45,10 +46,15 @@ const createAttachedElement = (): HTMLElement => {
   return element;
 };
 
+// jsdom doesn't layout, so layout sizes must be set manually.
 const setElementToDefaultCardSize = (element: HTMLElement, multiple?: number): void => {
-  element.getBoundingClientRect = vi.fn().mockReturnValue({
-    width: 492 * (multiple ?? 1),
-    height: 276.75 * (multiple ?? 1),
+  Object.defineProperty(element, 'offsetWidth', {
+    configurable: true,
+    value: 492 * (multiple ?? 1),
+  });
+  Object.defineProperty(element, 'offsetHeight', {
+    configurable: true,
+    value: 276.75 * (multiple ?? 1),
   });
 };
 
@@ -223,7 +229,7 @@ describe('ZoomController', () => {
     expect(clickHandler).toHaveBeenCalledTimes(2);
   });
 
-  it('deactivate should remove event handlers', () => {
+  it('should stop responding to events after deactivation', () => {
     const element = createAttachedElement();
 
     const panzoom = createMockPanZoom();
@@ -241,7 +247,7 @@ describe('ZoomController', () => {
   });
 
   describe('should fire events', () => {
-    it('on zoom/unzoom', () => {
+    it('should fire zoomed and unzoomed as the scale crosses 1', () => {
       const element = createAttachedElement();
       const zoomedFunc = vi.fn();
       const unzoomedFunc = vi.fn();
@@ -277,7 +283,7 @@ describe('ZoomController', () => {
       expect(unzoomedFunc).toHaveBeenCalled();
     });
 
-    it('when state has not changed or spurious events received', () => {
+    it('should not fire again when the zoom state is unchanged', () => {
       const element = createAttachedElement();
       const zoomedFunc = vi.fn();
       const unzoomedFunc = vi.fn();
@@ -321,7 +327,7 @@ describe('ZoomController', () => {
     });
 
     describe('on default/non-default', () => {
-      it('without explicit default', () => {
+      it('should treat being unzoomed as default when none is configured', () => {
         const element = createAttachedElement();
         setElementToDefaultCardSize(element);
 
@@ -366,7 +372,7 @@ describe('ZoomController', () => {
         );
       });
 
-      it('with complete explicit default', () => {
+      it('should treat the configured zoom and pan as default', () => {
         const element = createAttachedElement();
         setElementToDefaultCardSize(element);
 
@@ -412,7 +418,7 @@ describe('ZoomController', () => {
         );
       });
 
-      it('with partial explicit default', () => {
+      it('should treat being unzoomed as default when the configured default is empty', () => {
         const element = createAttachedElement();
         setElementToDefaultCardSize(element);
 
@@ -462,7 +468,7 @@ describe('ZoomController', () => {
   });
 
   describe('should automatically set correct zoom', () => {
-    it('with start', () => {
+    it('should seed the initial pan and zoom at activation', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
@@ -493,7 +499,7 @@ describe('ZoomController', () => {
       );
     });
 
-    it('with set of default config', () => {
+    it('should apply the default settings', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
@@ -512,7 +518,7 @@ describe('ZoomController', () => {
       });
     });
 
-    it('with set of config when a default is already set', () => {
+    it('should let settings take precedence over default settings', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
@@ -544,7 +550,7 @@ describe('ZoomController', () => {
       });
     });
 
-    it('with repeated calls with same values', () => {
+    it('should not reapply settings that match the current zoom and pan', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
@@ -583,7 +589,7 @@ describe('ZoomController', () => {
       expect(panzoom.pan).toHaveBeenCalledTimes(1);
     });
 
-    it('when config is set to empty', () => {
+    it('should fall back to the default settings when settings are empty', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
@@ -604,7 +610,7 @@ describe('ZoomController', () => {
       });
     });
 
-    it('when resized', () => {
+    it('should re-derive the configured pan on resize', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
@@ -623,11 +629,11 @@ describe('ZoomController', () => {
       vi.mocked(panzoom.getScale).mockReturnValue(2);
       vi.mocked(panzoom.getPan).mockReturnValue({ x: 3, y: 4 });
 
-      setElementToDefaultCardSize(element);
+      setElementToDefaultCardSize(element, 2);
       triggerResizeObserver();
 
       expect(panzoom.zoom).toHaveBeenNthCalledWith(2, 2, { animate: false });
-      expect(panzoom.pan).toHaveBeenNthCalledWith(2, 57.81, 31.82625, {
+      expect(panzoom.pan).toHaveBeenNthCalledWith(2, 231.24, 127.305, {
         animate: true,
         duration: 100,
       });
@@ -832,7 +838,7 @@ describe('ZoomController', () => {
       expect(secondPanzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
     });
 
-    it('when not yet activated', () => {
+    it('should ignore a resize before activation', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
@@ -847,21 +853,120 @@ describe('ZoomController', () => {
       expect(panzoom.pan).not.toHaveBeenCalled();
     });
 
-    it('when element has no size', () => {
+    it('should ignore a resize while the element has no size', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
       const element = createAttachedElement();
-      element.getBoundingClientRect = vi.fn().mockReturnValue({
-        width: 0,
-        height: 0,
-      });
+      setElementToDefaultCardSize(element, 0);
       createAndRegisterZoom(element);
 
       triggerResizeObserver();
 
       expect(panzoom.zoom).not.toHaveBeenCalled();
       expect(panzoom.pan).not.toHaveBeenCalled();
+    });
+
+    it('should defer the configured settings until the element has a size', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element, 0);
+
+      const controller = new ZoomController(element);
+      controller.setSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+      controller.activate();
+
+      // ResizeObserver delivers a callback on observe(), which on a slow device
+      // arrives before layout has given the element a size.
+      triggerResizeObserver();
+
+      expect(panzoom.zoom).not.toHaveBeenCalled();
+      expect(panzoom.pan).not.toHaveBeenCalled();
+
+      setElementToDefaultCardSize(element);
+      triggerResizeObserver();
+
+      expect(panzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
+      expect(panzoom.pan).toHaveBeenCalledWith(115.62, 63.6525, {
+        animate: true,
+        contain: undefined,
+        duration: 100,
+      });
+    });
+  });
+
+  describe('with a configured pan pending on the next frame', () => {
+    // Applies the configuration and holds the pan on the frame it is scheduled
+    // for, so the test can replace the panzoom instance before the pan runs.
+    const startConfiguredPan = (): {
+      controller: ZoomController;
+      panzoom: PanzoomObject;
+      runPendingFrames: () => void;
+    } => {
+      const pendingFrames: FrameRequestCallback[] = [];
+      const requestAnimationFrame = vi
+        .spyOn(window, 'requestAnimationFrame')
+        .mockImplementation((callback: FrameRequestCallback) => {
+          pendingFrames.push(callback);
+          return 1;
+        });
+      onTestFinished(() => requestAnimationFrame.mockRestore());
+
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+
+      const controller = createAndRegisterZoom(element);
+      controller.setSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+
+      expect(panzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
+      expect(panzoom.pan).not.toHaveBeenCalled();
+
+      return {
+        controller,
+        panzoom,
+        runPendingFrames: () => pendingFrames.forEach((frame) => frame(0)),
+      };
+    };
+
+    it('should not pan after deactivation', () => {
+      const { controller, panzoom, runPendingFrames } = startConfiguredPan();
+
+      controller.deactivate();
+
+      runPendingFrames();
+
+      expect(panzoom.pan).not.toHaveBeenCalled();
+    });
+
+    it('should not pan the replacement instance', () => {
+      const { controller, panzoom, runPendingFrames } = startConfiguredPan();
+
+      controller.deactivate();
+
+      const reactivatedPanzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(reactivatedPanzoom);
+      controller.activate();
+
+      runPendingFrames();
+
+      expect(panzoom.pan).not.toHaveBeenCalled();
+      expect(reactivatedPanzoom.pan).not.toHaveBeenCalled();
+
+      // Nothing is lost by dropping the pan: the new instance is constructed
+      // with the configured settings.
+      expect(Panzoom).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          startScale: 2,
+          startX: 115.62,
+          startY: 63.6525,
+        }),
+      );
     });
   });
 
