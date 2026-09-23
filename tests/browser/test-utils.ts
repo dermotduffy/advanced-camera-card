@@ -1,3 +1,4 @@
+import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
 import type {
   AdvancedCameraCardSelect,
   SelectValues,
@@ -9,7 +10,7 @@ import type {
 import type { Entity } from '../../src/ha/registry/entity/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
-import { isTruthy } from '../../src/utils/basic';
+import { isRecord, isTruthy } from '../../src/utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../src/utils/fire-advanced-camera-card-event';
 import { clickElement, deepQuery, deepQueryAll, holdElement } from './dom';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
@@ -152,6 +153,14 @@ export const isMediaLoadedInfoEventDetail = (
   'info' in detail &&
   'signal' in detail &&
   detail.signal instanceof AbortSignal;
+
+export const isZoomSettingsObserved = (
+  detail: unknown,
+): detail is ZoomSettingsObserved =>
+  isRecord(detail) &&
+  typeof detail.isDefault === 'boolean' &&
+  isRecord(detail.pan) &&
+  typeof detail.pan.x === 'number';
 
 /**
  * The text of a block notification rendered in place of content (e.g. full-card

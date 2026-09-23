@@ -4,10 +4,8 @@ import {
   STEP_DELAY_SECONDS,
   STEP_PAN,
 } from '../../src/card-controller/actions/actions/ptz-digital';
-import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
 import type { LogActionConfig } from '../../src/config/schema/actions/custom/log';
 import { createLogAction } from '../../src/utils/action';
-import { isRecord } from '../../src/utils/basic';
 import {
   clickElement,
   dispatchPointerDown,
@@ -29,6 +27,7 @@ import {
   createGenericCameraHASS,
   createInitializedAutomation,
   createStillImageCardConfig,
+  isZoomSettingsObserved,
 } from '../browser/test-utils';
 
 const ZOOM_ENTITY = 'input_boolean.zoom';
@@ -125,9 +124,6 @@ const mountCard = async (options?: MountCardOptions): Promise<MountedCard> => {
 
   return card;
 };
-
-const isZoomSettingsObserved = (detail: unknown): detail is ZoomSettingsObserved =>
-  isRecord(detail) && isRecord(detail.pan) && typeof detail.pan.x === 'number';
 
 // How far across and down the camera the picture sits, as percentages, from the
 // last change the card reported. It starts halfway on both.
