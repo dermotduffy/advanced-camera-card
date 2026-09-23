@@ -2013,6 +2013,8 @@ cameras:
 
 ## Zoom
 
+[](configuration/common/y-key-warning.md ':include')
+
 ### Pre-defining camera zoom and pan
 
 This example changes the default [zoom/pan settings for a camera](./configuration/cameras/README.md?id=layout-configuration) to always zoom in on a given area:
@@ -2026,7 +2028,7 @@ cameras:
         zoom: 3
         pan:
           x: 20
-          y: 80
+          'y': 80
 ```
 
 ### Disable zooming in media views
@@ -2042,7 +2044,7 @@ cameras:
         zoom: 3
         pan:
           x: 20
-          y: 80
+          'y': 80
 media_viewer:
   zoomable: false
 ```
@@ -2068,7 +2070,7 @@ overrides:
         zoom: 3
         pan:
           x: 100
-          y: 100
+          'y': 100
 ```
 
 ### Automatically zoom based on state
@@ -2096,7 +2098,7 @@ automations:
           zoom: 4
           pan:
             x: 38
-            y: 20
+            'y': 20
   # Door closes: zoom back out.
   - triggers:
       - trigger: state
