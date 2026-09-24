@@ -16,12 +16,14 @@ import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
 import { ConfigManager } from './card-controller/config/config-manager';
 import { CardController } from './card-controller/controller';
+import { InitializationAspect } from './card-controller/initialization/initialization-manager.js';
 import type {
   IssueKey,
   IssueResolveEventData,
   IssueTriggerEventData,
 } from './card-controller/issues/types.js';
 import { resolveAutoHideState, type AutoHideState } from './components-lib/auto-hide.js';
+import { areElementsReady } from './components-lib/elements-readiness.js';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 
 import './components/effects/effects';
@@ -507,13 +509,16 @@ export class AdvancedCameraCard extends LitElement {
           </div>
           ${this._renderMenuStatusContainer('bottom')}
           ${this._config?.elements &&
-          this._controller.getInitializationManager().areMandatoryAspectsInitialized()
+          areElementsReady(
+            this._controller.getConfigManager().hasTemplate(),
+            this._controller
+              .getInitializationManager()
+              .isInitialized(InitializationAspect.TEMPLATE_RENDERER),
+          )
             ? // Elements need to render after the main views so it can render 'on
-              // top'. They are held until the card is initialized: the template
-              // renderer loads lazily as a mandatory init aspect (when the
-              // config uses templates), so rendering elements earlier could
-              // emit raw, unrendered templates or evaluate their visibility
-              // conditions before the renderer is available.
+              // top'. Template-backed elements are held until their lazily loaded
+              // renderer is ready so they cannot emit raw template values or
+              // evaluate visibility conditions prematurely.
               html` <advanced-camera-card-elements
                 ${ref(this._refElements)}
                 .hass=${this._hass}
