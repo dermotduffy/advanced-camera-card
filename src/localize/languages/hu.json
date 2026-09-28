@@ -1,0 +1,988 @@
+{
+  "actions": {
+    "abort": "Művelet megszakítva",
+    "confirmation": "Biztosan végrehajtod ezt a műveletet"
+  },
+  "common": {
+    "advanced_camera_card": "Advanced Camera Card",
+    "advanced_camera_card_description": "Egy fejlett kamerakártya",
+    "close": "Bezárás",
+    "event": "Esemény",
+    "folder": "Mappa",
+    "in_progress": "Folyamatban...",
+    "no_media": "Nincs megjeleníthető média",
+    "retry": "Újra",
+    "set_reviews": {
+      "reviewed": "Megjelölés átnézettként",
+      "unreviewed": "Megjelölés át nem nézettként"
+    },
+    "severities": {
+      "high": "Magas",
+      "low": "Alacsony",
+      "medium": "Közepes"
+    },
+    "severity": "Súlyosság",
+    "up": "Fel"
+  },
+  "config": {
+    "cameras": {
+      "always_error_if_entity_unavailable": "Az entitás elérhetetlenségét mindig hibaként kezelje",
+      "camera_entity": "Kamera entitás",
+      "capabilities": {
+        "capabilities": {
+          "2-way-audio": "Kétirányú hang",
+          "clips": "Klipek",
+          "favorite-events": "Kedvenc események",
+          "favorite-recordings": "Kedvenc felvételek",
+          "live": "Élő",
+          "menu": "Menü",
+          "ptz": "PTZ",
+          "recordings": "Felvételek",
+          "remote-control-entity": "Távvezérlő entitás",
+          "reviews": "Átnézendők",
+          "seek": "Tekerés",
+          "snapshots": "Pillanatképek",
+          "substream": "Alstream",
+          "trigger": "Kiváltó"
+        },
+        "disable": "Letiltás",
+        "disable_except": "Letiltás, kivéve",
+        "editor_label": "Képességek",
+        "force": "Kényszerítés"
+      },
+      "cast": {
+        "dashboard": {
+          "dashboard_path": "Irányítópult útvonala",
+          "editor_label": "Irányítópult",
+          "view_path": "Nézet útvonala"
+        },
+        "editor_label": "Kivetítés",
+        "method": "Kivetítés módja",
+        "methods": {
+          "dashboard": "Irányítópult",
+          "standard": "Szabványos"
+        }
+      },
+      "dependencies": {
+        "all_cameras": "Az összes kamera eseményeinek megjelenítése ezzel a kamerával",
+        "cameras": "Adott kamerák eseményeinek megjelenítése ezzel a kamerával",
+        "editor_label": "Függőségek"
+      },
+      "dimensions": {
+        "aspect_ratio": "Rögzített képarány",
+        "editor_label": "Méretek",
+        "layout": {
+          "editor_label": "Kamera elrendezése",
+          "fit": "Illesztés",
+          "fits": {
+            "contain": "A média teljes egészében látszik (szükség esetén sávokkal)",
+            "cover": "A média arányosan nagyítva kitölti a kártyát",
+            "fill": "A média a kártya kitöltéséhez nyújtva"
+          },
+          "pan": {
+            "editor_label": "Elrendezés eltolása",
+            "x": "Vízszintes %",
+            "y": "Függőleges %"
+          },
+          "position": {
+            "editor_label": "Kitöltés pozíciója",
+            "x": "Vízszintes %",
+            "y": "Függőleges %"
+          },
+          "view_box": {
+            "bottom": "Alsó levágás %",
+            "editor_label": "Látható terület",
+            "left": "Bal levágás %",
+            "right": "Jobb levágás %",
+            "top": "Felső levágás %"
+          },
+          "zoom": "Nagyítás mértéke"
+        },
+        "rotation": "Elforgatás",
+        "rotations": {
+          "0": "Nincs",
+          "90": "90° az óramutató járásával megegyezően",
+          "180": "180° az óramutató járásával megegyezően",
+          "270": "270° az óramutató járásával megegyezően"
+        }
+      },
+      "engine": "Kameramotor",
+      "engines": {
+        "auto": "Automatikus",
+        "editor_label": "Motor",
+        "frigate": "Frigate",
+        "generic": "Általános",
+        "motioneye": "MotionEye",
+        "reolink": "Reolink",
+        "tplink": "TP-Link"
+      },
+      "frigate": {
+        "camera_name": "Frigate kameranév (az entitásból automatikusan felismerve)",
+        "client_id": "Frigate kliensazonosító (egynél több Frigate szerver esetén)",
+        "editor_label": "Frigate",
+        "labels": "Frigate címkék/objektumszűrők",
+        "url": "Frigate szerver URL",
+        "zones": "Frigate zónák"
+      },
+      "go2rtc": {
+        "editor_label": "go2rtc",
+        "metadata_fetch_timeout_seconds": "Metaadat-lekérés időtúllépése másodpercben",
+        "modes": {
+          "editor_label": "go2rtc módok",
+          "mjpeg": "Motion JPEG (MJPEG)",
+          "mp4": "MPEG-4 (MP4)",
+          "mse": "Media Source Extensions (MSE)",
+          "webrtc": "Web Real-Time Communication (WebRTC)"
+        },
+        "stream": "Stream neve",
+        "url": "URL"
+      },
+      "icon": "Ikon (automatikusan felismerve)",
+      "id": "A kamera egyedi azonosítója ezen a kártyán",
+      "image": {
+        "editor_label": "Kép",
+        "refresh_seconds": "Élő kép frissítései közti másodpercek (0=soha)",
+        "url": "A kamera entitás pillanatképe helyett használt kép URL-je"
+      },
+      "live_provider": "Élő nézet szolgáltatója ehhez a kamerához",
+      "live_provider_options": {
+        "editor_label": "Élő szolgáltató"
+      },
+      "live_providers": {
+        "auto": "Automatikus",
+        "go2rtc": "go2rtc",
+        "go2rtc-experimental": "go2rtc (kísérleti megvalósítás)",
+        "ha": "Home Assistant videostream (pl. HLS, LL-HLS, WebRTC a HA-n keresztül)",
+        "image": "Kép",
+        "jsmpeg": "JSMpeg",
+        "webrtc-card": "WebRTC Card (azaz AlexxIT WebRTC Card-ja)"
+      },
+      "media": {
+        "editor_label": "Média",
+        "events_type": "Esemény altípusa",
+        "folders": "Mappaazonosítók",
+        "reviewed": "Átnézési állapot szűrő",
+        "revieweds": {
+          "all": "Mind (átnézett és át nem nézett)",
+          "reviewed": "Csak átnézett",
+          "unreviewed": "Csak át nem nézett"
+        },
+        "type": "Alapértelmezett típus"
+      },
+      "motioneye": {
+        "editor_label": "MotionEye",
+        "images": {
+          "directory_pattern": "Könyvtárminta",
+          "editor_label": "Képek",
+          "file_pattern": "Fájlminta"
+        },
+        "movies": {
+          "directory_pattern": "Könyvtárminta",
+          "editor_label": "Videók",
+          "file_pattern": "Fájlminta"
+        },
+        "url": "MotionEye felület URL"
+      },
+      "proxy": {
+        "editor_label": "Proxyzás",
+        "live": "Élő",
+        "media": "Média"
+      },
+      "reolink": {
+        "editor_label": "Reolink",
+        "media_resolution": {
+          "editor_label": "Média felbontása",
+          "high": "Nagy felbontás",
+          "low": "Kis felbontás"
+        },
+        "url": "Reolink felület URL"
+      },
+      "title": "Cím (automatikusan felismerve)",
+      "triggers": {
+        "doorbell": "Kiváltás az automatikusan felismert csengő esemény-entitásokkal",
+        "editor_label": "Kiváltók",
+        "entities": "Kiváltás más entitásokból",
+        "events": {
+          "add_new_event": "Esemény-kiváltó hozzáadása",
+          "editor_label": "Home Assistant események",
+          "event_data": "Eseményadat-szűrő",
+          "event_type": "Esemény típusa"
+        },
+        "media_events": {
+          "clips": "Új klipes események",
+          "editor_label": "Kiváltó média események",
+          "events": "Minden esemény",
+          "snapshots": "Új pillanatképes események"
+        },
+        "motion": "Kiváltás az automatikusan felismert mozgásérzékelővel",
+        "occupancy": "Kiváltás az automatikusan felismert jelenlét-érzékelővel",
+        "reviews": {
+          "description": "Kiváltás a leírás frissülésekor",
+          "editor_label": "Átnézési kiváltók"
+        }
+      },
+      "webrtc_card": {
+        "editor_label": "WebRTC Card",
+        "entity": "WebRTC Card kamera entitás",
+        "url": "WebRTC Card kamera URL"
+      }
+    },
+    "common": {
+      "auto_hide_conditions": {
+        "call": "Kétirányú hanghívás közben",
+        "casting": "Kivetítés közben"
+      },
+      "controls": {
+        "builtin": "Beépített videovezérlők",
+        "filter": {
+          "editor_label": "Médiaszűrő",
+          "mode": "Szűrő módja",
+          "modes": {
+            "left": "Médiaszűrő bal oldali fiókban",
+            "none": "Nincs médiaszűrő",
+            "right": "Médiaszűrő jobb oldali fiókban"
+          }
+        },
+        "next_previous": {
+          "auto_hide": "Automatikus elrejtés",
+          "editor_label": "Következő és előző",
+          "size": "Méret képpontban",
+          "style": "Stílus",
+          "styles": {
+            "chevrons": "Nyilak",
+            "icons": "Ikonok",
+            "none": "Nincs",
+            "thumbnails": "Bélyegképek"
+          }
+        },
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Kezdőpozíció és előbeállítások elrejtése",
+          "hide_pan_tilt": "Forgatás és döntés elrejtése",
+          "hide_type": "Típusváltó elrejtése",
+          "hide_zoom": "Nagyítás elrejtése",
+          "mode": "Mód",
+          "modes": {
+            "auto": "Automatikus",
+            "off": "Ki",
+            "on": "Be"
+          },
+          "orientation": "Tájolás",
+          "orientations": {
+            "horizontal": "Vízszintes",
+            "vertical": "Függőleges"
+          },
+          "position": "Pozíció",
+          "positions": {
+            "bottom-left": "Bal alsó",
+            "bottom-right": "Jobb alsó",
+            "top-left": "Bal felső",
+            "top-right": "Jobb felső"
+          },
+          "type": "Alapértelmezett típus",
+          "types": {
+            "buttons": "Gombok",
+            "gestures": "Gesztusok"
+          }
+        },
+        "thumbnails": {
+          "editor_label": "Bélyegképek",
+          "mode": "Mód",
+          "modes": {
+            "above": "Felül",
+            "below": "Alul",
+            "left": "Bal oldali fiók",
+            "none": "Nincs",
+            "right": "Jobb oldali fiók"
+          },
+          "show_details": "Részletek megjelenítése",
+          "show_download_control": "Letöltés vezérlő megjelenítése",
+          "show_favorite_control": "Kedvenc vezérlő megjelenítése",
+          "show_info_control": "Információ vezérlő megjelenítése",
+          "show_review_control": "Átnézés vezérlő megjelenítése",
+          "show_timeline_control": "Idővonal vezérlő megjelenítése",
+          "size": "Méret képpontban"
+        },
+        "timeline": {
+          "editor_label": "Mini idővonal",
+          "format": {
+            "24h": "24 órás óra használata",
+            "editor_label": "Idő- és dátumformátum"
+          },
+          "mode": "Mód",
+          "modes": {
+            "above": "Felül",
+            "below": "Alul",
+            "none": "Nincs"
+          },
+          "pan_mode": "Alapértelmezett húzási mód",
+          "pan_modes": {
+            "pan": "Húzás",
+            "seek": "A húzás az összes médiában teker",
+            "seek-in-camera": "A húzás csak a kiválasztott kamerán belül teker",
+            "seek-in-media": "A húzás csak a kiválasztott médián belül teker"
+          }
+        },
+        "wheel": "Az egérgörgő a médiakörhintát görgeti"
+      },
+      "display": {
+        "editor_label": "Megjelenítés",
+        "grid_columns": "Rács oszlopainak pontos száma",
+        "grid_max_columns": "Rács oszlopainak maximális száma",
+        "grid_selected_position": "A kiválasztott média helye a rácsban",
+        "grid_selected_positions": {
+          "default": "A kiválasztott elem az alapértelmezett helyén",
+          "first": "A kiválasztott elem az első a rácsban",
+          "last": "A kiválasztott elem az utolsó a rácsban"
+        },
+        "grid_selected_width_factor": "A kiválasztott média szélességének növelése ezzel a szorzóval",
+        "mode": "Mód"
+      },
+      "events_media_types": {
+        "all": "Mind",
+        "clips": "Klipek",
+        "snapshots": "Pillanatképek"
+      },
+      "image": {
+        "entity": "Entitás az entitás módhoz",
+        "entity_parameters": "Az entitás alapú kép URL-ekhez fűzött lekérdezési paraméterek (pl. width=1920&height=1080)",
+        "mode": "Kép mód",
+        "modes": {
+          "auto": "Automatikusan, a beállítások alapján",
+          "camera": "A kamera entitás Home Assistant pillanatképe",
+          "default": "Alapértelmezett beágyazott kép",
+          "entity": "entity_picture attribútummal rendelkező entitás",
+          "screensaver": "Véletlenszerű kép",
+          "url": "URL-lel megadott tetszőleges kép"
+        },
+        "proxy": {
+          "editor_label": "Kép proxyzása"
+        },
+        "refresh_seconds": "Frissítések közti másodpercek (0=soha)",
+        "url": "Statikus kép URL"
+      },
+      "interaction_modes": {
+        "active": "Csak aktív használat közben",
+        "all": "Mindig, a használattól függetlenül",
+        "inactive": "Csak ha nincs használatban"
+      },
+      "media_action_conditions": {
+        "call_mute": "Hívás végén",
+        "call_unmute": "Hívás fogadásakor",
+        "hidden": "A böngésző/lap elrejtésekor",
+        "microphone_mute": "A mikrofon némításakor",
+        "microphone_unmute": "A mikrofon némításának feloldásakor",
+        "selected": "Kiválasztáskor",
+        "unselected": "A kiválasztás megszűnésekor",
+        "visible": "A böngésző/lap láthatóvá válásakor"
+      },
+      "media_types": {
+        "auto": "Automatikus",
+        "events": "Események",
+        "folder": "Mappa",
+        "recordings": "Felvételek",
+        "reviews": "Átnézendők"
+      },
+      "proxy": {
+        "dynamic": "Dinamikus",
+        "modes": {
+          "auto": "Automatikus",
+          "false": "Letiltva",
+          "true": "Engedélyezve"
+        },
+        "ssl_ciphers": {
+          "auto": "Automatikus",
+          "default": "Alapértelmezett",
+          "editor_label": "SSL titkosítók",
+          "insecure": "Nem biztonságos",
+          "intermediate": "Köztes",
+          "modern": "Modern"
+        },
+        "ssl_verification": {
+          "auto": "Automatikus",
+          "editor_label": "SSL ellenőrzés",
+          "false": "Letiltva",
+          "true": "Engedélyezve"
+        }
+      },
+      "timeline": {
+        "clustering_threshold": "Események száma a csoportosítás előtt (0=nincs csoportosítás)",
+        "show_recordings": "Felvételek megjelenítése",
+        "style": "Idővonal stílusa",
+        "styles": {
+          "ribbon": "Események egyetlen sávon",
+          "stack": "Egymásra halmozott és csoportosított események"
+        },
+        "window_seconds": "Az idővonal alapértelmezett ablakhossza másodpercben"
+      },
+      "transition_effects": {
+        "none": "Nincs áttűnés",
+        "slide": "Csúsztatás"
+      }
+    },
+    "dimensions": {
+      "aspect_ratio": "Arány (pl. '16:9')",
+      "aspect_ratio_mode": "Képarány mód",
+      "aspect_ratio_modes": {
+        "dynamic": "Dinamikus",
+        "static": "Rögzített",
+        "unconstrained": "Korlátozás nélküli"
+      },
+      "height": "Kártya magassága CSS mértékegységben (pl. '500px')"
+    },
+    "editor": {
+      "mode": "Teljes szerkesztő"
+    },
+    "folders": {
+      "ha": {
+        "editor_label": "Home Assistant médiamappa beállításai",
+        "path_info": "További útvonal-illesztési lehetőségek a szövegszerkesztőben érhetők el",
+        "url": "A médiamappa URL-je"
+      },
+      "icon": "Ikon",
+      "id": "Egyedi azonosító",
+      "title": "Cím",
+      "type": "Típus",
+      "types": {
+        "ha": "Home Assistant médiamappa"
+      }
+    },
+    "image": {
+      "zoomable": "Nagyítható/mozgatható"
+    },
+    "live": {
+      "auto_mute": "Élő kamerák automatikus némítása",
+      "auto_pause": "Élő kamerák automatikus szüneteltetése",
+      "auto_play": "Élő kamerák automatikus lejátszása",
+      "auto_unmute": "Élő kamerák némításának automatikus feloldása",
+      "controls": {
+        "call": {
+          "answer": "Hívás fogadása",
+          "button_size": "Hívásvezérlő gombok mérete",
+          "editor_label": "Kétirányú hanghívás",
+          "enabled": "Képernyőn megjelenő hívásvezérlők",
+          "end": "Kétirányú hanghívás befejezése",
+          "lock": "Felület zárolása aktív hívás közben",
+          "mute_audio": "Hang némítása",
+          "mute_microphone": "Mikrofon némítása",
+          "reject": "Hívás elutasítása",
+          "ringtone": {
+            "editor_label": "Csengőhang",
+            "repeat": "Csengőhang ismétlései bejövő hívásonként (0=korlátlan)",
+            "type": "Típus",
+            "types": {
+              "arpeggio": "Arpeggio",
+              "chime": "Csilingelés",
+              "custom": "Egyéni hang URL",
+              "melody": "Dallam",
+              "none": "Nincs",
+              "westminster": "Westminster"
+            },
+            "url": "Egyéni URL"
+          },
+          "start": "Kétirányú hanghívás indítása",
+          "unanswered_timeout_seconds": "Másodpercek a nem fogadott bejövő hívások befejezéséig (0=soha)",
+          "unmute_audio": "Hang némításának feloldása",
+          "unmute_microphone": "Mikrofon némításának feloldása"
+        },
+        "editor_label": "Élő vezérlők"
+      },
+      "draggable": "Húzható",
+      "lazy_load": "Az élő kamerák késleltetve töltődnek be",
+      "lazy_unload": "Az élő kamerák késleltetve töltődnek ki",
+      "microphone": {
+        "always_connected": "A mikrofon maradjon mindig csatlakoztatva",
+        "audio_processing": {
+          "auto_gain_control": "Automatikus erősítésszabályozás",
+          "channel_count": "Csatornák száma (1=mono)",
+          "echo_cancellation": "Visszhangszűrés",
+          "editor_label": "Hangfeldolgozás",
+          "modes": {
+            "auto": "Automatikus",
+            "false": "Letiltva",
+            "true": "Engedélyezve"
+          },
+          "noise_suppression": "Zajcsökkentés"
+        },
+        "auto_mute": "Mikrofon automatikus némítása",
+        "auto_unmute": "Mikrofon némításának automatikus feloldása",
+        "editor_label": "Mikrofon",
+        "mute_after_microphone_mute_seconds": "Másodpercek a mikrofon némítása után a bejövő hang némításáig"
+      },
+      "preload": "Élő nézet előtöltése a háttérben",
+      "show_image_during_load": "Állókép megjelenítése az élő stream betöltése közben",
+      "transition_effect": "Élő kamerák áttűnési effektusa",
+      "zoomable": "Nagyítható/mozgatható"
+    },
+    "media_viewer": {
+      "auto_mute": "Média automatikus némítása",
+      "auto_pause": "Média automatikus szüneteltetése",
+      "auto_play": "Média automatikus lejátszása",
+      "auto_unmute": "Média némításának automatikus feloldása",
+      "controls": {
+        "editor_label": "Médianéző vezérlői"
+      },
+      "draggable": "Húzható",
+      "lazy_load": "A médianéző a körhintában késleltetve tölti be a médiát",
+      "snapshot_click_plays_clip": "Pillanatképre kattintva lejátssza a hozzá tartozó klipet",
+      "transition_effect": "Médianéző áttűnési effektusa",
+      "zoomable": "Nagyítható/mozgatható"
+    },
+    "menu": {
+      "alignment": "Igazítás",
+      "alignments": {
+        "bottom": "Alul",
+        "left": "Balra",
+        "right": "Jobbra",
+        "top": "Felül"
+      },
+      "auto_hide": "Automatikus elrejtés feltételei",
+      "button_size": "Gombméret képpontban",
+      "buttons": {
+        "alignment": "Igazítás",
+        "alignments": {
+          "matching": "Egyező",
+          "opposing": "Ellentétes"
+        },
+        "call": "Hívás / kétirányú hang",
+        "camera_ui": "Kamera felülete",
+        "cameras": "Kamerák",
+        "clips": "Klipek",
+        "display_mode": "Megjelenítési mód",
+        "download": "Letöltés",
+        "editor_label": "Menügombok",
+        "enabled": "Engedélyezve",
+        "expand": "Kinagyítás",
+        "folders": "Mappák",
+        "fullscreen": "Teljes képernyő",
+        "gallery": "Galéria",
+        "icon": "Ikon",
+        "image": "Kép",
+        "inert": "Nem interaktív",
+        "info": "Információ",
+        "iris": "Írisz / alapnézet / menü megjelenítése",
+        "live": "Élő",
+        "media": "Média",
+        "media_player": "Küldés médialejátszóra",
+        "microphone": "Mikrofon",
+        "mute": "Némítás / némítás feloldása",
+        "permanent": "Megjelenítés rejtett menü esetén is",
+        "pip": "Kép a képben",
+        "play": "Lejátszás / szünet",
+        "priority": "Prioritás",
+        "ptz_controls": "PTZ vezérlők megjelenítése",
+        "ptz_home": "PTZ kezdőpozíció",
+        "recordings": "Felvételek",
+        "reviews": "Átnézendők",
+        "screenshot": "Képernyőkép",
+        "set_review": "Átnézési állapot beállítása",
+        "snapshots": "Pillanatképek",
+        "state_color": "Színezés az entitás állapota szerint",
+        "style": "CSS stílus",
+        "substreams": "Alstream(ek)",
+        "timeline": "Idővonal",
+        "type": "Gomb típusa",
+        "types": {
+          "momentary": "Pillanatnyi",
+          "toggle": "Kapcsoló"
+        }
+      },
+      "position": "Pozíció",
+      "positions": {
+        "bottom": "Alul",
+        "left": "Balra",
+        "right": "Jobbra",
+        "top": "Felül"
+      },
+      "style": "Stílus",
+      "styles": {
+        "hidden": "Rejtett",
+        "hover": "Rámutatáskor",
+        "hover-card": "Rámutatáskor (a teljes kártyán)",
+        "none": "Nincs",
+        "outside": "Kívül",
+        "overlay": "Rávetítve"
+      }
+    },
+    "overrides": {
+      "info": "Feltételes felülírások aktívak, és felülbírálhatják az itt látható értékeket. A kódszerkesztőben szerkesztheted őket"
+    },
+    "performance": {
+      "features": {
+        "animated_progress_indicator": "Animált folyamatjelző",
+        "card_loading_effects": "Betöltési effektusok",
+        "card_loading_indicator": "Betöltésjelző",
+        "editor_label": "Funkcióbeállítások",
+        "max_simultaneous_engine_requests": "Párhuzamos motorkérések",
+        "media_chunk_size": "Média darabmérete"
+      },
+      "style": {
+        "border_radius": "Lekerekítések",
+        "box_shadow": "Árnyékok",
+        "editor_label": "Stílusbeállítások"
+      },
+      "warning": "Alacsony teljesítményű profil aktív: az alapértékek a terhelés csökkentésére vannak optimalizálva"
+    },
+    "profiles": {
+      "casting": "Kivetítés",
+      "doorbell": "Kapucsengő",
+      "editor_label": "Konfigurációs profilok",
+      "low-performance": "Alacsony teljesítmény",
+      "scrubbing": "Videó tekerése"
+    },
+    "remote_control": {
+      "entities": {
+        "camera": "Input Select entitás a kamera vezérléséhez",
+        "camera_priorities": {
+          "card": "Kártya",
+          "entity": "Entitás"
+        },
+        "camera_priority": "Melyik kameraválasztás élvez elsőbbséget",
+        "editor_label": "Távvezérlő entitások"
+      }
+    },
+    "status_bar": {
+      "auto_hide": "Automatikus elrejtés feltételei",
+      "height": "Magasság képpontban",
+      "items": {
+        "enabled": "Engedélyezve",
+        "engine": "Kameramotor",
+        "issues": "Problémák",
+        "permanent": "A sáv látható marad",
+        "priority": "Prioritás",
+        "resolution": "Felbontás",
+        "severity": "Súlyosság",
+        "technology": "Technológia",
+        "title": "Cím"
+      },
+      "popup_seconds": "Felugrás ideje másodpercben",
+      "position": "Pozíció",
+      "positions": {
+        "bottom": "Alul",
+        "top": "Felül"
+      },
+      "style": "Stílus",
+      "styles": {
+        "hover": "Rámutatáskor",
+        "hover-card": "Rámutatáskor (a teljes kártyán)",
+        "none": "Nincs",
+        "outside": "Kívül",
+        "overlay": "Rávetítve",
+        "popup": "Felugró"
+      }
+    },
+    "view": {
+      "camera_select": "Nézet kameraválasztáskor",
+      "default": "Alapértelmezett nézet",
+      "default_cycle_camera": "Kamerák körbeléptetése az alapnézet frissülésekor",
+      "default_reset": {
+        "after_interaction": "Visszaállás az alapnézetre a használat befejezése után",
+        "editor_label": "Alapnézetre visszaállás viselkedése",
+        "entities": "Visszaállás az alapnézetre entitás állapotváltozásakor",
+        "every_seconds": "Visszaállás az alapnézetre X másodpercenként (0=soha)",
+        "interaction_mode": "Hogyan viselkedjen a visszaállás, amikor a kártyát használják"
+      },
+      "dim": "Elsötétítés, ha nincs használatban",
+      "interaction_seconds": "Tétlenségi másodpercek a használati állapot megszűnéséig (0=soha)",
+      "issues": {
+        "editor_label": "Problémák/hibák",
+        "interaction_mode": "Hogyan viselkedjenek az automatikus újrapróbálkozások, amikor a kártyát használják",
+        "retry_seconds": "Automatikus újrapróbálkozások közti másodpercek [alapértelmezett=adaptív, 0=letiltva]"
+      },
+      "keyboard_shortcuts": {
+        "editor_label": "Billentyűparancsok",
+        "enabled": "Billentyűparancsok engedélyezve",
+        "ptz_down": "PTZ le",
+        "ptz_home": "PTZ kezdőpozíció",
+        "ptz_left": "PTZ balra",
+        "ptz_right": "PTZ jobbra",
+        "ptz_up": "PTZ fel",
+        "ptz_zoom_in": "PTZ nagyítás",
+        "ptz_zoom_out": "PTZ kicsinyítés"
+      },
+      "theme": {
+        "themes": {
+          "dark": "Sötét",
+          "editor_label": "Témák",
+          "ha": "Home Assistant",
+          "light": "Világos",
+          "traditional": "Hagyományos"
+        }
+      },
+      "triggers": {
+        "actions": {
+          "editor_label": "Kiváltási műveletek",
+          "interaction_mode": "Hogyan kezelje a műveleteket, amikor a kártyát használják",
+          "trigger": "Kiváltás",
+          "triggers": {
+            "call": "Hívás indítása",
+            "default": "Alapértelmezett nézet",
+            "live": "Élő nézet",
+            "media": "Média nézet",
+            "none": "Nincs",
+            "update": "Nézet frissítése"
+          },
+          "untrigger": "Kiváltás megszűnése",
+          "untriggers": {
+            "call": "Hívás befejezése",
+            "default": "Alapértelmezett nézet",
+            "none": "Nincs"
+          }
+        },
+        "editor_label": "Kiváltási viselkedés",
+        "event_hold_seconds": "Egy pillanatnyi kiváltás (pl. csengőgomb megnyomása, HA busz esemény) láthatóságának ideje másodpercben, a befejezés utáni késleltetés előtt",
+        "filter_selected_camera": "Csak a kiválasztott kamerán váltson ki",
+        "show_trigger_status": "Villogó keret megjelenítése kiváltáskor",
+        "untrigger_delay_seconds": "Késleltetés másodpercben a kiváltó állapotváltozása után a kiváltás megszűnéséig",
+        "untrigger_force_seconds": "Másodpercek a kiváltás kényszerített megszűnéséig"
+      },
+      "views": {
+        "auto": "Automatikus",
+        "clip": "Legutóbbi klip",
+        "clips": "Klipgaléria",
+        "current": "Jelenlegi nézet",
+        "diagnostics": "Diagnosztika",
+        "folder": "Mappa médiája",
+        "folders": "Mappagaléria",
+        "gallery": "Alapértelmezett médiagaléria",
+        "image": "Statikus kép",
+        "live": "Élő nézet",
+        "media": "Legutóbbi alapértelmezett média",
+        "recording": "Legutóbbi felvétel",
+        "recordings": "Felvételgaléria",
+        "review": "Legutóbbi átnézendő média",
+        "reviews": "Átnézendők galériája",
+        "snapshot": "Legutóbbi pillanatkép",
+        "snapshots": "Pillanatkép-galéria",
+        "timeline": "Idővonal nézet"
+      }
+    }
+  },
+  "display_modes": {
+    "grid": "Médianéző megjelenítése minden kamerához rácsban",
+    "single": "Egyetlen médianéző megjelenítése"
+  },
+  "editor": {
+    "add_new_camera": "Kamera hozzáadása",
+    "back": "Vissza",
+    "edit": "Szerkesztés",
+    "add_new_folder": "Mappa hozzáadása",
+    "camera": "Kamera",
+    "cameras": "Kamerák",
+    "cameras_secondary": "Mely kamerák jelenjenek meg ezen a kártyán",
+    "delete": "Törlés",
+    "dimensions": "Méretek",
+    "dimensions_secondary": "A kártya méretei és alakja",
+    "docs": "Dokumentáció",
+    "folders": "Mappák",
+    "folders_secondary": "Mely mappák jelenjenek meg ezen a kártyán",
+    "image": "Kép",
+    "image_secondary": "Statikus kép nézet beállításai",
+    "live": "Élő",
+    "live_secondary": "Élő kamera nézet beállításai",
+    "media_gallery": "Médiagaléria",
+    "media_gallery_secondary": "Médiagaléria beállításai",
+    "media_viewer": "Médianéző",
+    "media_viewer_secondary": "Megtekintő a rögzített médiához",
+    "menu": "Menü",
+    "menu_secondary": "A menü megjelenésének beállításai",
+    "performance": "Teljesítmény",
+    "performance_secondary": "A kártya teljesítménybeállításai",
+    "profiles": "Profilok",
+    "profiles_secondary": "Előre beállított alapérték-csomagok választása",
+    "remote_control": "Távvezérlés",
+    "remote_control_secondary": "A kártya távvezérlésének beállításai",
+    "simple_coverage": "Ennek a kártyának vannak olyan beállításai, amelyeket az egyszerű szerkesztő nem mutat. Kapcsold be a teljes szerkesztőt a megtekintésükhöz",
+    "status_bar": "Állapotsor",
+    "status_bar_secondary": "Az állapotsor megjelenésének beállításai",
+    "timeline": "Idővonal",
+    "timeline_secondary": "Esemény-idővonal beállításai",
+    "toggle_diagnostics": "Diagnosztika be/ki",
+    "upgrade": "Frissítés",
+    "upgrade_available": "Automatikus kártyakonfiguráció-frissítés érhető el",
+    "view": "Nézet",
+    "view_secondary": "Mit mutasson a kártya, és hogyan"
+  },
+  "elements": {
+    "ptz": {
+      "down": "Le",
+      "home": "Kezdőpozíció",
+      "left": "Balra",
+      "presets": "Előbeállítások",
+      "right": "Jobbra",
+      "type": "PTZ típus",
+      "up": "Fel",
+      "zoom_in": "Nagyítás",
+      "zoom_out": "Kicsinyítés"
+    }
+  },
+  "error": {
+    "awaiting_live": "Várakozás az élő stream betöltésére",
+    "awaiting_media": "Várakozás a média betöltésére",
+    "call_camera_unreachable": "A kamera nem érhető el kétirányú hanghoz.",
+    "call_invalid_target": "A kért kamera vagy stream nem hívható.",
+    "call_microphone_failed": "Nem sikerült csatlakoztatni a mikrofont.",
+    "call_microphone_forbidden": "A mikrofonhoz való hozzáférés ezen az oldalon le van tiltva. Módosítsd a böngésző engedélyeit, majd próbáld újra.",
+    "call_microphone_unsupported": "Ebben a böngészőben nem érhető el a mikrofon (pl. HTTPS szükséges).",
+    "call_no_two_way_audio": "Ez a kamera nem támogatja a kétirányú hangot.",
+    "call_unavailable_heading": "A kétirányú hang nem érhető el",
+    "camera_initialization": "A kamera inicializálása sikertelen",
+    "camera_initialization_reolink": "Nem sikerült inicializálni a Reolink kamerát",
+    "configuration_error": "Konfigurációs hiba",
+    "could_not_create_elements": "Nem sikerült létrehozni a képelemeket",
+    "diagnostics": "Kártyadiagnosztika. Megosztás előtt ellenőrizd, hogy nem tartalmaz-e bizalmas információt",
+    "download_failed": "A letöltés sikertelen",
+    "download_no_media": "Nincs letölthető média",
+    "download_sign_failed": "Nem sikerült aláírni a média URL-jét a letöltéshez",
+    "duplicate_camera_id": "Ismétlődő kameraazonosító a következő kameránál; használd az 'id' paramétert a kamerák egyedi azonosításához",
+    "duplicate_folder_id": "Ismétlődő mappaazonosító a következő mappánál; használd az 'id' paramétert a mappák egyedi azonosításához",
+    "empty_response": "Üres válasz érkezett a Home Assistanttól a kérésre",
+    "failed_fetch": "Nem sikerült lekérni az URL-t",
+    "failed_proxy": "Nem sikerült a Home Assistanton keresztül proxyzni",
+    "failed_response": "Nem érkezett válasz a Home Assistanttól a kérésre",
+    "failed_retain": "Nem sikerült megtartani az eseményt",
+    "failed_sign": "Nem sikerült aláírni a Home Assistant URL-t",
+    "fetching_diagnostics": "Diagnosztika lekérése",
+    "home_assistant_elements_load_failed": "Nem sikerült betölteni a szükséges Home Assistant elemeket",
+    "image_load_error": "Nem sikerült betölteni a képet",
+    "invalid_configuration": "Érvénytelen konfiguráció",
+    "invalid_configuration_no_hint": "Nincs elérhető helymeghatározási tipp (hibás vagy hiányzó típus?)",
+    "invalid_configuration_override": "Érvénytelen felülírási konfiguráció",
+    "invalid_elements_config": "Érvénytelen képelem-konfiguráció",
+    "invalid_response": "Érvénytelen válasz érkezett a Home Assistanttól a kérésre",
+    "jsmpeg_no_player": "Nem sikerült elindítani a JSMPEG lejátszót",
+    "live_camera_no_endpoint": "Nem sikerült lekérni a kamera végpontját ehhez az élő szolgáltatóhoz (hiányos konfiguráció?)",
+    "live_camera_not_found": "A beállított camera_entity nem található",
+    "microphone_not_supported": "Ez a böngésző nem támogatja a mikrofont",
+    "no_camera_engine": "Nem sikerült megfelelő motort találni a kamerához",
+    "no_camera_entity": "Nem található a kamera entitás",
+    "no_camera_for_image": "Nincs kamera beállítva a kamerakép módhoz",
+    "no_camera_id": "Nem sikerült meghatározni a következő kamera azonosítóját, lehet, hogy kézzel kell megadni az 'id' paramétert",
+    "no_camera_or_media_for_timeline": "Nincs elérhető kamera vagy média az idővonalhoz",
+    "no_live_camera": "Ehhez az élő szolgáltatóhoz a camera_entity paramétert meg kell adni, és érvényesnek kell lennie",
+    "too_many_automations": "Túl sok egymásba ágyazott automatizálási hívás, ellenőrizd, nincs-e hurok a konfigurációban",
+    "troubleshooting": "Hibaelhárítás megtekintése",
+    "upgrade_available": "Automatikus kártyakonfiguráció-frissítés érhető el, nyisd meg a vizuális kártyaszerkesztőt",
+    "webrtc_card_reported_error": "A WebRTC Card hibát jelzett",
+    "webrtc_card_waiting": "Várakozás a WebRTC Card betöltésére..."
+  },
+  "issues": {
+    "config_error": {
+      "heading": "Konfigurációs hiba"
+    },
+    "config_upgrade": {
+      "heading": "Konfigurációfrissítés érhető el",
+      "text": "Konfigurációfrissítés érhető el. A frissítéshez szerkeszd ezt a kártyát (Irányítópult ceruza ikon → Hárompontos menü → Szerkesztés), és kattints a 'Frissítés' gombra a kártyaszerkesztőben"
+    },
+    "config_upgrade_failure": {
+      "heading": "A konfigurációt nem sikerült teljesen frissíteni",
+      "text": "Az automatikus konfigurációfrissítés nem fejeződött be sikeresen. A nem frissített beállítások a konfigurációban a '__UPGRADE_FAILURE__' alatt lettek félretéve. Vizsgáld át, frissítsd és töröld kézzel ezeket a bejegyzéseket."
+    },
+    "connection": {
+      "lost": {
+        "heading": "A kapcsolat megszakadt",
+        "text": "Megszakadt a kapcsolat a Home Assistanttal"
+      },
+      "starting": {
+        "heading": "A Home Assistant indul",
+        "text": "Várakozás a Home Assistant indulásának befejezésére"
+      }
+    },
+    "event_subscription": {
+      "heading": "Home Assistant esemény-feliratkozások",
+      "text": "A kártya nem tudott feliratkozni egy vagy több Home Assistant eseménytípusra, és továbbra is újrapróbálkozik"
+    },
+    "initialization": {
+      "heading": "Az inicializálás sikertelen"
+    },
+    "legacy_resource": {
+      "heading": "Régi irányítópult-erőforrás észlelve",
+      "remove": "Régi erőforrás eltávolítása",
+      "text_both": "A régi 'frigate-hass-card.js' erőforrás még mindig regisztrálva van; távolítsd el kézzel, vagy kattints a törlés ikonra az automatikus eltávolításhoz. Egy későbbi kiadásban el lesz távolítva",
+      "text_only_legacy": "A régi 'frigate-hass-card.js' erőforrást le kell cserélni az 'advanced-camera-card.js'-re. Egy későbbi kiadásban el lesz távolítva"
+    },
+    "media_query": {
+      "heading": "A médialekérdezés sikertelen"
+    },
+    "media_unavailable": {
+      "heading": "A média nem érhető el",
+      "reasons": {
+        "entity_unavailable": "A kamera entitás nem érhető el",
+        "not_loading": "A média nem töltődik be",
+        "playback_error": "Lejátszási hiba",
+        "server_error": "Médiaszerver hiba",
+        "stalled": "A stream elakadt",
+        "unsupported": "A stream nem támogatott"
+      },
+      "text": "A média jelenleg nem érhető el. Ennek több oka lehet, például a kamera elérhetetlenné vált, egy stream elakadt vagy meghibásodott, vagy a média betöltése még nem fejeződött be. A kártya automatikusan újrapróbálkozik. Élő nézetben a stream betöltése közben állókép jelenhet meg (ha be van állítva, és alapértelmezés szerint)"
+    },
+    "troubleshooting_guide": "Hibaelhárítási útmutató",
+    "view_incompatible": {
+      "heading": "A nézet nem támogatott",
+      "text": "A kiválasztott kamera vagy média nem támogatja ezt a nézetet"
+    }
+  },
+  "key_assigner": {
+    "assign": "Hozzárendelés",
+    "modifiers": {
+      "alt": "Alt",
+      "ctrl": "Ctrl",
+      "meta": "Meta",
+      "shift": "Shift"
+    },
+    "unassign": "Hozzárendelés törlése"
+  },
+  "media_filter": {
+    "camera": "Kamera",
+    "favorite": "Kedvenc",
+    "media_type": "Média típusa",
+    "media_types": {
+      "clips": "Klipek",
+      "recordings": "Felvételek",
+      "reviews": "Átnézendők",
+      "snapshots": "Pillanatképek"
+    },
+    "not_favorite": "Nem kedvenc",
+    "not_reviewed": "Nincs átnézve",
+    "reviewed": "Átnézve",
+    "select_camera": "Kamera kiválasztása...",
+    "select_favorite": "Kedvenc kiválasztása...",
+    "select_media_type": "Média típusának kiválasztása...",
+    "select_reviewed": "Átnézési állapot kiválasztása...",
+    "select_severity": "Súlyosság kiválasztása...",
+    "select_tag": "Címke kiválasztása...",
+    "select_what": "Mi...",
+    "select_when": "Mikor...",
+    "select_where": "Hol...",
+    "tag": "Címke",
+    "what": "Mi",
+    "when": "Mikor",
+    "whens": {
+      "custom": "Egyéni",
+      "past_month": "Elmúlt hónap",
+      "past_week": "Elmúlt hét",
+      "today": "Ma",
+      "yesterday": "Tegnap"
+    },
+    "where": "Hol"
+  },
+  "media_viewer": {
+    "unseekable": "A keresett időpont nem található a médiában"
+  },
+  "thumbnail": {
+    "camera": "Kamera",
+    "download": "Média letöltése",
+    "duration": "Időtartam",
+    "no_thumbnail": "Nincs elérhető bélyegkép",
+    "retain_indefinitely": "Média megőrzése korlátlan ideig",
+    "seek": "Ugrás",
+    "start": "Kezdet",
+    "tag": "Címke",
+    "timeline": "Megtekintés az idővonalon",
+    "title": "Cím",
+    "where": "Hol"
+  },
+  "timeline": {
+    "select_date": "Dátum kiválasztása"
+  }
+}
