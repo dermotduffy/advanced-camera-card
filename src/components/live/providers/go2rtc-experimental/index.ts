@@ -263,8 +263,13 @@ export class AdvancedCameraCardGo2RTCExperimental
     }
 
     // Both image and video surfaces are always rendered; only the committed one
-    // is shown (the other, and both before anything commits, are hidden). MSE
-    // and WebRTC play on the <video>; MP4 and MJPEG show frames on the <img>.
+    // is shown. MSE and WebRTC play on the <video>; MP4 and MJPEG show frames
+    // on the <img>. Before anything commits the <video> is `pending`: kept in
+    // the layout but invisible (opacity 0 in the stylesheet) rather than
+    // `display: none`, so that the MSE lane's media pipeline is evaluated on
+    // a rendered element, which is what WebKit on iOS has been seen to need
+    // (see MSEStreamSource.start). Once the image surface commits, the video
+    // is hidden outright.
     //
     // Muted is bound as a property: Chrome ignores the `muted` content
     // attribute on videos instantiated from cloned templates (as Lit does), so
@@ -274,7 +279,8 @@ export class AdvancedCameraCardGo2RTCExperimental
       <video
         ${ref(this._refVideo)}
         .muted=${true}
-        ?hidden=${this._activeSurface !== 'video'}
+        ?hidden=${this._activeSurface === 'image'}
+        ?pending=${this._activeSurface === null}
         playsinline
         preload="auto"
         @play=${() => dispatchMediaPlayEvent(this)}

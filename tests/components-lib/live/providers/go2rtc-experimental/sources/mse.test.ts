@@ -79,6 +79,43 @@ describe('MSEStreamSource', () => {
 
       expect(instance.attach).toHaveBeenCalledWith(video);
     });
+
+    it('should start muted playback once attached on WebKit', () => {
+      const { source, video } = setup({ userAgent: SAFARI_17_USER_AGENT });
+      const play = vi.fn(() => Promise.resolve());
+      video.play = play;
+      source.start();
+
+      expect(play).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not start playback itself outside WebKit', () => {
+      const { source, video } = setup();
+      const play = vi.fn(() => Promise.resolve());
+      video.play = play;
+      source.start();
+
+      expect(play).not.toHaveBeenCalled();
+    });
+
+    it('should tolerate a refused or absent play on WebKit', async () => {
+      const refused = setup({ userAgent: SAFARI_17_USER_AGENT });
+      refused.video.play = vi.fn(() => Promise.reject(new Error('NotAllowedError')));
+      expect(() => refused.source.start()).not.toThrow();
+      await Promise.resolve();
+      expect(refused.failedCallback).not.toHaveBeenCalled();
+
+      const legacy = setup({ userAgent: SAFARI_17_USER_AGENT });
+      legacy.video.play = vi.fn(() => undefined) as unknown as () => Promise<void>;
+      expect(() => legacy.source.start()).not.toThrow();
+
+      const throwing = setup({ userAgent: SAFARI_17_USER_AGENT });
+      throwing.video.play = vi.fn(() => {
+        throw new Error('InvalidStateError');
+      });
+      expect(() => throwing.source.start()).not.toThrow();
+      expect(throwing.instance.attach).toHaveBeenCalled();
+    });
   });
 
   describe('negotiation', () => {
