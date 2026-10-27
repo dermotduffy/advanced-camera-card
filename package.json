@@ -88,7 +88,7 @@
     "type-fest": "^5.10.0",
     "typescript": "^6.0.3",
     "vite": "^8.3.5",
-    "vitest": "^5.0.5",
+    "vitest": "patch:vitest@npm%3A5.0.5#~/.yarn/patches/vitest-npm-5.0.5-a62f2a4cf9.patch",
     "vitest-mock-extended": "^5.1.1"
   },
   "release": {

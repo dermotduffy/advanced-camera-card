@@ -1,0 +1,15 @@
+diff --git a/dist/chunks/index.1TqnEahn.js b/dist/chunks/index.1TqnEahn.js
+index 50dd001b7b24be2eac6f37eeb1929ad4645aa1a9..53ef0e262ad9a9f67634a178837d0c123d22cf25 100644
+--- a/dist/chunks/index.1TqnEahn.js
++++ b/dist/chunks/index.1TqnEahn.js
+@@ -5382,6 +5382,10 @@ class PoolRunner {
+ 		}
+ 	};
+ 	emitUnexpectedExit = (code, signal) => {
++		// Stopping already asked this worker to exit, and on Linux that exit is
++		// SIGTERM. Reporting it as unexpected rejects the run after the tests
++		// have passed, because the exit listener is still attached.
++		if (this._state === RunnerState.STOPPING || this._state === RunnerState.STOPPED) return;
+ 		const hasCode = typeof code === "number";
+ 		const errorDetails = hasCode || signal ? `with ${hasCode ? `exit code ${code} ` : ""}${signal ? `signal ${signal} ` : ""}` : "";
+ 		const testFileDetails = this._lastTestFiles.length ? ` while running test file${this._lastTestFiles.length === 1 ? "" : "s"} ${this._lastTestFiles.join(", ")}` : "";
