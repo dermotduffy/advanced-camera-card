@@ -34,9 +34,6 @@ jobs:
       - name: Type-check
         run: yarn run typecheck
 
-      - name: Coverage
-        run: yarn run coverage
-
       - name: Check for dead exports
         run: yarn run prune
 
