@@ -61,9 +61,9 @@ export interface ExpiringRange<T extends Date | number> extends Range<T> {
   expires: Date;
 }
 
-export class ExpiringMemoryRangeSet implements MemoryRangeSetInterface<
-  ExpiringRange<Date>
-> {
+export class ExpiringMemoryRangeSet
+  implements MemoryRangeSetInterface<ExpiringRange<Date>>
+{
   private _ranges: ExpiringRange<Date>[];
 
   constructor(ranges?: ExpiringRange<Date>[]) {

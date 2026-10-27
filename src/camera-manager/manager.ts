@@ -774,12 +774,6 @@ export class CameraManager {
     query: QT | QT[],
     engineOptions?: EngineOptions,
   ): Promise<Map<QT, QueryReturnType<QT>>> {
-    engineOptions = {
-      ...engineOptions,
-      recordingRetentionHours:
-        engineOptions?.recordingRetentionHours ??
-        this._api.getConfigManager().getConfig()?.timeline?.recording_retention_hours,
-    };
     const _queries = this._mergeCompatibleQueries(arrayify(query));
     const results = new Map<QT, QueryReturnType<QT>>();
     const queryStartTime = new Date();
@@ -811,12 +805,13 @@ export class CameraManager {
           engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (CameraQueryClassifier.isRecordingSegmentsQuery(query)) {
-        engineResult = (await engine.getRecordingSegments(
-          hass,
-          this._store,
-          query,
-          engineOptions,
-        )) as Map<QT, QueryReturnType<QT>> | null;
+        engineResult = (await engine.getRecordingSegments(hass, this._store, query, {
+          ...engineOptions,
+          recordingRetentionHours:
+            engineOptions?.recordingRetentionHours ??
+            this._api.getConfigManager().getConfig()?.timeline
+              ?.recording_retention_hours,
+        })) as Map<QT, QueryReturnType<QT>> | null;
       } else if (CameraQueryClassifier.isMediaMetadataQuery(query)) {
         engineResult = (await engine.getMediaMetadata(
           hass,

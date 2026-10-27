@@ -465,7 +465,7 @@ export class FrigateCameraManagerEngine
       }
       const instanceQuery = { ...query, cameraIDs: cameraIDs };
       const cachedResult =
-        (engineOptions?.useCache ?? true) ? this._requestCache.get(instanceQuery) : null;
+        engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
         output.set(instanceQuery, cachedResult as EventQueryResults);
         return;
@@ -548,7 +548,7 @@ export class FrigateCameraManagerEngine
       }
       const instanceQuery = { ...query, cameraIDs: cameraIDs };
       const cachedResult =
-        (engineOptions?.useCache ?? true) ? this._requestCache.get(instanceQuery) : null;
+        engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
         output.set(instanceQuery, cachedResult as FrigateReviewQueryResults);
         return;
@@ -626,7 +626,7 @@ export class FrigateCameraManagerEngine
     ): Promise<void> => {
       const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
       const cachedResult =
-        (engineOptions?.useCache ?? true) ? this._requestCache.get(query) : null;
+        engineOptions?.useCache ?? true ? this._requestCache.get(query) : null;
       if (cachedResult) {
         output.set(query, cachedResult as RecordingQueryResults);
         return;
