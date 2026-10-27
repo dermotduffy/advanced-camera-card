@@ -194,8 +194,8 @@ export class AdvancedCameraCardDrawer extends LitElement {
           class="control"
           .icon="${{
             icon: this.open
-              ? (this.icons?.open ?? 'mdi:menu-open')
-              : (this.icons?.closed ?? 'mdi:menu'),
+              ? this.icons?.open ?? 'mdi:menu-open'
+              : this.icons?.closed ?? 'mdi:menu',
           }}"
           @mouseenter=${() => {
             // Only open the drawer on mousenter when the device
