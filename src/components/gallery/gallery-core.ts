@@ -88,24 +88,28 @@ export class AdvancedCameraCardGalleryCore extends LitElement {
 
   protected render(): TemplateResult | void {
     return html` <div class="grid">
-      ${this.extendUp && this._showLoaderTop
-        ? html`${renderProgressIndicator({
-            cardWideConfig: this.cardWideConfig,
-            classes: {
-              top: true,
-            },
-            size: 'small',
-          })}`
-        : ''}
+      ${
+        this.extendUp && this._showLoaderTop
+          ? html`${renderProgressIndicator({
+              cardWideConfig: this.cardWideConfig,
+              classes: {
+                top: true,
+              },
+              size: 'small',
+            })}`
+          : ''
+      }
       <slot ${ref(this._refSlot)} @slotchange=${() => this._controller.updateContents()}>
       </slot>
-      ${this.extendDown && this._showSentinelBottom
-        ? html`${renderProgressIndicator({
-            cardWideConfig: this.cardWideConfig,
-            componentRef: this._refSentinelBottom,
-            size: 'small',
-          })}`
-        : ''}
+      ${
+        this.extendDown && this._showSentinelBottom
+          ? html`${renderProgressIndicator({
+              cardWideConfig: this.cardWideConfig,
+              componentRef: this._refSentinelBottom,
+              size: 'small',
+            })}`
+          : ''
+      }
     </div>`;
   }
 

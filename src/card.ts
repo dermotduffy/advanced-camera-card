@@ -1,3 +1,8 @@
+// Before every other import. vis-timeline 8 sorts with `Array.prototype.toSorted`,
+// which Chrome 92 and Firefox 113 do not have. A side-effect import stays put
+// when imports are sorted, so the polyfill is in place before those modules load.
+import './utils/array-to-sorted';
+
 import {
   html,
   LitElement,
@@ -275,13 +280,15 @@ export class AdvancedCameraCard extends LitElement {
     };
 
     return html`
-      ${position === 'overlay'
-        ? html`<advanced-camera-card-overlay>
-            ${getContents('overlay')}
-          </advanced-camera-card-overlay>`
-        : html`<div class="outerlay" data-position="${position}">
-            ${getContents('outerlay')}
-          </div>`}
+      ${
+        position === 'overlay'
+          ? html`<advanced-camera-card-overlay>
+              ${getContents('overlay')}
+            </advanced-camera-card-overlay>`
+          : html`<div class="outerlay" data-position="${position}">
+              ${getContents('outerlay')}
+            </div>`
+      }
     `;
   }
 
@@ -457,18 +464,21 @@ export class AdvancedCameraCard extends LitElement {
           @advanced-camera-card:notification:dismiss=${() =>
             this._controller.getNotificationManager().reset()}
         >
-          ${showLoading
-            ? html`<advanced-camera-card-loading
-                .loaded=${this._controller
-                  .getInitializationManager()
-                  .getSessionManager()
-                  .wasEverInitialized()}
-                .effectsManager=${this._config?.performance?.features
-                  .card_loading_effects !== false
-                  ? this._controller.getEffectsManager()
-                  : undefined}
-              ></advanced-camera-card-loading>`
-            : ''}
+          ${
+            showLoading
+              ? html`<advanced-camera-card-loading
+                  .loaded=${this._controller
+                    .getInitializationManager()
+                    .getSessionManager()
+                    .wasEverInitialized()}
+                  .effectsManager=${
+                    this._config?.performance?.features.card_loading_effects !== false
+                      ? this._controller.getEffectsManager()
+                      : undefined
+                  }
+                ></advanced-camera-card-loading>`
+              : ''
+          }
           ${this._renderMenuStatusContainer('top')}
           ${this._renderMenuStatusContainer('overlay')}
           <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
@@ -494,9 +504,11 @@ export class AdvancedCameraCard extends LitElement {
                 .getNotificationManager()
                 .getNotification()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
-              .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
-                ? this._controller.getCameraTriggersManager().getTriggeredCameraIDs()
-                : undefined}
+              .triggeredCameraIDs=${
+                this._config?.view.triggers.show_trigger_status
+                  ? this._controller.getCameraTriggersManager().getTriggeredCameraIDs()
+                  : undefined
+              }
               .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
               .issues=${this._controller
                 .getIssueManager()
@@ -506,63 +518,68 @@ export class AdvancedCameraCard extends LitElement {
             ${issueToRender ? renderNotificationBlock(issueToRender.notification) : ''}
           </div>
           ${this._renderMenuStatusContainer('bottom')}
-          ${this._config?.elements &&
-          this._controller.getInitializationManager().areMandatoryAspectsInitialized()
-            ? // Elements need to render after the main views so it can render 'on
-              // top'. They are held until the card is initialized: the template
-              // renderer loads lazily as a mandatory init aspect (when the
-              // config uses templates), so rendering elements earlier could
-              // emit raw, unrendered templates or evaluate their visibility
-              // conditions before the renderer is available.
-              html` <advanced-camera-card-elements
-                ${ref(this._refElements)}
-                .hass=${this._hass}
-                .elements=${this._config?.elements}
-                .conditionStateManager=${this._controller.getConditionStateManager()}
-                .templateRenderer=${this._controller.getTemplateManager()}
-                @advanced-camera-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
-                  this._menuButtonController.addDynamicMenuButton(ev.detail);
-                  this.requestUpdate();
-                }}
-                @advanced-camera-card:menu:remove=${(ev: CustomEvent<MenuItem>) => {
-                  this._menuButtonController.removeDynamicMenuButton(ev.detail);
-                  this.requestUpdate();
-                }}
-                @advanced-camera-card:status-bar:add=${(
-                  ev: CustomEvent<StatusBarItem>,
-                ) => {
-                  this._controller
-                    .getStatusBarItemManager()
-                    .addDynamicStatusBarItem(ev.detail);
-                }}
-                @advanced-camera-card:status-bar:remove=${(
-                  ev: CustomEvent<StatusBarItem>,
-                ) => {
-                  this._controller
-                    .getStatusBarItemManager()
-                    .removeDynamicStatusBarItem(ev.detail);
-                }}
-                @advanced-camera-card:condition-state-manager:get=${(
-                  ev: ConditionStateManagerGetEvent,
-                ) => {
-                  ev.conditionStateManager = this._controller.getConditionStateManager();
-                }}
-                @advanced-camera-card:template-renderer:get=${(
-                  ev: TemplateRendererGetEvent,
-                ) => {
-                  ev.templateRenderer = this._controller.getTemplateManager();
-                }}
-              >
-              </advanced-camera-card-elements>`
-            : ``}
-          ${this._controller.getNotificationManager().getNotification()
-            ? html`<advanced-camera-card-notification
-                .notification=${this._controller
-                  .getNotificationManager()
-                  .getNotification()}
-                .focusReturnElement=${this}
-              ></advanced-camera-card-notification>`
-            : ''}
+          ${
+            this._config?.elements &&
+            this._controller.getInitializationManager().areMandatoryAspectsInitialized()
+              ? // Elements need to render after the main views so it can render 'on
+                // top'. They are held until the card is initialized: the template
+                // renderer loads lazily as a mandatory init aspect (when the
+                // config uses templates), so rendering elements earlier could
+                // emit raw, unrendered templates or evaluate their visibility
+                // conditions before the renderer is available.
+                html` <advanced-camera-card-elements
+                  ${ref(this._refElements)}
+                  .hass=${this._hass}
+                  .elements=${this._config?.elements}
+                  .conditionStateManager=${this._controller.getConditionStateManager()}
+                  .templateRenderer=${this._controller.getTemplateManager()}
+                  @advanced-camera-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
+                    this._menuButtonController.addDynamicMenuButton(ev.detail);
+                    this.requestUpdate();
+                  }}
+                  @advanced-camera-card:menu:remove=${(ev: CustomEvent<MenuItem>) => {
+                    this._menuButtonController.removeDynamicMenuButton(ev.detail);
+                    this.requestUpdate();
+                  }}
+                  @advanced-camera-card:status-bar:add=${(
+                    ev: CustomEvent<StatusBarItem>,
+                  ) => {
+                    this._controller
+                      .getStatusBarItemManager()
+                      .addDynamicStatusBarItem(ev.detail);
+                  }}
+                  @advanced-camera-card:status-bar:remove=${(
+                    ev: CustomEvent<StatusBarItem>,
+                  ) => {
+                    this._controller
+                      .getStatusBarItemManager()
+                      .removeDynamicStatusBarItem(ev.detail);
+                  }}
+                  @advanced-camera-card:condition-state-manager:get=${(
+                    ev: ConditionStateManagerGetEvent,
+                  ) => {
+                    ev.conditionStateManager =
+                      this._controller.getConditionStateManager();
+                  }}
+                  @advanced-camera-card:template-renderer:get=${(
+                    ev: TemplateRendererGetEvent,
+                  ) => {
+                    ev.templateRenderer = this._controller.getTemplateManager();
+                  }}
+                >
+                </advanced-camera-card-elements>`
+              : ``
+          }
+          ${
+            this._controller.getNotificationManager().getNotification()
+              ? html`<advanced-camera-card-notification
+                  .notification=${this._controller
+                    .getNotificationManager()
+                    .getNotification()}
+                  .focusReturnElement=${this}
+                ></advanced-camera-card-notification>`
+              : ''
+          }
         </ha-card>`,
     );
   }

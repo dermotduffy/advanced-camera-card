@@ -56,18 +56,22 @@ export class AdvancedCameraCardSubmenu extends LitElement {
           // Attach the item so ascendants have access to it.
           ev.detail.item = item;
         }}
-        .actionHandler=${disabled
-          ? undefined
-          : actionHandler({
-              allowPropagation: true,
-              hasHold: hasAction(item.hold_action),
-              hasDoubleClick: hasAction(item.double_tap_action),
-            })}
+        .actionHandler=${
+          disabled
+            ? undefined
+            : actionHandler({
+                allowPropagation: true,
+                hasHold: hasAction(item.hold_action),
+                hasDoubleClick: hasAction(item.double_tap_action),
+              })
+        }
       >
         <span style="${style}">${title ?? ''}</span>
-        ${item.subtitle
-          ? html`<span slot="details" style="${style}">${item.subtitle}</span>`
-          : ''}
+        ${
+          item.subtitle
+            ? html`<span slot="details" style="${style}">${item.subtitle}</span>`
+            : ''
+        }
         <advanced-camera-card-icon
           slot="icon"
           .hass=${this.hass}

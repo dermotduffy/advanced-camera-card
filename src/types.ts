@@ -23,13 +23,7 @@ export interface MediaLoadedCapabilities {
 }
 
 export type MediaTechnology =
-  | 'hls'
-  | 'jpg'
-  | 'jsmpeg'
-  | 'mjpeg'
-  | 'mp4'
-  | 'mse'
-  | 'webrtc';
+  'hls' | 'jpg' | 'jsmpeg' | 'mjpeg' | 'mp4' | 'mse' | 'webrtc';
 
 export interface MediaLoadedInfo {
   width: number;
@@ -206,12 +200,7 @@ export const signedPathSchema = z.object({
 export type SignedPath = z.infer<typeof signedPathSchema>;
 
 export type EffectName =
-  | 'check'
-  | 'fireworks'
-  | 'ghost'
-  | 'hearts'
-  | 'shamrocks'
-  | 'snow';
+  'check' | 'fireworks' | 'ghost' | 'hearts' | 'shamrocks' | 'snow';
 
 export type EffectsContainer = HTMLElement | DocumentFragment;
 export interface EffectsManagerInterface {

@@ -18,35 +18,32 @@ interface FileImports {
   dynamicImports: string[];
 }
 
-const STATIC_IMPORT = -1;
-
 /**
  * What a file imports, split into static imports, which the browser fetches
  * before the file runs, and dynamic ones, which it fetches only when reached.
  *
- * es-module-lexer names its fields tersely. `n` is the imported path, and is
- * absent when a dynamic import builds its path at runtime (e.g. `import('./' +
- * name)`), so no one file can be recorded for it. `d` is the position of a
- * dynamic import's `import(`, or -1 for a static import and -2 for
- * `import.meta`, which is not an import of a file at all.
+ * `specifier` is the imported path. It is missing when a dynamic import builds
+ * its path at runtime (e.g. `import('./' + name)`), and a template glob is not
+ * one file, so neither is recorded. `import.meta` is not an import of a file.
  */
 const getImports = async (source: string): Promise<FileImports> => {
-  await init;
+  init();
   const [imports] = parse(source);
 
   const staticImports: string[] = [];
   const dynamicImports: string[] = [];
 
-  for (const { n: importedPath, d: dynamicImportPosition } of imports) {
-    if (importedPath === undefined) {
+  for (const imported of imports) {
+    if (imported.type === 'import-meta') {
       continue;
     }
-
-    if (dynamicImportPosition === STATIC_IMPORT) {
-      staticImports.push(importedPath);
-    } else if (dynamicImportPosition >= 0) {
-      dynamicImports.push(importedPath);
+    if (imported.type === 'dynamic') {
+      if (imported.specifier !== undefined && !imported.glob) {
+        dynamicImports.push(imported.specifier);
+      }
+      continue;
     }
+    staticImports.push(imported.specifier);
   }
 
   return { staticImports, dynamicImports };

@@ -205,7 +205,7 @@ export const useTestMedia = (): void => {
   beforeAll(async () => {
     // Everything the page loads for itself -- modules, styles, the fixture
     // above -- is left alone.
-    await worker.start({ onUnhandledRequest: 'bypass', quiet: true });
+    await worker.start({ onUnhandledFrame: 'bypass', quiet: true });
     inUse = true;
   });
 };

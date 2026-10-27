@@ -356,8 +356,7 @@ export const callIntersectionHandler = async (
   }
   await (
     vi.mocked(IntersectionObserver).mock.calls[n][0] as
-      | IntersectionObserverCallback
-      | ((_: unknown) => Promise<void>)
+      IntersectionObserverCallback | ((_: unknown) => Promise<void>)
   )(
     // Note this is a very incomplete / invalid IntersectionObserverEntry that
     // just provides the bare basics current implementation uses.
@@ -374,8 +373,7 @@ export const callMutationHandler = async (n = 0): Promise<void> => {
   const observer = mockResult.value;
   await (
     vi.mocked(MutationObserver).mock.calls[n][0] as
-      | MutationCallback
-      | ((_: unknown) => Promise<void>)
+      MutationCallback | ((_: unknown) => Promise<void>)
   )(
     // Note this is a very incomplete / invalid IntersectionObserverEntry that
     // just provides the bare basics current implementation uses.

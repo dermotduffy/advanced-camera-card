@@ -115,29 +115,33 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       ${template}
     </advanced-camera-card-media-dimensions-container>`;
 
-    return html` ${this.imageConfig?.zoomable
-      ? html`<advanced-camera-card-zoomer
-          .defaultSettings=${guard(
-            [this.imageConfig, this.cameraConfig?.dimensions?.layout],
-            () =>
-              mode === 'camera' && this.cameraConfig?.dimensions?.layout
-                ? {
-                    pan: this.cameraConfig.dimensions.layout.pan,
-                    zoom: this.cameraConfig.dimensions.layout.zoom,
-                  }
-                : undefined,
-          )}
-          .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
-          @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
-            handleZoomSettingsObservedEvent(
-              ev,
-              this.viewManagerEpoch?.manager,
-              zoomTarget,
+    return html` ${
+      this.imageConfig?.zoomable
+        ? html`<advanced-camera-card-zoomer
+            .defaultSettings=${guard(
+              [this.imageConfig, this.cameraConfig?.dimensions?.layout],
+              () =>
+                mode === 'camera' && this.cameraConfig?.dimensions?.layout
+                  ? {
+                      pan: this.cameraConfig.dimensions.layout.pan,
+                      zoom: this.cameraConfig.dimensions.layout.zoom,
+                    }
+                  : undefined,
             )}
-        >
-          ${intermediateTemplate}
-        </advanced-camera-card-zoomer>`
-      : intermediateTemplate}`;
+            .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
+            @advanced-camera-card:zoom:change=${(
+              ev: CustomEvent<ZoomSettingsObserved>,
+            ) =>
+              handleZoomSettingsObservedEvent(
+                ev,
+                this.viewManagerEpoch?.manager,
+                zoomTarget,
+              )}
+          >
+            ${intermediateTemplate}
+          </advanced-camera-card-zoomer>`
+        : intermediateTemplate
+    }`;
   }
 
   private _resolveProxyConfig(proxy?: ImageViewProxyConfig): EnabledProxyConfig | null {
@@ -175,8 +179,9 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
             .imageConfig=${this.imageConfig}
             .cameraConfig=${this.cameraConfig}
             .targetID=${IMAGE_VIEW_TARGET_ID_SENTINEL}
-            .proxyConfig=${this._resolveProxyConfig(this.imageConfig?.proxy) ??
-            undefined}
+            .proxyConfig=${
+              this._resolveProxyConfig(this.imageConfig?.proxy) ?? undefined
+            }
             @advanced-camera-card:image-updating-player:error=${(
               ev: CustomEvent<MediaUnavailableIssueReason>,
             ) =>

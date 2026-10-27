@@ -11,8 +11,7 @@ import {
 export const PROXY_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
 export type ResolvedEndpoint =
-  | { success: true; url: string }
-  | { success: false; error: 'proxy' | 'sign' };
+  { success: true; url: string } | { success: false; error: 'proxy' | 'sign' };
 
 // Turns an endpoint into a URL that can be fetched or connected to: proxied
 // through Home Assistant when the proxy configuration calls for it, then signed

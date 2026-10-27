@@ -23,7 +23,7 @@ export class ThumbnailFeatureController {
       ? options.item.getCameraID()
       : null;
     const cameraMetadata = cameraID
-      ? options.cameraManager?.getCameraMetadata(cameraID) ?? null
+      ? (options.cameraManager?.getCameraMetadata(cameraID) ?? null)
       : null;
 
     this._calculateVisuals(cameraMetadata, options);

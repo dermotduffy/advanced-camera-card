@@ -233,48 +233,52 @@ export class AdvancedCameraCardGallery extends LitElement {
           }),
         }}
       >
-        ${showFilter && this.galleryConfig
-          ? html` <advanced-camera-card-media-filter
-              .hass=${this.hass}
-              .cameraManager=${this.cameraManager}
-              .foldersManager=${this.foldersManager}
-              .viewManagerEpoch=${this.viewManagerEpoch}
-              .cardWideConfig=${this.cardWideConfig}
-              slot=${filterMode}
-            >
-            </advanced-camera-card-media-filter>`
-          : ''}
-        ${!hasItems
-          ? renderNoMediaNotification(
-              {
-                cameraID: this.viewManagerEpoch?.manager.getView()?.camera ?? null,
-                inProgress: isLoading,
-              },
-              this.cameraManager,
-            )
-          : html`<advanced-camera-card-gallery-core
-              .hass=${this.hass}
-              .columnWidth=${this._controller.getColumnWidth()}
-              .columnCountRoundMethod=${this._controller.getColumnCountRoundMethod()}
-              .cardWideConfig=${this.cardWideConfig}
-              .extendUp=${true}
-              .extendDown=${true}
-              @advanced-camera-card:gallery:extend:up=${(
-                ev: CustomEvent<GalleryExtendEvent>,
-              ) =>
-                this._extendGallery(
-                  ev,
-                  'later',
-                  // Avoid use of cache since the user is explicitly looking for
-                  // the freshest possible data.
-                  false,
-                )}
-              @advanced-camera-card:gallery:extend:down=${(
-                ev: CustomEvent<GalleryExtendEvent>,
-              ) => this._extendGallery(ev, 'earlier')}
-            >
-              ${this._renderUpFolder()} ${this._renderThumbnails()}
-            </advanced-camera-card-gallery-core>`}
+        ${
+          showFilter && this.galleryConfig
+            ? html` <advanced-camera-card-media-filter
+                .hass=${this.hass}
+                .cameraManager=${this.cameraManager}
+                .foldersManager=${this.foldersManager}
+                .viewManagerEpoch=${this.viewManagerEpoch}
+                .cardWideConfig=${this.cardWideConfig}
+                slot=${filterMode}
+              >
+              </advanced-camera-card-media-filter>`
+            : ''
+        }
+        ${
+          !hasItems
+            ? renderNoMediaNotification(
+                {
+                  cameraID: this.viewManagerEpoch?.manager.getView()?.camera ?? null,
+                  inProgress: isLoading,
+                },
+                this.cameraManager,
+              )
+            : html`<advanced-camera-card-gallery-core
+                .hass=${this.hass}
+                .columnWidth=${this._controller.getColumnWidth()}
+                .columnCountRoundMethod=${this._controller.getColumnCountRoundMethod()}
+                .cardWideConfig=${this.cardWideConfig}
+                .extendUp=${true}
+                .extendDown=${true}
+                @advanced-camera-card:gallery:extend:up=${(
+                  ev: CustomEvent<GalleryExtendEvent>,
+                ) =>
+                  this._extendGallery(
+                    ev,
+                    'later',
+                    // Avoid use of cache since the user is explicitly looking for
+                    // the freshest possible data.
+                    false,
+                  )}
+                @advanced-camera-card:gallery:extend:down=${(
+                  ev: CustomEvent<GalleryExtendEvent>,
+                ) => this._extendGallery(ev, 'earlier')}
+              >
+                ${this._renderUpFolder()} ${this._renderThumbnails()}
+              </advanced-camera-card-gallery-core>`
+        }
       </advanced-camera-card-surround-basic>
     `;
   }

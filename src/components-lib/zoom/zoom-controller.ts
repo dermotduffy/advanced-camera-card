@@ -285,12 +285,16 @@ export class ZoomController {
     // used fully specified by this object. It's kept as-is for completeness.
     return (
       arefloatsApproximatelyEqual(
+        /* v8 ignore next @preserve */
         a.zoom ?? ZOOM_DEFAULT_SCALE,
+        /* v8 ignore next @preserve */
         b.zoom ?? ZOOM_DEFAULT_SCALE,
         ZOOM_PRECISION,
       ) &&
       arefloatsApproximatelyEqual(
+        /* v8 ignore next @preserve */
         a.pan?.x ?? ZOOM_DEFAULT_PAN_X,
+        /* v8 ignore next @preserve */
         b.pan?.x ?? ZOOM_DEFAULT_PAN_X,
         ZOOM_PRECISION,
       ) &&

@@ -211,21 +211,24 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
             : 'mdi:camera-lock';
 
     return html` <div
-      @advanced-camera-card:timeline:thumbnail-data-request=${this._controller
-        .handleThumbnailDataRequest}
+      @advanced-camera-card:timeline:thumbnail-data-request=${
+        this._controller.handleThumbnailDataRequest
+      }
       class="timeline"
       ${ref(this._refTimeline)}
     >
       <div class="timeline-tools">
-        ${this._controller.shouldSupportSeeking()
-          ? html` <advanced-camera-card-icon
-              .icon=${{ icon: panIcon }}
-              @click=${() => this._controller.cyclePanMode()}
-              aria-label="${panTitle}"
-              title="${panTitle}"
-            >
-            </advanced-camera-card-icon>`
-          : ''}
+        ${
+          this._controller.shouldSupportSeeking()
+            ? html` <advanced-camera-card-icon
+                .icon=${{ icon: panIcon }}
+                @click=${() => this._controller.cyclePanMode()}
+                aria-label="${panTitle}"
+                title="${panTitle}"
+              >
+              </advanced-camera-card-icon>`
+            : ''
+        }
         <advanced-camera-card-date-picker
           ${ref(this._refDatePicker)}
           @advanced-camera-card:date-picker:change=${(

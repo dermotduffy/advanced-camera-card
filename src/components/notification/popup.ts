@@ -67,22 +67,26 @@ export class AdvancedCameraCardNotification extends LitElement {
         ${ref(this._refNotification)}
         @animationend=${this._popupController.handleAnimationEnd}
       >
-        ${controls.length || in_progress
-          ? html`<div
-              class=${classMap({ controls: true, 'spinner-only': !controls.length })}
-            >
-              ${in_progress
-                ? html`<div class="spinner" title=${localize('common.in_progress')}>
-                    <ha-spinner indeterminate size="tiny"></ha-spinner>
-                  </div>`
-                : ''}
-              ${controls.map((control) =>
-                renderControl(control, (ev, c) =>
-                  handleControlAction(ev, c, this, this._popupController.dismiss),
-                ),
-              )}
-            </div>`
-          : ''}
+        ${
+          controls.length || in_progress
+            ? html`<div
+                class=${classMap({ controls: true, 'spinner-only': !controls.length })}
+              >
+                ${
+                  in_progress
+                    ? html`<div class="spinner" title=${localize('common.in_progress')}>
+                        <ha-spinner indeterminate size="tiny"></ha-spinner>
+                      </div>`
+                    : ''
+                }
+                ${controls.map((control) =>
+                  renderControl(control, (ev, c) =>
+                    handleControlAction(ev, c, this, this._popupController.dismiss),
+                  ),
+                )}
+              </div>`
+            : ''
+        }
         <button
           class="close"
           title=${localize('common.close')}

@@ -366,7 +366,7 @@ export class UnifiedQueryBuilder {
     // Map the simple media type to the capability required
     const neededCapability: CapabilitySearchKeys =
       mediaType === 'events'
-        ? options?.eventsSubtype ?? { anyCapabilities: ['clips', 'snapshots'] }
+        ? (options?.eventsSubtype ?? { anyCapabilities: ['clips', 'snapshots'] })
         : mediaType;
 
     const cameraIDs = options?.cameraID

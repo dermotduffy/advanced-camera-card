@@ -362,14 +362,16 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
         ${guard([this._media, view], () => this._getSlides())}
         ${this.showControls ? this._renderNextPrevious('right', neighbors) : ''}
       </advanced-camera-card-carousel>
-      ${view
-        ? html` <advanced-camera-card-ptz
-            .hass=${this.hass}
-            .config=${this.viewerConfig?.controls.ptz}
-            .forceVisibility=${view?.context?.ptzControls?.enabled}
-          >
-          </advanced-camera-card-ptz>`
-        : ''}
+      ${
+        view
+          ? html` <advanced-camera-card-ptz
+              .hass=${this.hass}
+              .config=${this.viewerConfig?.controls.ptz}
+              .forceVisibility=${view?.context?.ptzControls?.enabled}
+            >
+            </advanced-camera-card-ptz>`
+          : ''
+      }
       <div class="seek-warning">
         <advanced-camera-card-icon
           title="${localize('media_viewer.unseekable')}"
@@ -485,7 +487,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
 
     const mediaID = media.getID();
-    const mediaEpoch = mediaID ? view.context?.mediaEpoch?.[mediaID] ?? 0 : 0;
+    const mediaEpoch = mediaID ? (view.context?.mediaEpoch?.[mediaID] ?? 0) : 0;
 
     return html` <div class="embla__slide">
       ${keyed(

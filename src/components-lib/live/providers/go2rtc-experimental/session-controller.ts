@@ -696,7 +696,7 @@ export class Go2RTCSessionController {
       surface === 'video' ? context.surfaces.video : context.surfaces.image;
     const dimensionsElement =
       surface === 'video'
-        ? dimensionsVideo ?? context.surfaces.video.getElement()
+        ? (dimensionsVideo ?? context.surfaces.video.getElement())
         : context.surfaces.image.getElement();
     if (!dimensionsElement) {
       return;

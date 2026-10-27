@@ -90,12 +90,14 @@ export class AdvancedCameraCardPTZ extends LitElement {
             class=${classMap(classes)}
             .icon=${{ icon: icon }}
             .title=${localize(`elements.ptz.${name}`)}
-            .actionHandler=${options.actions
-              ? actionHandler({
-                  hasHold: hasAction(options.actions?.hold_action),
-                  hasDoubleClick: hasAction(options.actions?.double_tap_action),
-                })
-              : undefined}
+            .actionHandler=${
+              options.actions
+                ? actionHandler({
+                    hasHold: hasAction(options.actions?.hold_action),
+                    hasDoubleClick: hasAction(options.actions?.double_tap_action),
+                  })
+                : undefined
+            }
             @action=${(ev: CustomEvent<Interaction>) =>
               options.actions && this._controller.handleAction(ev, options.actions)}
           ></advanced-camera-card-icon>`
@@ -117,53 +119,61 @@ export class AdvancedCameraCardPTZ extends LitElement {
     const config = this._controller.getConfig();
     const isGestures = this.type === 'gestures';
     return html` <div class="ptz">
-      ${!isGestures &&
-      !config?.hide_pan_tilt &&
-      (this._actions?.left ||
-        this._actions?.right ||
-        this._actions?.up ||
-        this._actions?.down)
-        ? html`<div class="ptz-move">
-            ${renderIcon('right', 'mdi:arrow-right', { actions: this._actions?.right })}
-            ${renderIcon('left', 'mdi:arrow-left', { actions: this._actions?.left })}
-            ${renderIcon('up', 'mdi:arrow-up', { actions: this._actions?.up })}
-            ${renderIcon('down', 'mdi:arrow-down', { actions: this._actions?.down })}
-          </div>`
-        : ''}
-      ${!isGestures &&
-      !config?.hide_zoom &&
-      (this._actions?.zoom_in || this._actions?.zoom_out)
-        ? html` <div class="ptz-zoom">
-            ${renderIcon('zoom_in', 'mdi:plus', { actions: this._actions.zoom_in })}
-            ${renderIcon('zoom_out', 'mdi:minus', { actions: this._actions.zoom_out })}
-          </div>`
-        : html``}
-      ${!isGestures &&
-      !config?.hide_home &&
-      (this._actions?.home || presetSubmenuItems?.length)
-        ? html`<div class="ptz-presets">
-            ${renderIcon('home', 'mdi:home', { actions: this._actions?.home })}
-            ${presetSubmenuItems && presetSubmenuItems.length > 1
-              ? html`<advanced-camera-card-submenu
-                  class="presets"
-                  .hass=${this.hass}
-                  .items=${presetSubmenuItems}
-                  @action=${(ev: CustomEvent<SubmenuInteraction>) =>
-                    this._controller.handleAction(ev)}
-                >
-                  ${renderIcon(
-                    'presets',
-                    config?.orientation === 'vertical'
-                      ? 'mdi:dots-vertical'
-                      : 'mdi:dots-horizontal',
-                    {
-                      renderWithoutAction: true,
-                    },
-                  )}
-                </advanced-camera-card-submenu>`
-              : ''}
-          </div>`
-        : ''}
+      ${
+        !isGestures &&
+        !config?.hide_pan_tilt &&
+        (this._actions?.left ||
+          this._actions?.right ||
+          this._actions?.up ||
+          this._actions?.down)
+          ? html`<div class="ptz-move">
+              ${renderIcon('right', 'mdi:arrow-right', { actions: this._actions?.right })}
+              ${renderIcon('left', 'mdi:arrow-left', { actions: this._actions?.left })}
+              ${renderIcon('up', 'mdi:arrow-up', { actions: this._actions?.up })}
+              ${renderIcon('down', 'mdi:arrow-down', { actions: this._actions?.down })}
+            </div>`
+          : ''
+      }
+      ${
+        !isGestures &&
+        !config?.hide_zoom &&
+        (this._actions?.zoom_in || this._actions?.zoom_out)
+          ? html` <div class="ptz-zoom">
+              ${renderIcon('zoom_in', 'mdi:plus', { actions: this._actions.zoom_in })}
+              ${renderIcon('zoom_out', 'mdi:minus', { actions: this._actions.zoom_out })}
+            </div>`
+          : html``
+      }
+      ${
+        !isGestures &&
+        !config?.hide_home &&
+        (this._actions?.home || presetSubmenuItems?.length)
+          ? html`<div class="ptz-presets">
+              ${renderIcon('home', 'mdi:home', { actions: this._actions?.home })}
+              ${
+                presetSubmenuItems && presetSubmenuItems.length > 1
+                  ? html`<advanced-camera-card-submenu
+                      class="presets"
+                      .hass=${this.hass}
+                      .items=${presetSubmenuItems}
+                      @action=${(ev: CustomEvent<SubmenuInteraction>) =>
+                        this._controller.handleAction(ev)}
+                    >
+                      ${renderIcon(
+                        'presets',
+                        config?.orientation === 'vertical'
+                          ? 'mdi:dots-vertical'
+                          : 'mdi:dots-horizontal',
+                        {
+                          renderWithoutAction: true,
+                        },
+                      )}
+                    </advanced-camera-card-submenu>`
+                  : ''
+              }
+            </div>`
+          : ''
+      }
       ${
         // The type toggle switches between buttons and gestures. On
         // digital-only cameras, gestures have no effect (the drag controller

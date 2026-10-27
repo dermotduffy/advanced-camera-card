@@ -266,7 +266,7 @@ export class MediaUnavailableIssue implements Issue {
   private _getTargetName(id: string): string {
     return id === IMAGE_VIEW_TARGET_ID_SENTINEL
       ? localize('editor.image')
-      : this._api.getCameraManager().getCameraMetadata(id)?.title ?? id;
+      : (this._api.getCameraManager().getCameraMetadata(id)?.title ?? id);
   }
 
   // =========================================================================

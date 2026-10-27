@@ -23,10 +23,10 @@ export class CameraURLManager {
     const view = this._api.getViewManager().getView();
     const item = view?.queryResults?.getSelectedResult() ?? null;
     const endpoints = view?.camera
-      ? this._api.getCameraManager().getCameraEndpoints(view.camera, {
+      ? (this._api.getCameraManager().getCameraEndpoints(view.camera, {
           view: view.view,
           ...(item && ViewItemClassifier.isMedia(item) && { media: item }),
-        }) ?? null
+        }) ?? null)
       : null;
     return endpoints?.ui?.endpoint ?? null;
   }

@@ -89,7 +89,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   // Lit runs controllers in declaration order: Resolve first, then sign.
   private _resolvedMediaController = new ResolvedMediaController(this, () => ({
     hass: this.hass,
-    contentID: this._shouldLoad() ? this.media?.getContentID() ?? null : null,
+    contentID: this._shouldLoad() ? (this.media?.getContentID() ?? null) : null,
     cache: this.resolvedMediaCache,
   }));
 
@@ -180,7 +180,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   private _getRelevantCameraConfig(): CameraConfig | null {
     const cameraID = this.media?.getCameraID();
     return cameraID
-      ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null
+      ? (this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null)
       : null;
   }
 
@@ -191,7 +191,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     const cameraID = this.media.getCameraID();
     const mediaID = this.media.getID() ?? undefined;
     const cameraConfig = cameraID
-      ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null
+      ? (this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null)
       : null;
     const view = this.viewManagerEpoch?.manager.getView();
 
@@ -202,33 +202,35 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     </advanced-camera-card-media-dimensions-container>`;
 
     return html`
-      ${this.viewerConfig?.zoomable
-        ? html`<advanced-camera-card-zoomer
-            .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
-              cameraConfig?.dimensions?.layout
-                ? {
-                    pan: cameraConfig.dimensions.layout.pan,
-                    zoom: cameraConfig.dimensions.layout.zoom,
-                  }
-                : undefined,
-            )}
-            .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
-            @advanced-camera-card:zoom:zoomed=${async () =>
-              (await this.getMediaPlayerController())?.setControls(false)}
-            @advanced-camera-card:zoom:unzoomed=${async () =>
-              (await this.getMediaPlayerController())?.setControls()}
-            @advanced-camera-card:zoom:change=${(
-              ev: CustomEvent<ZoomSettingsObserved>,
-            ) =>
-              handleZoomSettingsObservedEvent(
-                ev,
-                this.viewManagerEpoch?.manager,
-                mediaID,
+      ${
+        this.viewerConfig?.zoomable
+          ? html`<advanced-camera-card-zoomer
+              .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
+                cameraConfig?.dimensions?.layout
+                  ? {
+                      pan: cameraConfig.dimensions.layout.pan,
+                      zoom: cameraConfig.dimensions.layout.zoom,
+                    }
+                  : undefined,
               )}
-          >
-            ${intermediateTemplate}
-          </advanced-camera-card-zoomer>`
-        : intermediateTemplate}
+              .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
+              @advanced-camera-card:zoom:zoomed=${async () =>
+                (await this.getMediaPlayerController())?.setControls(false)}
+              @advanced-camera-card:zoom:unzoomed=${async () =>
+                (await this.getMediaPlayerController())?.setControls()}
+              @advanced-camera-card:zoom:change=${(
+                ev: CustomEvent<ZoomSettingsObserved>,
+              ) =>
+                handleZoomSettingsObservedEvent(
+                  ev,
+                  this.viewManagerEpoch?.manager,
+                  mediaID,
+                )}
+            >
+              ${intermediateTemplate}
+            </advanced-camera-card-zoomer>`
+          : intermediateTemplate
+      }
     `;
   }
 
@@ -260,46 +262,48 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     );
 
     return this._renderContainer(html`
-      ${isVideo
-        ? isHLS
-          ? html`<advanced-camera-card-ha-hls-player
-              ${ref(this._refProvider)}
-              allow-exoplayer
-              aria-label="${this.media.getTitle() ?? ''}"
-              ?autoplay=${false}
-              controls
-              muted
-              playsinline
-              title="${this.media.getTitle() ?? ''}"
-              url=${url}
-              .hass=${this.hass}
-              .targetID=${mediaID}
-              ?controls=${this.viewerConfig.controls.builtin}
-            >
-            </advanced-camera-card-ha-hls-player>`
-          : html`
-              <advanced-camera-card-video-player
+      ${
+        isVideo
+          ? isHLS
+            ? html`<advanced-camera-card-ha-hls-player
                 ${ref(this._refProvider)}
-                url=${url}
+                allow-exoplayer
                 aria-label="${this.media.getTitle() ?? ''}"
+                ?autoplay=${false}
+                controls
+                muted
+                playsinline
                 title="${this.media.getTitle() ?? ''}"
+                url=${url}
+                .hass=${this.hass}
                 .targetID=${mediaID}
                 ?controls=${this.viewerConfig.controls.builtin}
               >
-              </advanced-camera-card-video-player>
-            `
-        : html`<advanced-camera-card-image-player
-            ${ref(this._refProvider)}
-            url="${url}"
-            aria-label="${this.media.getTitle() ?? ''}"
-            title="${this.media.getTitle() ?? ''}"
-            .targetID=${mediaID}
-            @click=${() => {
-              if (this.viewerConfig?.snapshot_click_plays_clip) {
-                void this._switchToRelatedClipView();
-              }
-            }}
-          ></advanced-camera-card-image-player>`}
+              </advanced-camera-card-ha-hls-player>`
+            : html`
+                <advanced-camera-card-video-player
+                  ${ref(this._refProvider)}
+                  url=${url}
+                  aria-label="${this.media.getTitle() ?? ''}"
+                  title="${this.media.getTitle() ?? ''}"
+                  .targetID=${mediaID}
+                  ?controls=${this.viewerConfig.controls.builtin}
+                >
+                </advanced-camera-card-video-player>
+              `
+          : html`<advanced-camera-card-image-player
+              ${ref(this._refProvider)}
+              url="${url}"
+              aria-label="${this.media.getTitle() ?? ''}"
+              title="${this.media.getTitle() ?? ''}"
+              .targetID=${mediaID}
+              @click=${() => {
+                if (this.viewerConfig?.snapshot_click_plays_clip) {
+                  void this._switchToRelatedClipView();
+                }
+              }}
+            ></advanced-camera-card-image-player>`
+      }
     `);
   }
 

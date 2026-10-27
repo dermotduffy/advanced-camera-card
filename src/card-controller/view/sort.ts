@@ -16,7 +16,7 @@ export const sortItems = <T extends ViewItem>(itemArray: T[]): T[] => {
       // Sort by time and id.
       (item) =>
         ViewItemClassifier.isMedia(item)
-          ? item.getStartTime() ?? item.getID()
+          ? (item.getStartTime() ?? item.getID())
           : item.getID(),
     ],
     ['asc', 'asc'],

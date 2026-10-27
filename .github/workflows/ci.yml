@@ -88,7 +88,7 @@ jobs:
     # and dependencies. The tag has to name the `playwright` version in
     # package.json .
     container:
-      image: mcr.microsoft.com/playwright:v1.62.0-noble
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
 
       # As the image's own user rather than root, which Firefox refuses to run
       # as when the home directory belongs to somebody else.
@@ -142,7 +142,7 @@ jobs:
     # and dependencies. The tag has to name the `playwright` version in
     # package.json .
     container:
-      image: mcr.microsoft.com/playwright:v1.62.0-noble
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
 
       # As the image's own user rather than root, which Firefox refuses to run
       # as when the home directory belongs to somebody else.

@@ -97,12 +97,12 @@ export class MediaLoadedInfoManager {
     }
 
     this._selected = targetID;
-    this._emitChange(targetID ? this._active.get(targetID)?.info ?? null : null);
+    this._emitChange(targetID ? (this._active.get(targetID)?.info ?? null) : null);
     this._notify({ type: 'select', targetID });
   }
 
   public get(): MediaLoadedInfo | null {
-    return this._selected ? this._active.get(this._selected)?.info ?? null : null;
+    return this._selected ? (this._active.get(this._selected)?.info ?? null) : null;
   }
 
   public has(): boolean {
@@ -110,7 +110,7 @@ export class MediaLoadedInfoManager {
   }
 
   public getLastKnown(): MediaLoadedInfo | null {
-    return this._selected ? this._lastKnown.get(this._selected) ?? null : null;
+    return this._selected ? (this._lastKnown.get(this._selected) ?? null) : null;
   }
 
   public handleLoadEvent(ev: CustomEvent<MediaLoadedInfoEventDetail>): void {

@@ -1,8 +1,10 @@
-// `tsconfig.json` sets the type library to ES2021, matching the oldest browser
-// the card is built for, so `Object.hasOwn` needs typing here.
-export interface ObjectConstructorWithHasOwn extends ObjectConstructor {
+// `tsconfig.json` types against ES2022, where `Object.hasOwn` is required.
+// Chromecast receivers still run Chrome 92, which does not have it, so this
+// describes that older constructor. It cannot extend `ObjectConstructor`: an
+// optional method is not assignable to the required one.
+export type ObjectConstructorWithHasOwn = Omit<ObjectConstructor, 'hasOwn'> & {
   hasOwn?: (object: object, property: PropertyKey) => boolean;
-}
+};
 
 /**
  * Polyfill `Object.hasOwn` on browsers that lack it.

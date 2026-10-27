@@ -67,7 +67,7 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
       item: this.item,
       size: this.size,
       capabilities: this.item
-        ? this.viewItemManager?.getCapabilities(this.item) ?? undefined
+        ? (this.viewItemManager?.getCapabilities(this.item) ?? undefined)
         : undefined,
       showFavoriteControl: this.show_favorite_control,
       showTimelineControl: this.show_timeline_control,

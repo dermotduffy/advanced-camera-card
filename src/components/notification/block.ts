@@ -68,26 +68,30 @@ export class AdvancedCameraCardNotificationBlock extends LitElement {
 
     return html`
       <div class="content">
-        ${heading || spinnerInHeadingRow || controls.length
-          ? html`<div class="heading-row">
-              ${heading ? renderDetail(heading, 'heading') : ''}
-              ${spinnerInHeadingRow || controls.length
-                ? html`<div
-                    class=${classMap({
-                      controls: true,
-                      'spinner-only': !controls.length,
-                    })}
-                  >
-                    ${spinnerInHeadingRow ? spinner : ''}
-                    ${controls.map((control) =>
-                      renderControl(control, (ev, c) =>
-                        handleControlAction(ev, c, this),
-                      ),
-                    )}
-                  </div>`
-                : ''}
-            </div>`
-          : ''}
+        ${
+          heading || spinnerInHeadingRow || controls.length
+            ? html`<div class="heading-row">
+                ${heading ? renderDetail(heading, 'heading') : ''}
+                ${
+                  spinnerInHeadingRow || controls.length
+                    ? html`<div
+                        class=${classMap({
+                          controls: true,
+                          'spinner-only': !controls.length,
+                        })}
+                      >
+                        ${spinnerInHeadingRow ? spinner : ''}
+                        ${controls.map((control) =>
+                          renderControl(control, (ev, c) =>
+                            handleControlAction(ev, c, this),
+                          ),
+                        )}
+                      </div>`
+                    : ''
+                }
+              </div>`
+            : ''
+        }
         ${renderNotificationBody(
           this.notification,
           context,

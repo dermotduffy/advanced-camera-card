@@ -256,7 +256,7 @@ export class QueryResults {
   }
 
   public getSlice(cameraID?: string): ResultSlice | null {
-    return cameraID ? this._cameras.get(cameraID) ?? null : this._main;
+    return cameraID ? (this._cameras.get(cameraID) ?? null) : this._main;
   }
 
   public getResults(cameraID?: string): ViewItem[] | null {
