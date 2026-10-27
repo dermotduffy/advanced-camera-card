@@ -11,7 +11,10 @@ import {
 import type { RecordingSegment } from '../../camera-manager/types';
 import { capEndDate } from '../../camera-manager/utils/cap-end-date';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
-import { expandRangeByRetentionMargin } from '../../camera-manager/utils/recording-retention';
+import {
+  DEFAULT_RECORDING_RETENTION_MARGIN_HOURS,
+  expandRangeByRetentionMargin,
+} from '../../camera-manager/utils/recording-retention';
 import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import type { FolderConfig } from '../../config/schema/folders';
@@ -95,6 +98,7 @@ export class TimelineDataSource {
   private _cache = new ExpiringMemoryRangeSet();
 
   private _showRecordings: boolean;
+  private _recordingRetentionHours: number;
 
   // The "shape" of the query, a UnifiedQuery without time ranges. Determines
   // the groups/structure of the timeline.
@@ -106,6 +110,7 @@ export class TimelineDataSource {
     conditionStateManager: ConditionStateManagerReadonlyInterface,
     shape: UnifiedQuery,
     showRecordings: boolean,
+    recordingRetentionHours = DEFAULT_RECORDING_RETENTION_MARGIN_HOURS,
   ) {
     this._cameraManager = cameraManager;
     this._builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
@@ -116,6 +121,7 @@ export class TimelineDataSource {
     );
     this._shape = shape;
     this._showRecordings = showRecordings;
+    this._recordingRetentionHours = recordingRetentionHours;
 
     this._groups = this._generateGroups();
   }
@@ -316,11 +322,14 @@ export class TimelineDataSource {
       this._dataset.add(recordings);
     };
 
-    // The fetch is bucketed to an hour or a day. Keep one hour past that on
-    // either side so a pan back across the hour just left does not refetch,
-    // and drop recording blocks further away.
+    // The fetch is bucketed to an hour or a day. Keep the configured margin
+    // past that so a short pan does not refetch, and drop recording blocks
+    // further away.
     const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(window);
-    const retention = expandRangeByRetentionMargin(cacheFriendlyWindow);
+    const retention = expandRangeByRetentionMargin(
+      cacheFriendlyWindow,
+      this._recordingRetentionHours,
+    );
     this._retainRecordings(retention);
 
     // Calculate an end date that's slightly short of the current time to allow

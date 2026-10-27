@@ -774,6 +774,12 @@ export class CameraManager {
     query: QT | QT[],
     engineOptions?: EngineOptions,
   ): Promise<Map<QT, QueryReturnType<QT>>> {
+    engineOptions = {
+      ...engineOptions,
+      recordingRetentionHours:
+        engineOptions?.recordingRetentionHours ??
+        this._api.getConfigManager().getConfig()?.timeline?.recording_retention_hours,
+    };
     const _queries = this._mergeCompatibleQueries(arrayify(query));
     const results = new Map<QT, QueryReturnType<QT>>();
     const queryStartTime = new Date();

@@ -741,8 +741,8 @@ export class FrigateCameraManagerEngine
       //   query is different -- the segments won't be). This is since the
       //   volume of data in segment transfers can be high, and the segments can
       //   be used in high frequency situations (e.g. video seeking).
-      // - Each cached request then forgets segments more than an hour outside
-      //   the range just asked for. Panning back across that hour stays a hit.
+      // - Each cached request then forgets segments outside the configured
+      //   retention margin. Panning back within that margin stays a hit.
       //   Panning further away refetches instead of keeping every hour visited.
       const useCache = engineOptions?.useCache ?? true;
       const cachedSegments = useCache
@@ -758,7 +758,7 @@ export class FrigateCameraManagerEngine
         });
         this._recordingSegmentsCache.retain(
           cameraID,
-          expandRangeByRetentionMargin(range),
+          expandRangeByRetentionMargin(range, engineOptions?.recordingRetentionHours),
         );
         return;
       }
@@ -776,7 +776,7 @@ export class FrigateCameraManagerEngine
         this._recordingSegmentsCache.add(cameraID, range, segments);
         this._recordingSegmentsCache.retain(
           cameraID,
-          expandRangeByRetentionMargin(range),
+          expandRangeByRetentionMargin(range, engineOptions?.recordingRetentionHours),
         );
       }
 
