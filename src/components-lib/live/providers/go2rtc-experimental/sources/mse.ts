@@ -338,11 +338,6 @@ export class MSEStreamSource implements StreamSource {
     sourceBuffer: SourceBuffer,
     end: number,
   ): void {
-    trimLiveSourceBuffer(
-      mediaSource,
-      sourceBuffer,
-      end - RETAINED_BUFFER_SECONDS,
-      end,
-    );
+    trimLiveSourceBuffer(mediaSource, sourceBuffer, end - RETAINED_BUFFER_SECONDS, end);
   }
 }
