@@ -1,4 +1,5 @@
 import { getTechnologyForVideoRTC } from '../../../../components-lib/live/utils/get-technology-for-video-rtc.js';
+import { trimLiveSourceBuffer } from '../../../../components-lib/live/utils/trim-live-source-buffer.js';
 import { addAudioTracksMuteStateListener, hasAudio } from '../../../../utils/audio';
 import {
   hideMediaControlsTemporarily,
@@ -657,11 +658,7 @@ export class VideoRTC extends HTMLElement {
         ) {
           const end = sb.buffered.end(sb.buffered.length - 1);
           const start = end - 5;
-          const start0 = sb.buffered.start(0);
-          if (start > start0) {
-            sb.remove(start0, start);
-            ms.setLiveSeekableRange(start, end);
-          }
+          trimLiveSourceBuffer(ms, sb, start, end);
           if (this.video.currentTime < start) {
             this.video.currentTime = start;
           }

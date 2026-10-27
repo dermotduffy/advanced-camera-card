@@ -18,6 +18,7 @@ class FakeMediaSource extends EventTarget {
 class FakeManagedMediaSource extends EventTarget {
   public addSourceBuffer = vi.fn();
   public setLiveSeekableRange = vi.fn();
+  public duration = Number.NaN;
   public readyState: 'closed' | 'open' | 'ended' = 'closed';
   public static isTypeSupported = vi.fn<(mimeType: string) => boolean>(() => true);
 }
@@ -204,6 +205,25 @@ describe('media-source', () => {
       const mediaSource = video.srcObject;
       assert(mediaSource instanceof FakeManagedMediaSource);
       expect(mediaSource.setLiveSeekableRange).toHaveBeenCalledWith(10, 20);
+    });
+
+    it('should delegate duration', () => {
+      stubManagedMediaSource();
+
+      const instance = createBrowserMediaSource();
+      const video = document.createElement('video');
+      instance?.attach(video);
+
+      const mediaSource = video.srcObject;
+      assert(mediaSource instanceof FakeManagedMediaSource);
+      expect(instance?.duration).toBeNaN();
+
+      if (!instance) {
+        throw new Error('Instance is null');
+      }
+      instance.duration = Number.POSITIVE_INFINITY;
+      expect(mediaSource.duration).toBe(Number.POSITIVE_INFINITY);
+      expect(instance?.duration).toBe(Number.POSITIVE_INFINITY);
     });
 
     it('should report open only while the media source readyState is open', () => {
