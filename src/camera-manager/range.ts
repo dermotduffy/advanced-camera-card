@@ -32,6 +32,26 @@ export class MemoryRangeSet implements MemoryRangeSetInterface<DateRange> {
     this._ranges = compressRanges(this._ranges);
   }
 
+  /**
+   * Keep only the part of each stored range that falls inside `range`.
+   * Coverage outside it is forgotten, so a later query there misses.
+   */
+  public retain(range: DateRange): void {
+    const clipped: DateRange[] = [];
+    for (const existing of this._ranges) {
+      const start = existing.start > range.start ? existing.start : range.start;
+      const end = existing.end < range.end ? existing.end : range.end;
+      if (start < end) {
+        clipped.push({ start, end });
+      }
+    }
+    this._ranges = compressRanges(clipped);
+  }
+
+  public isEmpty(): boolean {
+    return this._ranges.length === 0;
+  }
+
   public clear(): void {
     this._ranges = [];
   }
@@ -41,9 +61,9 @@ export interface ExpiringRange<T extends Date | number> extends Range<T> {
   expires: Date;
 }
 
-export class ExpiringMemoryRangeSet
-  implements MemoryRangeSetInterface<ExpiringRange<Date>>
-{
+export class ExpiringMemoryRangeSet implements MemoryRangeSetInterface<
+  ExpiringRange<Date>
+> {
   private _ranges: ExpiringRange<Date>[];
 
   constructor(ranges?: ExpiringRange<Date>[]) {

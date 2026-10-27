@@ -11,6 +11,7 @@ import {
 import type { RecordingSegment } from '../../camera-manager/types';
 import { capEndDate } from '../../camera-manager/utils/cap-end-date';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
+import { expandRangeByRetentionMargin } from '../../camera-manager/utils/recording-retention';
 import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import type { FolderConfig } from '../../config/schema/folders';
@@ -315,6 +316,13 @@ export class TimelineDataSource {
       this._dataset.add(recordings);
     };
 
+    // The fetch is bucketed to an hour or a day. Keep one hour past that on
+    // either side so a pan back across the hour just left does not refetch,
+    // and drop recording blocks further away.
+    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(window);
+    const retention = expandRangeByRetentionMargin(cacheFriendlyWindow);
+    this._retainRecordings(retention);
+
     // Calculate an end date that's slightly short of the current time to allow
     // for caching up to the freshness tolerance.
     if (
@@ -327,8 +335,6 @@ export class TimelineDataSource {
     ) {
       return;
     }
-
-    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(window);
     const recordingQueries = this._cameraManager.generateDefaultRecordingSegmentsQueries(
       cameraIDs,
       {
@@ -372,5 +378,43 @@ export class TimelineDataSource {
       start: cacheFriendlyWindow.start,
       end: cacheFriendlyWindow.end,
     });
+    // Segments can extend past the bucket. Clip again so a block that was
+    // just merged cannot keep hours the retention window already forgot.
+    this._retainRecordings(retention);
+  }
+
+  private _retainRecordings(range: { start: Date; end: Date }): void {
+    this._recordingRanges.retain(range);
+    const startMs = range.start.getTime();
+    const endMs = range.end.getTime();
+    const background = this._dataset.get({
+      filter: (item) => item.type === 'background',
+    });
+    const removeIds: IdType[] = [];
+    const updates: AdvancedCameraCardTimelineItem[] = [];
+    for (const item of background) {
+      const itemEnd = item.end;
+      if (itemEnd === undefined) {
+        if (item.start < startMs || item.start > endMs) {
+          removeIds.push(item.id);
+        }
+        continue;
+      }
+      if (itemEnd <= startMs || item.start >= endMs) {
+        removeIds.push(item.id);
+        continue;
+      }
+      const start = item.start < startMs ? startMs : item.start;
+      const end = itemEnd > endMs ? endMs : itemEnd;
+      if (start !== item.start || end !== itemEnd) {
+        updates.push({ ...item, start, end });
+      }
+    }
+    if (removeIds.length > 0) {
+      this._dataset.remove(removeIds);
+    }
+    if (updates.length > 0) {
+      this._dataset.update(updates);
+    }
   }
 }

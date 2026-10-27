@@ -44,6 +44,45 @@ describe('MemoryRangeSet', () => {
     rangeSet.add(range);
     rangeSet.clear();
     expect(rangeSet.hasCoverage(range)).toBeFalsy();
+    expect(rangeSet.isEmpty()).toBeTruthy();
+  });
+
+  it('should report stored ranges', () => {
+    expect(rangeSet.isEmpty()).toBeTruthy();
+    rangeSet.add(range);
+    expect(rangeSet.isEmpty()).toBeFalsy();
+  });
+
+  it('should keep only the overlap of each stored range', () => {
+    const retain = {
+      start: add(now, { hours: 2 }),
+      end: add(now, { hours: 4 }),
+    };
+    const set = new MemoryRangeSet([
+      { start: add(now, { hours: 2, minutes: 30 }), end: add(now, { hours: 3 }) },
+      { start: now, end: add(now, { hours: 5 }) },
+      { start: add(now, { hours: 1 }), end: add(now, { hours: 3 }) },
+      { start: add(now, { hours: 3 }), end: add(now, { hours: 5 }) },
+      { start: add(now, { hours: 10 }), end: add(now, { hours: 11 }) },
+      { start: sub(now, { hours: 2 }), end: sub(now, { hours: 1 }) },
+      { start: add(now, { hours: 4 }), end: add(now, { hours: 6 }) },
+    ]);
+
+    set.retain(retain);
+
+    expect(set.hasCoverage(retain)).toBeTruthy();
+    expect(set.hasCoverage({ start: now, end: add(now, { hours: 5 }) })).toBeFalsy();
+    expect(
+      set.hasCoverage({ start: add(now, { hours: 10 }), end: add(now, { hours: 11 }) }),
+    ).toBeFalsy();
+    expect(set.isEmpty()).toBeFalsy();
+  });
+
+  it('should be empty when nothing overlaps the retained range', () => {
+    rangeSet.add({ start: add(now, { hours: 5 }), end: add(now, { hours: 6 }) });
+    rangeSet.retain(range);
+    expect(rangeSet.isEmpty()).toBeTruthy();
+    expect(rangeSet.hasCoverage(range)).toBeFalsy();
   });
 });
 
