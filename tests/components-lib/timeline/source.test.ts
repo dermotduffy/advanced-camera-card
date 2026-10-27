@@ -1,4 +1,4 @@
-import { add } from 'date-fns';
+import { add, endOfHour, startOfHour, sub } from 'date-fns';
 import type { DataSet } from 'vis-data';
 import type { TimelineWindow } from 'vis-timeline';
 import {
@@ -99,8 +99,8 @@ const createTestCameraManager = (): CameraManager => {
   ]);
 
   const recordingSegment: RecordingSegment = {
-    start_time: 1695307866,
-    end_time: 1695307875,
+    start_time: 1758483066,
+    end_time: 1758483075,
     id: RECORDING_SEGMENT_ID,
   };
   const recordingSegmentsQueryResults: RecordingSegmentsQueryResults = {
@@ -730,10 +730,10 @@ describe('TimelineDataSource', () => {
 
         expect(source.dataset.get(EXPECTED_RECORDING_ID)).toEqual({
           content: '',
-          end: 1695307875000,
+          end: 1758483075000,
           group: 'camera/camera-1',
           id: EXPECTED_RECORDING_ID,
-          start: 1695307866000,
+          start: 1758483066000,
           type: 'background',
         });
       });
@@ -863,13 +863,13 @@ describe('TimelineDataSource', () => {
           engine: Engine.Generic,
           segments: [
             {
-              start_time: 1695307866,
-              end_time: 1695307875,
+              start_time: 1758483066,
+              end_time: 1758483075,
               id: RECORDING_SEGMENT_ID,
             },
             {
-              start_time: 1695307875,
-              end_time: 1695307885,
+              start_time: 1758483075,
+              end_time: 1758483085,
               id: `${RECORDING_SEGMENT_ID}-2`,
             },
           ],
@@ -895,10 +895,10 @@ describe('TimelineDataSource', () => {
         expect(getRecordings(source.dataset)).toEqual([
           {
             content: '',
-            end: 1695307885000,
+            end: 1758483085000,
             group: 'camera/camera-1',
             id: 'recording-camera-1-SEGMENT_ID',
-            start: 1695307866000,
+            start: 1758483066000,
             type: 'background',
           },
         ]);
@@ -920,13 +920,13 @@ describe('TimelineDataSource', () => {
           engine: Engine.Generic,
           segments: [
             {
-              start_time: 1695307866,
-              end_time: 1695307876,
+              start_time: 1758483066,
+              end_time: 1758483076,
               id: RECORDING_SEGMENT_ID,
             },
             {
-              start_time: 1695307875,
-              end_time: 1695307885,
+              start_time: 1758483075,
+              end_time: 1758483085,
               id: `${RECORDING_SEGMENT_ID}-2`,
             },
           ],
@@ -945,7 +945,7 @@ describe('TimelineDataSource', () => {
         );
         source.dataset.add({
           id: 'recording-camera-1-SEGMENT_ID',
-          start: 1695307866000,
+          start: 1758483066000,
 
           // No end time.
           end: undefined,
@@ -960,10 +960,10 @@ describe('TimelineDataSource', () => {
         expect(getRecordings(source.dataset)).toEqual([
           {
             content: '',
-            end: 1695307885000,
+            end: 1758483085000,
             group: 'camera/camera-1',
             id: 'recording-camera-1-SEGMENT_ID',
-            start: 1695307866000,
+            start: 1758483066000,
             type: 'background',
           },
         ]);
@@ -987,8 +987,8 @@ describe('TimelineDataSource', () => {
                 engine: Engine.Generic,
                 segments: [
                   {
-                    start_time: 1695307866,
-                    end_time: 1695307875,
+                    start_time: 1758483066,
+                    end_time: 1758483075,
                     id: 'segment-1',
                   },
                 ],
@@ -1007,8 +1007,8 @@ describe('TimelineDataSource', () => {
                 engine: Engine.Generic,
                 segments: [
                   {
-                    start_time: 1695307866,
-                    end_time: 1695307875,
+                    start_time: 1758483066,
+                    end_time: 1758483075,
                     id: 'segment-2',
                   },
                 ],
@@ -1030,22 +1030,167 @@ describe('TimelineDataSource', () => {
         expect(getRecordings(source.dataset)).toEqual([
           {
             content: '',
-            end: 1695307875000,
+            end: 1758483075000,
             group: 'camera/camera-1',
             id: 'recording-camera-1-segment-1',
-            start: 1695307866000,
+            start: 1758483066000,
             type: 'background',
           },
           {
             content: '',
-            end: 1695307875000,
+            end: 1758483075000,
             group: 'camera/camera-2',
             id: 'recording-camera-2-segment-2',
-            start: 1695307866000,
+            start: 1758483066000,
             type: 'background',
           },
         ]);
         expect(cameraManager.getRecordingSegments).toHaveBeenCalledTimes(1);
+      });
+
+      it('should keep the hour just left when panning back', async () => {
+        const cameraManager = createTestCameraManager();
+        const source = createSource(
+          cameraManager,
+          mock<FoldersManager>(),
+          mock<ConditionStateManagerReadonlyInterface>(),
+          cameraEventsQuery,
+          true,
+        );
+
+        await source.refresh(window);
+        await source.refresh({
+          start: add(window.start, { hours: 1 }),
+          end: add(window.end, { hours: 1 }),
+        });
+        await source.refresh(window);
+
+        expect(cameraManager.getRecordingSegments).toHaveBeenCalledTimes(2);
+        expect(source.dataset.get(EXPECTED_RECORDING_ID)).not.toBeNull();
+      });
+
+      it('should forget recordings that are hours away', async () => {
+        const cameraManager = createTestCameraManager();
+        const source = createSource(
+          cameraManager,
+          mock<FoldersManager>(),
+          mock<ConditionStateManagerReadonlyInterface>(),
+          cameraEventsQuery,
+          true,
+        );
+
+        await source.refresh(window);
+        await source.refresh({
+          start: add(window.start, { hours: 5 }),
+          end: add(window.end, { hours: 5 }),
+        });
+
+        expect(cameraManager.getRecordingSegments).toHaveBeenCalledTimes(2);
+        expect(source.dataset.get(EXPECTED_RECORDING_ID)).toBeNull();
+      });
+
+      it('should clip recording blocks to the retention window', async () => {
+        const cameraManager = createTestCameraManager();
+        const source = createSource(
+          cameraManager,
+          mock<FoldersManager>(),
+          mock<ConditionStateManagerReadonlyInterface>(),
+          cameraEventsQuery,
+          true,
+        );
+
+        await source.refresh(window);
+
+        const retentionStart = sub(startOfHour(window.start), { hours: 1 }).getTime();
+        const retentionEnd = add(endOfHour(window.end), { hours: 1 }).getTime();
+        const background = {
+          group: 'camera/camera-1',
+          content: '',
+          type: 'background' as const,
+        };
+        source.dataset.add([
+          {
+            ...background,
+            id: 'recording-camera-1-span-start',
+            start: sub(window.start, { hours: 4 }).getTime(),
+            end: add(window.start, { minutes: 1 }).getTime(),
+          },
+          {
+            ...background,
+            id: 'recording-camera-1-span-end',
+            start: window.start.getTime(),
+            end: add(window.end, { hours: 4 }).getTime(),
+          },
+          {
+            ...background,
+            id: 'recording-camera-1-span-both',
+            start: sub(window.start, { hours: 4 }).getTime(),
+            end: add(window.end, { hours: 4 }).getTime(),
+          },
+          {
+            ...background,
+            id: 'recording-camera-1-before',
+            start: sub(window.start, { hours: 10 }).getTime(),
+            end: sub(window.start, { hours: 9 }).getTime(),
+          },
+          {
+            ...background,
+            id: 'recording-camera-1-after',
+            start: add(window.end, { hours: 6 }).getTime(),
+            end: add(window.end, { hours: 7 }).getTime(),
+          },
+          {
+            ...background,
+            id: 'recording-camera-1-open',
+            start: window.start.getTime(),
+          },
+          {
+            ...background,
+            id: 'recording-camera-1-open-before',
+            start: sub(window.start, { hours: 10 }).getTime(),
+          },
+          {
+            ...background,
+            id: 'recording-camera-1-open-after',
+            start: add(window.end, { hours: 6 }).getTime(),
+          },
+          {
+            id: 'event-kept',
+            start: window.start.getTime(),
+            end: window.end.getTime(),
+            group: 'camera/camera-1',
+            content: '',
+            type: 'range',
+          },
+        ]);
+
+        await source.refresh(window);
+
+        expect(cameraManager.getRecordingSegments).toHaveBeenCalledTimes(1);
+        expect(source.dataset.get('recording-camera-1-span-start')).toMatchObject({
+          start: retentionStart,
+          end: add(window.start, { minutes: 1 }).getTime(),
+        });
+        expect(source.dataset.get('recording-camera-1-span-end')).toMatchObject({
+          start: window.start.getTime(),
+          end: retentionEnd,
+        });
+        expect(source.dataset.get('recording-camera-1-span-both')).toMatchObject({
+          start: retentionStart,
+          end: retentionEnd,
+        });
+        expect(source.dataset.get('recording-camera-1-before')).toBeNull();
+        expect(source.dataset.get('recording-camera-1-after')).toBeNull();
+        expect(source.dataset.get('recording-camera-1-open')).toMatchObject({
+          start: window.start.getTime(),
+        });
+        expect(source.dataset.get('recording-camera-1-open-before')).toBeNull();
+        expect(source.dataset.get('recording-camera-1-open-after')).toBeNull();
+        expect(source.dataset.get('event-kept')).not.toBeNull();
+        expect(source.dataset.get(EXPECTED_RECORDING_ID)).toMatchObject({
+          start: 1758483066000,
+          end: 1758483075000,
+        });
       });
     });
   });

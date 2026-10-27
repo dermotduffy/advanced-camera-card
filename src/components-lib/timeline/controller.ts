@@ -164,6 +164,7 @@ export class TimelineController {
           options.conditionStateManager,
           newShape,
           options.timelineConfig.show_recordings,
+          options.timelineConfig.recording_retention_hours,
         );
       } else {
         this._source = null;
