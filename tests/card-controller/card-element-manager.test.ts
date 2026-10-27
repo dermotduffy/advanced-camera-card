@@ -166,8 +166,29 @@ describe('CardElementManager', () => {
     expect(api.getFullscreenManager().initialize).toHaveBeenCalled();
     expect(api.getExpandManager().initialize).toHaveBeenCalled();
     expect(api.getMediaLoadedInfoManager().initialize).toHaveBeenCalled();
+    expect(api.getMediaLoadedInfoManager().setSelected).toHaveBeenCalledWith(null);
     expect(api.getMicrophoneManager().initialize).toHaveBeenCalled();
     expect(api.getCallManager().initialize).toHaveBeenCalled();
+  });
+
+  it('should reselect the current view when reconnecting', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({ camera: 'camera.keuken' }),
+    );
+
+    const manager = new CardElementManager(
+      api,
+      createCardHTMLElement(),
+      () => undefined,
+      () => undefined,
+    );
+
+    manager.elementConnected();
+
+    expect(api.getMediaLoadedInfoManager().setSelected).toHaveBeenCalledWith(
+      'camera.keuken',
+    );
   });
 
   it('should disconnect', () => {
