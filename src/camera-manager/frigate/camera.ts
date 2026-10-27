@@ -538,13 +538,11 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
         return;
       }
 
-      if (
-        !(
-          mediaEventsToTriggerOn.includes('events') ||
-          (mediaEventsToTriggerOn.includes('snapshots') && snapshotChange) ||
-          (mediaEventsToTriggerOn.includes('clips') && clipChange)
-        )
-      ) {
+      if (!(
+        mediaEventsToTriggerOn.includes('events') ||
+        (mediaEventsToTriggerOn.includes('snapshots') && snapshotChange) ||
+        (mediaEventsToTriggerOn.includes('clips') && clipChange)
+      )) {
         return;
       }
     }

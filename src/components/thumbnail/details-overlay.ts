@@ -59,38 +59,48 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
     // A time reads left to right even where the language around it does not.
     const renderTime = (): TemplateResult =>
       html`<span class="time" dir="ltr" title=${time?.hoursMinutesSeconds ?? ''}
-        >${time?.hoursMinutes}${time?.seconds
-          ? html`<span class="seconds">${time.seconds}</span>`
-          : ''}</span
+        >${time?.hoursMinutes}${
+          time?.seconds ? html`<span class="seconds">${time.seconds}</span>` : ''
+        }</span
       >`;
 
     return html`
-      ${cornerLabel
-        ? html`<span class="corner-label" title=${cornerLabel}>${cornerLabel}</span>`
-        : ''}
-      ${headlineLabel || time || details.length || isInProgress
-        ? html`<div class="details">
-            <div class="headline">
-              ${isInProgress
-                ? html`<span class="in-progress" title=${localize('common.in_progress')}
-                    ><span class="dot"></span
-                    ><span class="label"
-                      >${localize('thumbnail.in_progress')}</span
-                    ></span
-                  >`
-                : ''}
-              ${headlineLabel
-                ? html`<span class="label" title=${headlineLabel}
-                    >${headlineLabel}</span
-                  >`
-                : ''}
-              ${time ? renderTime() : ''}
-            </div>
-            ${details.map(
-              (detail) => html`<div class="detail" title=${detail}>${detail}</div>`,
-            )}
-          </div>`
-        : ''}
+      ${
+        cornerLabel
+          ? html`<span class="corner-label" title=${cornerLabel}>${cornerLabel}</span>`
+          : ''
+      }
+      ${
+        headlineLabel || time || details.length || isInProgress
+          ? html`<div class="details">
+              <div class="headline">
+                ${
+                  isInProgress
+                    ? html`<span
+                        class="in-progress"
+                        title=${localize('common.in_progress')}
+                        ><span class="dot"></span
+                        ><span class="label"
+                          >${localize('thumbnail.in_progress')}</span
+                        ></span
+                      >`
+                    : ''
+                }
+                ${
+                  headlineLabel
+                    ? html`<span class="label" title=${headlineLabel}
+                        >${headlineLabel}</span
+                      >`
+                    : ''
+                }
+                ${time ? renderTime() : ''}
+              </div>
+              ${details.map(
+                (detail) => html`<div class="detail" title=${detail}>${detail}</div>`,
+              )}
+            </div>`
+          : ''
+      }
     `;
   }
 

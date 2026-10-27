@@ -16,7 +16,9 @@ if (!processWithPatch[patched] && process.getBuiltinModule) {
     if (id !== eventsModule || !loaded || !('setMaxListeners' in loaded)) {
       return loaded;
     }
-    const events = loaded as { setMaxListeners: (max: number, ...targets: unknown[]) => void };
+    const events = loaded as {
+      setMaxListeners: (max: number, ...targets: unknown[]) => void;
+    };
     return new Proxy(loaded, {
       get(target, property, receiver) {
         if (property === 'setMaxListeners') {

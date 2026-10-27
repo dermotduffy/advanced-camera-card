@@ -52,12 +52,12 @@ export class StatusBarItemManager {
     const engineIcon = cameraMetadata?.engineIcon ?? null;
     const selectedResult = options?.view?.queryResults?.getSelectedResult();
     const severity = options?.view?.isViewerView()
-      ? selectedResult?.getSeverity() ?? null
+      ? (selectedResult?.getSeverity() ?? null)
       : null;
     const title = options?.view?.is('live')
-      ? cameraMetadata?.title ?? null
+      ? (cameraMetadata?.title ?? null)
       : options?.view?.isViewerView()
-        ? selectedResult?.getTitle() ?? null
+        ? (selectedResult?.getTitle() ?? null)
         : null;
     const resolution = options?.mediaLoadedInfo
       ? this._calculateResolution(options?.mediaLoadedInfo)

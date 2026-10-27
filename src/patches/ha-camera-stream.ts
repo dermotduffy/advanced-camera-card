@@ -71,16 +71,14 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
   const STREAM_TYPE_WEB_RTC = 'web_rtc';
   const STREAM_TYPE_MJPEG = 'mjpeg';
   type StreamType =
-    | typeof STREAM_TYPE_HLS
-    | typeof STREAM_TYPE_WEB_RTC
-    | typeof STREAM_TYPE_MJPEG;
+    typeof STREAM_TYPE_HLS | typeof STREAM_TYPE_WEB_RTC | typeof STREAM_TYPE_MJPEG;
 
   const HaCameraStream = customElements.get(
     'ha-camera-stream',
   ) as ConstructableHaCameraStream;
 
   class AdvancedCameraCardHaCameraStream extends HaCameraStream implements MediaPlayer {
-    public declare hass?: HomeAssistant;
+    declare public hass?: HomeAssistant;
 
     @property({ attribute: false })
     public targetID?: string;
@@ -162,7 +160,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
     // The visible stream's player info, looked up by the live stream type.
     private _getVisibleMediaLoadedInfo(): MediaLoadedInfo | null {
       return this._visibleStreamType
-        ? this._mediaLoadedInfoPerStream[this._visibleStreamType] ?? null
+        ? (this._mediaLoadedInfoPerStream[this._visibleStreamType] ?? null)
         : null;
     }
 

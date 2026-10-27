@@ -100,44 +100,50 @@ export class AdvancedCameraCardSurround extends LitElement {
       @advanced-camera-card:thumbnails-carousel:media-select=${(ev: CustomEvent) =>
         changeDrawer(ev, 'close')}
     >
-      ${this.thumbnailConfig && this.thumbnailConfig.mode !== 'none'
-        ? html` <advanced-camera-card-thumbnail-carousel
-            slot=${this.thumbnailConfig.mode}
-            .hass=${this.hass}
-            .config=${this.thumbnailConfig}
-            .cameraManager=${this.cameraManager}
-            .viewItemManager=${this.viewItemManager}
-            .fadeThumbnails=${view.isViewerView()}
-            .viewManagerEpoch=${this.viewManagerEpoch}
-            .foldersManager=${this.foldersManager}
-            .selected=${view.queryResults?.getSelectedIndex() ?? undefined}
-            .cardWideConfig=${this.cardWideConfig}
-            .locked=${this.locked}
-          >
-          </advanced-camera-card-thumbnail-carousel>`
-        : ''}
-      ${this.timelineConfig && this.timelineConfig.mode !== 'none'
-        ? html` <advanced-camera-card-timeline-core
-            slot=${this.timelineConfig.mode}
-            .hass=${this.hass}
-            .viewManagerEpoch=${this.viewManagerEpoch}
-            .itemClickAction=${view.isViewerView() ||
-            !this.thumbnailConfig ||
-            this.thumbnailConfig?.mode === 'none'
-              ? 'play'
-              : 'select'}
-            .mini=${true}
-            .timelineConfig=${this.timelineConfig}
-            .thumbnailConfig=${this.thumbnailConfig}
-            .cameraManager=${this.cameraManager}
-            .foldersManager=${this.foldersManager}
-            .conditionStateManager=${this.conditionStateManager}
-            .viewItemManager=${this.viewItemManager}
-            .cardWideConfig=${this.cardWideConfig}
-            .locked=${this.locked}
-          >
-          </advanced-camera-card-timeline-core>`
-        : ''}
+      ${
+        this.thumbnailConfig && this.thumbnailConfig.mode !== 'none'
+          ? html` <advanced-camera-card-thumbnail-carousel
+              slot=${this.thumbnailConfig.mode}
+              .hass=${this.hass}
+              .config=${this.thumbnailConfig}
+              .cameraManager=${this.cameraManager}
+              .viewItemManager=${this.viewItemManager}
+              .fadeThumbnails=${view.isViewerView()}
+              .viewManagerEpoch=${this.viewManagerEpoch}
+              .foldersManager=${this.foldersManager}
+              .selected=${view.queryResults?.getSelectedIndex() ?? undefined}
+              .cardWideConfig=${this.cardWideConfig}
+              .locked=${this.locked}
+            >
+            </advanced-camera-card-thumbnail-carousel>`
+          : ''
+      }
+      ${
+        this.timelineConfig && this.timelineConfig.mode !== 'none'
+          ? html` <advanced-camera-card-timeline-core
+              slot=${this.timelineConfig.mode}
+              .hass=${this.hass}
+              .viewManagerEpoch=${this.viewManagerEpoch}
+              .itemClickAction=${
+                view.isViewerView() ||
+                !this.thumbnailConfig ||
+                this.thumbnailConfig?.mode === 'none'
+                  ? 'play'
+                  : 'select'
+              }
+              .mini=${true}
+              .timelineConfig=${this.timelineConfig}
+              .thumbnailConfig=${this.thumbnailConfig}
+              .cameraManager=${this.cameraManager}
+              .foldersManager=${this.foldersManager}
+              .conditionStateManager=${this.conditionStateManager}
+              .viewItemManager=${this.viewItemManager}
+              .cardWideConfig=${this.cardWideConfig}
+              .locked=${this.locked}
+            >
+            </advanced-camera-card-timeline-core>`
+          : ''
+      }
       <slot></slot>
     </advanced-camera-card-surround-basic>`;
   }

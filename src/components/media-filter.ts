@@ -208,45 +208,51 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
         @advanced-camera-card:select:change=${() => valueChange()}
       >
       </advanced-camera-card-select>
-      ${whatOptions.length
-        ? html` <advanced-camera-card-select
-            ${ref(this._refWhat)}
-            label=${localize('media_filter.what')}
-            placeholder=${localize('media_filter.select_what')}
-            clearable
-            multiple
-            .options=${whatOptions}
-            .initialValue=${defaults?.what}
-            @advanced-camera-card:select:change=${() => valueChange()}
-          >
-          </advanced-camera-card-select>`
-        : ''}
-      ${tagsOptions.length
-        ? html` <advanced-camera-card-select
-            ${ref(this._refTags)}
-            label=${localize('media_filter.tag')}
-            placeholder=${localize('media_filter.select_tag')}
-            clearable
-            multiple
-            .options=${tagsOptions}
-            .initialValue=${defaults?.tags}
-            @advanced-camera-card:select:change=${() => valueChange()}
-          >
-          </advanced-camera-card-select>`
-        : ''}
-      ${whereOptions.length
-        ? html` <advanced-camera-card-select
-            ${ref(this._refWhere)}
-            label=${localize('media_filter.where')}
-            placeholder=${localize('media_filter.select_where')}
-            clearable
-            multiple
-            .options=${whereOptions}
-            .initialValue=${defaults?.where}
-            @advanced-camera-card:select:change=${() => valueChange()}
-          >
-          </advanced-camera-card-select>`
-        : ''}
+      ${
+        whatOptions.length
+          ? html` <advanced-camera-card-select
+              ${ref(this._refWhat)}
+              label=${localize('media_filter.what')}
+              placeholder=${localize('media_filter.select_what')}
+              clearable
+              multiple
+              .options=${whatOptions}
+              .initialValue=${defaults?.what}
+              @advanced-camera-card:select:change=${() => valueChange()}
+            >
+            </advanced-camera-card-select>`
+          : ''
+      }
+      ${
+        tagsOptions.length
+          ? html` <advanced-camera-card-select
+              ${ref(this._refTags)}
+              label=${localize('media_filter.tag')}
+              placeholder=${localize('media_filter.select_tag')}
+              clearable
+              multiple
+              .options=${tagsOptions}
+              .initialValue=${defaults?.tags}
+              @advanced-camera-card:select:change=${() => valueChange()}
+            >
+            </advanced-camera-card-select>`
+          : ''
+      }
+      ${
+        whereOptions.length
+          ? html` <advanced-camera-card-select
+              ${ref(this._refWhere)}
+              label=${localize('media_filter.where')}
+              placeholder=${localize('media_filter.select_where')}
+              clearable
+              multiple
+              .options=${whereOptions}
+              .initialValue=${defaults?.where}
+              @advanced-camera-card:select:change=${() => valueChange()}
+            >
+            </advanced-camera-card-select>`
+          : ''
+      }
       <advanced-camera-card-select
         ${ref(this._refFavorite)}
         label=${localize('media_filter.favorite')}
@@ -267,21 +273,23 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
         @advanced-camera-card:select:change=${() => valueChange()}
       >
       </advanced-camera-card-select>
-      ${this._mediaFilterController.getSeverityOptions().length
-        ? html`
-            <advanced-camera-card-select
-              ${ref(this._refSeverity)}
-              label=${localize('common.severity')}
-              placeholder=${localize('media_filter.select_severity')}
-              .options=${this._mediaFilterController.getSeverityOptions()}
-              .initialValue=${defaults?.severity}
-              clearable
-              multiple
-              @advanced-camera-card:select:change=${() => valueChange()}
-            >
-            </advanced-camera-card-select>
-          `
-        : ''}`;
+      ${
+        this._mediaFilterController.getSeverityOptions().length
+          ? html`
+              <advanced-camera-card-select
+                ${ref(this._refSeverity)}
+                label=${localize('common.severity')}
+                placeholder=${localize('media_filter.select_severity')}
+                .options=${this._mediaFilterController.getSeverityOptions()}
+                .initialValue=${defaults?.severity}
+                clearable
+                multiple
+                @advanced-camera-card:select:change=${() => valueChange()}
+              >
+              </advanced-camera-card-select>
+            `
+          : ''
+      }`;
   }
 
   static get styles(): CSSResultGroup {

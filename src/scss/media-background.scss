@@ -16,8 +16,9 @@ $arm-vertical: $bracket-thickness $bracket-length;
   // Corner brackets mark a media surface that is rendering nothing at all,
   // which is otherwise indistinguishable from a black video frame.
   background-image: $arm, $arm, $arm, $arm, $arm, $arm, $arm, $arm;
-  background-size: $arm-horizontal, $arm-vertical, $arm-horizontal, $arm-vertical,
-    $arm-horizontal, $arm-vertical, $arm-horizontal, $arm-vertical;
+  background-size:
+    $arm-horizontal, $arm-vertical, $arm-horizontal, $arm-vertical, $arm-horizontal,
+    $arm-vertical, $arm-horizontal, $arm-vertical;
   background-position:
     left $bracket-inset top $bracket-inset,
     left $bracket-inset top $bracket-inset,

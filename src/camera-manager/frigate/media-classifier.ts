@@ -9,9 +9,7 @@ export class FrigateViewMediaClassifier {
   public static isFrigateMedia(
     media: ViewMedia,
   ): media is
-    | FrigateEventViewMedia
-    | FrigateRecordingViewMedia
-    | FrigateReviewViewMedia {
+    FrigateEventViewMedia | FrigateRecordingViewMedia | FrigateReviewViewMedia {
     return (
       this.isFrigateEvent(media) ||
       this.isFrigateRecording(media) ||

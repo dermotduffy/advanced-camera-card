@@ -50,7 +50,8 @@ interface LimitedDataQuery {
 }
 
 export interface MediaQuery
-  extends BaseQuery,
+  extends
+    BaseQuery,
     CameraQuery,
     QueryFilters,
     Partial<TimeBasedDataQuery>,

@@ -60,8 +60,8 @@ export class FoldersManager {
   }
   public getFolder(id?: string): FolderConfig | null {
     return id
-      ? this._folders.get(id) ?? null
-      : this._folders.values().next().value ?? null;
+      ? (this._folders.get(id) ?? null)
+      : (this._folders.values().next().value ?? null);
   }
 
   public getDefaultQueryParameters(folder?: FolderConfig): FolderQuery | null {

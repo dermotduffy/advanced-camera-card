@@ -178,11 +178,11 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       .item=${item}
       .viewManagerEpoch=${this.viewManagerEpoch}
       .viewItemManager=${this.viewItemManager}
-      .seek=${seekTarget &&
-      ViewItemClassifier.isMedia(item) &&
-      item.includesTime(seekTarget)
-        ? seekTarget
-        : undefined}
+      .seek=${
+        seekTarget && ViewItemClassifier.isMedia(item) && item.includesTime(seekTarget)
+          ? seekTarget
+          : undefined
+      }
       .thumbnailStyle=${this._getResolvedThumbnailStyle() ?? undefined}
       .size=${this.config?.size}
       ?show_favorite_control=${this.config?.show_favorite_control}

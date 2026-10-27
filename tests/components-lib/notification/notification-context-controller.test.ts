@@ -8,9 +8,8 @@ describe('NotificationContextController', () => {
   // Each test re-imports the controller after resetting the module registry so its
   // module-level `js-yaml` singleton starts unloaded.
   const loadController = async () => {
-    const module = await import(
-      '../../../src/components-lib/notification/notification-context-controller'
-    );
+    const module =
+      await import('../../../src/components-lib/notification/notification-context-controller');
     return module.NotificationContextController;
   };
 

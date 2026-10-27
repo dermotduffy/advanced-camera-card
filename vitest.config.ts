@@ -76,6 +76,12 @@ export default defineConfig({
     // threads, which matters when every test file needs a fresh one.
     pool: 'forks',
 
+    // Vitest 5 stops each forks worker with SIGTERM. On the CI runner that
+    // shutdown killed a worker that was still being watched, and the run died
+    // with "signal SIGTERM during stopping state" after the tests had passed.
+    // A small pool stops one worker at a time instead of the whole set.
+    maxWorkers: 2,
+
     // Importing the source tree costs far more than running the tests in it, so
     // files are grouped by whether they can share one loaded copy of it. Each
     // project below is a group that can, or the one that cannot.

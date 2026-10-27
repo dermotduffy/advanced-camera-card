@@ -35,6 +35,16 @@ export default [
         // Safari on a Mac has no touch screen and so never dispatches a touch
         // event. The card tests for the constructor before naming it.
         'TouchEvent',
+
+        // Chrome 92 (Chromecast) has no `Object.hasOwn`. `polyfillObjectHasOwn`
+        // installs it before ha-nunjucks, which calls it while loading.
+        'Object.hasOwn',
+
+        // vis-timeline 8 sorts with `toSorted`. Chrome 92 and Firefox 113 lack
+        // it. `src/utils/array-to-sorted.ts` installs it before the card loads.
+        // The compat rule reports this call as `Array.toSorted`.
+        'Array.toSorted',
+        'Array.prototype.toSorted',
       ],
     },
 
