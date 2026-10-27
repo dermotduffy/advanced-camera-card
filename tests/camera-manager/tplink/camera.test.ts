@@ -74,7 +74,7 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig();
       const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
 
-      expect(
+      await expect(
         async () =>
           await camera.initialize({
             hassManager: createHASSManager(),
@@ -89,7 +89,7 @@ describe('TPLinkCamera', () => {
       });
       const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
 
-      expect(
+      await expect(
         async () =>
           await camera.initialize({
             hassManager: createHASSManager(),

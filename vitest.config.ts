@@ -111,6 +111,7 @@ export default defineConfig({
           name: 'shared (jsdom)',
           include: getInclusions('shared-jsdom'),
           environment: 'jsdom',
+          setupFiles: ['./tests/setup-jsdom.ts'],
           isolate: false,
         },
       },

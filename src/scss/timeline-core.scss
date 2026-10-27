@@ -1,4 +1,5 @@
-@use 'vis-timeline/dist/vis-timeline-graph2d.css';
+// vis-timeline exports this stylesheet from styles/, not dist/.
+@use 'vis-timeline/styles/vis-timeline-graph2d.css';
 @use 'color-mix.scss' as *;
 @use 'drawer';
 @use 'const.scss';

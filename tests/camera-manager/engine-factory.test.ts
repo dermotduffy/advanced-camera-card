@@ -179,7 +179,7 @@ describe('getEngineForCamera()', () => {
       });
       const entityRegistryManager = new EntityRegistryManagerMock();
 
-      expect(
+      await expect(
         async () =>
           await createFactory({
             entityRegistryManager: entityRegistryManager,
