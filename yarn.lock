@@ -2840,7 +2840,7 @@ __metadata:
     screenfull: "npm:^6.0.2"
     semantic-release: "npm:^24.1.1"
     semantic-release-export-data: "npm:^1.1.0"
-    side-drawer: "npm:^3.1.0"
+    side-drawer: "npm:^4.2.0"
     stylelint: "npm:^17.14.1"
     stylelint-browser-compat: "npm:1.0.0-beta.180"
     type-fest: "npm:^4.41.0"
@@ -10585,10 +10585,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"side-drawer@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "side-drawer@npm:3.1.0"
-  checksum: 10c0/337e67929c6af45d27f0e2d89cb1b12553d262b5445e1d009f0b798c8bcee5c9373e53787cca9c481cc5da9ce9f67d381a7ebbd34ee23c74e9efc83b7ae85c82
+"side-drawer@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "side-drawer@npm:4.2.0"
+  checksum: 10c0/4501f8556b141e93efb8573f5d691a5d5c304b7524cd14d5dfe6501985fb36a03e73413782ffe622d65236af67b0910386853428476bd127d9460d0cf9fd6095
   languageName: node
   linkType: hard
 
