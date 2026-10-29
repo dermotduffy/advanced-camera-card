@@ -3,6 +3,7 @@ import type { CSSResultGroup, LitElement, nothing, TemplateResult } from 'lit';
 
 import type { HomeAssistant } from '../ha/types.js';
 import type { MediaPlayer } from '../types.js';
+import type { HlsConstructor } from '../utils/hls.js';
 
 // The Home Assistant elements the card subclasses are only registered at
 // runtime, so their source is unavailable at compilation time. The declarations
@@ -55,6 +56,13 @@ declare class HaHlsPlayerElement extends LitElement {
   protected _errorIsFatal: boolean;
 
   protected _loadedData(): void;
+
+  // Plays the stream with hls.js, constructing the given hls.js class.
+  protected _renderHLSPolyfill(
+    videoEl: HTMLVideoElement,
+    Hls: HlsConstructor,
+    url: string,
+  ): Promise<void>;
 }
 
 // https://github.com/home-assistant/frontend/blob/dev/src/components/ha-web-rtc-player.ts
@@ -119,7 +127,11 @@ export type ConstructableHaCameraStream = typeof HaCameraStreamElement;
 // own additions. `hass` is set by the card rather than declared by the Home
 // Assistant element, which takes its connection from a context instead.
 export type AdvancedCameraCardHaHlsPlayerElement = HaHlsPlayerElement &
-  MediaPlayer & { hass?: HomeAssistant; targetID?: string };
+  MediaPlayer & {
+    hass?: HomeAssistant;
+    startPosition: number | null;
+    targetID?: string;
+  };
 export type AdvancedCameraCardHaWebRtcPlayerElement = HaWebRtcPlayerElement &
   MediaPlayer & { hass?: HomeAssistant; targetID?: string };
 export type AdvancedCameraCardHaCameraStreamElement = HaCameraStreamElement &

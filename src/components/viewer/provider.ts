@@ -15,6 +15,7 @@ import { QueryType } from '../../camera-manager/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
+import { MediaStartPositionController } from '../../components-lib/media-start-position-controller.js';
 import { ResolvedMediaController } from '../../components-lib/resolved-media-controller.js';
 import {
   getSignedURLErrorText,
@@ -113,6 +114,14 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     };
   });
 
+  // Only HLS media is given a start position: the HLS player is the one that
+  // can start loading part way through.
+  private _mediaStartPositionController = new MediaStartPositionController(this, () => ({
+    cameraManager: this.cameraManager,
+    view: this.viewManagerEpoch?.manager.getView(),
+    media: this._shouldLoad() && this._classifyMedia().isHLS ? this.media : null,
+  }));
+
   constructor() {
     super();
 
@@ -175,6 +184,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
   private _shouldLoad(): boolean {
     return this._lazyLoadController.isLoaded();
+  }
+
+  private _classifyMedia(): ReturnType<typeof classifyMimeType> {
+    return classifyMimeType(this._resolvedMediaController.getValue()?.mime_type);
   }
 
   private _getRelevantCameraConfig(): CameraConfig | null {
@@ -245,8 +258,12 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       });
     }
 
+    const { isHLS, isVideo } = this._classifyMedia();
+
+    // The HLS player waits for its start position, since hls.js starts loading
+    // as soon as the player is created.
     const url = this._signedURLController.getValue();
-    if (!url) {
+    if (!url || (isHLS && !this._mediaStartPositionController.hasResolved())) {
       return renderProgressIndicator({
         cardWideConfig: this.cardWideConfig,
       });
@@ -255,9 +272,6 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     // Note: crossorigin="anonymous" is required on <video> below in order to
     // allow screenshot of motionEye videos which currently go cross-origin.
     const mediaID = this.media.getID() ?? undefined;
-    const { isHLS, isVideo } = classifyMimeType(
-      this._resolvedMediaController.getValue()?.mime_type,
-    );
 
     return this._renderContainer(html`
       ${isVideo
@@ -273,6 +287,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
               title="${this.media.getTitle() ?? ''}"
               url=${url}
               .hass=${this.hass}
+              .startPosition=${this._mediaStartPositionController.getValue()}
               .targetID=${mediaID}
               ?controls=${this.viewerConfig.controls.builtin}
             >
