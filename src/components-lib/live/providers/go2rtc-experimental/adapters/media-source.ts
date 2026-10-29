@@ -32,6 +32,10 @@ export interface MediaSourceInterface {
   // an open-ended live source.
   setLiveSeekableRange(startSeconds: number, endSeconds: number): void;
 
+  // NaN until set. WebKit rejects SourceBuffer.remove() in that state, so a
+  // live source has to set this (Infinity stays open-ended) before trimming.
+  duration: number;
+
   // Whether the source is still attached and accepting SourceBuffer operations.
   isOpen(): boolean;
 
@@ -64,6 +68,14 @@ abstract class MediaSourceInstanceBase implements MediaSourceInterface {
 
   public setLiveSeekableRange(startSeconds: number, endSeconds: number): void {
     this._mediaSource.setLiveSeekableRange(startSeconds, endSeconds);
+  }
+
+  public get duration(): number {
+    return this._mediaSource.duration;
+  }
+
+  public set duration(seconds: number) {
+    this._mediaSource.duration = seconds;
   }
 
   public isOpen(): boolean {
