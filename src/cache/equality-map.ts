@@ -68,13 +68,13 @@ export class EqualityMap<Key, Value> implements Map<Key, Value> {
     return this._data.length;
   }
 
-  public [Symbol.iterator](): IterableIterator<[Key, Value]> {
+  public [Symbol.iterator](): MapIterator<[Key, Value]> {
     return this.entries();
   }
-  public keys(): IterableIterator<Key> {
+  public keys(): MapIterator<Key> {
     return this._data.map((pair) => pair.key).values();
   }
-  public values(): IterableIterator<Value> {
+  public values(): MapIterator<Value> {
     return this._data.map((pair) => pair.value).values();
   }
 }

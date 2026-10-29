@@ -3,9 +3,9 @@ import type { ViewContext } from 'view';
 import type { View } from '../../../view/view';
 import type { ViewModifier } from '../types';
 
-export class RemoveContextPropertyViewModifier<T extends keyof ViewContext>
-  implements ViewModifier
-{
+export class RemoveContextPropertyViewModifier<
+  T extends keyof ViewContext,
+> implements ViewModifier {
   private _key: T;
   private _property: keyof NonNullable<ViewContext[T]>;
 

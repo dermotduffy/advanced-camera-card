@@ -246,9 +246,11 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
           this._controller.applyIntent(ev.detail)}
       >
         ${[this._renderNotices(), this._renderModeSwitch(hass, input)]}
-        ${this._controller.getEditorMode() === 'simple'
-          ? this._renderSimple(hass, input)
-          : this._renderFull(hass, input)}
+        ${
+          this._controller.getEditorMode() === 'simple'
+            ? this._renderSimple(hass, input)
+            : this._renderFull(hass, input)
+        }
         ${this._renderDiagnosticsButton()}
       </div>
     `;
@@ -309,9 +311,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         .heading=${section.name}
         .description=${section.description}
         .docPath=${section.docPath}
-        .renderCustomContent=${renderCustomContent
-          ? () => renderCustomContent(hass, input)
-          : undefined}
+        .renderCustomContent=${
+          renderCustomContent ? () => renderCustomContent(hass, input) : undefined
+        }
       ></advanced-camera-card-editor-section>
     `;
   }
@@ -323,16 +325,18 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
       const button = notice.button;
       return html`<ha-alert alert-type=${notice.type}>
         ${notice.message}
-        ${button
-          ? html`<ha-button
-              slot="action"
-              appearance="outlined"
-              variant=${ifDefined(notice.type === 'warning' ? 'warning' : undefined)}
-              @click=${() => button.callback()}
-            >
-              ${button.label}
-            </ha-button>`
-          : ''}
+        ${
+          button
+            ? html`<ha-button
+                slot="action"
+                appearance="outlined"
+                variant=${ifDefined(notice.type === 'warning' ? 'warning' : undefined)}
+                @click=${() => button.callback()}
+              >
+                ${button.label}
+              </ha-button>`
+            : ''
+        }
       </ha-alert>`;
     })}`;
   }

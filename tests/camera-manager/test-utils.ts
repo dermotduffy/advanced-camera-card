@@ -62,7 +62,7 @@ export const createStore = (
     const capabilities =
       cameraProps.capabilities === undefined
         ? createCapabilities()
-        : cameraProps.capabilities ?? undefined;
+        : (cameraProps.capabilities ?? undefined);
     const camera = new Camera(
       cameraProps.config ?? createCameraConfig(),
       cameraProps.engine ??

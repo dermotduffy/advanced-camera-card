@@ -112,9 +112,11 @@ export class AdvancedCameraCardCallControls extends LitElement {
         @click=${(ev: Event) => stopEventFromActivatingCardWideActions(ev)}
         @animationend=${this._handleAnimationEnd}
       >
-        ${this._type === 'answered'
-          ? this._renderPostAnswerButtons()
-          : this._renderPreAnswerButtons()}
+        ${
+          this._type === 'answered'
+            ? this._renderPostAnswerButtons()
+            : this._renderPreAnswerButtons()
+        }
       </div>
     </div>`;
   }

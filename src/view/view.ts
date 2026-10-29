@@ -110,11 +110,11 @@ export class View {
     return new View({
       view: params.view !== undefined ? params.view : this.view,
       camera: params.camera !== undefined ? params.camera : this.camera,
-      query: params.query !== undefined ? params.query : this.query?.clone() ?? null,
+      query: params.query !== undefined ? params.query : (this.query?.clone() ?? null),
       queryResults:
         params.queryResults !== undefined
           ? params.queryResults
-          : this.queryResults?.clone() ?? null,
+          : (this.queryResults?.clone() ?? null),
       context: params.context !== undefined ? params.context : cloneDeep(this.context),
       displayMode:
         params.displayMode !== undefined ? params.displayMode : this.displayMode,

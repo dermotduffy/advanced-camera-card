@@ -155,27 +155,31 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .filterFavorite=${this.filterFavorite}
       >
       </advanced-camera-card-thumbnail-feature>
-      ${this.thumbnailStyle === 'overlay' || this.thumbnailStyle === 'hover'
-        ? html`<advanced-camera-card-thumbnail-details-overlay
-            .cameraManager=${this.cameraManager}
-            .item=${this.item}
-            .thumbnailStyle=${this.thumbnailStyle}
-            .size=${this.size}
-          ></advanced-camera-card-thumbnail-details-overlay>`
-        : ''}
-      ${this.thumbnailStyle === 'panel'
-        ? html`<advanced-camera-card-thumbnail-details-panel
-            .hass=${this.hass}
-            .item=${this.item ?? undefined}
-            .cameraManager=${this.cameraManager}
-            .seek=${this.seek}
-            .viewItemManager=${this.viewItemManager}
-            .viewManagerEpoch=${this.viewManagerEpoch}
-            .filterReviewed=${this.filterReviewed}
-            .filterFavorite=${this.filterFavorite}
-            .size=${this.size}
-          ></advanced-camera-card-thumbnail-details-panel>`
-        : ''}
+      ${
+        this.thumbnailStyle === 'overlay' || this.thumbnailStyle === 'hover'
+          ? html`<advanced-camera-card-thumbnail-details-overlay
+              .cameraManager=${this.cameraManager}
+              .item=${this.item}
+              .thumbnailStyle=${this.thumbnailStyle}
+              .size=${this.size}
+            ></advanced-camera-card-thumbnail-details-overlay>`
+          : ''
+      }
+      ${
+        this.thumbnailStyle === 'panel'
+          ? html`<advanced-camera-card-thumbnail-details-panel
+              .hass=${this.hass}
+              .item=${this.item ?? undefined}
+              .cameraManager=${this.cameraManager}
+              .seek=${this.seek}
+              .viewItemManager=${this.viewItemManager}
+              .viewManagerEpoch=${this.viewManagerEpoch}
+              .filterReviewed=${this.filterReviewed}
+              .filterFavorite=${this.filterFavorite}
+              .size=${this.size}
+            ></advanced-camera-card-thumbnail-details-panel>`
+          : ''
+      }
       <div class="ring"></div>
     `;
   }

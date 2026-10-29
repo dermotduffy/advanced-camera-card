@@ -112,20 +112,22 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
 
     return html`
       <div class="media">
-        ${thumbnail
-          ? html` <advanced-camera-card-thumbnail-feature-thumbnail
-              class="${thumbnailClasses}"
-              .hass=${this.hass}
-              .thumbnail=${thumbnail}
-              aria-label=${this.item?.getTitle() ?? ''}
-              title=${this.item?.getTitle() ?? ''}
-            ></advanced-camera-card-thumbnail-feature-thumbnail>`
-          : this._controller.getIcon()
-            ? html`<advanced-camera-card-icon
-                class=${classMap(mainIconClasses)}
-                .icon=${{ icon: this._controller.getIcon() }}
-              ></advanced-camera-card-icon>`
-            : ''}
+        ${
+          thumbnail
+            ? html` <advanced-camera-card-thumbnail-feature-thumbnail
+                class="${thumbnailClasses}"
+                .hass=${this.hass}
+                .thumbnail=${thumbnail}
+                aria-label=${this.item?.getTitle() ?? ''}
+                title=${this.item?.getTitle() ?? ''}
+              ></advanced-camera-card-thumbnail-feature-thumbnail>`
+            : this._controller.getIcon()
+              ? html`<advanced-camera-card-icon
+                  class=${classMap(mainIconClasses)}
+                  .icon=${{ icon: this._controller.getIcon() }}
+                ></advanced-camera-card-icon>`
+              : ''
+        }
         <div class="favorite"></div>
       </div>
       <advanced-camera-card-thumbnail-controls

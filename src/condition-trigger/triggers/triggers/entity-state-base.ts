@@ -18,8 +18,7 @@ import type {
 // only the per-entity decision (`_processEntity`) and their `platform`.
 export abstract class EntityStateTriggerBase<
   T extends TriggerOfType<'state'> | TriggerOfType<'numeric_state'>,
-> implements TriggerEvaluator
-{
+> implements TriggerEvaluator {
   protected _trigger: T;
   protected _context: TriggerEvaluatorContext;
 

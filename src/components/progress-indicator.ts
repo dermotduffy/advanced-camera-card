@@ -29,8 +29,10 @@ export function renderProgressIndicator(options?: {
       .size=${options?.size}
       ${options?.componentRef ? ref(options.componentRef) : ''}
       .message=${options?.message || ''}
-      .animated=${options?.cardWideConfig?.performance?.features
-        .animated_progress_indicator ?? true}
+      .animated=${
+        options?.cardWideConfig?.performance?.features.animated_progress_indicator ??
+        true
+      }
     >
     </advanced-camera-card-progress-indicator>
   `;
@@ -49,11 +51,13 @@ export class AdvancedCameraCardProgressIndicator extends LitElement {
 
   protected render(): TemplateResult {
     return html` <div class="indicator">
-      ${this.animated
-        ? html`<ha-spinner indeterminate size="${this.size}"> </ha-spinner>`
-        : html`<advanced-camera-card-icon
-            .icon=${{ icon: 'mdi:timer-sand' }}
-          ></advanced-camera-card-icon>`}
+      ${
+        this.animated
+          ? html`<ha-spinner indeterminate size="${this.size}"> </ha-spinner>`
+          : html`<advanced-camera-card-icon
+              .icon=${{ icon: 'mdi:timer-sand' }}
+            ></advanced-camera-card-icon>`
+      }
       ${this.message ? html`<span>${this.message}</span>` : html``}
     </div>`;
   }

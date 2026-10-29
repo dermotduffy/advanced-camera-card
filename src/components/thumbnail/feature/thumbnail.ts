@@ -82,17 +82,19 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
       return imageOff;
     }
 
-    return html`${this.thumbnail
-      ? renderTask(
-          this._embedThumbnailTask,
-          (embeddedThumbnail: string | null) =>
-            embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
-          {
-            inProgressFunc: () => html`<div class="skeleton"></div>`,
-            errorFunc: () => imageOff,
-          },
-        )
-      : imageOff} `;
+    return html`${
+      this.thumbnail
+        ? renderTask(
+            this._embedThumbnailTask,
+            (embeddedThumbnail: string | null) =>
+              embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
+            {
+              inProgressFunc: () => html`<div class="skeleton"></div>`,
+              errorFunc: () => imageOff,
+            },
+          )
+        : imageOff
+    } `;
   }
 
   static get styles(): CSSResult {

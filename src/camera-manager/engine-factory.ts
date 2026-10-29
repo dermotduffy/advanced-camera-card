@@ -56,9 +56,8 @@ export class CameraManagerEngineFactory {
         );
         break;
       case Engine.MotionEye:
-        const { MotionEyeCameraManagerEngine } = await import(
-          './motioneye/engine-motioneye'
-        );
+        const { MotionEyeCameraManagerEngine } =
+          await import('./motioneye/engine-motioneye');
         cameraManagerEngine = new MotionEyeCameraManagerEngine(
           this._entityRegistryManager,
           options.hassManager,

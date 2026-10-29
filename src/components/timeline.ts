@@ -62,9 +62,9 @@ export class AdvancedCameraCardTimeline extends LitElement {
         .conditionStateManager=${this.conditionStateManager}
         .viewItemManager=${this.viewItemManager}
         .cardWideConfig=${this.cardWideConfig}
-        .itemClickAction=${this.timelineConfig.controls.thumbnails.mode === 'none'
-          ? 'play'
-          : 'select'}
+        .itemClickAction=${
+          this.timelineConfig.controls.thumbnails.mode === 'none' ? 'play' : 'select'
+        }
       >
       </advanced-camera-card-timeline-core>
     `;

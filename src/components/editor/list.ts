@@ -73,11 +73,13 @@ export class AdvancedCameraCardEditorList extends LitElement {
           .icon=${{ icon: this.itemIcon }}
         ></advanced-camera-card-icon>
         <div slot="headline" class="title">${item.title}</div>
-        ${item.description
-          ? html`<div slot="supporting-text" class="description">
-              ${item.description}
-            </div>`
-          : nothing}
+        ${
+          item.description
+            ? html`<div slot="supporting-text" class="description">
+                ${item.description}
+              </div>`
+            : nothing
+        }
         ${this._renderControl('mdi:pencil', localize('editor.edit'), () =>
           this._fire('item-edit', { index }),
         )}

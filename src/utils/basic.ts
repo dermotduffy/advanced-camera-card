@@ -77,7 +77,7 @@ export const setify = <T>(value: T | T[] | Set<T>): Set<T> => {
  */
 export const getUnanimousValue = <T>(values: (T | null | undefined)[]): T | null => {
   const unique = uniqWith(values, isEqual);
-  return unique.length === 1 ? unique[0] ?? null : null;
+  return unique.length === 1 ? (unique[0] ?? null) : null;
 };
 
 /**

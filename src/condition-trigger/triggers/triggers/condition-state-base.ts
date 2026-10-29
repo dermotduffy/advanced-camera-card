@@ -30,9 +30,9 @@ export interface TransitionEvaluators {
 // result, by supplying `_createTransitionEvaluators()`. The same condition
 // evaluator is then read twice: against the state before the change and the
 // state after it.
-export abstract class ConditionStateTriggerBase<T extends Trigger>
-  implements TriggerEvaluator
-{
+export abstract class ConditionStateTriggerBase<
+  T extends Trigger,
+> implements TriggerEvaluator {
   protected _trigger: T;
   protected _context: TriggerEvaluatorContext;
 

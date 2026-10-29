@@ -219,13 +219,13 @@ export class CameraManager {
     for (const [index, cameraConfig] of camerasConfig.entries()) {
       const engineType = engineTypes[index];
       const engine = engineType
-        ? engines.get(engineType) ??
+        ? (engines.get(engineType) ??
           (await this._engineFactory.createEngine(engineType, {
             eventCallback: (ev) =>
               this._api.getCameraTriggersManager().handleCameraEvent(ev),
             hassManager: this._api.getHASSManager(),
             resolvedMediaCache: this._api.getResolvedMediaCache(),
-          }))
+          })))
         : null;
       if (!engine || !engineType) {
         // Camera initialization may modify the configuration. Keep the

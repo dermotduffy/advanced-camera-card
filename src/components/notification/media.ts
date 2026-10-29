@@ -30,7 +30,7 @@ export function renderNoMediaNotification(
   const cameraID =
     options.cameraID ?? cameraManager?.getStore().getDefaultCameraID() ?? null;
   const targetTitle = cameraID
-    ? cameraManager?.getCameraMetadata(cameraID)?.title ?? cameraID
+    ? (cameraManager?.getCameraMetadata(cameraID)?.title ?? cameraID)
     : undefined;
 
   return renderMediaNotification({

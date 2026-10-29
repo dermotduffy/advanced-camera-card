@@ -88,7 +88,7 @@ export class MediaLoadedInfoSinkController implements ReactiveController {
 
   public get(): MediaLoadedInfo | null {
     const id = this._config.getTargetID();
-    return id ? this._byTarget.get(id) ?? null : null;
+    return id ? (this._byTarget.get(id) ?? null) : null;
   }
 
   public has(): boolean {

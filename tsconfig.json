@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es2021",
-    "module": "es2020",
+    "target": "es2022",
+    "module": "es2022",
     "moduleResolution": "bundler",
     "allowJs": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "lib": ["es2021", "dom", "dom.iterable"],
+    "lib": ["es2022", "dom", "dom.iterable"],
     "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

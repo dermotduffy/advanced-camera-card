@@ -124,7 +124,7 @@ export class ViewQueryExecutor {
       return null;
     }
 
-    const cameraForQuery = view.isGrid() ? undefined : view.camera ?? undefined;
+    const cameraForQuery = view.isGrid() ? undefined : (view.camera ?? undefined);
 
     const getDefaultQueryModifiers = async () => {
       const query = builder.buildDefaultCameraQuery(cameraForQuery, {

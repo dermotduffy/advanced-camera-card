@@ -177,7 +177,7 @@ const hasLabel = (element: Element): element is LabeledElement => 'label' in ele
  */
 const getControlName = (element: Element): string | null => {
   const title = element.getAttribute('title');
-  return title ? title : hasLabel(element) ? element.label ?? null : null;
+  return title ? title : hasLabel(element) ? (element.label ?? null) : null;
 };
 
 /**

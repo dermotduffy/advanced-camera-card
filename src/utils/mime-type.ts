@@ -48,4 +48,4 @@ const getImageMimeTypeFromURL = (url: string): string | null => {
  * https://github.com/blakeblackshear/frigate/pull/24208
  */
 export const resolveImageMimeType = (mimeType: string, url: string): string =>
-  mimeType === UNKNOWN_MIME_TYPE ? getImageMimeTypeFromURL(url) ?? mimeType : mimeType;
+  mimeType === UNKNOWN_MIME_TYPE ? (getImageMimeTypeFromURL(url) ?? mimeType) : mimeType;

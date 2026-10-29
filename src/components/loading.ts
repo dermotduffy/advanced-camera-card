@@ -86,9 +86,11 @@ export class AdvancedCameraCardLoading extends LitElement {
     return html`<advanced-camera-card-icon
         .icon=${{ icon: 'advanced-camera-card:iris' }}
       ></advanced-camera-card-icon
-      ><span>${getReleaseVersion()}</span> ${buildDate
-        ? html`<span class="build-date">${formatDateAndTime(buildDate, true)}</span>`
-        : ''}`;
+      ><span>${getReleaseVersion()}</span> ${
+        buildDate
+          ? html`<span class="build-date">${formatDateAndTime(buildDate, true)}</span>`
+          : ''
+      }`;
   }
 
   static get styles(): CSSResultGroup {

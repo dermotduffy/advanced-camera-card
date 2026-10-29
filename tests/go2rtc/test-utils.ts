@@ -101,9 +101,8 @@ export class FakeRTCPeerConnection extends EventTarget {
   public remoteDescription: { sdp: string } | null = null;
   public transceivers: FakeRTCTransceiver[] = [];
 
-  public createOffer = vi.fn(
-    (): Promise<{ type: string; sdp?: string }> =>
-      Promise.resolve({ type: 'offer', sdp: 'v=0\r\noffer' }),
+  public createOffer = vi.fn((): Promise<{ type: string; sdp?: string }> =>
+    Promise.resolve({ type: 'offer', sdp: 'v=0\r\noffer' }),
   );
   public setLocalDescription = vi.fn(() => Promise.resolve());
   public setRemoteDescription = vi.fn((description: { sdp: string }) => {

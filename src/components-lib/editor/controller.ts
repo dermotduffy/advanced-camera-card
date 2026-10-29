@@ -123,7 +123,7 @@ export class EditorController implements ReactiveController {
     // The defaults are rebuilt from scratch so that removing (or breaking) a
     // profile also removes its adjusted defaults.
     const profiles = profilesSchema.safeParse(getConfigValue(config, CONF_PROFILES));
-    this._profiles = profiles.success ? profiles.data ?? [] : [];
+    this._profiles = profiles.success ? (profiles.data ?? []) : [];
     const defaults = copyConfig(configDefaults);
     if (profiles.success) {
       setProfiles(config, defaults, profiles.data);

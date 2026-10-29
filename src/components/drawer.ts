@@ -154,43 +154,45 @@ export class AdvancedCameraCardDrawer extends LitElement {
           this.open = false;
         }}
       >
-        ${this.control
-          ? html`
-              <div
-                class="control-surround"
-                @click=${(ev: Event) => {
-                  // While locked the drawer must not open. Return before
-                  // `stopEventFromActivatingCardWideActions` so a click on the
-                  // padded control wrapper is not swallowed and can still fall
-                  // through to card-wide actions.
-                  if (this.locked) {
-                    return;
-                  }
-                  stopEventFromActivatingCardWideActions(ev);
-                  this.open = !this.open;
-                }}
-              >
-                <advanced-camera-card-icon
-                  class="control"
-                  .icon="${{
-                    icon: this.open
-                      ? this.icons?.open ?? 'mdi:menu-open'
-                      : this.icons?.closed ?? 'mdi:menu',
-                  }}"
-                  @mouseenter=${() => {
-                    // Only open the drawer on mousenter when the device
-                    // supports hover (otherwise iOS may end up passing on
-                    // subsequent click events to a different element, see:
-                    // https://github.com/dermotduffy/advanced-camera-card/issues/801
-                    if (this._isHoverableDevice && !this.open) {
-                      this.open = true;
+        ${
+          this.control
+            ? html`
+                <div
+                  class="control-surround"
+                  @click=${(ev: Event) => {
+                    // While locked the drawer must not open. Return before
+                    // `stopEventFromActivatingCardWideActions` so a click on the
+                    // padded control wrapper is not swallowed and can still fall
+                    // through to card-wide actions.
+                    if (this.locked) {
+                      return;
                     }
+                    stopEventFromActivatingCardWideActions(ev);
+                    this.open = !this.open;
                   }}
                 >
-                </advanced-camera-card-icon>
-              </div>
-            `
-          : ''}
+                  <advanced-camera-card-icon
+                    class="control"
+                    .icon="${{
+                      icon: this.open
+                        ? (this.icons?.open ?? 'mdi:menu-open')
+                        : (this.icons?.closed ?? 'mdi:menu'),
+                    }}"
+                    @mouseenter=${() => {
+                      // Only open the drawer on mousenter when the device
+                      // supports hover (otherwise iOS may end up passing on
+                      // subsequent click events to a different element, see:
+                      // https://github.com/dermotduffy/advanced-camera-card/issues/801
+                      if (this._isHoverableDevice && !this.open) {
+                        this.open = true;
+                      }
+                    }}
+                  >
+                  </advanced-camera-card-icon>
+                </div>
+              `
+            : ''
+        }
         <slot ${ref(this._refSlot)} @slotchange=${() => this._slotChanged()}></slot>
       </side-drawer>
     `;

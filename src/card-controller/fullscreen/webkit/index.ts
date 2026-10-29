@@ -43,8 +43,7 @@ export class WebkitFullScreenProvider
   };
 
   private _getVideoElement():
-    | (HTMLVideoElement & Partial<WebkitHTMLVideoElement>)
-    | null {
+    (HTMLVideoElement & Partial<WebkitHTMLVideoElement>) | null {
     const element = this._api
       .getMediaLoadedInfoManager()
       .get()

@@ -112,7 +112,7 @@ export class ViewManager implements ViewManagerInterface {
         ...options,
         params: {
           ...options?.params,
-          query: explicitQuery !== undefined ? explicitQuery : baseView?.query ?? null,
+          query: explicitQuery !== undefined ? explicitQuery : (baseView?.query ?? null),
         },
       },
     );
@@ -434,7 +434,7 @@ export class ViewManager implements ViewManagerInterface {
       view: view?.view,
       camera: view?.camera ?? undefined,
       displayMode: view?.displayMode ?? undefined,
-      targetID: view ? getViewTargetID(view) ?? undefined : undefined,
+      targetID: view ? (getViewTargetID(view) ?? undefined) : undefined,
       substreamID: stream && stream !== view?.camera ? stream : undefined,
     });
 
