@@ -144,6 +144,19 @@ export class VideoRTC extends HTMLElement {
     this.reconnectTID = 0;
 
     /**
+     * [internal] `visibilitychange` listener. Held so it can be removed: the
+     * closure keeps this player alive for as long as it is registered.
+     * @type {Function | null}
+     */
+    this._visibilityChangeHandler = null;
+
+    /**
+     * [internal] Viewport observer. Same lifetime as the visibility listener.
+     * @type {IntersectionObserver | null}
+     */
+    this._visibilityObserver = null;
+
+    /**
      * [internal] Handler for receiving Binary from WebSocket.
      * @type {Function}
      */
@@ -246,6 +259,9 @@ export class VideoRTC extends HTMLElement {
     if (this.wsState !== WebSocket.CLOSED || this.pcState !== WebSocket.CLOSED) {
       this.ondisconnect();
     }
+    // The player is being destroyed. Drop the document listener and viewport
+    // observer even though the element may still be connected for this turn.
+    this._removeVisibilityWatchers();
   }
 
   /**
@@ -351,6 +367,15 @@ export class VideoRTC extends HTMLElement {
     // already null, because abort is plain JS, not DOM-event-bound.
     this._abortController?.abort();
     this._abortController = null;
+
+    // The visibility listener and the viewport observer call this while the
+    // element is still connected, and they have to stay so the stream can
+    // resume. A real removal drops them now: otherwise the closure keeps the
+    // player, its video element, and its socket alive after the card is gone.
+    if (!this.isConnected) {
+      this._removeVisibilityWatchers();
+    }
+
     if (this.background || this.disconnectTID) return;
     if (this.wsState === WebSocket.CLOSED && this.pcState === WebSocket.CLOSED) return;
 
@@ -403,17 +428,18 @@ export class VideoRTC extends HTMLElement {
     if (this.background) return;
 
     if ('hidden' in document && this.visibilityCheck) {
-      document.addEventListener('visibilitychange', () => {
+      this._visibilityChangeHandler = () => {
         if (document.hidden) {
           this.disconnectedCallback();
         } else if (this.isConnected) {
           this.connectedCallback();
         }
-      });
+      };
+      document.addEventListener('visibilitychange', this._visibilityChangeHandler);
     }
 
     if ('IntersectionObserver' in window && this.visibilityThreshold) {
-      const observer = new IntersectionObserver(
+      this._visibilityObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (!entry.isIntersecting) {
@@ -425,7 +451,7 @@ export class VideoRTC extends HTMLElement {
         },
         { threshold: this.visibilityThreshold },
       );
-      observer.observe(this);
+      this._visibilityObserver.observe(this);
     }
 
     this.video.onloadeddata = () => {
@@ -446,6 +472,20 @@ export class VideoRTC extends HTMLElement {
     // Always started muted. Media may be unmuted in accordance with user
     // configuration.
     this.video.muted = true;
+  }
+
+  /**
+   * Remove the document visibility listener and the viewport observer.
+   * Idempotent. Called when the player is destroyed or actually removed, not
+   * when a visibility pause invokes `disconnectedCallback`.
+   */
+  _removeVisibilityWatchers() {
+    if (this._visibilityChangeHandler) {
+      document.removeEventListener('visibilitychange', this._visibilityChangeHandler);
+      this._visibilityChangeHandler = null;
+    }
+    this._visibilityObserver?.disconnect();
+    this._visibilityObserver = null;
   }
 
   /**
