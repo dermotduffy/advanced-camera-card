@@ -9,7 +9,7 @@
     "close": "Bezárás",
     "event": "Esemény",
     "folder": "Mappa",
-    "in_progress": "Folyamatban...",
+    "in_progress": "Folyamatban",
     "no_media": "Nincs megjeleníthető média",
     "retry": "Újra",
     "set_reviews": {
@@ -295,7 +295,6 @@
             "none": "Nincs",
             "right": "Jobb oldali fiók"
           },
-          "show_details": "Részletek megjelenítése",
           "show_download_control": "Letöltés vezérlő megjelenítése",
           "show_favorite_control": "Kedvenc vezérlő megjelenítése",
           "show_info_control": "Információ vezérlő megjelenítése",
@@ -979,7 +978,6 @@
     "start": "Kezdet",
     "tag": "Címke",
     "timeline": "Megtekintés az idővonalon",
-    "title": "Cím",
     "where": "Hol"
   },
   "timeline": {
