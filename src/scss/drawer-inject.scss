@@ -1,51 +1,66 @@
 @use './z-index.scss' as *;
 
+// Injected into side-drawer 4's shadow root. That version draws a viewport
+// <dialog>; these rules pull it back into the card. The dialog is only
+// `show()`n while the drawer is open, so it cannot steal Tab focus or
+// hit-tests while closed.
 :host {
-  // Drawer width sizes to contents.
   width: unset;
+  max-width: none;
+  background-color: transparent;
+  pointer-events: none;
 }
 
-#fs {
-  // Hide the freespace screen.
-  display: none;
-  width: 100%;
-  inset: 0;
-}
-
-#d,
-#fs {
-  // Override width/height to be 100% instead of 100v[wh].
-  height: 100%;
-
-  // Position absolutely.
+dialog {
   position: absolute;
-}
-
-#d {
-  // Need to allow drawer controls to be visible.
   overflow: visible;
 
-  // Don't let the drawer exceed 90% of the full width of the relative parent.
-  max-width: 90%;
+  // `show()` keeps the dialog in the layout; do not let `dialog[open]` force a
+  // full-height grey panel over the live view.
+  visibility: inherit;
 
-  // Drawer renders behind the menu/status-bar overlay (otherwise the drawer
-  // controls render on top of menu items)
+  // Size to the thumbnails, not the library's fixed 350px panel.
+  width: max-content;
+  max-width: 90%;
+  height: auto;
+  background-color: transparent;
   z-index: #{$z-index-drawer};
 }
 
-:host([location='right']) #d {
-  // Position to the right.
-  left: unset;
-  right: 0;
+dialog[open] {
+  visibility: inherit;
+}
+
+:host([data-empty]) dialog {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+:host(:not([data-open])) dialog {
+  pointer-events: none;
+}
+
+dialog::backdrop {
+  display: none;
+}
+
+// Closed positions. These outrank side-drawer 4's own translate rules: that
+// sheet's `:host([right]) dialog` sets `translateX(100%)` at the same
+// specificity as an open rule, so a later equal rule can leave the panel
+// sitting in the card instead of off to the side. `data-open` is the card's
+// flag. The library `open` attribute is never set — it calls showModal().
+:host(:not([right]):not([data-open])) dialog {
+  transform: translateX(-100%);
+}
+
+:host([right]:not([data-open])) dialog {
   transform: translateX(100%);
 }
 
-:host([location='right'][open]) #d {
+:host([data-open]) dialog {
   transform: none;
-  box-shadow: var(--advanced-camera-card-box-shadow-override, 0px 0px 25px 0px black);
-}
-
-#ifs {
-  // Override width/height to be 100% instead of 100v[wh].
   height: 100%;
+  background-color: var(--card-background-color);
+  pointer-events: auto;
+  box-shadow: var(--advanced-camera-card-box-shadow-override, 0px 0px 25px 0px black);
 }
