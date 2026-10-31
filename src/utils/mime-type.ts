@@ -8,7 +8,7 @@ const IMAGE_MIME_TYPES_BY_EXTENSION = new Map([
   ['webp', 'image/webp'],
 ]);
 
-interface MimeTypeClassification {
+export interface MimeTypeClassification {
   isHLS: boolean;
   isImage: boolean;
   isVideo: boolean;

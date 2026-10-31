@@ -52,10 +52,10 @@ void customElements.whenDefined('ha-hls-player').then(() => {
     protected _video?: HTMLVideoElement;
 
     // Where playback starts, in seconds from the start of the stream. Without
-    // it hls.js loads the start of the stream, only for the viewer to seek
+    // it hls.js loads the start of the stream, only for the carousel to seek
     // away once it has loaded.
     @property({ attribute: false })
-    public startPosition: number | null = null;
+    public startPosition?: number;
 
     @property({ attribute: false })
     public targetID?: string;
@@ -142,7 +142,7 @@ void customElements.whenDefined('ha-hls-player').then(() => {
     }
 
     // Native HLS (Safari) and ExoPlayer do not use hls.js, so they still start
-    // at the beginning and are seeked by the viewer.
+    // at the beginning and are seeked by the carousel.
     protected _renderHLSPolyfill(
       videoEl: HTMLVideoElement,
       Hls: HlsConstructor,

@@ -39,7 +39,7 @@ import type {
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../types.js';
-import { classifyMimeType } from '../../utils/mime-type.js';
+import { classifyMimeType, type MimeTypeClassification } from '../../utils/mime-type.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewMedia } from '../../view/item.js';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
@@ -87,7 +87,8 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   private _refProvider: Ref<MediaPlayerElement> = createRef();
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
-  // Lit runs controllers in declaration order: Resolve first, then sign.
+  // Lit runs controllers in declaration order: resolve first, since signing and
+  // the start position both read the resolved media.
   private _resolvedMediaController = new ResolvedMediaController(this, () => ({
     hass: this.hass,
     contentID: this._shouldLoad() ? this.media?.getContentID() ?? null : null,
@@ -118,8 +119,8 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   // can start loading part way through.
   private _mediaStartPositionController = new MediaStartPositionController(this, () => ({
     cameraManager: this.cameraManager,
-    view: this.viewManagerEpoch?.manager.getView(),
-    media: this._shouldLoad() && this._classifyMedia().isHLS ? this.media : null,
+    view: this.viewManagerEpoch?.manager.getView() ?? undefined,
+    media: this._shouldLoad() && this._classifyMedia().isHLS ? this.media : undefined,
   }));
 
   constructor() {
@@ -186,7 +187,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     return this._lazyLoadController.isLoaded();
   }
 
-  private _classifyMedia(): ReturnType<typeof classifyMimeType> {
+  private _classifyMedia(): MimeTypeClassification {
     return classifyMimeType(this._resolvedMediaController.getValue()?.mime_type);
   }
 
@@ -260,10 +261,11 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
     const { isHLS, isVideo } = this._classifyMedia();
 
-    // The HLS player waits for its start position, since hls.js starts loading
-    // as soon as the player is created.
+    // The HLS player waits for its start position: hls.js starts loading as
+    // soon as the player is created, and without the position it would download
+    // the start of the stream only for the carousel to seek away from it.
     const url = this._signedURLController.getValue();
-    if (!url || (isHLS && !this._mediaStartPositionController.hasResolved())) {
+    if (!url || this._mediaStartPositionController.isPending()) {
       return renderProgressIndicator({
         cardWideConfig: this.cardWideConfig,
       });
@@ -272,6 +274,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     // Note: crossorigin="anonymous" is required on <video> below in order to
     // allow screenshot of motionEye videos which currently go cross-origin.
     const mediaID = this.media.getID() ?? undefined;
+    const startPosition = this._mediaStartPositionController.getValue() ?? undefined;
 
     return this._renderContainer(html`
       ${isVideo
@@ -287,7 +290,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
               title="${this.media.getTitle() ?? ''}"
               url=${url}
               .hass=${this.hass}
-              .startPosition=${this._mediaStartPositionController.getValue()}
+              .startPosition=${startPosition}
               .targetID=${mediaID}
               ?controls=${this.viewerConfig.controls.builtin}
             >

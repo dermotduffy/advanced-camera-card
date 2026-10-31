@@ -10,7 +10,7 @@ interface MediaSeekTarget {
 }
 
 /**
- * The time the media viewer seeks to in a media item: the seek requested by the
+ * The time the carousel seeks to in a media item: the seek requested by the
  * view, or else the media's own playback start time.
  */
 export const getMediaSeekTarget = (

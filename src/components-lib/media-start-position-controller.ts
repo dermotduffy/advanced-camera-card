@@ -8,21 +8,21 @@ import type { View } from '../view/view.js';
 
 interface MediaStartPositionControllerOptions {
   cameraManager?: CameraManager;
-  view?: View | null;
+  view?: View;
 
-  // The media to compute a start position for, or `null` when there is nothing
-  // to compute (e.g. the host is not yet showing this media, or will not play
+  // The media to compute a start position for, or none when there is nothing to
+  // compute (e.g. the host is not yet showing this media, or will not play
   // it with a player that can start part way through).
-  media?: ViewMedia | null;
+  media?: ViewMedia;
 }
 
 /**
  * Computes where playback of a media item should start (seconds from the start
  * of the media), so the player can start loading there rather than loading the
- * start of the media only for the viewer to seek away from it.
+ * start of the media only for the carousel to seek away from it.
  *
  * The position is computed once per media content: later seeks are the job of
- * the viewer, which seeks the loaded player, and recomputing here would hold
+ * the carousel, which seeks the loaded player, and recomputing here would hold
  * back a player that has already started.
  */
 export class MediaStartPositionController implements ReactiveController {
@@ -30,7 +30,7 @@ export class MediaStartPositionController implements ReactiveController {
   private _getOptionsCallback: () => MediaStartPositionControllerOptions;
 
   private _value: number | null = null;
-  private _resolved = false;
+  private _pending = false;
 
   // The content of the last request.
   private _targetContentID: string | null = null;
@@ -49,10 +49,9 @@ export class MediaStartPositionController implements ReactiveController {
     return this._value;
   }
 
-  // Whether the position for the current media has been computed. A computed
-  // position may still be `null`: start from the beginning.
-  public hasResolved(): boolean {
-    return this._resolved;
+  // Whether the position for the current media is still being computed.
+  public isPending(): boolean {
+    return this._pending;
   }
 
   public hostDisconnected(): void {
@@ -74,7 +73,7 @@ export class MediaStartPositionController implements ReactiveController {
 
     this._targetContentID = contentID;
     this._value = null;
-    this._resolved = false;
+    this._pending = false;
 
     // Without a position the player starts from the beginning, as it would
     // without this controller: a player must never wait on a position that
@@ -82,16 +81,16 @@ export class MediaStartPositionController implements ReactiveController {
     const seek = getMediaSeekTarget(view ?? null, media);
     if (!cameraManager || !seek?.inMedia) {
       this._requestGeneration.invalidate();
-      this._resolved = true;
       return;
     }
 
+    this._pending = true;
     const requestID = this._requestGeneration.next();
     let value: number | null = null;
     try {
       value = await cameraManager.getMediaSeekTime(media, seek.time);
     } catch {
-      // Starting from the beginning is the fallback: the viewer still seeks
+      // Starting from the beginning is the fallback: the carousel still seeks
       // once the media has loaded.
     }
 
@@ -100,7 +99,7 @@ export class MediaStartPositionController implements ReactiveController {
     }
 
     this._value = value;
-    this._resolved = true;
+    this._pending = false;
     this._host.requestUpdate();
   }
 
@@ -109,7 +108,7 @@ export class MediaStartPositionController implements ReactiveController {
     // controller after the inputs have been cleared.
     this._requestGeneration.invalidate();
     this._value = null;
-    this._resolved = false;
+    this._pending = false;
     this._targetContentID = null;
   }
 }

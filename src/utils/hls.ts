@@ -8,9 +8,9 @@ export type HlsConstructor = new (config?: Record<string, unknown>) => object;
  */
 export const withHLSStartPosition = (
   Hls: HlsConstructor,
-  startPosition: number | null,
+  startPosition?: number,
 ): HlsConstructor => {
-  if (startPosition === null) {
+  if (startPosition === undefined) {
     return Hls;
   }
 
@@ -18,7 +18,7 @@ export const withHLSStartPosition = (
   // `Hls.Events`) the player reads from the class it is given are inherited.
   return class extends Hls {
     constructor(config?: Record<string, unknown>) {
-      super({ ...config, startPosition: startPosition });
+      super({ ...config, startPosition });
     }
   };
 };

@@ -129,7 +129,7 @@ export type ConstructableHaCameraStream = typeof HaCameraStreamElement;
 export type AdvancedCameraCardHaHlsPlayerElement = HaHlsPlayerElement &
   MediaPlayer & {
     hass?: HomeAssistant;
-    startPosition: number | null;
+    startPosition?: number;
     targetID?: string;
   };
 export type AdvancedCameraCardHaWebRtcPlayerElement = HaWebRtcPlayerElement &

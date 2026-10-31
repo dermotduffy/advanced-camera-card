@@ -14,7 +14,7 @@ class FakeHls {
 
 describe('withHLSStartPosition', () => {
   it('should return the class unchanged without a start position', () => {
-    expect(withHLSStartPosition(FakeHls, null)).toBe(FakeHls);
+    expect(withHLSStartPosition(FakeHls)).toBe(FakeHls);
   });
 
   it('should start players at the start position', () => {

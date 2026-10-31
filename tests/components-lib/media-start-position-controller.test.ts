@@ -1,5 +1,5 @@
 import type { ReactiveControllerHost } from 'lit';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { CameraManager } from '../../src/camera-manager/manager';
@@ -17,17 +17,13 @@ const createSeekView = (seek: Date): View =>
   createView({ context: { mediaViewer: { seek: seek } } });
 
 describe('MediaStartPositionController', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('should register itself with the host', () => {
     const host = mock<ReactiveControllerHost>();
     const controller = new MediaStartPositionController(host, () => ({}));
 
     expect(host.addController).toHaveBeenCalledWith(controller);
     expect(controller.getValue()).toBeNull();
-    expect(controller.hasResolved()).toBe(false);
+    expect(controller.isPending()).toBe(false);
   });
 
   it('should compute the start position and request a host update', async () => {
@@ -47,7 +43,7 @@ describe('MediaStartPositionController', () => {
 
     expect(cameraManager.getMediaSeekTime).toHaveBeenCalledWith(media, seek);
     expect(controller.getValue()).toBe(1800);
-    expect(controller.hasResolved()).toBe(true);
+    expect(controller.isPending()).toBe(false);
     expect(host.requestUpdate).toHaveBeenCalled();
   });
 
@@ -75,13 +71,13 @@ describe('MediaStartPositionController', () => {
       const cameraManager = mock<CameraManager>();
       const controller = new MediaStartPositionController(
         mock<ReactiveControllerHost>(),
-        () => ({ cameraManager: cameraManager, media: null }),
+        () => ({ cameraManager: cameraManager }),
       );
 
       await controller.hostUpdate();
 
       expect(cameraManager.getMediaSeekTime).not.toHaveBeenCalled();
-      expect(controller.hasResolved()).toBe(false);
+      expect(controller.isPending()).toBe(false);
     });
 
     it('without media content', async () => {
@@ -97,7 +93,7 @@ describe('MediaStartPositionController', () => {
       await controller.hostUpdate();
 
       expect(cameraManager.getMediaSeekTime).not.toHaveBeenCalled();
-      expect(controller.hasResolved()).toBe(false);
+      expect(controller.isPending()).toBe(false);
     });
   });
 
@@ -111,7 +107,7 @@ describe('MediaStartPositionController', () => {
       await controller.hostUpdate();
 
       expect(controller.getValue()).toBeNull();
-      expect(controller.hasResolved()).toBe(true);
+      expect(controller.isPending()).toBe(false);
     });
 
     it('when the requested seek is outside the media', async () => {
@@ -129,7 +125,7 @@ describe('MediaStartPositionController', () => {
 
       expect(cameraManager.getMediaSeekTime).not.toHaveBeenCalled();
       expect(controller.getValue()).toBeNull();
-      expect(controller.hasResolved()).toBe(true);
+      expect(controller.isPending()).toBe(false);
     });
 
     it('when the media has no seek target', async () => {
@@ -146,7 +142,7 @@ describe('MediaStartPositionController', () => {
 
       expect(cameraManager.getMediaSeekTime).not.toHaveBeenCalled();
       expect(controller.getValue()).toBeNull();
-      expect(controller.hasResolved()).toBe(true);
+      expect(controller.isPending()).toBe(false);
     });
 
     it('when the seek time cannot be found', async () => {
@@ -160,7 +156,7 @@ describe('MediaStartPositionController', () => {
       await controller.hostUpdate();
 
       expect(controller.getValue()).toBeNull();
-      expect(controller.hasResolved()).toBe(true);
+      expect(controller.isPending()).toBe(false);
     });
 
     it('when the seek time lookup fails', async () => {
@@ -175,7 +171,7 @@ describe('MediaStartPositionController', () => {
       await controller.hostUpdate();
 
       expect(controller.getValue()).toBeNull();
-      expect(controller.hasResolved()).toBe(true);
+      expect(controller.isPending()).toBe(false);
       expect(host.requestUpdate).toHaveBeenCalled();
     });
   });
@@ -191,13 +187,13 @@ describe('MediaStartPositionController', () => {
 
     await controller.hostUpdate();
 
-    // A later seek in the same media is left to the viewer.
+    // A later seek in the same media is left to the carousel.
     view = createSeekView(new Date('2024-01-01T10:45:00'));
     await controller.hostUpdate();
 
     expect(cameraManager.getMediaSeekTime).toHaveBeenCalledTimes(1);
     expect(controller.getValue()).toBe(1800);
-    expect(controller.hasResolved()).toBe(true);
+    expect(controller.isPending()).toBe(false);
   });
 
   it('should recompute for different media content', async () => {
@@ -237,6 +233,7 @@ describe('MediaStartPositionController', () => {
     }));
 
     const firstUpdate = controller.hostUpdate();
+    expect(controller.isPending()).toBe(true);
     media = createMedia('content-2');
     await controller.hostUpdate();
 
@@ -262,13 +259,14 @@ describe('MediaStartPositionController', () => {
     }));
 
     const update = controller.hostUpdate();
+    expect(controller.isPending()).toBe(true);
     controller.hostDisconnected();
 
     resolveSeek?.(1800);
     await update;
 
     expect(controller.getValue()).toBeNull();
-    expect(controller.hasResolved()).toBe(false);
+    expect(controller.isPending()).toBe(false);
     expect(host.requestUpdate).not.toHaveBeenCalled();
   });
 
@@ -278,16 +276,16 @@ describe('MediaStartPositionController', () => {
     let media: TestViewMedia | null = createMedia();
     const controller = new MediaStartPositionController(
       mock<ReactiveControllerHost>(),
-      () => ({ cameraManager: cameraManager, media: media }),
+      () => ({ cameraManager: cameraManager, media: media ?? undefined }),
     );
 
     await controller.hostUpdate();
-    expect(controller.hasResolved()).toBe(true);
+    expect(controller.isPending()).toBe(false);
 
     media = null;
     await controller.hostUpdate();
 
     expect(controller.getValue()).toBeNull();
-    expect(controller.hasResolved()).toBe(false);
+    expect(controller.isPending()).toBe(false);
   });
 });
