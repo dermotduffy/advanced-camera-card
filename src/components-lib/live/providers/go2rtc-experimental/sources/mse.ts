@@ -87,13 +87,19 @@ export class MSEStreamSource implements StreamSource {
   private _negotiationTimer = new Timer();
   private _liveEdge: LiveEdgeTracker;
 
-  // Whether playback is started as soon as the MediaSource is attached (see
-  // start()).
-  private _primePlayback: boolean;
+  private _isWebKit: boolean;
+  private _isPlaybackPrimed = false;
 
   private _unsubscribeCallbacks: UnsubscribeCallback[] = [];
 
   private _loadedHandler = (): void => {
+    if (this._isPlaybackPrimed) {
+      this._isPlaybackPrimed = false;
+
+      // Re-pause the video after priming; the card's `live.auto_play` handling
+      // decides whether to play it.
+      this._context.target.video.pause();
+    }
     this._context.callbacks.loadedCallback();
   };
 
@@ -122,9 +128,8 @@ export class MSEStreamSource implements StreamSource {
     this._createMediaSource = options?.createMediaSource ?? createBrowserMediaSource;
 
     const userAgent = options?.userAgent ?? navigator.userAgent;
-    const webkit = isWebKitUserAgent(userAgent);
-    this._liveEdge = new LiveEdgeTracker({ webkit });
-    this._primePlayback = webkit;
+    this._isWebKit = isWebKitUserAgent(userAgent);
+    this._liveEdge = new LiveEdgeTracker({ webkit: this._isWebKit });
     this._codecCandidates = getCodecsForUserAgent(userAgent);
   }
 
@@ -148,34 +153,18 @@ export class MSEStreamSource implements StreamSource {
 
     mediaSource.attach(this._context.target.video);
 
-    // WebKit (Safari, and every browser or web view on iOS) is otherwise
-    // handed the MediaSource on a video that stays paused (and hidden by the
-    // component) until this source commits, and on an iPhone that pipeline
-    // has been seen to stall: the SourceBuffer stops completing appends a few
-    // seconds in, the staged media overflows and the lane fails with
-    // `buffer_overflow` without `loadeddata` ever firing. The two players that
-    // do play on the same devices, go2rtc's reference client and Frigate's
-    // own, both call play() the moment the MediaSource is attached. Do the
-    // same there. The video is muted, so WebKit allows it without a gesture
-    // and nothing is audible until the card unmutes after the commit, at
-    // which point the card's own play() is a no-op.
-    if (this._primePlayback) {
-      this._startPlayback(this._context.target.video);
+    // On iOS, WebKit can stop completing appends to a paused video before the
+    // first frame loads, so the video plays until the first frame loads.
+    if (this._isWebKit) {
+      this._isPlaybackPrimed = true;
+
+      // A refused play() leaves the card to play the video itself after load.
+      this._primePlayback(this._context.target.video).catch(() => {});
     }
   }
 
-  private _startPlayback(video: HTMLVideoElement): void {
-    let result: Promise<void> | undefined;
-    try {
-      // Returns undefined in jsdom and some older browsers.
-      result = video.play() as Promise<void> | undefined;
-    } catch {
-      return;
-    }
-    // A rejection here (e.g. the source was detached before playback could
-    // start, or autoplay was refused) is not a failure of this lane: the card
-    // calls play() itself once the lane commits.
-    result?.catch(() => {});
+  private async _primePlayback(video: HTMLVideoElement): Promise<void> {
+    await video.play();
   }
 
   public stop(): void {

@@ -21,14 +21,6 @@ img {
   }
 }
 
-// Before any lane commits the video is `pending`: it keeps its box and stays
-// rendered (WebKit evaluates an MSE source on it meanwhile, see the component)
-// but shows nothing and takes no input.
-video[pending] {
-  opacity: 0;
-  pointer-events: none;
-}
-
 // Hide the native seek bar (and its time readouts) on the live video: the
 // stream is live, so scrubbing back only fights the live-edge chase and snaps
 // to live. Play/pause/volume/fullscreen remain. WebKit/Blink only (Chrome,
