@@ -58,6 +58,7 @@ import {
   type ReviewQuery,
   type ReviewQueryResultsMap,
 } from '../types';
+import { expandRangeByRetentionMargin } from '../utils/recording-retention';
 import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
@@ -740,10 +741,13 @@ export class FrigateCameraManagerEngine
       //   query is different -- the segments won't be). This is since the
       //   volume of data in segment transfers can be high, and the segments can
       //   be used in high frequency situations (e.g. video seeking).
-      const cachedSegments =
-        engineOptions?.useCache ?? true
-          ? this._recordingSegmentsCache.get(cameraID, range)
-          : null;
+      // - Each cached request then forgets segments outside the configured
+      //   retention margin. Panning back within that margin stays a hit.
+      //   Panning further away refetches instead of keeping every hour visited.
+      const useCache = engineOptions?.useCache ?? true;
+      const cachedSegments = useCache
+        ? this._recordingSegmentsCache.get(cameraID, range)
+        : null;
       if (cachedSegments) {
         output.set(query, <FrigateRecordingSegmentsQueryResults>{
           type: QueryResultsType.RecordingSegments,
@@ -752,6 +756,10 @@ export class FrigateCameraManagerEngine
           segments: cachedSegments,
           cached: true,
         });
+        this._recordingSegmentsCache.retain(
+          cameraID,
+          expandRangeByRetentionMargin(range, engineOptions?.recordingRetentionHours),
+        );
         return;
       }
 
@@ -764,8 +772,12 @@ export class FrigateCameraManagerEngine
 
       const segments = await getRecordingSegments(hass, request);
 
-      if (engineOptions?.useCache ?? true) {
+      if (useCache) {
         this._recordingSegmentsCache.add(cameraID, range, segments);
+        this._recordingSegmentsCache.retain(
+          cameraID,
+          expandRangeByRetentionMargin(range, engineOptions?.recordingRetentionHours),
+        );
       }
 
       output.set(query, <FrigateRecordingSegmentsQueryResults>{
