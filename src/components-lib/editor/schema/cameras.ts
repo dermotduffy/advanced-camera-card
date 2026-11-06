@@ -245,6 +245,7 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
           label: localize('config.cameras.engine'),
           selector: createSelectSelector([
             { value: 'auto', label: localize('config.cameras.engines.auto') },
+            { value: 'dvrkit', label: localize('config.cameras.engines.dvrkit') },
             { value: 'frigate', label: localize('config.cameras.engines.frigate') },
             { value: 'generic', label: localize('config.cameras.engines.generic') },
             { value: 'motioneye', label: localize('config.cameras.engines.motioneye') },

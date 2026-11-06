@@ -32,6 +32,27 @@ export const resolveMedia = async (
   if (cachedValue) {
     return cachedValue;
   }
+  if (mediaContentID.startsWith('dvrkit://')) {
+    const match = /^dvrkit:\/\/([^/]+)\/(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/.exec(
+      mediaContentID,
+    );
+    if (!match) {
+      return null;
+    }
+    try {
+      const { url } = await hass.callWS<{ url: string }>({
+        type: 'dvrkit/playback/url',
+        entity_id: decodeURIComponent(match[1]),
+        start: Number(match[2]),
+        end: Number(match[3]),
+      });
+      // Playback URLs may expire; do not put them in the resolved-media cache.
+      return { url, mime_type: 'application/vnd.apple.mpegurl' };
+    } catch (e) {
+      errorToConsole(e);
+      return null;
+    }
+  }
   const request = {
     type: 'media_source/resolve_media',
     media_content_id: mediaContentID,

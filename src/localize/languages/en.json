@@ -109,6 +109,7 @@
       "engine": "Camera engine",
       "engines": {
         "auto": "Automatic",
+        "dvrkit": "DVRKit",
         "editor_label": "Engine",
         "frigate": "Frigate",
         "generic": "Generic",
