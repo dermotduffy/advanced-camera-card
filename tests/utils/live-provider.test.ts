@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as go2rtcAudio from '../../src/go2rtc/audio';
+import * as haCameraWebRTC from '../../src/ha/camera-webrtc';
 import {
   getResolvedLiveProvider,
   isGo2RTCLiveProvider,
@@ -10,6 +11,7 @@ import { createCameraConfig } from '../config/test-utils';
 import { createHASS } from '../test-utils';
 
 vi.mock('../../src/go2rtc/audio');
+vi.mock('../../src/ha/camera-webrtc');
 
 describe('live-provider utils', () => {
   beforeEach(() => {
@@ -83,7 +85,7 @@ describe('live-provider utils', () => {
   });
 
   describe('liveProviderSupports2WayAudio', () => {
-    it('should return false if resolved provider is not go2rtc', async () => {
+    it('should return false for the ha provider without a camera entity', async () => {
       const config = createCameraConfig({
         live_provider: 'ha',
       });
@@ -94,6 +96,43 @@ describe('live-provider utils', () => {
         config.go2rtc.metadata_fetch_timeout_seconds,
       );
       expect(result).toBe(false);
+    });
+
+    it('should ask Home Assistant for the ha provider', async () => {
+      const config = createCameraConfig({
+        camera_entity: 'camera.office',
+        live_provider: 'ha',
+      });
+      const hass = createHASS();
+      vi.mocked(haCameraWebRTC.supportsHA2WayAudio).mockResolvedValue(true);
+
+      const result = await liveProviderSupports2WayAudio(
+        hass,
+        config,
+        config.go2rtc.metadata_fetch_timeout_seconds,
+      );
+      expect(result).toBe(true);
+      expect(haCameraWebRTC.supportsHA2WayAudio).toHaveBeenCalledWith(
+        hass,
+        'camera.office',
+      );
+      expect(go2rtcAudio.supports2WayAudio).not.toHaveBeenCalled();
+    });
+
+    it('should return false for providers without a backchannel', async () => {
+      const config = createCameraConfig({
+        camera_entity: 'camera.office',
+        live_provider: 'jsmpeg',
+      });
+      const hass = createHASS();
+
+      const result = await liveProviderSupports2WayAudio(
+        hass,
+        config,
+        config.go2rtc.metadata_fetch_timeout_seconds,
+      );
+      expect(result).toBe(false);
+      expect(haCameraWebRTC.supportsHA2WayAudio).not.toHaveBeenCalled();
     });
 
     it('should return result from go2rtcSupports2WayAudio', async () => {
