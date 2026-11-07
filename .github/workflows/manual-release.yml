@@ -6,6 +6,7 @@ on:
 
 jobs:
   release:
+    if: github.repository == 'dermotduffy/advanced-camera-card'
     name: Prepare release
     runs-on: ubuntu-latest
     steps:

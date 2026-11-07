@@ -29,3 +29,18 @@ A comprehensive camera card for Home Assistant.
 - Theme friendly.
 
 See [full documentation](https://dermotduffy.github.io/advanced-camera-card).
+
+## DVRKit fork builds and releases
+
+The `dvrkit-engine` branch is checked on pushes and pull requests. CI runs the
+code, HACS, coverage, Chromium browser, built-card, and distribution
+compatibility checks. It does not connect to a DVR or deploy to Home Assistant.
+The CI workflow can also be started manually for a branch.
+
+To publish a DVRKit prerelease, push a tag such as `v8.1.0-dvrkit.2` to
+`ofa1/advanced-camera-card`. The version embedded in the build omits the leading
+`v`. Publication waits for all checks in that tag's workflow run. The release
+contains `advanced-camera-card.zip` with the complete distribution at its root,
+as well as every JavaScript file separately. When installing manually, keep all
+of the files together so dynamically loaded chunks remain available. The
+inherited upstream release automation is restricted to the upstream repository.

@@ -9,6 +9,7 @@ on:
 
 jobs:
   labeler:
+    if: github.repository == 'dermotduffy/advanced-camera-card'
     name: Labeler
     runs-on: ubuntu-latest
     steps:
