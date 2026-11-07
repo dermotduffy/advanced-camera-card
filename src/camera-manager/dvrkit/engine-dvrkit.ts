@@ -49,6 +49,46 @@ export class DvrkitRecordingViewMedia extends ViewMedia {
 }
 
 export class DvrkitCameraManagerEngine extends GenericCameraManagerEngine {
+  private readonly _summaries = new WeakMap<HomeAssistant, Map<string, Promise<Summary>>>();
+  private readonly _intervals = new WeakMap<HomeAssistant, Map<string, Promise<NativeSegment[]>>>();
+
+  private async _inFlight<T>(
+    requests: WeakMap<HomeAssistant, Map<string, Promise<T>>>,
+    hass: HomeAssistant,
+    key: string,
+    request: () => Promise<T>,
+  ): Promise<T> {
+    let pending = requests.get(hass);
+    if (!pending) {
+      pending = new Map();
+      requests.set(hass, pending);
+    }
+    let promise = pending.get(key);
+    if (!promise) {
+      promise = request();
+      pending.set(key, promise);
+    }
+    try {
+      return await promise;
+    } finally {
+      if (pending.get(key) === promise) {
+        pending.delete(key);
+      }
+    }
+  }
+
+  private _getSummary(hass: HomeAssistant, entityID: string): Promise<Summary> {
+    return this._inFlight(this._summaries, hass, entityID, () =>
+      hass.callWS<Summary>({ type: 'dvrkit/recordings/summary', entity_id: entityID }));
+  }
+
+  private _getInterval(
+    hass: HomeAssistant, entityID: string, after: number, before: number,
+  ): Promise<NativeSegment[]> {
+    return this._inFlight(this._intervals, hass, JSON.stringify([entityID, after, before]), () =>
+      hass.callWS<NativeSegment[]>({ type: 'dvrkit/recordings/get', entity_id: entityID, after, before }));
+  }
+
   public override getEngineType(): Engine { return Engine.Dvrkit; }
 
   public override async createCamera(config: CameraConfig): Promise<Camera> {
@@ -88,7 +128,7 @@ export class DvrkitCameraManagerEngine extends GenericCameraManagerEngine {
       if (!entityID) {
         return;
       }
-      const summary = await hass.callWS<Summary>({ type: 'dvrkit/recordings/summary', entity_id: entityID });
+      const summary = await this._getSummary(hass, entityID);
       const resolve = createDayHourResolver(summary.timezone);
       const hours: { start: Date; end: Date }[] = [];
       const seenHours = new Set<number>();
@@ -106,12 +146,10 @@ export class DvrkitCameraManagerEngine extends GenericCameraManagerEngine {
               return local.day === day.day && local.hour === hour.hour;
             });
           const segments = candidates.length > 1
-            ? await hass.callWS<NativeSegment[]>({
-                type: 'dvrkit/recordings/get',
-                entity_id: entityID,
-                after: Math.min(...candidates) / 1000,
-                before: (Math.max(...candidates) + 3600000) / 1000,
-              })
+            ? await this._getInterval(
+                hass, entityID, Math.min(...candidates) / 1000,
+                (Math.max(...candidates) + 3600000) / 1000,
+              )
             : null;
           for (const time of candidates) {
             const start = new Date(time);
@@ -154,10 +192,9 @@ export class DvrkitCameraManagerEngine extends GenericCameraManagerEngine {
       if (!entityID) {
         return;
       }
-      const native = await hass.callWS<NativeSegment[]>({
-        type: 'dvrkit/recordings/get', entity_id: entityID,
-        after: query.start.getTime() / 1000, before: query.end.getTime() / 1000,
-      });
+      const native = await this._getInterval(
+        hass, entityID, query.start.getTime() / 1000, query.end.getTime() / 1000,
+      );
       const segments: RecordingSegment[] = native.map((segment) => ({
         start_time: segment.start_time, end_time: segment.end_time,
         id: `${cameraID}/${segment.start_time}/${segment.end_time}`,

@@ -91,6 +91,25 @@ describe('DvrkitCameraManagerEngine', () => {
     ]);
   });
 
+  it('does not invent the other occurrence of a repeated hour', async () => {
+    const hass = createHASS();
+    vi.mocked(hass.callWS)
+      .mockResolvedValueOnce({
+        timezone: 'America/New_York',
+        days: [{ day: '2024-11-03', hours: [{ hour: 1, duration: 1800 }] }],
+      })
+      .mockResolvedValueOnce([
+        { start_time: Date.parse('2024-11-03T06:00:00Z') / 1000, end_time: Date.parse('2024-11-03T06:30:00Z') / 1000, type: 'continuous' },
+      ]);
+    const engine = createEngine();
+    const query = { type: QueryType.Recording as const, source: QuerySource.Camera as const, cameraIDs: new Set(['front']) };
+    const results = await engine.getRecordings(hass, store, query);
+    assert(results);
+    const [resultQuery, result] = [...results.entries()][0];
+    const media = engine.generateMediaFromRecordings(hass, store, resultQuery, result);
+    expect(media?.map((item) => item.getStartTime()?.toISOString())).toEqual(['2024-11-03T06:00:00.000Z']);
+  });
+
   it('requests and converts recording segments using epoch seconds', async () => {
     const hass = createHASS();
     vi.mocked(hass.callWS).mockResolvedValue([
@@ -112,6 +131,108 @@ describe('DvrkitCameraManagerEngine', () => {
         { start_time: 1705300000, end_time: 1705300100 },
       ],
     });
+  });
+
+  it('coalesces concurrent summaries while preserving camera identities and refreshing afterward', async () => {
+    const hass = createHASS();
+    const sharedStore = createStore([
+      { cameraID: 'front', config },
+      { cameraID: 'alias', config },
+      { cameraID: 'back', config: createCameraConfig({ camera_entity: 'camera.back' }) },
+    ]);
+    vi.mocked(hass.callWS)
+      .mockResolvedValueOnce({ timezone: 'UTC', days: [{ day: '2024-01-15', hours: [{ hour: 6, duration: 60 }] }] })
+      .mockResolvedValueOnce({ timezone: 'UTC', days: [{ day: '2024-01-15', hours: [{ hour: 7, duration: 60 }] }] })
+      .mockResolvedValueOnce({ timezone: 'UTC', days: [{ day: '2024-01-15', hours: [{ hour: 8, duration: 60 }] }] });
+    const engine = createEngine();
+    const query = { type: QueryType.Recording as const, source: QuerySource.Camera as const, cameraIDs: new Set(['front', 'alias', 'back']) };
+    const [first, second] = await Promise.all([
+      engine.getRecordings(hass, sharedStore, query),
+      engine.getRecordings(hass, sharedStore, query),
+    ]);
+    expect(hass.callWS).toHaveBeenCalledTimes(2);
+    for (const results of [first, second]) {
+      assert(results);
+      const media = [...results.entries()].flatMap(([resultQuery, result]) =>
+        engine.generateMediaFromRecordings(hass, sharedStore, resultQuery, result) ?? []);
+      expect(media.map((item) => [item.getCameraID(), item.getStartTime()?.toISOString()]).sort()).toEqual([
+        ['alias', '2024-01-15T06:00:00.000Z'],
+        ['back', '2024-01-15T07:00:00.000Z'],
+        ['front', '2024-01-15T06:00:00.000Z'],
+      ]);
+      expect([...results.keys()].map((item) => [...item.cameraIDs][0]).sort()).toEqual(['alias', 'back', 'front']);
+    }
+    const refreshed = await engine.getRecordings(hass, sharedStore, { ...query, cameraIDs: new Set(['front']) });
+    assert(refreshed);
+    const [resultQuery, result] = [...refreshed.entries()][0];
+    expect(engine.generateMediaFromRecordings(hass, sharedStore, resultQuery, result)?.[0].getStartTime())
+      .toEqual(new Date('2024-01-15T08:00:00Z'));
+    expect(hass.callWS).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries a rejected summary instead of retaining the failure', async () => {
+    const hass = createHASS();
+    vi.mocked(hass.callWS)
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({ timezone: 'UTC', days: [{ day: '2024-01-15', hours: [{ hour: 6, duration: 60 }] }] });
+    const engine = createEngine();
+    const query = { type: QueryType.Recording as const, source: QuerySource.Camera as const, cameraIDs: new Set(['front']) };
+    const first = engine.getRecordings(hass, store, query);
+    const second = engine.getRecordings(hass, store, query);
+    const failures = await Promise.allSettled([first, second]);
+    expect(failures.map((failure) => failure.status)).toEqual(['rejected', 'rejected']);
+    expect(hass.callWS).toHaveBeenCalledTimes(1);
+    const results = await engine.getRecordings(hass, store, query);
+    assert(results);
+    const [resultQuery, result] = [...results.entries()][0];
+    expect(engine.generateMediaFromRecordings(hass, store, resultQuery, result)?.[0].getStartTime())
+      .toEqual(new Date('2024-01-15T06:00:00Z'));
+    expect(hass.callWS).toHaveBeenCalledTimes(2);
+  });
+
+  it('coalesces only identical intervals, preserves segment IDs, and retries failures', async () => {
+    const hass = createHASS();
+    const sharedStore = createStore([
+      { cameraID: 'front', config },
+      { cameraID: 'alias', config },
+      { cameraID: 'back', config: createCameraConfig({ camera_entity: 'camera.back' }) },
+    ]);
+    vi.mocked(hass.callWS)
+      .mockResolvedValueOnce([{ start_time: 100, end_time: 200, type: 'continuous' }])
+      .mockResolvedValueOnce([{ start_time: 300, end_time: 400, type: 'continuous' }])
+      .mockResolvedValueOnce([{ start_time: 500, end_time: 600, type: 'continuous' }])
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce([{ start_time: 700, end_time: 800, type: 'continuous' }]);
+    const engine = createEngine();
+    const query = { type: QueryType.RecordingSegments as const, cameraIDs: new Set(['front', 'alias', 'back']), start, end };
+    const [first, second, differentBounds] = await Promise.all([
+      engine.getRecordingSegments(hass, sharedStore, query),
+      engine.getRecordingSegments(hass, sharedStore, query),
+      engine.getRecordingSegments(hass, sharedStore, { ...query, cameraIDs: new Set(['front']), end: new Date(end.getTime() + 1000) }),
+    ]);
+    expect(hass.callWS).toHaveBeenCalledTimes(3);
+    for (const results of [first, second]) {
+      assert(results);
+      const segments = [...results.values()].flatMap((result) => result.segments).sort((a, b) => a.id.localeCompare(b.id));
+      expect(segments).toEqual([
+        { id: 'alias/100/200', start_time: 100, end_time: 200 },
+        { id: 'back/300/400', start_time: 300, end_time: 400 },
+        { id: 'front/100/200', start_time: 100, end_time: 200 },
+      ]);
+    }
+    assert(differentBounds);
+    expect([...differentBounds.values()][0].segments[0].id).toBe('front/500/600');
+    const single = { ...query, cameraIDs: new Set(['front']) };
+    const failures = await Promise.allSettled([
+      engine.getRecordingSegments(hass, sharedStore, single),
+      engine.getRecordingSegments(hass, sharedStore, single),
+    ]);
+    expect(failures.map((failure) => failure.status)).toEqual(['rejected', 'rejected']);
+    expect(hass.callWS).toHaveBeenCalledTimes(4);
+    const refreshed = await engine.getRecordingSegments(hass, sharedStore, single);
+    assert(refreshed);
+    expect([...refreshed.values()][0].segments[0].id).toBe('front/700/800');
+    expect(hass.callWS).toHaveBeenCalledTimes(5);
   });
 
   it('does not request recordings for a camera without an entity', async () => {
