@@ -27,10 +27,41 @@ export const resolveMedia = async (
   hass: HomeAssistant,
   mediaContentID: string,
   cache?: ResolvedMediaCache | null,
+  options?: { start?: Date; replaceURL?: string },
 ): Promise<ResolvedMedia | null> => {
-  const cachedValue = cache?.get(mediaContentID) ?? null;
+  const cachedValue = mediaContentID.startsWith('dvrkit://')
+    ? null
+    : cache?.get(mediaContentID) ?? null;
   if (cachedValue) {
     return cachedValue;
+  }
+  if (mediaContentID.startsWith('dvrkit://')) {
+    const match = /^dvrkit:\/\/([^/]+)\/(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/.exec(
+      mediaContentID,
+    );
+    if (!match) {
+      return null;
+    }
+    const recordingStart = Number(match[2]);
+    const recordingEnd = Number(match[3]);
+    const start = options?.start ? options.start.getTime() / 1000 : recordingStart;
+    if (!Number.isFinite(start) || start < recordingStart || start >= recordingEnd) {
+      return null;
+    }
+    try {
+      const { url } = await hass.callWS<{ url: string }>({
+        type: 'dvrkit/playback/url',
+        entity_id: decodeURIComponent(match[1]),
+        start,
+        end: Math.min(recordingEnd, start + 3600),
+        ...(options?.replaceURL && { replace_url: options.replaceURL }),
+      });
+      // Playback URLs may expire; do not put them in the resolved-media cache.
+      return { url, mime_type: 'application/vnd.apple.mpegurl' };
+    } catch (e) {
+      errorToConsole(e);
+      return null;
+    }
   }
   const request = {
     type: 'media_source/resolve_media',

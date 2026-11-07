@@ -123,6 +123,7 @@ const castSchema = z
 
 const ENGINES = [
   'auto',
+  'dvrkit',
   'frigate',
   'generic',
   'motioneye',

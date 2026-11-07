@@ -6,6 +6,7 @@ A "Camera Engine" defines what "type" of camera is being configured (e.g. `friga
 
 | Engine      | Live               | Supports clips           | Supports Snapshots       | Supports Recordings      | Supports Timeline        | Supports PTZ out of the box | Supports manually configured PTZ | Favorite events          | Favorite recordings      | Detect new events        | Detect new snapshots     | Detect new clips         | May require [proxying](./README.md?id=proxy) | Thumbnails               |
 | ----------- | ------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------ | --------------------------- | -------------------------------- | ------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------ | -------------------------------------------- | ------------------------ |
+| `dvrkit`    | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark:       | :white_check_mark:       | :heavy_multiplication_x:    | :white_check_mark:               | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x:                     | :heavy_multiplication_x: |
 | `frigate`   | :white_check_mark: | :white_check_mark:       | :white_check_mark:       | :white_check_mark:       | :white_check_mark:       | :white_check_mark:          | :white_check_mark:               | :white_check_mark:       | :heavy_multiplication_x: | :white_check_mark:       | :white_check_mark:       | :white_check_mark:       | :heavy_multiplication_x:                     | :white_check_mark:       |
 | `generic`   | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x:    | :white_check_mark:               | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x:                     | :heavy_multiplication_x: |
 | `motioneye` | :white_check_mark: | :white_check_mark:       | :white_check_mark:       | :heavy_multiplication_x: | :white_check_mark:       | :heavy_multiplication_x:    | :white_check_mark:               | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark:                           | :white_check_mark:       |
@@ -16,6 +17,7 @@ A "Camera Engine" defines what "type" of camera is being configured (e.g. `friga
 
 | Engine / Live Provider | `ha`               | `image`            | `jsmpeg`                 | `go2rtc`           | `webrtc-card`            |
 | ---------------------- | ------------------ | ------------------ | ------------------------ | ------------------ | ------------------------ |
+| `dvrkit`               | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :white_check_mark:       |
 | `frigate`              | :white_check_mark: | :white_check_mark: | :white_check_mark:       | :white_check_mark: | :white_check_mark:       |
 | `generic`              | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :white_check_mark:       |
 | `motioneye`            | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: |
@@ -23,6 +25,24 @@ A "Camera Engine" defines what "type" of camera is being configured (e.g. `friga
 | `tplink`               | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :white_check_mark:       |
 
 See [Live Provider Configuration](live-provider.md) for more details on live providers.
+
+## `dvrkit`
+
+The `dvrkit` engine requires the [DVRKit Home Assistant integration](https://github.com/ofa1/dvrkit) and uses its camera entities for live video and recordings. The engine is automatically selected for camera entities registered by the `dvrkit` integration, or can be selected explicitly:
+
+```yaml
+cameras:
+  - camera_entity: camera.office
+    engine: dvrkit
+```
+
+Recording availability and playback are provided through Home Assistant; the card does not connect directly to the DVR. Playback uses HLS EVENT streams of at most one hour. Seeking opens a new stream at the selected time, and playback starts at the next available keyframe. Events, snapshots, downloads and favorites are not supported.
+
+Concurrent requests for the same camera entity's recording summary or identical recording interval share the pending request. Completed requests are not retained, so later queries fetch fresh metadata.
+
+Use the media viewer grid with timeline `pan_mode: seek` to seek the cameras together. Each stream buffers independently; this is shared wall-clock seeking, not frame-locked synchronization. Resume opens a new stream at the paused position. The card retains per-camera replacement capabilities in session storage so reloading the same dashboard tab does not exhaust the DVR's stream limit. Avoid showing the same camera more than once on a dashboard, as those players share replacement ownership.
+
+When a recording is selected and every camera in the timeline's media query uses DVRKit, dragging in a seek mode moves the timeline normally but opens the new streams only when the drag ends. For a mixed-engine query, or if a camera's engine cannot be determined, the card retains the normal intermediate seek updates for all cameras.
 
 ## `frigate`
 

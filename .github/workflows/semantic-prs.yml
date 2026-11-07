@@ -11,6 +11,7 @@ on:
 
 jobs:
   main:
+    if: github.repository == 'dermotduffy/advanced-camera-card'
     name: Validate PR title
     runs-on: ubuntu-latest
     steps:

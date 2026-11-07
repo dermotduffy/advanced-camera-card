@@ -15,7 +15,10 @@ import { QueryType } from '../../camera-manager/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
-import { ResolvedMediaController } from '../../components-lib/resolved-media-controller.js';
+import {
+  ResolvedMediaController,
+  type DvrkitPlaybackSessions,
+} from '../../components-lib/resolved-media-controller.js';
 import {
   getSignedURLErrorText,
   SignedURLController,
@@ -69,6 +72,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
+  public dvrkitSessions?: DvrkitPlaybackSessions;
+
+  @property({ attribute: false })
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
@@ -85,12 +91,19 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
   private _refProvider: Ref<MediaPlayerElement> = createRef();
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
+  private _dvrkitPausedAt: number | null = null;
+  private _dvrkitResumeStart: Date | undefined;
+  private _dvrkitRevision = 0;
+  private _dvrkitResumePending = false;
 
   // Lit runs controllers in declaration order: Resolve first, then sign.
   private _resolvedMediaController = new ResolvedMediaController(this, () => ({
     hass: this.hass,
     contentID: this._shouldLoad() ? this.media?.getContentID() ?? null : null,
     cache: this.resolvedMediaCache,
+    dvrkitSessions: this.dvrkitSessions,
+    dvrkitRevision: this._dvrkitRevision,
+    startTime: this._getDvrkitStartTime(),
   }));
 
   private _signedURLController = new SignedURLController(this, () => {
@@ -121,6 +134,50 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       getTargetID: () => this.media?.getID() ?? null,
       isLoadExpected: () => this._shouldLoad(),
     });
+  }
+
+  private _handleDvrkitPause(): void {
+    if (this.media?.getContentID()?.startsWith('dvrkit://') && !this._dvrkitResumePending) {
+      this._dvrkitPausedAt = Date.now();
+    }
+  }
+
+  private async _handleDvrkitPlay(): Promise<void> {
+    const pausedAt = this._dvrkitPausedAt;
+    this._dvrkitPausedAt = null;
+    const media = this.media;
+    const seek = this.viewManagerEpoch?.manager.getView()?.context?.mediaViewer?.seek?.getTime();
+    const start = this._resolvedMediaController.getDvrkitStartTime();
+    if (
+      pausedAt === null ||
+      !this.forceSelected ||
+      !media?.getContentID()?.startsWith('dvrkit://') ||
+      !start
+    ) {
+      return;
+    }
+    const controller = await this._refProvider.value?.getMediaPlayerController();
+    const video = controller?.getFullscreenElement();
+    if (
+      this.media !== media ||
+      !this.forceSelected ||
+      this._dvrkitPausedAt !== null ||
+      this.viewManagerEpoch?.manager.getView()?.context?.mediaViewer?.seek?.getTime() !== seek ||
+      this._resolvedMediaController.getDvrkitStartTime() !== start ||
+      !(video instanceof HTMLVideoElement) ||
+      !Number.isFinite(video.currentTime)
+    ) {
+      return;
+    }
+    const end = media.getEndTime();
+    const time = start.getTime() + Math.max(0, video.currentTime) * 1000;
+    if (end && time >= end.getTime()) {
+      return;
+    }
+    this._dvrkitResumeStart = new Date(time);
+    this._dvrkitResumePending = true;
+    ++this._dvrkitRevision;
+    this.requestUpdate();
   }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -161,11 +218,27 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
+    if (
+      changedProps.has('media') ||
+      (changedProps.has('viewManagerEpoch') &&
+        this.viewManagerEpoch?.manager.getView()?.context?.mediaViewer?.seek?.getTime() !==
+          this.viewManagerEpoch?.oldView?.context?.mediaViewer?.seek?.getTime())
+    ) {
+      if (changedProps.has('media')) {
+        this._dvrkitPausedAt = null;
+      }
+      this._dvrkitResumeStart = undefined;
+      this._dvrkitResumePending = false;
+    }
     if (changedProps.has('viewerConfig') || changedProps.has('forceSelected')) {
       this._lazyLoadController.setConfiguration({
         lazyLoad: this.viewerConfig?.lazy_load,
         forceSelected: this.forceSelected,
       });
+      if (!this.forceSelected) {
+        this._dvrkitPausedAt = null;
+        this._dvrkitResumePending = false;
+      }
     }
 
     if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
@@ -173,8 +246,39 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     }
   }
 
+  protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
+    if (
+      this._dvrkitResumePending &&
+      this._resolvedMediaController.getDvrkitRevision() === this._dvrkitRevision
+    ) {
+      this._dvrkitResumePending = false;
+      void this._refProvider.value?.getMediaPlayerController().then((controller) =>
+        controller?.playback?.play(),
+      );
+    }
+  }
+
   private _shouldLoad(): boolean {
     return this._lazyLoadController.isLoaded();
+  }
+
+  private _getDvrkitStartTime(): Date | null | undefined {
+    if (!this.media?.getContentID()?.startsWith('dvrkit://')) {
+      return undefined;
+    }
+    if (!this.forceSelected) {
+      return null;
+    }
+    if (this._dvrkitResumeStart) {
+      return this._dvrkitResumeStart;
+    }
+    const seek = this.viewManagerEpoch?.manager.getView()?.context?.mediaViewer?.seek;
+    if (!seek) {
+      return undefined;
+    }
+    const end = this.media.getEndTime();
+    return this.media.includesTime(seek) && (!end || seek < end) ? seek : null;
   }
 
   private _getRelevantCameraConfig(): CameraConfig | null {
@@ -263,10 +367,19 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       ${isVideo
         ? isHLS
           ? html`<advanced-camera-card-ha-hls-player
+              @advanced-camera-card:media:pause=${() => this._handleDvrkitPause()}
+              @advanced-camera-card:media:play=${() => void this._handleDvrkitPlay()}
               ${ref(this._refProvider)}
               allow-exoplayer
               aria-label="${this.media.getTitle() ?? ''}"
-              ?autoplay=${false}
+              ?autoplay=${!!(
+                this.media.getContentID()?.startsWith('dvrkit://') &&
+                this.forceSelected &&
+                (this.viewerConfig.auto_play.includes('visible') ||
+                  (this.viewerConfig.auto_play.includes('selected') &&
+                    this.viewManagerEpoch?.manager.getView()?.camera ===
+                      this.media.getCameraID()))
+              )}
               controls
               muted
               playsinline

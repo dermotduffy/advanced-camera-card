@@ -18,6 +18,7 @@ import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
+import { DvrkitPlaybackSessions } from '../../components-lib/resolved-media-controller.js';
 import type { TransitionEffect } from '../../config/schema/common/transition-effect.js';
 import { configDefaults, type CardWideConfig } from '../../config/schema/types.js';
 import type { ViewerConfig } from '../../config/schema/viewer.js';
@@ -99,6 +100,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   private _mediaActionsController = new MediaActionsController();
   private _mediaHeightController = new MediaHeightController(this, '.embla__slide');
   private _refCarousel: Ref<HTMLElement> = createRef();
+  private _dvrkitSessions = new DvrkitPlaybackSessions();
 
   private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
     getTargetID: () =>
@@ -121,6 +123,9 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   }
 
   public disconnectedCallback(): void {
+    if (this.hass) {
+      this._dvrkitSessions.release(this.hass);
+    }
     this._mediaActionsController.destroy();
     this._mediaHeightController.destroy();
     super.disconnectedCallback();
@@ -455,15 +460,31 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     // The media supplies its own playback start time (via
     // `getPlaybackStartTime()`). Only a seek time set on the view can be
     // considered falling outside the media.
-    const seekTimeInMedia = !requestedSeek || selectedMedia.includesTime(requestedSeek);
+    const isDvrkit = selectedMedia.getContentID()?.startsWith('dvrkit://') ?? false;
+    const end = selectedMedia.getEndTime();
+    const seekTimeInMedia =
+      !requestedSeek ||
+      (selectedMedia.includesTime(requestedSeek) &&
+        (!isDvrkit || !end || requestedSeek < end));
+    const wasUnseekable = this.hasAttribute('unseekable');
     this.toggleAttribute('unseekable', !seekTimeInMedia);
     if (!seekTimeInMedia && !mediaPlayerController.playback?.isPaused()) {
       void mediaPlayerController.playback?.pause();
-    } else if (seekTimeInMedia && mediaPlayerController.playback?.isPaused()) {
+    } else if (
+      seekTimeInMedia &&
+      (!isDvrkit || wasUnseekable) &&
+      mediaPlayerController.playback?.isPaused()
+    ) {
       void mediaPlayerController.playback?.play();
     }
 
     if (!seekTimeInMedia) {
+      return;
+    }
+
+    // DVR EVENT playlists are reopened by the provider at the requested
+    // wall-clock time. Their media timeline starts at zero on every reopen.
+    if (isDvrkit) {
       return;
     }
 
@@ -496,6 +517,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
           .media=${media}
           .viewerConfig=${this.viewerConfig}
           .resolvedMediaCache=${this.resolvedMediaCache}
+          .dvrkitSessions=${this._dvrkitSessions}
           .cameraManager=${this.cameraManager}
           .cardWideConfig=${this.cardWideConfig}
           .forceSelected=${isSelected}

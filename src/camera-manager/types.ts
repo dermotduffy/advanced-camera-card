@@ -27,6 +27,7 @@ export enum QueryResultsType {
 }
 
 export enum Engine {
+  Dvrkit = 'dvrkit',
   Frigate = 'frigate',
   Generic = 'generic',
   MotionEye = 'motioneye',

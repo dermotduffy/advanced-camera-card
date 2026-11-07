@@ -15,6 +15,7 @@ import {
 
 import type { CameraManager } from '../../camera-manager/manager';
 import { rangesOverlap } from '../../camera-manager/range';
+import { Engine } from '../../camera-manager/types';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
 import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
@@ -111,6 +112,9 @@ export class TimelineController {
     1000 / 10,
   );
 
+  // Offset from the start of the dragged window, or null to use its end.
+  private _pendingDvrkitDrag: { offset: number | null } | null = null;
+
   // Need a way to separate when a user clicks (to pan the timeline) vs when a
   // user clicks (to choose a recording (non-event) to play).
   private _pointerHeld:
@@ -127,6 +131,8 @@ export class TimelineController {
   }
 
   public destroyTimeline(): void {
+    this._throttledSetViewDuringRangeChange.cancel();
+    this._pendingDvrkitDrag = null;
     this._timeline?.destroy();
     this._timeline = null;
     this._targetBarVisible = false;
@@ -398,8 +404,33 @@ export class TimelineController {
         this._setTargetBarAppropriately(targetTime);
       }
 
-      void this._throttledSetViewDuringRangeChange(targetTime, properties);
+      if (this._shouldDeferDvrkitDrag()) {
+        this._throttledSetViewDuringRangeChange.cancel();
+        this._pendingDvrkitDrag ??= {
+          offset: this._pointerHeld?.window
+            ? this._pointerHeld.time.getTime() - this._pointerHeld.window.start.getTime()
+            : null,
+        };
+      } else {
+        this._pendingDvrkitDrag = null;
+        void this._throttledSetViewDuringRangeChange(targetTime, properties);
+      }
     }
+  }
+
+  private _shouldDeferDvrkitDrag(): boolean {
+    const view = this._viewManagerEpoch?.manager.getView();
+    const cameraIDs = view?.query?.getAllCameraIDs();
+    const store = this._cameraManager?.getStore();
+    return (
+      this.getEffectivePanMode() !== 'pan' &&
+      ViewItemClassifier.isRecording(view?.queryResults?.getSelectedResult()) &&
+      !!cameraIDs?.size &&
+      !!store &&
+      [...cameraIDs].every(
+        (id) => store.getCamera(id)?.getEngine().getEngineType() === Engine.Dvrkit,
+      )
+    );
   }
 
   private async _setViewDuringRangeChange(
@@ -661,6 +692,16 @@ export class TimelineController {
     byUser: boolean;
     event: Event & { additionalEvent: string };
   }): Promise<void> => {
+    const pendingDrag = properties.byUser ? this._pendingDvrkitDrag : null;
+    if (pendingDrag && this._timeline) {
+      this._pendingDvrkitDrag = null;
+      this._throttledSetViewDuringRangeChange.cancel();
+      const targetTime =
+        pendingDrag.offset === null
+          ? properties.end
+          : new Date(properties.start.getTime() + pendingDrag.offset);
+      void this._setViewDuringRangeChange(targetTime, properties);
+    }
     this._removeTargetBar();
     const view = this._viewManagerEpoch?.manager.getView();
 

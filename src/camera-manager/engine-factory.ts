@@ -6,6 +6,7 @@ import type { EntityRegistryManager } from '../ha/registry/entity/types';
 import type { ResolvedMediaCache } from '../ha/resolved-media';
 import type { HomeAssistant } from '../ha/types';
 import { RecordingSegmentsCache } from './cache';
+import { DvrkitCameraManagerEngine } from './dvrkit/engine-dvrkit';
 import type { CameraManagerEngine } from './engine';
 import { CameraNoEntityError } from './error';
 // Every other engine subclasses GenericCameraManagerEngine so it is loaded no
@@ -38,6 +39,13 @@ export class CameraManagerEngineFactory {
   ): Promise<CameraManagerEngine> {
     let cameraManagerEngine: CameraManagerEngine;
     switch (engine) {
+      case Engine.Dvrkit:
+        cameraManagerEngine = new DvrkitCameraManagerEngine(
+          options.hassManager,
+          this._entityRegistryManager,
+          options.eventCallback,
+        );
+        break;
       case Engine.Generic:
         cameraManagerEngine = new GenericCameraManagerEngine(
           options.hassManager,
@@ -97,7 +105,9 @@ export class CameraManagerEngineFactory {
     cameraConfig: CameraConfig,
   ): Promise<Engine | null> {
     let engine: Engine | null = null;
-    if (cameraConfig.engine === 'frigate') {
+    if (cameraConfig.engine === 'dvrkit') {
+      engine = Engine.Dvrkit;
+    } else if (cameraConfig.engine === 'frigate') {
       engine = Engine.Frigate;
     } else if (cameraConfig.engine === 'motioneye') {
       engine = Engine.MotionEye;
@@ -123,6 +133,9 @@ export class CameraManagerEngineFactory {
         }
 
         switch (entity?.platform) {
+          case 'dvrkit':
+            engine = Engine.Dvrkit;
+            break;
           case 'frigate':
             engine = Engine.Frigate;
             break;

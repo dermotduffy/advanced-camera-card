@@ -4,6 +4,8 @@ import type { TimelineEventPropertiesResult, TimelineWindow } from 'vis-timeline
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
+import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
+import { Engine } from '../../../src/camera-manager/types';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import type {
   ViewManagerEpoch,
@@ -73,6 +75,7 @@ const createHarness = async (options?: {
   media?: ViewMedia[];
   mini?: boolean;
   style?: 'ribbon' | 'stack';
+  engines?: Engine[];
 }): Promise<TestHarness> => {
   stubMatchMedia().mockReturnValue({ matches: true });
 
@@ -95,7 +98,20 @@ const createHarness = async (options?: {
     return timeline;
   });
 
-  const cameraManager = createCameraManager(createStore([{ cameraID: CAMERA_ID }]));
+  const engines = options?.engines ?? [Engine.Generic];
+  const cameraIDs = engines.map((_, index) =>
+    index === 0 ? CAMERA_ID : `camera-${index + 1}`,
+  );
+  const cameraManager = createCameraManager(
+    createStore(
+      engines.map((engine, index) => ({
+        cameraID: cameraIDs[index],
+        ...(options?.engines && {
+          engine: mock<CameraManagerEngine>({ getEngineType: () => engine }),
+        }),
+      })),
+    ),
+  );
   vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
     title: 'Camera Title',
     icon: { icon: 'mdi:camera' },
@@ -103,7 +119,7 @@ const createHarness = async (options?: {
   vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue([]);
 
   const query = new UnifiedQuery();
-  query.addNode(createReviewQuery(CAMERA_ID));
+  cameraIDs.forEach((cameraID) => query.addNode(createReviewQuery(cameraID)));
 
   const controller = new TimelineController(new TimelineControllerTestHost());
   controller.setHass(createHASS());
@@ -349,6 +365,130 @@ describe('TimelineController', () => {
 
       harness.trigger('mouseUp');
       expect(harness.timeline.removeCustomTime).toHaveBeenCalledWith('target_bar');
+    });
+  });
+
+  describe('recording timeline seeks while dragging', () => {
+    const pointerTime = add(WINDOW.start, { minutes: 30 });
+    const recording = (): TestViewMedia =>
+      new TestViewMedia({
+        mediaType: ViewMediaType.Recording,
+        cameraID: CAMERA_ID,
+        id: 'recording-1',
+        startTime: WINDOW.start,
+        endTime: add(WINDOW.end, { hours: 1 }),
+      });
+    const range = (minutes: number): TimelineRangeChange => ({
+      start: add(WINDOW.start, { minutes }),
+      end: add(WINDOW.end, { minutes }),
+      byUser: true,
+      event: new Event('pointermove'),
+    });
+    const seekAt = (harness: TestHarness, index: number): Date | undefined => {
+      const parameters = vi.mocked(harness.manager.setViewByParameters).mock.calls[index]?.[0];
+      const view = createView();
+      parameters?.modifiers?.forEach((modifier) => modifier.modify(view));
+      return view.context?.mediaViewer?.seek;
+    };
+
+    it('commits only the final DVRKit seek after mouseUp and leaves no throttled seek', async () => {
+      const harness = await createHarness({
+        panMode: 'seek-in-media',
+        media: [recording()],
+        engines: [Engine.Dvrkit],
+      });
+      vi.useFakeTimers();
+      try {
+        harness.trigger('mouseDown', mock<TimelineEventPropertiesResult>({ time: pointerTime }));
+        harness.trigger('rangechange', range(1));
+        harness.trigger('rangechange', range(2));
+        vi.advanceTimersByTime(500);
+        harness.trigger('rangechange', range(3));
+        expect(harness.manager.setViewByParameters).not.toHaveBeenCalled();
+
+        harness.trigger('mouseUp');
+        harness.trigger('rangechanged', range(4));
+        expect(harness.manager.setViewByParameters).toHaveBeenCalledTimes(1);
+        expect(seekAt(harness, 0)).toEqual(add(pointerTime, { minutes: 4 }));
+
+        vi.runAllTimers();
+        expect(harness.manager.setViewByParameters).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('selects the final recording for each DVRKit camera in seek mode', async () => {
+      const early = new TestViewMedia({
+        mediaType: ViewMediaType.Recording,
+        cameraID: CAMERA_ID,
+        id: 'early',
+        startTime: WINDOW.start,
+        endTime: add(pointerTime, { minutes: 1 }),
+      });
+      const first = new TestViewMedia({
+        mediaType: ViewMediaType.Recording,
+        cameraID: CAMERA_ID,
+        id: 'first-final',
+        startTime: add(pointerTime, { minutes: 2 }),
+        endTime: WINDOW.end,
+      });
+      const second = new TestViewMedia({
+        mediaType: ViewMediaType.Recording,
+        cameraID: 'camera-2',
+        id: 'second-final',
+        startTime: add(pointerTime, { minutes: 2 }),
+        endTime: WINDOW.end,
+      });
+      const harness = await createHarness({
+        panMode: 'seek',
+        media: [early, first, second],
+        engines: [Engine.Dvrkit, Engine.Dvrkit],
+      });
+      vi.useFakeTimers();
+      try {
+        harness.trigger('mouseDown', mock<TimelineEventPropertiesResult>({ time: pointerTime }));
+        harness.trigger('rangechange', range(1));
+        harness.trigger('rangechange', range(2));
+        expect(harness.manager.setViewByParameters).not.toHaveBeenCalled();
+        harness.trigger('mouseUp');
+        harness.trigger('rangechanged', range(4));
+
+        expect(harness.manager.setViewByParameters).toHaveBeenCalledTimes(1);
+        expect(seekAt(harness, 0)).toEqual(add(pointerTime, { minutes: 4 }));
+        const parameters = vi.mocked(harness.manager.setViewByParameters).mock.calls[0]?.[0];
+        expect(parameters?.params?.queryResults?.getSelectedResult()).toBe(first);
+        expect(parameters?.params?.queryResults?.getSelectedResult(CAMERA_ID)).toBe(first);
+        expect(parameters?.params?.queryResults?.getSelectedResult('camera-2')).toBe(second);
+        vi.runAllTimers();
+        expect(harness.manager.setViewByParameters).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it.each([
+      ['generic', [Engine.Generic]],
+      ['mixed DVRKit and generic', [Engine.Dvrkit, Engine.Generic]],
+    ])('keeps intermediate seeks for %s engines', async (_label, engines) => {
+      const harness = await createHarness({
+        panMode: 'seek-in-media',
+        media: [recording()],
+        engines,
+      });
+      vi.useFakeTimers();
+      try {
+        harness.trigger('mouseDown', mock<TimelineEventPropertiesResult>({ time: pointerTime }));
+        harness.trigger('rangechange', range(1));
+        expect(harness.manager.setViewByParameters).toHaveBeenCalledTimes(1);
+        expect(seekAt(harness, 0)).toEqual(add(pointerTime, { minutes: 1 }));
+        harness.trigger('rangechange', range(2));
+        vi.advanceTimersByTime(100);
+        expect(harness.manager.setViewByParameters).toHaveBeenCalledTimes(2);
+        expect(seekAt(harness, 1)).toEqual(add(pointerTime, { minutes: 2 }));
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 
