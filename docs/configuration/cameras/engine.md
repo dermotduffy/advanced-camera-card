@@ -28,7 +28,7 @@ See [Live Provider Configuration](live-provider.md) for more details on live pro
 
 ## `dvrkit`
 
-The `dvrkit` engine uses a DVRKit Home Assistant camera entity for live video and recordings. The engine is automatically selected for camera entities registered by the `dvrkit` integration, or can be selected explicitly:
+The `dvrkit` engine requires the [DVRKit Home Assistant integration](https://github.com/ofa1/dvrkit) and uses its camera entities for live video and recordings. The engine is automatically selected for camera entities registered by the `dvrkit` integration, or can be selected explicitly:
 
 ```yaml
 cameras:
@@ -39,6 +39,8 @@ cameras:
 Recording availability and playback are provided through Home Assistant; the card does not connect directly to the DVR. Playback uses HLS EVENT streams of at most one hour. Seeking opens a new stream at the selected time, and playback starts at the next available keyframe. Events, snapshots, downloads and favorites are not supported.
 
 Use the media viewer grid with timeline `pan_mode: seek` to seek the cameras together. Each stream buffers independently; this is shared wall-clock seeking, not frame-locked synchronization. Resume opens a new stream at the paused position. The card retains per-camera replacement capabilities in session storage so reloading the same dashboard tab does not exhaust the DVR's stream limit. Avoid showing the same camera more than once on a dashboard, as those players share replacement ownership.
+
+When a recording is selected and every camera in the timeline's media query uses DVRKit, dragging in a seek mode moves the timeline normally but opens the new streams only when the drag ends. For a mixed-engine query, or if a camera's engine cannot be determined, the card retains the normal intermediate seek updates for all cameras.
 
 ## `frigate`
 
