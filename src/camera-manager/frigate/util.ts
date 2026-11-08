@@ -196,7 +196,10 @@ export const getReviewThumbnailURL = (
   if (!review.thumb_path) {
     return null;
   }
-  const path = review.thumb_path.replace('/media/frigate/', '');
+  // Some Frigate installs report the path relative to the media root (e.g.
+  // `/clips/review/...`) rather than under `/media/frigate/`, so also drop any
+  // leading slash to avoid a `//` that the integration's proxy cannot route.
+  const path = review.thumb_path.replace(/^\/media\/frigate\//, '').replace(/^\/+/, '');
   return `/api/frigate/${clientId}/${path}`;
 };
 

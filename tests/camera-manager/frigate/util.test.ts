@@ -349,6 +349,19 @@ describe('getReviewThumbnailURL', () => {
     ).toBe('/api/frigate/clientid/thumb.jpg');
   });
 
+  it('should not double the slash when thumb path is relative to the media root', () => {
+    expect(
+      getReviewThumbnailURL(
+        'clientid',
+        createFrigateReview({
+          thumb_path: '/clips/review/thumb-front_door-1792269801.387287-5wqej1.webp',
+        }),
+      ),
+    ).toBe(
+      '/api/frigate/clientid/clips/review/thumb-front_door-1792269801.387287-5wqej1.webp',
+    );
+  });
+
   it('should return null when no thumb path', () => {
     expect(
       getReviewThumbnailURL(
