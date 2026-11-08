@@ -4,6 +4,7 @@ import {
   getSafariMajorVersion,
   isWebKitUserAgent,
 } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/utils/user-agent';
+import { ANDROID_WEBVIEW_USER_AGENT } from '../test-utils';
 
 describe('isWebKitUserAgent', () => {
   it.each([
@@ -49,6 +50,7 @@ describe('isWebKitUserAgent', () => {
         '(KHTML, like Gecko) Chrome/126.0.6478.71 Mobile Safari/537.36',
       false,
     ],
+    ['Android WebView', ANDROID_WEBVIEW_USER_AGENT, false],
     [
       'Edge on Windows',
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
@@ -73,6 +75,10 @@ describe('getSafariMajorVersion', () => {
           '(KHTML, like Gecko) Version/17.4 Safari/605.1.15',
       ),
     ).toBe(17);
+  });
+
+  it('should return null for an Android WebView with a Version token', () => {
+    expect(getSafariMajorVersion(ANDROID_WEBVIEW_USER_AGENT)).toBe(null);
   });
 
   it('should return null for a non-Safari user agent', () => {
