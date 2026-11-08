@@ -27,6 +27,9 @@ import type {
   Entity,
   EntityRegistryManager,
 } from '../../../src/ha/registry/entity/types';
+import type { Endpoint } from '../../../src/types';
+import { liveProviderSupports2WayAudio } from '../../../src/utils/live-provider';
+import type * as LiveProviderUtils from '../../../src/utils/live-provider';
 import { ViewMediaType } from '../../../src/view/item';
 import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
@@ -40,6 +43,13 @@ import {
 import { createCapabilities } from '../test-utils';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
+
+// Partially mock to keep the real pure helpers while mocking the async
+// metadata fetch.
+vi.mock('../../../src/utils/live-provider', async (importOriginal) => ({
+  ...(await importOriginal<typeof LiveProviderUtils>()),
+  liveProviderSupports2WayAudio: vi.fn(),
+}));
 
 const callEventWatcherCallback = (
   eventWatcher: FrigateEventWatcher,
@@ -65,6 +75,7 @@ describe('FrigateCamera', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getPTZInfo).mockResolvedValue({});
+    vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(false);
   });
 
   describe('should initialize config', () => {
@@ -346,6 +357,79 @@ describe('FrigateCamera', () => {
       expect(camera.getCapabilities()?.has('recordings')).toBeFalsy();
       expect(camera.getCapabilities()?.has('trigger')).toBeTruthy();
       expect(vi.mocked(getPTZInfo)).not.toHaveBeenCalled();
+    });
+
+    describe('should detect 2-way audio', () => {
+      const initializeCamera = async (config: unknown): Promise<void> => {
+        const camera = new FrigateCamera(
+          createCameraConfig(config),
+          mock<CameraManagerEngine>(),
+        );
+        await camera.initialize({
+          hassManager: createHASSManager(),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+          frigateReviewWatcher: mock<FrigateReviewWatcher>(),
+        });
+      };
+
+      const expectMetadataEndpoint = (endpoint: Endpoint | null): void => {
+        expect(liveProviderSupports2WayAudio).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+          endpoint,
+          expect.anything(),
+        );
+      };
+
+      it('should probe the stream-info endpoint of the Frigate camera', async () => {
+        await initializeCamera({
+          frigate: { client_id: 'frigate', camera_name: 'front_door' },
+        });
+        expectMetadataEndpoint({
+          endpoint: '/api/frigate/frigate/go2rtc/streams/front_door',
+          sign: true,
+        });
+      });
+
+      it('should probe the configured go2rtc stream', async () => {
+        await initializeCamera({
+          frigate: { client_id: 'frigate', camera_name: 'front_door' },
+          go2rtc: { stream: 'front_door_talk' },
+        });
+        expectMetadataEndpoint({
+          endpoint: '/api/frigate/frigate/go2rtc/streams/front_door_talk',
+          sign: true,
+        });
+      });
+
+      it('should encode the stream name', async () => {
+        await initializeCamera({
+          frigate: { client_id: 'frigate' },
+          go2rtc: { stream: 'front door/talk' },
+        });
+        expectMetadataEndpoint({
+          endpoint: '/api/frigate/frigate/go2rtc/streams/front%20door%2Ftalk',
+          sign: true,
+        });
+      });
+
+      it('should probe a configured go2rtc url directly', async () => {
+        await initializeCamera({
+          frigate: { client_id: 'frigate', camera_name: 'front_door' },
+          go2rtc: { url: 'http://go2rtc' },
+        });
+        expectMetadataEndpoint({
+          endpoint: 'http://go2rtc/api/streams?src=front_door&video=all&audio=all',
+          sign: false,
+        });
+      });
+
+      it('should not probe without a stream', async () => {
+        await initializeCamera({ frigate: { client_id: 'frigate' } });
+        expectMetadataEndpoint(null);
+      });
     });
 
     describe('with ptz', () => {
@@ -795,6 +879,58 @@ describe('FrigateCamera', () => {
           sign: true,
         });
       });
+
+      it('should use the configured go2rtc stream', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: { client_id: 'frigate', camera_name: 'front_door' },
+            go2rtc: { stream: 'front_door_talk' },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints()?.go2rtc).toEqual({
+          endpoint: '/api/frigate/frigate/mse/api/ws?src=front_door_talk',
+          sign: true,
+        });
+      });
+
+      it('should use the configured go2rtc url', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: { client_id: 'frigate', camera_name: 'front_door' },
+            go2rtc: { url: 'http://go2rtc' },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints()?.go2rtc).toEqual({
+          endpoint: 'http://go2rtc/api/ws?src=front_door',
+          sign: false,
+        });
+      });
+
+      it('should encode the stream name', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: { client_id: 'frigate' },
+            go2rtc: { stream: 'front door/talk' },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints()?.go2rtc).toEqual({
+          endpoint: '/api/frigate/frigate/mse/api/ws?src=front%20door%2Ftalk',
+          sign: true,
+        });
+      });
+
+      it('should return no endpoint without a client_id', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: { camera_name: 'front_door' },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints()?.go2rtc).toBeUndefined();
+      });
     });
 
     describe('getJSMPEGEndpoint', () => {
@@ -826,6 +962,16 @@ describe('FrigateCamera', () => {
         );
         const endpoints = camera.getEndpoints();
         expect(endpoints?.jsmpeg).toBeUndefined();
+      });
+
+      it('should return null without a client_id', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: { camera_name: 'front_door' },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints()?.jsmpeg).toBeUndefined();
       });
     });
   });
