@@ -1,8 +1,11 @@
-import { MEDIA_CHUNK_SIZE_MAX } from '../../../config/schema/performance';
+import {
+  CARD_LOADING_INDICATOR_POSITIONS,
+  MEDIA_CHUNK_SIZE_MAX,
+} from '../../../config/schema/performance';
 import { localize } from '../../../localize/localize';
 import type { EditorForm } from '../types';
 import { createGrid } from './common/grid';
-import { createNumberSelector } from './common/selectors';
+import { createNumberSelector, createSelectSelector } from './common/selectors';
 
 /**
  * Get the form for the performance section (except the low-performance profile
@@ -24,6 +27,17 @@ export const getPerformanceSectionForms = (): EditorForm[] => [
             { name: 'card_loading_effects', selector: { boolean: {} } },
             { name: 'animated_progress_indicator', selector: { boolean: {} } },
           ]),
+          {
+            name: 'card_loading_indicator_position',
+            selector: createSelectSelector(
+              CARD_LOADING_INDICATOR_POSITIONS.map((position) => ({
+                value: position,
+                label: localize(
+                  `config.performance.features.card_loading_indicator_positions.${position}`,
+                ),
+              })),
+            ),
+          },
           createGrid([
             {
               name: 'media_chunk_size',

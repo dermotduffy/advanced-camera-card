@@ -439,6 +439,7 @@ describe('config defaults', () => {
           animated_progress_indicator: true,
           card_loading_effects: true,
           card_loading_indicator: true,
+          card_loading_indicator_position: 'center',
           media_chunk_size: 50,
         },
         style: {

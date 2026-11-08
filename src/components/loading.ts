@@ -7,6 +7,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
+import type { CardLoadingIndicatorPosition } from '../config/schema/performance.js';
 import loadingStyle from '../scss/loading.scss?inline';
 import type { EffectName, EffectsManagerInterface } from '../types';
 import { formatDateAndTime } from '../utils/basic.js';
@@ -46,6 +47,9 @@ export class AdvancedCameraCardLoading extends LitElement {
 
   @property({ type: Boolean, reflect: true })
   public loaded = false;
+
+  @property({ reflect: true })
+  public position: CardLoadingIndicatorPosition = 'center';
 
   private _effectName: EffectName | null = null;
 

@@ -57,3 +57,40 @@ span {
   font-size: medium;
   opacity: 0.7;
 }
+
+// In a corner (`card_loading_indicator_position`): compact, on one line, and
+// without a background, so the card's content shows from the start and the
+// center stays clear.
+:host(:not([position='center'])) {
+  flex-direction: row;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: transparent;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  // Physical corners, as with the PTZ positions: `left` stays left in a
+  // right-to-left language.
+  direction: ltr;
+}
+:host(:not([position='center'])) advanced-camera-card-icon {
+  // A fixed square: in the row layout the icon would otherwise stretch to
+  // the card's width and push the text to the far side.
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 0;
+}
+:host(:not([position='center'])) span {
+  font-size: small;
+}
+:host([position$='-left']) {
+  justify-content: flex-start;
+}
+:host([position$='-right']) {
+  justify-content: flex-end;
+}
+:host([position^='top-']) {
+  align-items: flex-start;
+}
+:host([position^='bottom-']) {
+  align-items: flex-end;
+}

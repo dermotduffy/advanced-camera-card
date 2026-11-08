@@ -463,6 +463,8 @@ export class AdvancedCameraCard extends LitElement {
                   .getInitializationManager()
                   .getSessionManager()
                   .wasEverInitialized()}
+                .position=${this._config?.performance?.features
+                  .card_loading_indicator_position ?? 'center'}
                 .effectsManager=${this._config?.performance?.features
                   .card_loading_effects !== false
                   ? this._controller.getEffectsManager()

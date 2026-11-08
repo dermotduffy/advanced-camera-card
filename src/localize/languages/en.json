@@ -612,6 +612,14 @@
         "animated_progress_indicator": "Animated progress",
         "card_loading_effects": "Loading effects",
         "card_loading_indicator": "Loading indicator",
+        "card_loading_indicator_position": "Loading indicator position",
+        "card_loading_indicator_positions": {
+          "bottom-left": "Bottom left, compact",
+          "bottom-right": "Bottom right, compact",
+          "center": "Center",
+          "top-left": "Top left, compact",
+          "top-right": "Top right, compact"
+        },
         "editor_label": "Feature Options",
         "max_simultaneous_engine_requests": "Parallel engine requests",
         "media_chunk_size": "Media chunk size"

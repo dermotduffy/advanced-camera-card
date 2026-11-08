@@ -277,6 +277,7 @@ describe('ConfigManager', () => {
         features: {
           animated_progress_indicator: true,
           card_loading_indicator: true,
+          card_loading_indicator_position: 'center',
           card_loading_effects: true,
           media_chunk_size: 50,
         },
