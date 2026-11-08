@@ -4,6 +4,12 @@ import { debounce, isEqual } from 'lodash-es';
 // is loading the player may be a much smaller height momentarily.
 export const SET_HEIGHT_DEBOUNCE_SECONDS = 0.3;
 
+// The card sets this to `none` while it is fullscreen (card.scss), so the
+// height cap is lifted in the first fullscreen frame. Otherwise the media keeps
+// its old height at the top of the screen until the debounced resize.
+export const FULLSCREEN_MAX_HEIGHT_PROPERTY =
+  '--advanced-camera-card-fullscreen-max-height';
+
 export class MediaHeightController {
   private _host: HTMLElement;
   private _selector: string;
@@ -98,7 +104,7 @@ export class MediaHeightController {
     this._selectedChild.getBoundingClientRect();
 
     if (selectedHeight && !isNaN(selectedHeight) && selectedHeight > 0) {
-      this._host.style.maxHeight = `${selectedHeight}px`;
+      this._host.style.maxHeight = `var(${FULLSCREEN_MAX_HEIGHT_PROPERTY}, ${selectedHeight}px)`;
     }
   }
 

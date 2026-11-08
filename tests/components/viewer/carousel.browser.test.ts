@@ -274,7 +274,8 @@ describe('AdvancedCameraCardViewerCarousel', () => {
 
     // Outside a grid the carousel fills the card, so the cap is what gives the
     // card the height of its media rather than of whatever contains it.
-    expect(parseFloat(carousel.style.maxHeight)).toBe(
+    // Computed: the inline cap is a var() with the pixel height as fallback.
+    expect(parseFloat(getComputedStyle(carousel).maxHeight)).toBe(
       carousel.getBoundingClientRect().height,
     );
   });

@@ -10,6 +10,7 @@ import {
 } from 'vitest';
 
 import {
+  FULLSCREEN_MAX_HEIGHT_PROPERTY,
   MediaHeightController,
   SET_HEIGHT_DEBOUNCE_SECONDS,
 } from '../../src/components-lib/media-height-controller';
@@ -19,6 +20,8 @@ import {
   MutationObserverMock,
   ResizeObserverMock,
 } from '../test-utils';
+
+const cap = (px: number): string => `var(${FULLSCREEN_MAX_HEIGHT_PROPERTY}, ${px}px)`;
 
 // @vitest-environment jsdom
 describe('MediaHeightController', () => {
@@ -61,7 +64,7 @@ describe('MediaHeightController', () => {
 
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
 
-      expect(host.style.maxHeight).toBe(`600px`);
+      expect(host.style.maxHeight).toBe(cap(600));
     });
 
     it('should not set height without children', () => {
@@ -104,7 +107,7 @@ describe('MediaHeightController', () => {
 
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
 
-      expect(host.style.maxHeight).toBe('800px');
+      expect(host.style.maxHeight).toBe(cap(800));
     });
 
     it('should not respond to resize observer without a selected child', () => {
@@ -159,7 +162,7 @@ describe('MediaHeightController', () => {
 
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
 
-      expect(host.style.maxHeight).toBe('200px');
+      expect(host.style.maxHeight).toBe(cap(200));
     });
 
     it('should set height on recalculate', () => {
@@ -178,7 +181,7 @@ describe('MediaHeightController', () => {
 
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
 
-      expect(host.style.maxHeight).toBe('700px');
+      expect(host.style.maxHeight).toBe(cap(700));
 
       child.getBoundingClientRect = vi.fn().mockReturnValue({
         height: 900,
@@ -188,7 +191,7 @@ describe('MediaHeightController', () => {
 
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
 
-      expect(host.style.maxHeight).toBe('900px');
+      expect(host.style.maxHeight).toBe(cap(900));
     });
 
     it('should not set height when the selected child has no height', () => {
@@ -231,13 +234,13 @@ describe('MediaHeightController', () => {
 
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
 
-      expect(host.style.maxHeight).toBe('750px');
+      expect(host.style.maxHeight).toBe(cap(750));
 
       controller.setSelected(1);
 
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
 
-      expect(host.style.maxHeight).toBe('562px');
+      expect(host.style.maxHeight).toBe(cap(562));
     });
   });
 
