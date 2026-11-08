@@ -193,6 +193,13 @@ export class AdvancedCameraCardGo2RTCExperimental
     this._mediaLoadedInfoSourceController.clear();
   }
 
+  // Lit keeps updating a detached element, and every update re-signs the URL
+  // and re-establishes the session, so a detached provider would otherwise
+  // stream to nothing.
+  protected shouldUpdate(): boolean {
+    return this.isConnected;
+  }
+
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('camera')) {
       // The session is re-established by `updated()` once the new camera's
