@@ -263,50 +263,44 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
     };
   }
 
-  // Build a go2rtc endpoint from an explicitly-configured go2rtc URL, or
-  // otherwise from the Frigate integration's proxy under the given path (the
-  // integration exposes the go2rtc stream API under 'mse' and the metadata API
-  // under 'go2rtc'). Without either a configured URL or a resolved client_id
-  // there is no usable endpoint.
-  private _buildGo2RTCEndpoint(
-    path: 'go2rtc' | 'mse',
-    builder: (
-      cameraConfig: CameraConfig,
-      options: { url: string; stream?: string },
-    ) => Endpoint | null,
-  ): Endpoint | null {
-    const url =
-      this._config.go2rtc?.url ??
-      (this._config.frigate.client_id
-        ? `/api/frigate/${this._config.frigate.client_id}/${path}`
-        : null);
-    if (!url) {
-      return null;
-    }
-    return builder(this._config, {
-      url,
-      stream: this._config.go2rtc?.stream ?? this._config.frigate.camera_name,
-    });
+  private _getGo2RTCStream(): string | null {
+    return this._config.go2rtc?.stream ?? this._config.frigate.camera_name ?? null;
   }
 
+  private _getFrigateProxyURL(path: string): string | null {
+    return this._config.frigate.client_id
+      ? `/api/frigate/${this._config.frigate.client_id}/${path}`
+      : null;
+  }
+
+  private _getFrigateProxyEndpoint(path: string): Endpoint | null {
+    const url = this._getFrigateProxyURL(path);
+    return url ? { endpoint: url, sign: true } : null;
+  }
+
+  // Without a configured go2rtc URL the card asks Frigate's own stream-info
+  // endpoint, which probes go2rtc on its behalf.
   protected override _getGo2RTCMetadataEndpoint(): Endpoint | null {
-    return this._buildGo2RTCEndpoint('go2rtc', getGo2RTCMetadataEndpoint);
+    const stream = this._getGo2RTCStream();
+    if (!stream) {
+      return null;
+    }
+    if (this._config.go2rtc?.url) {
+      return getGo2RTCMetadataEndpoint(this._config, { stream });
+    }
+    return this._getFrigateProxyEndpoint(`go2rtc/streams/${encodeURIComponent(stream)}`);
   }
 
   protected override _getGo2RTCStreamEndpoint(): Endpoint | null {
-    return this._buildGo2RTCEndpoint('mse', getGo2RTCStreamEndpoint);
+    const stream = this._getGo2RTCStream();
+    const url = this._config.go2rtc?.url ?? this._getFrigateProxyURL('mse');
+    return stream && url ? getGo2RTCStreamEndpoint(this._config, { url, stream }) : null;
   }
 
   private _getJSMPEGEndpoint(): Endpoint | null {
-    if (!this._config.frigate.camera_name || !this._config.frigate.client_id) {
-      return null;
-    }
-    return {
-      endpoint:
-        `/api/frigate/${this._config.frigate.client_id}` +
-        `/jsmpeg/${this._config.frigate.camera_name}`,
-      sign: true,
-    };
+    return this._config.frigate.camera_name
+      ? this._getFrigateProxyEndpoint(`jsmpeg/${this._config.frigate.camera_name}`)
+      : null;
   }
 
   protected override _getUIEndpoint(context?: CameraEndpointsContext): Endpoint | null {

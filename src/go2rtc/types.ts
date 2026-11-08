@@ -7,7 +7,8 @@ const go2RTCProducerSchema = z.object({
 /**
  * Zod schema for Go2RTC stream information. Schema only covers the minimum
  * required by the card.
- * Response from `/api/streams?src=${stream}&video=all&audio=all`
+ * Response from `/api/streams?src=${stream}&video=all&audio=all`, which
+ * Frigate relays from `/api/go2rtc/streams/${stream}`.
  */
 export const go2RTCStreamInfoSchema = z.object({
   producers: z.array(go2RTCProducerSchema).optional(),
