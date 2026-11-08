@@ -4,7 +4,7 @@ import { actionsSchema } from './actions/types';
 import { nextPreviousControlConfigSchema } from './common/controls/next-previous';
 import { ptzControlsConfigSchema, ptzControlsDefaults } from './common/controls/ptz';
 import {
-  thumbnailControlsDefaults,
+  thumbnailsControlDefaults,
   thumbnailsControlSchema,
 } from './common/controls/thumbnails';
 import {
@@ -35,7 +35,7 @@ export const viewerConfigDefault = {
       size: 48,
       style: 'thumbnails' as const,
     },
-    thumbnails: thumbnailControlsDefaults,
+    thumbnails: thumbnailsControlDefaults,
     timeline: miniTimelineConfigDefault,
     ptz: {
       ...ptzControlsDefaults,

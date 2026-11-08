@@ -274,6 +274,30 @@ describe('StyleManager', () => {
       ).toEqual('none');
     });
 
+    it('should disable the backdrop filter when configured', () => {
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      vi.mocked(api.getConfigManager().getCardWideConfig).mockReturnValue(
+        createConfig({
+          performance: {
+            style: {
+              backdrop_filter: false,
+            },
+          },
+        }),
+      );
+      const manager = new StyleManager(api);
+
+      manager.updateFromConfig();
+
+      expect(
+        element.style.getPropertyValue(
+          '--advanced-camera-card-backdrop-filter-override',
+        ),
+      ).toEqual('none');
+    });
+
     it('border_radius disabled sets override', () => {
       const api = createCardAPI();
       const element = document.createElement('div');

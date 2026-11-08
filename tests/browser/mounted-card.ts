@@ -2,8 +2,13 @@ import { expect, onTestFinished, vi } from 'vitest';
 
 import type { AdvancedCameraCard } from '../../src/card';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
-import { ACTION_HANDLER_HOLD_SECONDS } from '../../src/const';
-import { clickElement, deepQuery, deepQueryAll, getAllShadowRoots } from './dom';
+import {
+  clickElement,
+  deepQuery,
+  deepQueryAll,
+  getAllShadowRoots,
+  holdElement,
+} from './dom';
 import type { FakeEntityOptions, FakeHASS } from './fake-hass';
 import { defineHAElementStubs } from './ha-element-stubs';
 
@@ -602,24 +607,9 @@ export class MountedCard {
   /**
    * Press and keep holding a control until the card takes it as a hold, which
    * is a second action several controls carry alongside their tap.
-   *
-   * Assembled from events rather than driven with a real pointer, because
-   * `userEvent` offers whole gestures only (click, hover, drag) and none of
-   * them stops part way through a press.
    */
   public async holdControl(name: string): Promise<void> {
-    const control = await this.findControl(name);
-
-    // Composed as well as bubbling: a real press crosses the shadow boundaries
-    // between a control and whatever is listening above it.
-    const press = { bubbles: true, composed: true };
-    control.dispatchEvent(new MouseEvent('mousedown', press));
-    await vi.advanceTimersByTimeAsync(ACTION_HANDLER_HOLD_SECONDS * 1000);
-    control.dispatchEvent(new MouseEvent('mouseup', press));
-
-    // The card takes the click, not the mouseup, as the end of a press. A real
-    // pointer sends both, in this order.
-    control.click();
+    await holdElement(await this.findControl(name));
   }
 
   /**

@@ -34,6 +34,7 @@ import type { CarouselSelected } from '../../utils/embla/carousel-controller.js'
 import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewMedia } from '../../view/item.js';
+import { getMediaSeekTarget } from '../../view/media-seek-target.js';
 
 import '../carousel';
 import '../next-prev-control.js';
@@ -444,31 +445,28 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       return;
     }
 
-    const view = this.viewManagerEpoch?.manager.getView();
-    const requestedSeek = view?.context?.mediaViewer?.seek ?? null;
-    const seek = requestedSeek ?? selectedMedia.getPlaybackStartTime();
+    const seek = getMediaSeekTarget(
+      this.viewManagerEpoch?.manager.getView() ?? null,
+      selectedMedia,
+    );
 
     if (!seek) {
       return;
     }
 
-    // The media supplies its own playback start time (via
-    // `getPlaybackStartTime()`). Only a seek time set on the view can be
-    // considered falling outside the media.
-    const seekTimeInMedia = !requestedSeek || selectedMedia.includesTime(requestedSeek);
-    this.toggleAttribute('unseekable', !seekTimeInMedia);
-    if (!seekTimeInMedia && !mediaPlayerController.playback?.isPaused()) {
+    this.toggleAttribute('unseekable', !seek.inMedia);
+    if (!seek.inMedia && !mediaPlayerController.playback?.isPaused()) {
       void mediaPlayerController.playback?.pause();
-    } else if (seekTimeInMedia && mediaPlayerController.playback?.isPaused()) {
+    } else if (seek.inMedia && mediaPlayerController.playback?.isPaused()) {
       void mediaPlayerController.playback?.play();
     }
 
-    if (!seekTimeInMedia) {
+    if (!seek.inMedia) {
       return;
     }
 
     const seekTime =
-      (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek)) ?? null;
+      (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek.time)) ?? null;
 
     if (seekTime !== null) {
       void mediaPlayerController.seek?.(seekTime);

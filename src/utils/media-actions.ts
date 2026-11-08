@@ -1,10 +1,26 @@
+import type { CameraManager } from '../camera-manager/manager';
+import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request';
 import type { ViewItemManager } from '../card-controller/view/item-manager';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context';
+import { RemoveItemViewModifier } from '../card-controller/view/modifiers/remove-item';
+import { UpdateItemViewModifier } from '../card-controller/view/modifiers/update-item';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
+import { MediaNotificationController } from '../components-lib/notification/media-controller';
+import type { HomeAssistant } from '../ha/types';
 import type { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
+import { createNotificationAction } from './action';
 import { errorToConsole } from './basic';
 import { fireAdvancedCameraCardEvent } from './fire-advanced-camera-card-event';
+
+const replaceItemInView = (
+  item: ViewItem,
+  removeItem: boolean,
+  viewManagerEpoch?: ViewManagerEpoch,
+): void =>
+  viewManagerEpoch?.manager.setViewWithModifiers([
+    removeItem ? new RemoveItemViewModifier(item) : new UpdateItemViewModifier(item),
+  ]);
 
 export async function toggleReviewed(
   host: HTMLElement,
@@ -24,24 +40,12 @@ export async function toggleReviewed(
     errorToConsole(e);
     return false;
   }
-  item.setReviewed(newState);
 
-  // Only remove from query results if the new state conflicts with the filter:
-  // - If filter is 'false' (unreviewed only) and we toggled TO reviewed → remove
-  // - If filter is 'true' (reviewed only) and we toggled TO unreviewed → remove
-  // - If filter is 'undefined' (both) → never remove
-  const shouldRemove = filterReviewed !== undefined && filterReviewed !== newState;
-
-  if (shouldRemove) {
-    const view = viewManagerEpoch?.manager.getView();
-    if (view?.queryResults) {
-      viewManagerEpoch?.manager.setViewByParameters({
-        params: {
-          queryResults: view.queryResults.clone().removeItem(item),
-        },
-      });
-    }
-  }
+  replaceItemInView(
+    item,
+    filterReviewed !== undefined && filterReviewed !== newState,
+    viewManagerEpoch,
+  );
 
   // Provide visual feedback on review.
   fireAdvancedCameraCardEvent<ViewItem>(host, 'media:reviewed', item);
@@ -52,6 +56,8 @@ export async function toggleReviewed(
 export async function toggleFavorite(
   item: ViewItem,
   viewItemManager?: ViewItemManager,
+  viewManagerEpoch?: ViewManagerEpoch,
+  filterFavorite?: boolean,
 ): Promise<boolean> {
   if (!ViewItemClassifier.isMedia(item) || !viewItemManager) {
     return false;
@@ -64,6 +70,13 @@ export async function toggleFavorite(
     errorToConsole(e);
     return false;
   }
+
+  replaceItemInView(
+    item,
+    filterFavorite !== undefined && filterFavorite !== newState,
+    viewManagerEpoch,
+  );
+
   return true;
 }
 
@@ -98,8 +111,41 @@ export function navigateToTimeline(
       queryResults: viewManagerEpoch.manager
         .getView()
         ?.queryResults?.clone()
-        .selectResultIfFound((media) => media === item),
+        .selectResultIfFound((media) => item.isSameAs(media)),
     },
     modifiers: [new RemoveContextViewModifier(['timeline'])],
+  });
+}
+
+export interface MediaInfoContext {
+  hass?: HomeAssistant;
+  cameraManager?: CameraManager;
+  viewItemManager?: ViewItemManager;
+  viewManagerEpoch?: ViewManagerEpoch;
+  filterReviewed?: boolean;
+  filterFavorite?: boolean;
+}
+
+export function showMediaInfoNotification(
+  host: HTMLElement,
+  item: ViewItem,
+  context: MediaInfoContext,
+): void {
+  const notificationController = new MediaNotificationController(item);
+  notificationController.calculate({ cameraManager: context.cameraManager });
+
+  dispatchActionExecutionRequest(host, {
+    actions: [
+      createNotificationAction(
+        notificationController.getNotification({
+          hass: context.hass,
+          viewItemManager: context.viewItemManager,
+          viewManagerEpoch: context.viewManagerEpoch,
+          capabilities: context.viewItemManager?.getCapabilities(item),
+          filterReviewed: context.filterReviewed,
+          filterFavorite: context.filterFavorite,
+        }),
+      ),
+    ],
   });
 }

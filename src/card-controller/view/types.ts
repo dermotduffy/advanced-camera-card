@@ -7,7 +7,7 @@ import type { QueryResults } from '../../view/query-results.js';
 import type { View, ViewParameters } from '../../view/view.js';
 
 export interface ViewModifier {
-  modify(view: View): void;
+  modify(view: View): boolean;
 }
 
 export interface QueryExecutorOptions {

@@ -18,7 +18,9 @@ describe('SetReviewAction', () => {
 
     const queryResults = new QueryResults({ results: [item], selectedIndex: 0 });
     const view = createView({ queryResults });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+    const viewManager = api.getViewManager();
+    vi.mocked(viewManager.getView).mockReturnValue(view);
+    vi.mocked(viewManager.getEpoch).mockReturnValue({ manager: viewManager });
 
     const element = mock<HTMLElement>();
     vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
@@ -33,9 +35,7 @@ describe('SetReviewAction', () => {
     await action.execute(api);
 
     expect(api.getViewItemManager().reviewMedia).toHaveBeenCalledWith(item, true);
-
-    // toggleReviewed mutates the item in-place
-    expect(item.isReviewed()).toBe(true);
+    expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalled();
 
     expect(element.dispatchEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -55,7 +55,9 @@ describe('SetReviewAction', () => {
 
     const queryResults = new QueryResults({ results: [item], selectedIndex: 0 });
     const view = createView({ queryResults });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+    const viewManager = api.getViewManager();
+    vi.mocked(viewManager.getView).mockReturnValue(view);
+    vi.mocked(viewManager.getEpoch).mockReturnValue({ manager: viewManager });
     vi.mocked(api.getCardElementManager().getElement).mockReturnValue(
       mock<HTMLElement>(),
     );
@@ -71,7 +73,7 @@ describe('SetReviewAction', () => {
     await action.execute(api);
 
     expect(api.getViewItemManager().reviewMedia).toHaveBeenCalledWith(item, true);
-    expect(item.isReviewed()).toBe(true);
+    expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalled();
   });
 
   it('should not act when requested state matches current state', async () => {

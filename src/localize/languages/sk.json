@@ -9,7 +9,7 @@
     "close": "Zavrieť",
     "event": "Udalosť",
     "folder": "Priečinok",
-    "in_progress": "Prebieha...",
+    "in_progress": "Prebieha",
     "no_media": "Žiadne médiá na zobrazenie",
     "retry": "Skúsiť znova",
     "set_reviews": {
@@ -295,7 +295,6 @@
             "none": "Žiadny",
             "right": "Panel vpravo"
           },
-          "show_details": "Zobraziť podrobnosti",
           "show_download_control": "Zobraziť ovládanie sťahovania",
           "show_favorite_control": "Zobraziť ovládanie obľúbených",
           "show_info_control": "Zobraziť ovládanie informácií",
@@ -978,7 +977,6 @@
     "start": "Začiatok",
     "tag": "Štítok",
     "timeline": "Zobraziť médium na časovej osi",
-    "title": "Názov",
     "where": "Kde"
   },
   "timeline": {

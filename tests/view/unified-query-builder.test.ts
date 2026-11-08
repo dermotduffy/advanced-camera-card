@@ -6,7 +6,7 @@ import type { CameraManagerStore } from '../../src/camera-manager/store';
 import { QueryType } from '../../src/camera-manager/types';
 import type { FoldersManager } from '../../src/card-controller/folders/manager';
 import type {
-  FolderPathComponent,
+  FolderPathLevel,
   FolderQuery,
 } from '../../src/card-controller/folders/types';
 import type { FolderConfig } from '../../src/config/schema/folders';
@@ -23,7 +23,7 @@ import { isRecordingQuery, isReviewQuery } from './test-utils';
 // Helper to create FolderQuery for tests
 const createFolderQueryParams = (
   folder: FolderConfig,
-  path: [FolderPathComponent, ...FolderPathComponent[]],
+  path: [FolderPathLevel, ...FolderPathLevel[]],
 ): FolderQuery => ({
   source: QuerySource.Folder,
   folder,
@@ -481,44 +481,11 @@ describe('UnifiedQueryBuilder', () => {
     });
   });
 
-  describe('buildFolderQueryWithPath', () => {
-    it('should build folder query', () => {
-      const { cameraManager, foldersManager } = createMocks();
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const folder = createFolder({ id: 'folder1', title: 'Test' });
-      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
-
-      const query = builder.buildFolderQueryWithPath(folder, path);
-
-      const nodes = query.getNodes();
-      expect(nodes).toHaveLength(1);
-      expect(nodes[0]).toMatchObject({
-        source: QuerySource.Folder,
-        folder,
-        path,
-      });
-    });
-
-    it('should not limit the number of items', () => {
-      const { cameraManager, foldersManager } = createMocks();
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const folder = createFolder({ id: 'folder1', title: 'Test' });
-      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
-
-      const query = builder.buildFolderQueryWithPath(folder, path);
-
-      expect(query.getNodes()[0]).toMatchObject({
-        source: QuerySource.Folder,
-      });
-      expect(query.getNodes()[0]).not.toHaveProperty('limit');
-    });
-  });
-
   describe('buildDefaultFolderQuery', () => {
     it('should build query from folder manager params', () => {
       const { cameraManager, foldersManager } = createMocks();
       const folder = createFolder({ id: 'folder1', title: 'Test' });
-      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
+      const path: [FolderPathLevel] = [{}];
 
       foldersManager.getFolder.mockReturnValue(folder);
       foldersManager.getDefaultQueryParameters.mockReturnValue(
@@ -561,6 +528,19 @@ describe('UnifiedQueryBuilder', () => {
       builder.buildDefaultFolderQuery();
 
       expect(foldersManager.getFolder).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('buildFolderQuery', () => {
+    it('should build query from a folder query node', () => {
+      const { cameraManager, foldersManager } = createMocks();
+      const folder = createFolder({ id: 'folder1', title: 'Test' });
+      const node = createFolderQueryParams(folder, [{}]);
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildFolderQuery(node);
+
+      expect(query.getNodes()).toEqual([node]);
     });
   });
 
@@ -958,7 +938,7 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
 
       const folder = createFolder({ id: 'folder1', title: 'Test Folder' });
-      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
+      const path: [FolderPathLevel] = [{}];
 
       foldersManager.getFolder.mockReturnValue(folder);
       foldersManager.getDefaultQueryParameters.mockReturnValue(
@@ -985,7 +965,7 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
 
       const folder = createFolder({ id: 'folder1', title: 'Test Folder' });
-      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
+      const path: [FolderPathLevel] = [{}];
 
       foldersManager.getFolder.mockReturnValue(folder);
       foldersManager.getDefaultQueryParameters.mockReturnValue(
@@ -1009,7 +989,7 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
 
       const folder = createFolder({ id: 'default-folder', title: 'Default' });
-      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
+      const path: [FolderPathLevel] = [{}];
 
       // Mock getting the default folder (id undefined)
       foldersManager.getFolder.calledWith(undefined).mockReturnValue(folder);
@@ -1235,7 +1215,7 @@ describe('UnifiedQueryBuilder', () => {
         return null;
       });
       foldersManager.getDefaultQueryParameters.mockImplementation((folder) => {
-        return folder ? createFolderQueryParams(folder, [{ ha: { id: 'id' } }]) : null;
+        return folder ? createFolderQueryParams(folder, [{}]) : null;
       });
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);

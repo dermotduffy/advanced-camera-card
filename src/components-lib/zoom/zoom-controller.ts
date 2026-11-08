@@ -4,7 +4,11 @@ import Panzoom, {
 } from '@dermotduffy/panzoom';
 import { round, throttle } from 'lodash-es';
 
-import { arefloatsApproximatelyEqual, isHoverableDevice } from '../../utils/basic';
+import {
+  arefloatsApproximatelyEqual,
+  isHoverableDevice,
+  type Point,
+} from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import {
   isZoomEmpty,
@@ -30,6 +34,16 @@ export class ZoomController {
   // through untouched (used to yield to PTZ gesture mode).
   private _zoom = true;
 
+  // Whether the user has zoomed/panned themselves. Panzoom holds a single
+  // transform that both the card and the user write to, so the controller must
+  // know whose values to maintain (e.g. in the event of a resize). A newly
+  // supplied configuration supersedes the user.
+  private _userAdjusted = false;
+
+  // Where the user panned to in the percentages (to survive an element resize).
+  // Unset at scale 1, where there is nothing to pan.
+  private _userPan: Point | null = null;
+
   private _defaultSettings: PartialZoomSettings | null;
   private _settings: PartialZoomSettings | null;
 
@@ -39,7 +53,23 @@ export class ZoomController {
   private _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
   private _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
 
-  private _resizeObserver = new ResizeObserver(this._debouncedUpdater);
+  // A resize changes the element size that pan percentages are measured
+  // against, so the pan is re-derived at the new size (from the card's
+  // percentages or the user's depending on who moved last).
+  private _debouncedResizeUpdater = throttle(() => {
+    const panzoom = this._panzoom;
+    if (!panzoom) {
+      return;
+    }
+
+    if (this._userAdjusted) {
+      this._updateBasedOnUserPan(panzoom);
+    } else {
+      this._updateBasedOnConfig();
+    }
+  }, 50);
+
+  private _resizeObserver = new ResizeObserver(this._debouncedResizeUpdater);
 
   private _events = isHoverableDevice()
     ? {
@@ -186,16 +216,19 @@ export class ZoomController {
     this._resizeObserver.disconnect();
     this._element.removeEventListener('panzoomchange', this._debouncedChangeHandler);
 
+    this._clearUserAdjustment();
     this._panzoom = null;
   }
 
   public setDefaultSettings(config: PartialZoomSettings | null): void {
     this._defaultSettings = config;
+    this._clearUserAdjustment();
     this._debouncedUpdater();
   }
 
   public setSettings(config: PartialZoomSettings | null): void {
     this._settings = config;
+    this._clearUserAdjustment();
     this._debouncedUpdater();
   }
 
@@ -224,6 +257,16 @@ export class ZoomController {
     }
 
     const converted = this._convertXYPanToPercent(pz.x, pz.y, pz.scale);
+
+    // Panzoom sets originalEvent only for a change that a gesture drove.
+    if (pz.originalEvent) {
+      this._userAdjusted = true;
+
+      if (converted) {
+        this._userPan = converted;
+      }
+    }
+
     const observed: ZoomSettingsObserved = {
       pan: {
         x: converted?.x ?? ZOOM_DEFAULT_PAN_X,
@@ -265,16 +308,49 @@ export class ZoomController {
     return isZoomEmpty(this._settings) ? this._defaultSettings : this._settings;
   }
 
+  private _clearUserAdjustment(): void {
+    this._userAdjusted = false;
+    this._userPan = null;
+  }
+
+  // Re-derives the user's pan for the current element size, at the scale they
+  // chose (panzoom's scale does not depend on the element size, so that is left
+  // untouched).
+  private _updateBasedOnUserPan(panzoom: PanzoomObject): void {
+    if (!this._userPan) {
+      return;
+    }
+
+    const converted = this._convertPercentToXYPan(
+      this._userPan.x,
+      this._userPan.y,
+      panzoom.getScale(),
+    );
+    if (!converted) {
+      return;
+    }
+
+    panzoom.pan(converted.x, converted.y, { animate: false });
+  }
+
   private _updateBasedOnConfig(): void {
-    if (!this._panzoom) {
+    const panzoom = this._panzoom;
+    if (!panzoom) {
+      return;
+    }
+
+    // Applying the configuration before layout has sized the element would zoom
+    // at dead center. The resize that follows layout applies it in full.
+    if (!this._hasSize()) {
       return;
     }
 
     const config = this._getConfigToUse();
     const desiredScale = config?.zoom ?? ZOOM_DEFAULT_SCALE;
 
-    // Transform won't exist (will be null) if the element has no dimensions, or
-    // if the desired scale has no zoom (i.e. is 1).
+    // Transform won't exist (will be null) if the desired scale has no zoom
+    // (i.e. is 1), in which case there is nothing to pan and dead center is
+    // correct.
     const converted = this._convertPercentToXYPan(
       config?.pan?.x ?? ZOOM_DEFAULT_PAN_X,
       config?.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
@@ -289,15 +365,15 @@ export class ZoomController {
       this._isZoomEqual(
         { zoom: desiredScale, pan: { x: x, y: y } },
         {
-          zoom: this._panzoom.getScale(),
-          pan: this._panzoom.getPan(),
+          zoom: panzoom.getScale(),
+          pan: panzoom.getPan(),
         },
       )
     ) {
       return;
     }
 
-    this._panzoom.zoom(desiredScale, {
+    panzoom.zoom(desiredScale, {
       // Zoom is stepped, not animated. If it is animated, there is interaction
       // between the zoom and the pan below, and the pan would need to be
       // delayed until after the zoom is complete.
@@ -312,17 +388,24 @@ export class ZoomController {
     //
     // See: https://github.com/timmywil/panzoom?tab=readme-ov-file#a-note-on-the-async-nature-of-panzoom
     window.requestAnimationFrame(() => {
-      // On slow Android WebView devices, the zoom transform may not have fully
-      // painted by the time this callback runs. Panzoom's contain logic would
-      // then clip the pan to incorrect bounds. Temporarily disable containment
-      // for this programmatic pan, then restore it.
-      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2223
-      this._panzoom?.setOptions({ contain: undefined });
-      this._panzoom?.pan(x, y, {
+      // Protect against deactivation.
+      if (this._panzoom !== panzoom) {
+        return;
+      }
+
+      panzoom.pan(x, y, {
         animate: true,
         duration: 100,
+
+        // An explicit undefined overrides the `contain: 'outside'` the instance
+        // was constructed with, turning containment off for just this one pan.
+        // Panzoom measures the element to decide how far it may pan, and on a
+        // slow device the browser may not have applied the zoom transform yet,
+        // so it would measure the unzoomed box and clamp this pan back toward
+        // center. `_convertPercentToXYPan` already keeps these coordinates
+        // within the range the desired scale allows, so nothing is lost.
+        contain: undefined,
       });
-      this._panzoom?.setOptions({ contain: 'outside' });
     });
   }
 
@@ -334,12 +417,8 @@ export class ZoomController {
    * @param scale The desired (not current) scale.
    * @returns An object with x/y pan % values or null on error.
    */
-  private _convertPercentToXYPan(
-    x: number,
-    y: number,
-    scale: number,
-  ): { x: number; y: number } | null {
-    const minMax = this._getTransformMinMax(scale, this._panzoom?.getScale());
+  private _convertPercentToXYPan(x: number, y: number, scale: number): Point | null {
+    const minMax = this._getTransformMinMax(scale);
     if (minMax === null) {
       return null;
     }
@@ -350,12 +429,8 @@ export class ZoomController {
     };
   }
 
-  private _convertXYPanToPercent(
-    x: number,
-    y: number,
-    scale: number,
-  ): { x: number; y: number } | null {
-    const minMax = this._getTransformMinMax(scale, this._panzoom?.getScale());
+  private _convertXYPanToPercent(x: number, y: number, scale: number): Point | null {
+    const minMax = this._getTransformMinMax(scale);
     if (minMax === null) {
       return null;
     }
@@ -372,23 +447,20 @@ export class ZoomController {
     };
   }
 
-  private _getTransformMinMax(
-    desiredScale: number,
-    currentScale?: number,
-  ): {
+  private _getTransformMinMax(scale: number): {
     minX: number;
     maxX: number;
     minY: number;
     maxY: number;
   } | null {
-    const rendered = this._getRenderedSize(currentScale);
-
-    if (!rendered.width || !rendered.height) {
+    if (!this._hasSize()) {
       return null;
     }
 
-    const minX = (rendered.width * (desiredScale - 1)) / desiredScale / 2;
-    const minY = (rendered.height * (desiredScale - 1)) / desiredScale / 2;
+    const size = this._getLayoutSize();
+
+    const minX = (size.width * (scale - 1)) / scale / 2;
+    const minY = (size.height * (scale - 1)) / scale / 2;
 
     if (arefloatsApproximatelyEqual(minX, 0) || arefloatsApproximatelyEqual(minY, 0)) {
       return null;
@@ -402,11 +474,18 @@ export class ZoomController {
     };
   }
 
-  private _getRenderedSize(scale?: number): { width: number; height: number } {
-    const rect = this._element.getBoundingClientRect();
+  private _hasSize(): boolean {
+    const size = this._getLayoutSize();
+    return !!size.width && !!size.height;
+  }
+
+  // The element's size excluding any transform (`getBoundingClientRect()`
+  // includes the Panzoom transform).
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2223
+  private _getLayoutSize(): { width: number; height: number } {
     return {
-      width: rect.width / (scale ?? ZOOM_DEFAULT_SCALE),
-      height: rect.height / (scale ?? ZOOM_DEFAULT_SCALE),
+      width: this._element.offsetWidth,
+      height: this._element.offsetHeight,
     };
   }
 

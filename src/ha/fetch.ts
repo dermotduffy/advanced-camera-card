@@ -2,6 +2,7 @@ import type { ZodType } from 'zod';
 
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError, type Endpoint } from '../types';
+import { createAbortSignalWithTimeout } from '../utils/abort-signal';
 import { homeAssistantGetSignedURLIfNecessary } from './sign-path';
 import type { HomeAssistant } from './types';
 
@@ -39,12 +40,14 @@ export const homeAssistantSignAndFetch = async <T>(
     });
   }
 
+  const signal = options?.timeoutSeconds
+    ? createAbortSignalWithTimeout(options.timeoutSeconds)
+    : null;
+
   let response: Response;
   try {
     response = await fetch(url, {
-      ...(options?.timeoutSeconds && {
-        signal: AbortSignal.timeout(options.timeoutSeconds * 1000),
-      }),
+      ...(signal && { signal }),
     });
   } catch (error) {
     throw new AdvancedCameraCardError(`${localize('error.failed_fetch')}: ${url}`, {

@@ -106,6 +106,12 @@ export class StyleManager {
 
     setOrRemoveStyleProperty(
       element,
+      !styles.backdrop_filter,
+      '--advanced-camera-card-backdrop-filter-override',
+      'none',
+    );
+    setOrRemoveStyleProperty(
+      element,
       !styles.box_shadow,
       '--advanced-camera-card-box-shadow-override',
       'none',

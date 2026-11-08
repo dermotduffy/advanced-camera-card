@@ -948,7 +948,7 @@ elements:
         zoom: 5
         pan:
           x: 58
-          y: 14
+          'y': 14
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-a-circle-outline
     title: Smart select between real and digital PTZ

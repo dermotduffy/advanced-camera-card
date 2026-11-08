@@ -60,7 +60,6 @@ export class EffectsManager implements EffectsManagerInterface {
 
   public removeContainer(): void {
     this._container = null;
-    this._pendingEffects.clear();
 
     for (const timer of this._durationTimers.values()) {
       timer.stop();
@@ -166,6 +165,7 @@ export class EffectsManager implements EffectsManagerInterface {
   private _startPendingEffects(): void {
     for (const [name, options] of this._pendingEffects.entries()) {
       this._pendingEffects.delete(name);
+      this._activeEffects.set(name, null);
       void this._startEffect(name, options);
     }
   }

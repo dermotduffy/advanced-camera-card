@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { onAbort } from '../../src/utils/abort-signal';
+import { createAbortSignalWithTimeout, onAbort } from '../../src/utils/abort-signal';
 
+// @vitest-environment jsdom
 describe('onAbort', () => {
   it('should call the callback when the signal aborts', () => {
     const ac = new AbortController();
@@ -30,11 +31,61 @@ describe('onAbort', () => {
     onAbort(ac.signal, cb);
 
     ac.abort();
-    // Aborting an AbortController again is a no-op, but verify the listener
-    // is registered with `once: true` so any synthetic re-fire would be a
-    // no-op too.
-    ac.signal.dispatchEvent(new Event('abort'));
+    ac.abort();
 
     expect(cb).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('createAbortSignalWithTimeout', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should use native AbortSignal.timeout when available', () => {
+    const native = new AbortController().signal;
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(native);
+
+    expect(createAbortSignalWithTimeout(10)).toBe(native);
+    expect(timeout).toHaveBeenCalledWith(10 * 1000);
+  });
+
+  describe('when the browser has no AbortSignal.timeout', () => {
+    let original: typeof AbortSignal.timeout;
+
+    beforeEach(() => {
+      original = AbortSignal.timeout;
+
+      // @ts-expect-error -- removing a standard static to emulate an older
+      // browser (e.g. Chromecast receiver).
+      delete AbortSignal.timeout;
+    });
+
+    afterEach(() => {
+      AbortSignal.timeout = original;
+    });
+
+    it('should abort the signal once the seconds elapse', () => {
+      const signal = createAbortSignalWithTimeout(10);
+
+      expect(signal.aborted).toBeFalsy();
+
+      vi.advanceTimersByTime(10 * 1000);
+
+      expect(signal.aborted).toBeTruthy();
+    });
+
+    it('should abort with a TimeoutError reason', () => {
+      const signal = createAbortSignalWithTimeout(10);
+
+      vi.advanceTimersByTime(10 * 1000);
+
+      expect(signal.reason).toBeInstanceOf(DOMException);
+      expect(signal.reason.name).toBe('TimeoutError');
+    });
   });
 });

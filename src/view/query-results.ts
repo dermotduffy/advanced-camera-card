@@ -118,7 +118,7 @@ class ResultSlice {
   }
 
   /**
-   * Replace an item in this slice with a new item (e.g., a clone with updated state).
+   * Replace an item in this slice with a new item (e.g., a copy with updated state).
    * Selection is preserved if the replaced item was selected.
    * @param oldItem The item to replace.
    * @param newItem The new item to insert in its place.
@@ -197,11 +197,12 @@ export class QueryResults {
    * Remove a specific item from the results.
    * Note: This mutates the current instance. Use clone() first if needed.
    * @param item The item to remove from results.
-   * @returns This QueryResults instance for chaining.
+   * @returns This QueryResults instance for chaining, or null if the item was
+   * not found.
    */
-  public removeItem(item: ViewItem): QueryResults {
+  public removeItem(item: ViewItem): QueryResults | null {
     if (!this._main.removeItem(item)) {
-      return this;
+      return null;
     }
 
     // Also remove from the relevant camera slice
@@ -213,15 +214,16 @@ export class QueryResults {
   }
 
   /**
-   * Replace an item with a new item (e.g., a clone with updated state).
+   * Replace an item with a new item (e.g. a copy with updated state).
    * Note: This mutates the current instance. Use clone() first if needed.
    * @param oldItem The item to replace.
    * @param newItem The new item to insert in its place.
-   * @returns This QueryResults instance for chaining.
+   * @returns This QueryResults instance for chaining, or null if the item was
+   * not found.
    */
-  public replaceItem(oldItem: ViewItem, newItem: ViewItem): QueryResults {
+  public replaceItem(oldItem: ViewItem, newItem: ViewItem): QueryResults | null {
     if (!this._main.replaceItem(oldItem, newItem)) {
-      return this;
+      return null;
     }
 
     const cameraID = ViewItemClassifier.isMedia(oldItem) ? oldItem.getCameraID() : null;

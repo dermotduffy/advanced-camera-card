@@ -1,4 +1,8 @@
+import { vi } from 'vitest';
 import { userEvent } from 'vitest/browser';
+
+import { ACTION_HANDLER_HOLD_SECONDS } from '../../src/const';
+import { sleep } from '../../src/utils/sleep';
 
 // `querySelectorAll` does not look inside a shadow root, so a full search has
 // to step through them a level at a time. The node's own root counts because a
@@ -98,6 +102,45 @@ export const tabUntil = async (
 export const clickElement = async (element: Element): Promise<void> =>
   await userEvent.click(element);
 
+export const hoverElement = async (element: Element): Promise<void> =>
+  await userEvent.hover(element);
+
+export const waitForTransition = (element: Element): Promise<void> =>
+  new Promise<void>((resolve) =>
+    element.addEventListener('transitionend', () => resolve(), { once: true }),
+  );
+
+const waitForHold = async (): Promise<void> => {
+  if (vi.isFakeTimers()) {
+    await vi.advanceTimersByTimeAsync(ACTION_HANDLER_HOLD_SECONDS * 1000);
+  } else {
+    await sleep(ACTION_HANDLER_HOLD_SECONDS);
+  }
+};
+
+/**
+ * Press an element and keep holding it until the card takes the press as a
+ * hold.
+ *
+ * Assembled from events rather than driven with a real pointer, because
+ * `userEvent` offers whole gestures only (click, hover, drag) and none of them
+ * stops between the press and the release.
+ */
+export const holdElement = async (element: HTMLElement): Promise<void> => {
+  // Composed as well as bubbling: a real press crosses the shadow boundaries
+  // between an element and whatever is listening above it.
+  const press = { bubbles: true, composed: true };
+  element.dispatchEvent(new MouseEvent('mousedown', press));
+
+  await waitForHold();
+
+  element.dispatchEvent(new MouseEvent('mouseup', press));
+
+  // The card takes the click, not the mouseup, as the end of a press (and
+  // carries the clickcount).
+  element.dispatchEvent(new MouseEvent('click', { ...press, detail: 1 }));
+};
+
 /**
  * Send a `pointerdown` to an element without moving a real pointer, so the page
  * stays scrolled where the test left it: `clickElement` scrolls its target into
@@ -128,6 +171,38 @@ export const getElementAtPoint = (x: number, y: number): Element | null => {
     element = within;
   }
   return element;
+};
+
+/**
+ * Whether an outline is being drawn on an element that has focus.
+ * `:focus-visible` cannot answer this: it matches focus taken by script even
+ * where no indicator is drawn.
+ */
+export const isFocusIndicatorDrawn = (element: Element): boolean => {
+  const style = getComputedStyle(element);
+  return (
+    element.matches(':focus') &&
+    style.outlineStyle !== 'none' &&
+    parseFloat(style.outlineWidth) > 0
+  );
+};
+
+/**
+ * Whether the browser supports the `focusVisible` focus option, which older
+ * Chrome and Safari accept but ignore. Asked of a detached element, which the
+ * browser reads the options from without moving focus anywhere.
+ */
+export const doesBrowserSupportFocusVisible = (): boolean => {
+  let read = false;
+
+  document.createElement('div').focus({
+    get focusVisible(): boolean {
+      read = true;
+      return false;
+    },
+  });
+
+  return read;
 };
 
 /**

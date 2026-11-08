@@ -8,6 +8,7 @@ import { createHASS } from '../test-utils';
 
 vi.mock('../../src/ha/sign-path');
 
+// @vitest-environment jsdom
 describe('homeAssistantSignAndFetch', () => {
   const response = {
     val: 10,

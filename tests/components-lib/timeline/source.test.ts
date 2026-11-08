@@ -1,5 +1,4 @@
 import { add } from 'date-fns';
-import type { NonEmptyTuple } from 'type-fest';
 import type { DataSet } from 'vis-data';
 import type { TimelineWindow } from 'vis-timeline';
 import {
@@ -27,7 +26,7 @@ import {
 } from '../../../src/camera-manager/types';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import type {
-  FolderPathComponent,
+  FolderPathLevel,
   FolderQuery,
 } from '../../../src/card-controller/folders/types';
 import {
@@ -146,7 +145,7 @@ describe('TimelineDataSource', () => {
 
   // Create folder-based query
   const folderQuery = new UnifiedQuery();
-  const folderPath: NonEmptyTuple<FolderPathComponent> = [{}];
+  const folderPath: FolderPathLevel[] = [{}];
   const folderQueryNode: FolderQuery = {
     source: QuerySource.Folder,
     folder: folder,
@@ -233,7 +232,7 @@ describe('TimelineDataSource', () => {
     it('should use folder id if folder has no title', () => {
       const folder = createFolder({ id: 'folder-1' });
       const testQuery = new UnifiedQuery();
-      const folderPath: NonEmptyTuple<FolderPathComponent> = [{}];
+      const folderPath: FolderPathLevel[] = [{}];
       testQuery.addNode({
         source: QuerySource.Folder,
         folder: folder,

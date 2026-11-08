@@ -416,7 +416,6 @@
   },
   "thumbnail": {
     "download": "Medium herunterladen",
-    "tag": "Tag",
-    "title": "Titel"
+    "tag": "Tag"
   }
 }

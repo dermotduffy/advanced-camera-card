@@ -23,6 +23,7 @@ import {
 } from '../../../browser/test-media';
 import {
   CAMERA_ENTITY,
+  CAMERA_NAME,
   createGenericCameraHASS,
   createStillImageCameraConfig,
   createStillImageCardConfig,
@@ -36,6 +37,7 @@ import {
 } from '../../../browser/test-utils';
 
 const SECOND_CAMERA_ENTITY = 'camera.hallway';
+const SECOND_CAMERA_NAME = 'hallway';
 
 const OVERRIDE_ENTITY = 'input_boolean.override';
 
@@ -201,7 +203,7 @@ describe('MediaUnavailableIssue', () => {
     // Which camera, not just that something is wrong: with several on screen an
     // issue report that does not say which one leaves the user guessing.
     expect(getBlockNotificationText(card.card)).toContain('Camera entity unavailable');
-    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_NAME);
   });
 
   it('should leave the cameras that are still working alone', async () => {
@@ -247,7 +249,7 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
     await waitForIssueReported(card);
 
-    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_NAME);
 
     // Nothing here asks the card to try again: the retry runs on its own.
     await card.advanceSeconds(RETRY_EXPONENTIAL_BASE_SECONDS);
@@ -287,7 +289,7 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
     await waitForIssueReported(card);
 
-    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_NAME);
   });
 
   it('should stay silent about a carousel camera that is not on screen', async () => {
@@ -317,7 +319,7 @@ describe('MediaUnavailableIssue', () => {
     await card.clickNextPreviousControl('right');
     await waitForIssueReported(card);
 
-    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_NAME);
   });
 
   it('should keep an issue across a detach and re-attach', async () => {
@@ -357,7 +359,7 @@ describe('MediaUnavailableIssue', () => {
     await card.clickControl(MEDIA_ISSUE_TITLE);
     const notification = await card.waitForSelector('advanced-camera-card-notification');
 
-    expect(notification.shadowRoot?.textContent).toContain(SECOND_CAMERA_ENTITY);
+    expect(notification.shadowRoot?.textContent).toContain(SECOND_CAMERA_NAME);
     expect(notification.shadowRoot?.textContent).toContain('Media not loading');
   });
 
@@ -373,7 +375,7 @@ describe('MediaUnavailableIssue', () => {
     await waitForIssueReported(card);
 
     expect(getBlockNotificationText(card.card)).toContain('Could not load image');
-    expect(getBlockNotificationText(card.card)).toContain(CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(CAMERA_NAME);
 
     expect(card.events.getEntries('advanced-camera-card:issue:trigger')).toHaveLength(1);
   });

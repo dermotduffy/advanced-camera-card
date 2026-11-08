@@ -192,6 +192,16 @@ describe('loadLanguages', () => {
     expect(localize('actions.abort')).toBe('Prerušená akcia');
   });
 
+  it('should load and use Hungarian translations', async () => {
+    const { loadLanguages, localize } = await importFresh();
+    const hass = mock<HomeAssistant>();
+    hass.language = 'hu';
+
+    await loadLanguages(hass);
+
+    expect(localize('actions.abort')).toBe('Művelet megszakítva');
+  });
+
   it('should load and use Russian translations', async () => {
     const { loadLanguages, localize } = await importFresh();
     const hass = mock<HomeAssistant>();

@@ -3,6 +3,7 @@ import {
   type HassEntities,
   type HassEntity,
   type HassEvent,
+  type MessageBase,
 } from 'home-assistant-js-websocket';
 import type { LitElement } from 'lit';
 import screenfull from 'screenfull';
@@ -61,6 +62,7 @@ import type {
   BrowseMediaMetadata,
   RichBrowseMedia,
 } from '../src/ha/browse-media/types';
+import { computeObjectId } from '../src/ha/compute-object-id';
 import type { Device } from '../src/ha/registry/device/types';
 import type { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import type { HASSListener, HASSSource } from '../src/ha/source';
@@ -71,6 +73,13 @@ import type {
   MediaLoadedInfoEventDetail,
 } from '../src/types';
 import type { ViewItemCapabilities } from '../src/view/types';
+
+// Stand-in for the entity formatting function attached to `hass`.
+// From: https://github.com/home-assistant/frontend/blob/dev/src/common/entity/compute_state_name.ts
+export const formatEntityName = (stateObj: HassEntity): string =>
+  stateObj.attributes.friendly_name === undefined
+    ? computeObjectId(stateObj.entity_id).replace(/_/g, ' ')
+    : (stateObj.attributes.friendly_name ?? '').toString();
 
 export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssistant => {
   const hass = mock<HomeAssistant>();
@@ -88,6 +97,12 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   // Default to a fully-started HA so existing tests that don't care about
   // startup state still represent a "ready" instance.
   hass.config.state = STATE_RUNNING;
+
+  // Default to a Home Assistant recent enough to compose entity names, so tests
+  // exercise the same naming path as a current installation.
+  hass.config.version = '2026.9.0';
+  hass.formatEntityName.mockImplementation(formatEntityName);
+
   hass.connection.subscribeMessage = vi.fn();
   hass.connection.subscribeEvents = vi.fn();
 
@@ -502,10 +517,32 @@ export const stubConnectedHomeAssistant = (): void => {
       connected: true,
       connection: {
         connected: true,
-        // Awaited by the engine's label-registry fetch during init.
-        sendMessagePromise: () => Promise.resolve([]),
+        // Awaited by ha-nunjucks' registry fetches during init. Most (labels,
+        // entities) expect a bare array; repairs issues expects a `{issues}`
+        // wrapper -- see ha-nunjucks' fetchLabelRegistry/fetchEntityRegistry
+        // vs fetchRepairsIssues.
+        sendMessagePromise: (message: MessageBase) =>
+          Promise.resolve(message.type === 'repairs/list_issues' ? { issues: [] } : []),
+        // ha-nunjucks 1.7.x subscribes to live registry updates (labels,
+        // entities, repairs issues, config entries) during init via these two
+        // methods; without them, the calls throw and the engine deletes its
+        // own global state, silently.
+        subscribeEvents: () => Promise.resolve(() => {}),
+        subscribeMessage: () => Promise.resolve(() => {}),
       },
       language: 'en',
+      // ha-nunjucks 1.7.x builds number/time formatters during init
+      // (getNumberFormatter/getTimeFormatter), which read these unconditionally.
+      locale: {
+        language: 'en',
+        number_format: 'language',
+        time_format: 'language',
+        time_zone: 'local',
+      },
+      // Fallback for resolveTimeZone() if the 'local' branch above isn't taken.
+      config: {
+        time_zone: 'UTC',
+      },
       states: {},
     },
   });
@@ -663,6 +700,7 @@ export const createFolder = (config?: Partial<FolderConfig>): FolderConfig => {
   return {
     type: 'ha',
     id: crypto.randomUUID(),
+    navigation: 'restricted',
     ha: {
       path: [{ id: 'media-source://' }],
     },

@@ -23,6 +23,16 @@ export default {
             // iOS, where fullscreen works on an iPad but not an iPhone.
             'selectors.fullscreen',
 
+            // Cosmetic: this is allowed since the only gap is Chrome before 94,
+            // where an outline is drawn square rather than following the
+            // element's border radius.
+            'properties.outline',
+
+            // Not CSS: `@function` in a `.scss` file is Sass, which sass
+            // compiles away (i.e. no browser ever reads it). This cannot be
+            // identified separately from a CSS "at-rule".
+            'at-rules.function',
+
             // Nothing to suppress: these are allowed since they only remove the
             // grey tap flash and the long-press menu, neither of which the
             // browsers lacking them ever show anyway.

@@ -350,8 +350,13 @@ export class ViewManager implements ViewManagerInterface {
   }
 
   public setViewWithModifiers(modifiers: ViewModifier[]): void {
-    if (this._view) {
-      return this._setView(applyViewModifiers(this._view.clone(), modifiers));
+    if (!this._view) {
+      return;
+    }
+
+    const view = this._view.clone();
+    if (applyViewModifiers(view, modifiers)) {
+      this._setView(view);
     }
   }
 

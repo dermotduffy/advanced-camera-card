@@ -312,41 +312,6 @@ describe('CardElementManager', () => {
   });
 
   describe('media review', () => {
-    it('should update the card when the selected item is reviewed', () => {
-      const api = createCardAPI();
-      const selectedMedia = new TestViewMedia({ id: 'media-1' });
-      const queryResults = new QueryResults({
-        results: [selectedMedia],
-        selectedIndex: 0,
-      });
-      const view = createView({ queryResults });
-
-      vi.mocked(api.getViewManager().getView).mockReturnValue(view);
-      vi.mocked(api.getEffectsManager().startEffect).mockResolvedValue();
-
-      const element = createCardHTMLElement();
-      const manager = new CardElementManager(
-        api,
-        element,
-        () => undefined,
-        () => undefined,
-      );
-
-      manager.elementConnected();
-
-      // Clear any previous calls from elementConnected.
-      vi.mocked(element.requestUpdate).mockClear();
-
-      // Dispatch the media reviewed event with the selected media item.
-      element.dispatchEvent(
-        new CustomEvent('advanced-camera-card:media:reviewed', {
-          detail: selectedMedia,
-        }),
-      );
-
-      expect(element.requestUpdate).toHaveBeenCalled();
-    });
-
     it('should start the check effect', () => {
       const api = createCardAPI();
       const selectedMedia = new TestViewMedia({ id: 'media-1' });
@@ -401,55 +366,14 @@ describe('CardElementManager', () => {
 
       manager.elementConnected();
 
-      // Clear any previous calls from elementConnected.
-      vi.mocked(element.requestUpdate).mockClear();
-
       element.dispatchEvent(
         new CustomEvent('advanced-camera-card:media:reviewed', {
           detail: media,
         }),
       );
 
-      await flushPromises();
-
-      expect(element.requestUpdate).toHaveBeenCalled();
-    });
-
-    it('should not update the card when a non-selected item is reviewed', () => {
-      const api = createCardAPI();
-      const selectedMedia = new TestViewMedia({ id: 'media-1' });
-      const otherMedia = new TestViewMedia({ id: 'media-2' });
-      const queryResults = new QueryResults({
-        results: [selectedMedia, otherMedia],
-        selectedIndex: 0,
-      });
-      const view = createView({ queryResults });
-
-      vi.mocked(api.getViewManager().getView).mockReturnValue(view);
-      vi.mocked(api.getEffectsManager().startEffect).mockResolvedValue();
-
-      const element = createCardHTMLElement();
-      const manager = new CardElementManager(
-        api,
-        element,
-        () => undefined,
-        () => undefined,
-      );
-
-      manager.elementConnected();
-
-      // Clear any previous calls from elementConnected.
-      vi.mocked(element.requestUpdate).mockClear();
-
-      // Dispatch the media reviewed event with a DIFFERENT media item.
-      element.dispatchEvent(
-        new CustomEvent('advanced-camera-card:media:reviewed', {
-          detail: otherMedia,
-        }),
-      );
-
-      // Should NOT update because the reviewed item is not the selected item.
-      expect(element.requestUpdate).not.toHaveBeenCalled();
+      await expect(flushPromises()).resolves.not.toThrow();
+      expect(api.getEffectsManager().startEffect).toHaveBeenCalled();
     });
   });
 

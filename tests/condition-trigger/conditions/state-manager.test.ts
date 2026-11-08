@@ -86,6 +86,41 @@ describe('ConditionStateManager', () => {
       ).toBe(true);
       expect(listener).toHaveBeenCalledTimes(5);
     });
+
+    it('should compare hass by reference without examining entities', () => {
+      const listener = vi.fn();
+      const manager = new ConditionStateManager();
+      manager.addListener(listener);
+
+      manager.setState({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
+      });
+
+      let accessedEntities = false;
+      const hass = createHASS({ 'binary_sensor.foo': createStateEntity() });
+
+      // Record every enumeration or read of the entity map: for performance
+      // reasons hass should only be compared by identity.
+      hass.states = new Proxy(hass.states, {
+        ownKeys: (target) => {
+          accessedEntities = true;
+          return Reflect.ownKeys(target);
+        },
+        get: (target, property) => {
+          accessedEntities = true;
+          return Reflect.get(target, property);
+        },
+      });
+
+      expect(manager.setState({ hass })).toBe(true);
+      expect(accessedEntities).toBe(false);
+      expect(listener).toHaveBeenCalledTimes(2);
+
+      // The same reference is not a change.
+      expect(manager.setState({ hass })).toBe(false);
+      expect(accessedEntities).toBe(false);
+      expect(listener).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('should serialize a state change made from within a listener', () => {

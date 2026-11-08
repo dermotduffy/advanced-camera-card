@@ -15,12 +15,13 @@ export class SetQueryViewModifier implements ViewModifier {
     this._queryResults = options?.queryResults;
   }
 
-  public modify(view: View): void {
+  public modify(view: View): boolean {
     if (this._query !== undefined) {
       view.query = this._query;
     }
     if (this._queryResults !== undefined) {
       view.queryResults = this._queryResults;
     }
+    return true;
   }
 }

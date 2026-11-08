@@ -5,7 +5,7 @@ import { BUTTON_SIZE_MIN } from './common/const';
 import { nextPreviousControlConfigSchema } from './common/controls/next-previous';
 import { ptzControlsConfigSchema, ptzControlsDefaults } from './common/controls/ptz';
 import {
-  thumbnailControlsDefaults,
+  thumbnailsControlDefaults,
   thumbnailsControlSchema,
 } from './common/controls/thumbnails';
 import {
@@ -134,7 +134,7 @@ export const liveConfigDefault = {
       style: 'chevrons' as const,
     },
     ptz: ptzControlsDefaults,
-    thumbnails: thumbnailControlsDefaults,
+    thumbnails: thumbnailsControlDefaults,
     timeline: miniTimelineConfigDefault,
     wheel: true,
   },

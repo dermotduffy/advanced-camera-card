@@ -8,6 +8,7 @@ import type { FolderConfigWithoutID } from '../../../src/config/schema/folders';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
 import type { Endpoint } from '../../../src/types';
+import { ViewFolder } from '../../../src/view/item';
 import type { ViewItemCapabilities } from '../../../src/view/types';
 import { createCardAPI, createFolder, createHASS } from '../../test-utils';
 import { TestViewMedia } from '../../view/test-utils';
@@ -47,6 +48,7 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(createCardAPI());
       const folder: FolderConfigWithoutID = {
         type: 'ha' as const,
+        navigation: 'restricted' as const,
         title: 'Title',
         ha: {
           path: [{ id: 'media-source://' }],
@@ -182,7 +184,7 @@ describe('FoldersManager', () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
         folder,
-        path: [{ ha: { id: 'media-source://' } }],
+        path: [{}],
       };
 
       expect(await manager.expandFolder(query, conditionState, engineOptions)).toEqual([
@@ -207,7 +209,7 @@ describe('FoldersManager', () => {
         await manager.expandFolder({
           source: QuerySource.Folder,
           folder,
-          path: [{ ha: { id: 'media-source://' } }],
+          path: [{}],
         }),
       ).toBeNull();
 
@@ -226,7 +228,7 @@ describe('FoldersManager', () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
         folder,
-        path: [{ ha: { id: 'media-source://' } }],
+        path: [{}],
         favorite: true,
       };
 
@@ -250,6 +252,41 @@ describe('FoldersManager', () => {
 
       expect(manager.getItemCapabilities(item)).toEqual(capabilities);
       expect(executor.getItemCapabilities).toHaveBeenCalledWith(item);
+    });
+  });
+
+  describe('should get navigation queries', () => {
+    it('should get an up query', () => {
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: createFolder(),
+        path: [{}, {}],
+      };
+      const upQuery: FolderQuery = { ...query, path: [{}] };
+      const executor = mock<FoldersExecutor>();
+      executor.getUpQuery.mockReturnValue(upQuery);
+
+      const manager = new FoldersManager(createCardAPI(), executor);
+
+      expect(manager.getUpQuery(query)).toBe(upQuery);
+      expect(executor.getUpQuery).toHaveBeenCalledWith(query);
+    });
+
+    it('should get a down query', () => {
+      const folder = createFolder();
+      const item = new ViewFolder(folder, []);
+      const downQuery: FolderQuery = {
+        source: QuerySource.Folder,
+        folder,
+        path: [{ folder: item }, {}],
+      };
+      const executor = mock<FoldersExecutor>();
+      executor.getDownQuery.mockReturnValue(downQuery);
+
+      const manager = new FoldersManager(createCardAPI(), executor);
+
+      expect(manager.getDownQuery(item)).toBe(downQuery);
+      expect(executor.getDownQuery).toHaveBeenCalledWith(item);
     });
   });
 

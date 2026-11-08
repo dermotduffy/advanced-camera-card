@@ -1,0 +1,175 @@
+@use 'color-mix.scss' as *;
+@use 'thumbnail-in-progress.scss' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  // Details panel can shrink as well as grow.
+  min-height: 0px;
+  max-height: var(--advanced-camera-card-thumbnail-size);
+
+  margin: 8px 12px;
+
+  color: var(--advanced-camera-card-thumbnail-text-color);
+
+  overflow: hidden;
+
+  // Match the body text of the dashboard the card sits on, including any font
+  // scaling the user has set there. This is also the basis each row's `em`
+  // resolves against.
+  font-size: var(--ha-font-size-m, 14px);
+
+  // Pin the line height the rows inherit, so a Home Assistant change cannot
+  // alter how many details fit in the panel.
+  line-height: normal;
+
+  --mdc-icon-size: var(--ha-font-size-m, 14px);
+}
+
+div {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+}
+
+.heading {
+  font-weight: bold;
+  gap: 8px;
+}
+
+:host([review='reviewed']) .heading {
+  font-weight: 400;
+}
+
+.time {
+  // Pushed to the end of the line and never shrunk, so the label truncates
+  // instead of this.
+  flex: none;
+  margin-inline-start: auto;
+
+  font-family: var(--ha-font-family-code, ui-monospace, monospace);
+  letter-spacing: -0.03em;
+
+  // Stops the tier's line height stretching the heading row around it.
+  line-height: 1;
+
+  .seconds {
+    font-size: 0.63em;
+    opacity: 0.66;
+  }
+}
+
+// Each line below the heading is fainter than the one above it.
+:host > div:not(.heading):not(.seek) {
+  opacity: 0.7;
+}
+:host > div:not(.heading):not(.seek) ~ div:not(.heading):not(.seek) {
+  opacity: 0.55;
+}
+
+.in-progress {
+  @include in-progress;
+
+  width: fit-content;
+}
+
+// The time the user is seeking to (not directly related to the media so
+// colored differently).
+.seek {
+  color: var(--primary-color);
+}
+
+// A bigger thumbnail gets more space between its lines and larger text, the
+// time by more than the rest.
+:host([tier='compact']) {
+  line-height: 1.17;
+  row-gap: 3.5px;
+
+  .heading > span:not(.time) {
+    font-size: 0.93em;
+  }
+  .time {
+    font-size: 1em;
+  }
+  div:not(.heading) {
+    font-size: 0.79em;
+  }
+}
+:host([tier='standard']) {
+  line-height: 1.25;
+  row-gap: 5px;
+
+  .heading > span:not(.time) {
+    font-size: 1em;
+  }
+  .time {
+    font-size: 1.15em;
+  }
+  div:not(.heading) {
+    font-size: 0.86em;
+  }
+}
+:host([tier='comfortable']) {
+  line-height: 1.4;
+  row-gap: 7px;
+
+  .heading > span:not(.time) {
+    font-size: 1.14em;
+  }
+  .time {
+    font-size: 1.43em;
+  }
+  div:not(.heading) {
+    font-size: 0.93em;
+  }
+}
+:host([tier='poster']) {
+  line-height: 1.5;
+  row-gap: 9px;
+
+  .heading > span:not(.time) {
+    font-size: 1.29em;
+  }
+  .time {
+    font-size: 1.71em;
+  }
+  div:not(.heading) {
+    font-size: 1em;
+  }
+}
+
+// Chip that opens the "info" notification.
+ha-assist-chip.more {
+  align-self: flex-start;
+  cursor: pointer;
+
+  // Pushed to the bottom of the panel, and held off the border below it.
+  margin-top: auto;
+  margin-bottom: 5px;
+
+  --md-assist-chip-container-height: 22px;
+  --md-assist-chip-label-text-size: 0.75em;
+  --md-assist-chip-leading-space: 8px;
+  --md-assist-chip-trailing-space: 8px;
+  --md-assist-chip-label-text-color: var(--advanced-camera-card-active-color);
+
+  // `ha-assist-chip` draws this background instead of its outline when its
+  // `filled` attribute is set.
+  @include color-mixed(
+    --ha-assist-chip-filled-container-color,
+    --advanced-camera-card-active-color,
+    82%
+  );
+}

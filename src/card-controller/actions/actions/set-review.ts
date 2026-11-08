@@ -1,7 +1,7 @@
 import type { SetReviewActionConfig } from '../../../config/schema/actions/custom/set-review';
 import { toggleReviewed } from '../../../utils/media-actions';
 import { ViewItemClassifier } from '../../../view/item-classifier';
-import { getReviewedQueryFilterFromQuery } from '../../../view/utils/query-filter';
+import { getBooleanQueryFilter } from '../../../view/utils/query-filter';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
@@ -28,7 +28,7 @@ export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionCon
       item,
       api.getViewItemManager(),
       viewManager.getEpoch(),
-      getReviewedQueryFilterFromQuery(view?.query, item),
+      getBooleanQueryFilter('reviewed', view?.query, item) ?? undefined,
     );
   }
 }

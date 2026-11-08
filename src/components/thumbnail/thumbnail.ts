@@ -1,15 +1,28 @@
-import { html, LitElement, unsafeCSS, type CSSResult, type TemplateResult } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResult,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
 import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { getMediaSeverity } from '../../components-lib/media/format.js';
+import type { ResolvedThumbnailStyle } from '../../components-lib/thumbnail/resolve-style.js';
+import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
+import { setOrRemoveAttribute } from '../../utils/basic.js';
+import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewItem } from '../../view/item.js';
 
-import './details.js';
+import './details-overlay.js';
+import './details-panel.js';
 import './feature/feature.js';
 import './feature/thumbnail.js';
 
@@ -39,8 +52,11 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   @property({ attribute: false })
   public item?: ViewItem;
 
-  @property({ attribute: true, type: Boolean })
-  public details = false;
+  @property({ attribute: 'thumbnail-style', reflect: true })
+  public thumbnailStyle?: ResolvedThumbnailStyle;
+
+  @property({ attribute: false })
+  public size: number = THUMBNAIL_SIZE_DEFAULT;
 
   @property({ attribute: true, type: Boolean })
   public show_favorite_control = false;
@@ -61,7 +77,56 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   public filterReviewed?: boolean;
 
   @property({ attribute: false })
+  public filterFavorite?: boolean;
+
+  @property({ attribute: false })
   public seek?: Date;
+
+  @property({ attribute: true, type: Boolean })
+  public clickable = false;
+
+  @property({ attribute: true, type: Boolean, reflect: true })
+  public selected = false;
+
+  constructor() {
+    super();
+    this.addEventListener('keydown', (ev: KeyboardEvent) => this._keydown(ev));
+  }
+
+  private _keydown(ev: KeyboardEvent): void {
+    if (!this.clickable) {
+      return;
+    }
+
+    if (ev.key === ' ') {
+      ev.preventDefault();
+      this.click();
+    }
+  }
+
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (changedProperties.has('clickable') || changedProperties.has('item')) {
+      if (this.clickable) {
+        this.setAttribute('tabindex', '0');
+        this.setAttribute('role', 'button');
+        this.setAttribute('aria-label', this.item?.getTitle() ?? '');
+      } else {
+        this.removeAttribute('tabindex');
+        this.removeAttribute('role');
+        this.removeAttribute('aria-label');
+      }
+    }
+
+    if (changedProperties.has('item')) {
+      const severity = getMediaSeverity(this.item);
+      setOrRemoveAttribute(this, !!severity, 'severity', severity);
+
+      this.toggleAttribute(
+        'favorite',
+        ViewItemClassifier.isMedia(this.item) && this.item.isFavorite() === true,
+      );
+    }
+  }
 
   /**
    * Render the element.
@@ -75,9 +140,10 @@ export class AdvancedCameraCardThumbnail extends LitElement {
     return html`
       <advanced-camera-card-thumbnail-feature
         .cameraManager=${this.cameraManager}
-        .hasDetails=${this.details}
+        .thumbnailStyle=${this.thumbnailStyle}
         .hass=${this.hass}
         .item=${this.item}
+        .size=${this.size}
         .viewItemManager=${this.viewItemManager}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .show_favorite_control=${this.show_favorite_control}
@@ -86,16 +152,31 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .show_review_control=${this.show_review_control}
         .show_info_control=${this.show_info_control}
         .filterReviewed=${this.filterReviewed}
+        .filterFavorite=${this.filterFavorite}
       >
       </advanced-camera-card-thumbnail-feature>
-      ${this.details
-        ? html`<advanced-camera-card-thumbnail-details
+      ${this.thumbnailStyle === 'overlay' || this.thumbnailStyle === 'hover'
+        ? html`<advanced-camera-card-thumbnail-details-overlay
+            .cameraManager=${this.cameraManager}
+            .item=${this.item}
+            .thumbnailStyle=${this.thumbnailStyle}
+            .size=${this.size}
+          ></advanced-camera-card-thumbnail-details-overlay>`
+        : ''}
+      ${this.thumbnailStyle === 'panel'
+        ? html`<advanced-camera-card-thumbnail-details-panel
             .hass=${this.hass}
             .item=${this.item ?? undefined}
             .cameraManager=${this.cameraManager}
             .seek=${this.seek}
-          ></advanced-camera-card-thumbnail-details>`
+            .viewItemManager=${this.viewItemManager}
+            .viewManagerEpoch=${this.viewManagerEpoch}
+            .filterReviewed=${this.filterReviewed}
+            .filterFavorite=${this.filterFavorite}
+            .size=${this.size}
+          ></advanced-camera-card-thumbnail-details-panel>`
         : ''}
+      <div class="ring"></div>
     `;
   }
 

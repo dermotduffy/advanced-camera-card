@@ -1,6 +1,7 @@
 import {
   html,
   LitElement,
+  nothing,
   unsafeCSS,
   type CSSResultGroup,
   type TemplateResult,
@@ -17,6 +18,7 @@ import type { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
 import notificationPopupStyle from '../../scss/notification-popup.scss?inline';
 import {
+  HEADING_ID,
   renderControl,
   renderDetail,
   renderNotificationBody,
@@ -27,10 +29,14 @@ export class AdvancedCameraCardNotification extends LitElement {
   @property({ attribute: false })
   public notification: Notification | null = null;
 
+  @property({ attribute: false })
+  public focusReturnElement: HTMLElement | null = null;
+
   private _refNotification: Ref<HTMLElement> = createRef();
   private _popupController = new NotificationPopupController(
     this,
     () => this._refNotification.value ?? null,
+    () => this.focusReturnElement,
   );
   private _contextController = new NotificationContextController(this);
 
@@ -54,6 +60,9 @@ export class AdvancedCameraCardNotification extends LitElement {
       <div class="backdrop" @click=${this._popupController.dismiss}></div>
       <div
         class="notification"
+        role="alertdialog"
+        aria-labelledby=${heading ? HEADING_ID : nothing}
+        aria-label=${heading ? nothing : localize('common.notification')}
         tabindex="-1"
         ${ref(this._refNotification)}
         @animationend=${this._popupController.handleAnimationEnd}

@@ -10,7 +10,12 @@
   width: 100%;
   height: 100%;
 
-  background-color: var(--advanced-camera-card-thumbnail-background);
+  // Hold the thumbnails off the drawer's edges by the same 5px (matches the 5px
+  // gap between thumbnails).
+  box-sizing: border-box;
+  padding: 5px;
+
+  background-color: var(--advanced-camera-card-thumbnails-background);
 
   --advanced-camera-card-carousel-thumbnail-opacity: 1;
 }
@@ -39,6 +44,6 @@ advanced-camera-card-thumbnail {
   // Do not let thumbnails span beyond the width of the carousel.
   max-width: 100%;
 }
-advanced-camera-card-thumbnail[details] {
-  width: var(--advanced-camera-card-thumbnail-details-width);
+advanced-camera-card-thumbnail[thumbnail-style='panel'] {
+  width: var(--advanced-camera-card-thumbnail-with-details-panel-width);
 }

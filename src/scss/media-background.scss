@@ -1,19 +1,16 @@
+@use './color-mix.scss' as *;
+
 $bracket-length: 24px;
 $bracket-thickness: 1px;
 $bracket-inset: 10px;
 
-// Mix from text color so the brackets show against both light/dark.
-$bracket-color: color-mix(
-  in srgb,
-  var(--advanced-camera-card-text-color),
-  transparent 90%
-);
-
-$arm: linear-gradient($bracket-color 0 0);
+$arm: linear-gradient(var(--bracket-color) 0 0);
 $arm-horizontal: $bracket-length $bracket-thickness;
 $arm-vertical: $bracket-thickness $bracket-length;
 
 :host {
+  @include color-mixed(--bracket-color, --advanced-camera-card-text-color, 90%);
+
   background-color: var(--advanced-camera-card-background);
 
   // Corner brackets mark a media surface that is rendering nothing at all,

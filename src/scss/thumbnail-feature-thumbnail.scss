@@ -9,10 +9,6 @@
 }
 
 img {
-  display: block;
-}
-
-img {
   // Safari will occasionally not load thumbnails correctly with display block.
   display: inline-block;
 
@@ -30,13 +26,58 @@ img {
   object-fit: cover;
 }
 
-// Both are shown whole rather than cropped. A placeholder (a brand logo, a
-// folder icon) is not a preview of content. Text leaves a thumbnail only half
-// the tile (a box twice as wide as it is tall), which would crop away half of
-// the image otherwise.
-:host(.placeholder) img,
-:host(.has-text) img {
+// A placeholder (a brand logo) is shown whole, not cropped. Dropping
+// aspect-ratio: 1/1 lets the container stay rectangular so wide logos
+// fill its width.
+:host(.placeholder) {
+  aspect-ratio: auto;
+}
+:host(.placeholder) img {
   object-fit: contain;
+}
+
+// Shown while the thumbnail is fetched (at the same size to avoid shifting as
+// things load).
+.skeleton {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  border-radius: var(--advanced-camera-card-border-radius-final);
+  background: var(--advanced-camera-card-thumbnail-skeleton-background);
+
+  // Keeps the `::after` gradient inside the rounded corners. An absolutely
+  // positioned child is not clipped by its parent's `border-radius` on its own.
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: '';
+
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--advanced-camera-card-thumbnail-skeleton-shimmer-color),
+    transparent
+  );
+
+  transform: translateX(-100%);
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
 }
 
 // The bordered frame occupies the same space an image would, with the icon

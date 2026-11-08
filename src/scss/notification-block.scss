@@ -1,3 +1,4 @@
+@use './color-mix.scss' as *;
 @use './z-index.scss' as *;
 @use './notification-common.scss';
 
@@ -60,7 +61,8 @@
     gap: 4px;
     padding: 4px 8px;
     border-radius: var(--advanced-camera-card-button-border-radius);
-    background: color-mix(in srgb, var(--notification-control-color), transparent 92%);
+
+    @include color-mixed(background, --notification-control-color, 92%);
 
     // When there are no interactive controls (spinner-only case, e.g.
     // Connection / Starting full-card notifications) drop the pill chrome so

@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 
-import type { FolderPathComponent } from '../../card-controller/folders/types';
+import type { FolderPathLevel } from '../../card-controller/folders/types';
 import type { FolderConfig } from '../../config/schema/folders';
 import { formatDateAndTime } from '../../utils/basic';
 import {
@@ -109,7 +109,7 @@ export class BrowseMediaViewFolder extends ViewFolder {
 
   constructor(
     folder: FolderConfig,
-    path: readonly FolderPathComponent[],
+    path: readonly FolderPathLevel[],
     browseMedia: RichBrowseMedia<BrowseMediaMetadata>,
   ) {
     super(folder, path, {

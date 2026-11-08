@@ -1,3 +1,4 @@
+@use './color-mix.scss' as *;
 @use './z-index.scss' as *;
 @use './pop-animation.scss' as *;
 @use './notification-common.scss';
@@ -63,9 +64,13 @@
 
   // Glassmorphism background
   background: var(--advanced-camera-card-notification-popup-background);
-  backdrop-filter: var(--advanced-camera-card-notification-popup-backdrop-filter);
+  backdrop-filter: var(
+    --advanced-camera-card-backdrop-filter-override,
+    var(--advanced-camera-card-notification-popup-backdrop-filter)
+  );
   -webkit-backdrop-filter: var(
-    --advanced-camera-card-notification-popup-backdrop-filter
+    --advanced-camera-card-backdrop-filter-override,
+    var(--advanced-camera-card-notification-popup-backdrop-filter)
   );
 
   // Borders & Edge highlights
@@ -103,10 +108,10 @@
   padding: 4px 8px;
   border-radius: var(--advanced-camera-card-button-border-radius);
 
-  background: color-mix(
-    in srgb,
-    var(--advanced-camera-card-notification-popup-close-color),
-    transparent 92%
+  @include color-mixed(
+    background,
+    --advanced-camera-card-notification-popup-close-color,
+    92%
   );
 
   // When there are no interactive controls (spinner-only case) drop the pill
@@ -131,15 +136,12 @@
   border: none;
   border-radius: var(--advanced-camera-card-button-border-radius);
 
-  background: color-mix(
-    in srgb,
-    var(--advanced-camera-card-notification-popup-close-color),
-    transparent 95%
-  );
-  color: color-mix(
-    in srgb,
-    var(--advanced-camera-card-notification-popup-close-color),
-    transparent 40%
+  color: var(--advanced-camera-card-notification-popup-close-color);
+
+  @include color-mixed(
+    background,
+    --advanced-camera-card-notification-popup-close-color,
+    95%
   );
 
   cursor: pointer;
@@ -147,16 +149,23 @@
 }
 
 .close:hover {
-  background: color-mix(
-    in srgb,
-    var(--advanced-camera-card-notification-popup-close-color),
-    transparent 90%
+  @include color-mixed(
+    background,
+    --advanced-camera-card-notification-popup-close-color,
+    90%
   );
-  color: var(--advanced-camera-card-notification-popup-close-color);
 }
 
 .close advanced-camera-card-icon {
   --mdc-icon-size: 18px;
+
+  // Fade the icon, not the button, so the button's background is unaffected.
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.close:hover advanced-camera-card-icon {
+  opacity: 1;
 }
 
 .details {

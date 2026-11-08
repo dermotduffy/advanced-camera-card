@@ -21,7 +21,6 @@ import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
-import type { CameraConfig } from '../../config/schema/cameras';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
 import type { ThumbnailsControlBaseConfig } from '../../config/schema/common/controls/thumbnails';
 import type {
@@ -34,12 +33,12 @@ import { stopEventFromActivatingCardWideActions } from '../../utils/action';
 import { formatDateAndTime, isHoverableDevice, isTruthy } from '../../utils/basic';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
-import type { ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 import { mergeViewContext } from '../../view/view';
+import { resolveThumbnailStyle } from '../thumbnail/resolve-style';
 import {
   canMediaBeShownAsTimelineItem,
   TimelineDataSource,
@@ -47,23 +46,10 @@ import {
 } from './source';
 import type {
   ExtendedTimeline,
+  ThumbnailDataRequestEvent,
   TimelineItemClickAction,
   TimelineRangeChange,
 } from './types';
-
-// An event used to fetch data required for thumbnail rendering. See special
-// note below on why this is necessary.
-interface ThumbnailDataRequest {
-  item: IdType;
-  hass?: HomeAssistant;
-  cameraManager?: CameraManager;
-  cameraConfig?: CameraConfig;
-  media?: ViewMedia;
-  viewManagerEpoch?: ViewManagerEpoch;
-  viewItemManager?: ViewItemManager;
-}
-
-class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}
 
 interface TimelineControllerOptions {
   hass?: HomeAssistant;
@@ -236,6 +222,7 @@ export class TimelineController {
     request.detail.viewItemManager = this._viewItemManager ?? undefined;
     request.detail.media = media;
     request.detail.viewManagerEpoch = this._viewManagerEpoch ?? undefined;
+    request.detail.size = this._thumbnailConfig?.size;
   };
 
   public getEffectivePanMode(): TimelinePanMode {
@@ -1030,7 +1017,7 @@ export class TimelineController {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'advanced-camera-card-timeline-thumbnail': ['details', 'item'],
+            'advanced-camera-card-timeline-thumbnail': ['thumbnail-style', 'item'],
             div: ['title'],
             span: ['style'],
           },
@@ -1051,13 +1038,17 @@ export class TimelineController {
       return '';
     }
 
+    const thumbnailStyle = this._thumbnailConfig
+      ? resolveThumbnailStyle(this._thumbnailConfig, { placement: 'popup' })
+      : null;
+
     // Cannot use Lit data-bindings as visjs requires a string for tooltips.
     // Note that changes to attributes here must be mirrored in the xss
     // whitelist in `_getOptions()` .
     return `
         <advanced-camera-card-timeline-thumbnail
           item='${item.id}'
-          ${this._thumbnailConfig?.show_details ? 'details' : ''}
+          ${thumbnailStyle ? `thumbnail-style='${thumbnailStyle}'` : ''}
         >
         </advanced-camera-card-timeline-thumbnail>`;
   }

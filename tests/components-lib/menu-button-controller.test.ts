@@ -1897,7 +1897,10 @@ describe('MenuButtonController', () => {
         cameraManager: cameraManager,
         mediaPlayerController: mediaPlayerController,
         hass: createHASS({
-          'media_player.tv': createStateEntity({ entity_id: 'media_player.tv' }),
+          'media_player.tv': createStateEntity({
+            entity_id: 'media_player.tv',
+            attributes: { friendly_name: 'TV' },
+          }),
         }),
       });
 
@@ -1916,7 +1919,7 @@ describe('MenuButtonController', () => {
             selected: false,
             entity: 'media_player.tv',
             state_color: false,
-            title: 'media_player.tv',
+            title: 'TV',
             disabled: false,
             tap_action: {
               action: 'fire-dom-event',
@@ -2498,7 +2501,7 @@ describe('MenuButtonController', () => {
       const folderNode: FolderQuery = {
         source: QuerySource.Folder,
         folder: folder,
-        path: [{ ha: { id: 'one' } }],
+        path: [{}],
       };
       const buttons = calculateButtons(controller, {
         foldersManager,
@@ -2538,7 +2541,7 @@ describe('MenuButtonController', () => {
       const selectedFolderNode: FolderQuery = {
         source: QuerySource.Folder,
         folder: selectedFolder,
-        path: [{ ha: { id: 'id' } }],
+        path: [{}],
       };
       const view = createView({
         view: 'folder',
@@ -2791,7 +2794,7 @@ describe('MenuButtonController', () => {
         const folderNode: FolderQuery = {
           source: QuerySource.Folder,
           folder: folder,
-          path: [{ ha: { id: 'one' } }],
+          path: [{}],
         };
         const view = createView({
           view: action,
@@ -2851,7 +2854,7 @@ describe('MenuButtonController', () => {
       const folderNode: FolderQuery = {
         source: QuerySource.Folder,
         folder: folder,
-        path: [{ ha: { id: 'one' } }],
+        path: [{}],
       };
       // Opening a media item from a folder keeps the folder query but changes
       // the view to the media viewer, so emphasis must follow the folder query
