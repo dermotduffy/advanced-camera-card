@@ -641,15 +641,13 @@ export class VideoRTC extends HTMLElement {
           } catch (e) {
             // console.debug(e);
           } finally {
-            // Drop the staged bytes even when the append threw. `appendBuffer`
-            // raises QuotaExceededError once the SourceBuffer is full, which is
-            // routine on a tab the browser has throttled, and clearing `bufLen`
-            // only on success left it permanently non-zero: every subsequent
-            // `ondata` then staged instead of appending, `bufLen` grew without
-            // bound, and past the 2MB staging buffer `buf.set()` threw
-            // `RangeError: offset is out of bounds` for every message that
-            // followed, with no path back. Losing the staged fragment costs a
-            // glitch; MSE resynchronises at the next keyframe.
+            // Drop the staged bytes even when the append threw, e.g. once the
+            // MediaSource has failed on a fragment it could not parse, after
+            // which every append throws. Clearing `bufLen` only on success left
+            // it permanently non-zero: every later `ondata` staged instead of
+            // appending, and past the 2MB staging buffer `buf.set()` threw a
+            // `RangeError` for every message that followed, with no path back.
+            // Losing the staged fragment costs a glitch at worst.
             bufLen = 0;
           }
         }
@@ -688,8 +686,8 @@ export class VideoRTC extends HTMLElement {
         if (sb.updating || bufLen > 0) {
           const b = new Uint8Array(data);
           // Guard the staging buffer directly, for any stall the `updateend`
-          // reset above cannot see: a throttled tab may stop firing `updateend`
-          // altogether, and then nothing else prevents the overflow.
+          // handler above cannot see: once nothing fires `updateend` any more,
+          // nothing else prevents the overflow.
           if (bufLen + b.byteLength > buf.byteLength) {
             bufLen = 0;
             return;
