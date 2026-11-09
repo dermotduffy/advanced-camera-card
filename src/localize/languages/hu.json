@@ -11,6 +11,7 @@
     "folder": "Mappa",
     "in_progress": "Folyamatban",
     "no_media": "Nincs megjeleníthető média",
+    "notification": "Értesítés",
     "retry": "Újra",
     "set_reviews": {
       "reviewed": "Megjelölés átnézettként",
@@ -22,7 +23,9 @@
       "medium": "Közepes"
     },
     "severity": "Súlyosság",
-    "up": "Fel"
+    "today": "Ma",
+    "up": "Fel",
+    "yesterday": "Tegnap"
   },
   "config": {
     "cameras": {
@@ -286,6 +289,14 @@
           }
         },
         "thumbnails": {
+          "style": "Stílus",
+          "styles": {
+            "auto": "Automatikus",
+            "hover": "Bélyegkép, részletek rámutatáskor",
+            "plain": "Bélyegkép részletek nélkül",
+            "overlay": "Bélyegkép ráírt részletekkel",
+            "panel": "Bélyegkép részletpanellel"
+          },
           "editor_label": "Bélyegképek",
           "mode": "Mód",
           "modes": {
@@ -440,6 +451,11 @@
       },
       "icon": "Ikon",
       "id": "Egyedi azonosító",
+      "navigation": "Navigáció",
+      "navigations": {
+        "restricted": "Csak ez a mappa és az alatta lévők",
+        "unrestricted": "E mappa fölé is léphet"
+      },
       "title": "Cím",
       "type": "Típus",
       "types": {
@@ -616,6 +632,7 @@
         "media_chunk_size": "Média darabmérete"
       },
       "style": {
+        "backdrop_filter": "Elmosási effektusok",
         "border_radius": "Lekerekítések",
         "box_shadow": "Árnyékok",
         "editor_label": "Stílusbeállítások"
@@ -972,6 +989,8 @@
     "camera": "Kamera",
     "download": "Média letöltése",
     "duration": "Időtartam",
+    "in_progress": "REC",
+    "more_details": "+{count} részlet",
     "no_thumbnail": "Nincs elérhető bélyegkép",
     "retain_indefinitely": "Média megőrzése korlátlan ideig",
     "seek": "Ugrás",
