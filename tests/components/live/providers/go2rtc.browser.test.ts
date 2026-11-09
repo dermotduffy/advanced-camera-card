@@ -85,57 +85,94 @@ describe('AdvancedCameraCardGo2RTC', () => {
     expect(video2.srcObject).toBeNull();
   });
 
-  it('should drop the staged MSE data when an append fails', async () => {
-    // A fragment that arrives while an append is in flight is staged, and
-    // `updateend` appends it. When that append throws, the staged data has to
-    // go, or every later fragment is staged behind it until the staging buffer
-    // overflows with `RangeError: offset is out of bounds` on every message.
-    const card = await mount({
-      go2rtc: { url: 'http://localhost:1984', stream: 'office', modes: ['mse'] },
-      proxy: { live: false },
-    });
-
-    const player = await card.waitForSelector<VideoRTC>(PLAYER_SELECTOR);
-
-    const ws = mock<WebSocket>();
-    player.ws = ws;
-
-    const addSourceBuffer = vi.spyOn(MediaSource.prototype, 'addSourceBuffer');
-    onTestFinished(() => addSourceBuffer.mockRestore());
-
-    expect(player.onopen()).toEqual(['mse']);
-    await vi.waitFor(() =>
-      expect(ws.send).toHaveBeenCalledWith(expect.stringContaining('"type":"mse"')),
-    );
-
-    // Playwright's Chromium has no H.264, so take whichever container the
-    // browser has. The data below is rejected by either parser.
-    const type = ['video/mp4; codecs="avc1.42E01E"', 'video/webm; codecs="vp8"'].find(
-      (candidate) => MediaSource.isTypeSupported(candidate),
-    );
-    assert(type);
-    player.onmessage['mse']({ type: 'mse', value: type });
-
-    const ondata = player.ondata;
-    assert(ondata);
-
-    const sourceBuffer = addSourceBuffer.mock.results[0].value as SourceBuffer;
-    const updateEnd = new Promise((resolve) =>
-      sourceBuffer.addEventListener('updateend', resolve, { once: true }),
-    );
-
+  describe('MSE', () => {
     // A media segment with no initialization segment before it, which the
     // parser rejects: the MediaSource fails, and every append after it throws.
-    const fragment = new Uint8Array(64 * 1024);
-    fragment.set([0, 0, 0x01, 0x00, 0x6d, 0x64, 0x61, 0x74]);
+    const createFragment = (): ArrayBuffer => {
+      const fragment = new Uint8Array(64 * 1024);
+      fragment.set([0, 0, 0x01, 0x00, 0x6d, 0x64, 0x61, 0x74]);
+      return fragment.buffer;
+    };
 
-    ondata(fragment.buffer); // Appended, then rejected.
-    ondata(fragment.buffer); // Staged while that append is in flight.
-    await updateEnd;
+    const startMSE = async (): Promise<{
+      player: VideoRTC;
+      ondata: (data: ArrayBuffer) => void;
+      sourceBuffer: SourceBuffer;
+    }> => {
+      const card = await mount({
+        go2rtc: { url: 'http://localhost:1984', stream: 'office', modes: ['mse'] },
+        proxy: { live: false },
+      });
 
-    // Well past the 2MB staging buffer.
-    for (let i = 0; i < 64; i++) {
-      expect(() => ondata(fragment.buffer)).not.toThrow();
-    }
+      const player = await card.waitForSelector<VideoRTC>(PLAYER_SELECTOR);
+
+      const ws = mock<WebSocket>();
+      player.ws = ws;
+
+      const addSourceBuffer = vi.spyOn(MediaSource.prototype, 'addSourceBuffer');
+      onTestFinished(() => addSourceBuffer.mockRestore());
+
+      expect(player.onopen()).toEqual(['mse']);
+      await vi.waitFor(() =>
+        expect(ws.send).toHaveBeenCalledWith(expect.stringContaining('"type":"mse"')),
+      );
+
+      // Not every browser build plays H.264, so take whichever container the
+      // browser supports. The MP4 and WebM parsers both reject the fragment data.
+      const type = ['video/mp4; codecs="avc1.42E01E"', 'video/webm; codecs="vp8"'].find(
+        (candidate) => MediaSource.isTypeSupported(candidate),
+      );
+      assert(type);
+      player.onmessage['mse']({ type: 'mse', value: type });
+
+      const ondata = player.ondata;
+      assert(ondata);
+
+      const [result] = addSourceBuffer.mock.results;
+      assert(result?.type === 'return');
+
+      return { player, ondata, sourceBuffer: result.value };
+    };
+
+    it('should append directly again after a staged append fails', async () => {
+      // A fragment that arrives while an append is in flight is staged, and
+      // `updateend` appends it. When that append throws, the staged data has
+      // to go, or every later fragment is staged behind it forever.
+      const { player, ondata, sourceBuffer } = await startMSE();
+      const fragment = createFragment();
+
+      const nextUpdateEnd = (): Promise<Event> =>
+        new Promise((resolve) =>
+          sourceBuffer.addEventListener('updateend', resolve, { once: true }),
+        );
+
+      // Firefox and WebKit reject the first append, but Chromium accepts it and
+      // rejects a later one. Each pass stages a fragment behind the in-flight
+      // append, so a staged append is waiting whenever the rejection comes.
+      ondata(fragment);
+      for (let i = 0; i < 10 && !player.video?.error; i++) {
+        ondata(fragment);
+        await nextUpdateEnd();
+      }
+      expect(player.video?.error).not.toBeNull();
+      expect(sourceBuffer.updating).toBe(false);
+
+      const appendBuffer = vi.spyOn(sourceBuffer, 'appendBuffer');
+      ondata(fragment);
+      expect(appendBuffer).toHaveBeenCalled();
+    });
+
+    it('should not throw when a burst overflows the staging buffer', async () => {
+      const { ondata } = await startMSE();
+      const fragment = createFragment();
+
+      // Appended, after which every fragment is staged while it is in flight.
+      ondata(fragment);
+
+      // Well past the 2MB staging buffer.
+      for (let i = 0; i < 64; i++) {
+        expect(() => ondata(fragment)).not.toThrow();
+      }
+    });
   });
 });

@@ -641,13 +641,9 @@ export class VideoRTC extends HTMLElement {
           } catch (e) {
             // console.debug(e);
           } finally {
-            // Drop the staged bytes even when the append threw, e.g. once the
-            // MediaSource has failed on a fragment it could not parse, after
-            // which every append throws. Clearing `bufLen` only on success left
-            // it permanently non-zero: every later `ondata` staged instead of
-            // appending, and past the 2MB staging buffer `buf.set()` threw a
-            // `RangeError` for every message that followed, with no path back.
-            // Losing the staged fragment costs a glitch at worst.
+            // For Advanced Camera Card: the staged bytes are dropped even when
+            // the append throws, since once the MediaSource has failed every
+            // append throws and nothing else would clear them.
             bufLen = 0;
           }
         }
@@ -685,9 +681,9 @@ export class VideoRTC extends HTMLElement {
       this.ondata = (data) => {
         if (sb.updating || bufLen > 0) {
           const b = new Uint8Array(data);
-          // Guard the staging buffer directly, for any stall the `updateend`
-          // handler above cannot see: once nothing fires `updateend` any more,
-          // nothing else prevents the overflow.
+          // For Advanced Camera Card: data that would overflow the staging
+          // buffer is dropped along with the staged bytes, rather than throwing
+          // a `RangeError`.
           if (bufLen + b.byteLength > buf.byteLength) {
             bufLen = 0;
             return;
