@@ -128,8 +128,8 @@ ha-card {
   box-shadow: none;
   margin: 0;
 
-  // No height cap on the carousels, from the first fullscreen frame on
-  // (media-height-controller.ts).
+  // MediaHeightController caps each carousel at its media's height through
+  // this property; fullscreen removes the cap so the media fills the screen.
   --advanced-camera-card-fullscreen-max-height: none;
 }
 
