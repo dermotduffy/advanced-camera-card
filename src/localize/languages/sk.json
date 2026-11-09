@@ -762,9 +762,8 @@
   },
   "editor": {
     "add_new_camera": "Pridať kameru",
-    "back": "Späť",
-    "edit": "Upraviť",
     "add_new_folder": "Pridať priečinok",
+    "back": "Späť",
     "camera": "Kamera",
     "cameras": "Kamery",
     "cameras_secondary": "Ktoré kamery sa majú na tejto karte zobraziť",
@@ -772,6 +771,7 @@
     "dimensions": "Rozmery",
     "dimensions_secondary": "Rozmery karty a možnosti tvaru",
     "docs": "Dokumentácia",
+    "edit": "Upraviť",
     "folders": "Priečinky",
     "folders_secondary": "Ktoré priečinky sa majú na tejto karte zobraziť",
     "image": "Obrázok",

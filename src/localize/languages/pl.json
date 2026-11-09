@@ -80,9 +80,9 @@
         "rotation": "Obrót",
         "rotations": {
           "0": "Brak obrotu",
+          "90": "90 stopni zgodnie z zegarem",
           "180": "180 stopni zgodnie z zegarem",
-          "270": "270 stopni zgodnie z zegarem",
-          "90": "90 stopni zgodnie z zegarem"
+          "270": "270 stopni zgodnie z zegarem"
         }
       },
       "engines": {

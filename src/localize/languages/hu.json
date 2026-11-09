@@ -289,14 +289,6 @@
           }
         },
         "thumbnails": {
-          "style": "Stílus",
-          "styles": {
-            "auto": "Automatikus",
-            "hover": "Bélyegkép, részletek rámutatáskor",
-            "plain": "Bélyegkép részletek nélkül",
-            "overlay": "Bélyegkép ráhelyezett részletekkel",
-            "panel": "Bélyegkép részletpanellel"
-          },
           "editor_label": "Bélyegképek",
           "mode": "Mód",
           "modes": {
@@ -311,7 +303,15 @@
           "show_info_control": "Információs gomb megjelenítése",
           "show_review_control": "Áttekintési állapot gomb megjelenítése",
           "show_timeline_control": "Idővonalra ugró gomb megjelenítése",
-          "size": "Méret képpontban"
+          "size": "Méret képpontban",
+          "style": "Stílus",
+          "styles": {
+            "auto": "Automatikus",
+            "hover": "Bélyegkép, részletek rámutatáskor",
+            "overlay": "Bélyegkép ráhelyezett részletekkel",
+            "panel": "Bélyegkép részletpanellel",
+            "plain": "Bélyegkép részletek nélkül"
+          }
         },
         "timeline": {
           "editor_label": "Mini idővonal",
@@ -780,9 +780,8 @@
   },
   "editor": {
     "add_new_camera": "Kamera hozzáadása",
-    "back": "Vissza",
-    "edit": "Szerkesztés",
     "add_new_folder": "Mappa hozzáadása",
+    "back": "Vissza",
     "camera": "Kamera",
     "cameras": "Kamerák",
     "cameras_secondary": "Mely kamerák jelenjenek meg ezen a kártyán",
@@ -790,6 +789,7 @@
     "dimensions": "Méretek",
     "dimensions_secondary": "A kártya méretei és alakja",
     "docs": "Dokumentáció",
+    "edit": "Szerkesztés",
     "folders": "Mappák",
     "folders_secondary": "Mely mappák jelenjenek meg ezen a kártyán",
     "image": "Kép",
