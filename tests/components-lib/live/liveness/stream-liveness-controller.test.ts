@@ -20,6 +20,7 @@ import {
   createMediaLoadedInfoEvent,
   createStateEntity,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../../../test-utils';
 
 const ISSUE_TRIGGER_EVENT = 'advanced-camera-card:issue:trigger';
@@ -81,11 +82,7 @@ describe('StreamLivenessController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   it('should register itself as a controller on the host', () => {

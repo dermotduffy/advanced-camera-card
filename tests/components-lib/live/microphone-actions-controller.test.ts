@@ -10,6 +10,7 @@ import {
   createParent,
   getMockIntersectionObserver,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../../test-utils';
 import { createView } from '../../view/test-utils';
 
@@ -45,11 +46,7 @@ describe('MicrophoneActionsController', () => {
     // Reset document.visibilityState so each test starts with the tab
     // visible and is not affected by leftover state from a prior
     // `callVisibilityHandler(false)`.
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   describe('on document visibility change', () => {
