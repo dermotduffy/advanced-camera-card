@@ -127,6 +127,10 @@ ha-card {
   // them.
   box-shadow: none;
   margin: 0;
+
+  // MediaHeightController caps each carousel at its media's height through
+  // this property; fullscreen removes the cap so the media fills the screen.
+  --advanced-camera-card-fullscreen-max-height: none;
 }
 
 :host(:fullscreen) #ha-card {
