@@ -1,9 +1,10 @@
 import type parser from 'any-date-parser';
-import { parse } from 'date-fns';
+import { addDays, parse } from 'date-fns';
 import { omit } from 'lodash-es';
 
 import type {
   DateParser,
+  EndDateParser,
   Parser,
   StartDateParser,
 } from '../../../config/schema/folders';
@@ -16,8 +17,10 @@ import { isValidDate } from '../../../utils/basic';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import { REGEXP_GROUP_VALUE_KEY } from './types';
 
-const isDateParser = (parser: Parser): parser is DateParser | StartDateParser =>
-  parser.type === 'date' || parser.type === 'startdate';
+type AnyDateParser = DateParser | EndDateParser | StartDateParser;
+
+const isDateParser = (parser: Parser): parser is AnyDateParser =>
+  parser.type === 'date' || parser.type === 'enddate' || parser.type === 'startdate';
 
 export class MetadataGenerator {
   private _anyDateParser: typeof parser | null = null;
@@ -55,12 +58,26 @@ export class MetadataGenerator {
         continue;
       }
 
-      metadata.startDate =
-        this._parseDate(
-          parser,
-          valueToParse,
-          metadata.startDate ?? parent?._metadata?.startDate,
-        ) ?? undefined;
+      const date = this._parseDate(
+        parser,
+        valueToParse,
+        metadata.startDate ?? parent?._metadata?.startDate,
+      );
+      if (parser.type === 'enddate') {
+        metadata.endDate = date;
+      } else {
+        metadata.startDate = date;
+      }
+    }
+
+    // An end time before the start time (e.g. `22:18:51 - 00:00:00`) crosses
+    // midnight.
+    if (
+      metadata.startDate &&
+      metadata.endDate &&
+      metadata.endDate < metadata.startDate
+    ) {
+      metadata.endDate = addDays(metadata.endDate, 1);
     }
 
     return Object.keys(metadata).length > 0 ? metadata : null;
@@ -69,16 +86,13 @@ export class MetadataGenerator {
   private _getInheritedMetadata(
     parentMetadata?: BrowseMediaMetadata,
   ): BrowseMediaMetadata {
-    // Thumbnail is not passed down: a picture of a folder is not a picture of
-    // each file within it.
-    return omit(parentMetadata, 'thumbnailOverride');
+    // Thumbnail and end date are not passed down: a picture of a folder is not
+    // a picture of each file within it, and a folder does not end when each
+    // file within it ends.
+    return omit(parentMetadata, ['endDate', 'thumbnailOverride']);
   }
 
-  private _parseDate(
-    parser: DateParser | StartDateParser,
-    src: string,
-    base?: Date,
-  ): Date | undefined {
+  private _parseDate(parser: AnyDateParser, src: string, base?: Date): Date | undefined {
     if (parser.format) {
       return this._parseFormattedDate(parser.format, src, base);
     }

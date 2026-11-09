@@ -1898,7 +1898,8 @@ describe('CameraManager', () => {
 
           expect(
             await manager.getMediaSeekTime(
-              new TestViewMedia({ startTime: start, endTime: end }),
+              // Range checks apply even without an engine (e.g. folder media).
+              new TestViewMedia({ cameraID: null, startTime: start, endTime: end }),
               target,
             ),
           ).toBeNull();
@@ -1928,6 +1929,39 @@ describe('CameraManager', () => {
         media,
         middleTime,
       );
+    });
+
+    it('should seek from the start of media without a camera', async () => {
+      const api = createCardAPI();
+      const engine = mock<CameraManagerEngine>();
+      const manager = createCameraManager(api, engine);
+
+      await manager.initializeCamerasFromConfig();
+
+      expect(
+        await manager.getMediaSeekTime(
+          new TestViewMedia({ cameraID: null, startTime, endTime }),
+          middleTime,
+        ),
+      ).toBe(30);
+      expect(engine.getMediaSeekTime).not.toHaveBeenCalled();
+    });
+
+    it('should not seek media with a camera without hass', async () => {
+      const api = createCardAPI();
+      const engine = mock<CameraManagerEngine>();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      const manager = createCameraManager(api, engine);
+
+      await manager.initializeCamerasFromConfig();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
+
+      expect(
+        await manager.getMediaSeekTime(
+          new TestViewMedia({ cameraID: 'id', startTime, endTime }),
+          middleTime,
+        ),
+      ).toBeNull();
     });
 
     it('should handle null return value', async () => {

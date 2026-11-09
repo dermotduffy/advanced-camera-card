@@ -149,7 +149,8 @@ type: title
 
 Parsers are used to extract data from a media item (e.g. an event start time).
 Parsed data is propagated down the hierarcy, e.g. a given media item inherits
-the metadata of its parents.
+the metadata of its parents (except end dates and thumbnails, which only apply
+to the item they are parsed from).
 
 ##### Parser `date` / `startdate`
 
@@ -166,6 +167,40 @@ type: date
 | `type`    | Must be `date` or `startdate`.                                                                                                                                                                                                                                                                              |
 | `format`  | A [`date-fns` format string](https://date-fns.org/docs/parse). If unspecified, [`any-date-parser`](https://www.npmjs.com/package/any-date-parser) is used to parse a date and/or time which covers many common cases. In the event of missing or inaccurate metadata, specifying a precise format may help. |
 | `regexp`  | An optional regular expression to first match the title against before parsing. May be used to match against a subset of the string, see [tip below](#regular-expression-matching).                                                                                                                         |
+
+##### Parser `enddate`
+
+Parses an end date from a media title. Without an end date, media is shown as
+an instant on the timeline at its start date. With one, media is shown as a
+range, and the timeline can seek within it (e.g. with the
+[`scrubbing`](profiles.md?id=scrubbing) profile).
+
+```yaml
+type: enddate
+# [...]
+```
+
+| Parameter | Description                                              |
+| --------- | -------------------------------------------------------- |
+| `type`    | Must be `enddate`.                                       |
+| `format`  | As for the [`startdate` parser](#parser-date-startdate). |
+| `regexp`  | As for the [`startdate` parser](#parser-date-startdate). |
+
+Missing parts of the end date (e.g. the day, when only a time is parsed) are
+taken from the start date. An end date before the start date is assumed to be
+on the following day, e.g. `22:18:51 - 00:00:00` ends at midnight.
+
+For example, to parse both times out of a title such as `05:54:10 - 08:26:53`:
+
+```yaml
+parsers:
+  - type: startdate
+    regexp: '^\d{2}:\d{2}:\d{2}'
+    format: HH:mm:ss
+  - type: enddate
+    regexp: '- (?<value>\d{2}:\d{2}:\d{2})$'
+    format: HH:mm:ss
+```
 
 ##### Parser `thumbnail`
 
