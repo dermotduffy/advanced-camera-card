@@ -638,9 +638,13 @@ export class VideoRTC extends HTMLElement {
           try {
             const data = buf.slice(0, bufLen);
             sb.appendBuffer(data);
-            bufLen = 0;
           } catch (e) {
             // console.debug(e);
+          } finally {
+            // For Advanced Camera Card: the staged bytes are dropped even when
+            // the append throws, since once the MediaSource has failed every
+            // append throws and nothing else would clear them.
+            bufLen = 0;
           }
         }
 
@@ -677,6 +681,13 @@ export class VideoRTC extends HTMLElement {
       this.ondata = (data) => {
         if (sb.updating || bufLen > 0) {
           const b = new Uint8Array(data);
+          // For Advanced Camera Card: data that would overflow the staging
+          // buffer is dropped along with the staged bytes, rather than throwing
+          // a `RangeError`.
+          if (bufLen + b.byteLength > buf.byteLength) {
+            bufLen = 0;
+            return;
+          }
           buf.set(b, bufLen);
           bufLen += b.byteLength;
           // console.debug("VideoRTC.buffer", b.byteLength, bufLen);

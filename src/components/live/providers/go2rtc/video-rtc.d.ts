@@ -29,6 +29,7 @@ export class VideoRTC extends HTMLElement {
   onopen(): void;
   onwebrtc(): void;
   onmessage: Record<string, (msg: { type: string; value: string }) => void>;
+  ondata: ((data: ArrayBuffer) => void) | null;
 
   // Custom methods/members.
   mediaPlayerController: MediaPlayerController | null;
