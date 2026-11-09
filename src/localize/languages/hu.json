@@ -14,8 +14,8 @@
     "notification": "Értesítés",
     "retry": "Újra",
     "set_reviews": {
-      "reviewed": "Megjelölés átnézettként",
-      "unreviewed": "Megjelölés át nem nézettként"
+      "reviewed": "Megjelölés áttekintettként",
+      "unreviewed": "Megjelölés nem áttekintettként"
     },
     "severities": {
       "high": "Magas",
@@ -42,7 +42,7 @@
           "ptz": "PTZ",
           "recordings": "Felvételek",
           "remote-control-entity": "Távvezérlő entitás",
-          "reviews": "Átnézendők",
+          "reviews": "Áttekintések",
           "seek": "Tekerés",
           "snapshots": "Pillanatképek",
           "substream": "Alstream",
@@ -164,11 +164,11 @@
         "editor_label": "Média",
         "events_type": "Esemény altípusa",
         "folders": "Mappaazonosítók",
-        "reviewed": "Szűrés átnézési állapot szerint",
+        "reviewed": "Szűrés áttekintési állapot szerint",
         "revieweds": {
-          "all": "Mind (átnézett és át nem nézett)",
-          "reviewed": "Csak átnézett",
-          "unreviewed": "Csak át nem nézett"
+          "all": "Mind (áttekintett és nem áttekintett)",
+          "reviewed": "Csak áttekintett",
+          "unreviewed": "Csak nem áttekintett"
         },
         "type": "Alapértelmezett típus"
       },
@@ -221,7 +221,7 @@
         "occupancy": "Kiváltás az automatikusan felismert jelenlét-érzékelővel",
         "reviews": {
           "description": "Kiváltás a leírás frissülésekor",
-          "editor_label": "Átnézési kiváltók"
+          "editor_label": "Áttekintési kiváltók"
         }
       },
       "webrtc_card": {
@@ -309,7 +309,7 @@
           "show_download_control": "Letöltési gomb megjelenítése",
           "show_favorite_control": "Kedvencnek jelölő gomb megjelenítése",
           "show_info_control": "Információs gomb megjelenítése",
-          "show_review_control": "Átnézési állapot gomb megjelenítése",
+          "show_review_control": "Áttekintési állapot gomb megjelenítése",
           "show_timeline_control": "Idővonalra ugró gomb megjelenítése",
           "size": "Méret képpontban"
         },
@@ -391,7 +391,7 @@
         "events": "Események",
         "folder": "Mappa",
         "recordings": "Felvételek",
-        "reviews": "Átnézendők"
+        "reviews": "Áttekintések"
       },
       "proxy": {
         "dynamic": "Dinamikus",
@@ -588,9 +588,9 @@
         "ptz_controls": "PTZ vezérlők megjelenítése",
         "ptz_home": "PTZ kezdőpozíció",
         "recordings": "Felvételek",
-        "reviews": "Átnézendők",
+        "reviews": "Áttekintések",
         "screenshot": "Képernyőkép",
-        "set_review": "Átnézési állapot beállítása",
+        "set_review": "Áttekintési állapot beállítása",
         "snapshots": "Pillanatképek",
         "state_color": "Színezés az entitás állapota szerint",
         "style": "CSS stílus",
@@ -766,8 +766,8 @@
         "media": "Legutóbbi alapértelmezett média",
         "recording": "Legutóbbi felvétel",
         "recordings": "Felvételgaléria",
-        "review": "Legutóbbi átnézendő média",
-        "reviews": "Átnézendők galériája",
+        "review": "Legutóbbi áttekintendő média",
+        "reviews": "Áttekintések galériája",
         "snapshot": "Legutóbbi pillanatkép",
         "snapshots": "Pillanatkép-galéria",
         "timeline": "Idővonal-nézet"
@@ -955,16 +955,16 @@
     "media_types": {
       "clips": "Klipek",
       "recordings": "Felvételek",
-      "reviews": "Átnézendők",
+      "reviews": "Áttekintések",
       "snapshots": "Pillanatképek"
     },
     "not_favorite": "Nem kedvenc",
-    "not_reviewed": "Nincs átnézve",
-    "reviewed": "Átnézve",
+    "not_reviewed": "Nincs áttekintve",
+    "reviewed": "Áttekintve",
     "select_camera": "Kamera kiválasztása...",
     "select_favorite": "Kedvenc kiválasztása...",
     "select_media_type": "Média típusának kiválasztása...",
-    "select_reviewed": "Átnézési állapot kiválasztása...",
+    "select_reviewed": "Áttekintési állapot kiválasztása...",
     "select_severity": "Súlyosság kiválasztása...",
     "select_tag": "Címke kiválasztása...",
     "select_what": "Mi...",
