@@ -11,10 +11,11 @@
     "folder": "Mappa",
     "in_progress": "Folyamatban",
     "no_media": "Nincs megjeleníthető média",
+    "notification": "Értesítés",
     "retry": "Újra",
     "set_reviews": {
-      "reviewed": "Megjelölés átnézettként",
-      "unreviewed": "Megjelölés át nem nézettként"
+      "reviewed": "Megjelölés áttekintettként",
+      "unreviewed": "Megjelölés nem áttekintettként"
     },
     "severities": {
       "high": "Magas",
@@ -22,7 +23,9 @@
       "medium": "Közepes"
     },
     "severity": "Súlyosság",
-    "up": "Fel"
+    "today": "Ma",
+    "up": "Fel",
+    "yesterday": "Tegnap"
   },
   "config": {
     "cameras": {
@@ -39,7 +42,7 @@
           "ptz": "PTZ",
           "recordings": "Felvételek",
           "remote-control-entity": "Távvezérlő entitás",
-          "reviews": "Átnézendők",
+          "reviews": "Áttekintések",
           "seek": "Tekerés",
           "snapshots": "Pillanatképek",
           "substream": "Alstream",
@@ -144,9 +147,9 @@
         "refresh_seconds": "Élő kép frissítései közti másodpercek (0=soha)",
         "url": "A kamera entitás pillanatképe helyett használt kép URL-je"
       },
-      "live_provider": "Élő nézet szolgáltatója ehhez a kamerához",
+      "live_provider": "A kamera élőképének szolgáltatója",
       "live_provider_options": {
-        "editor_label": "Élő szolgáltató"
+        "editor_label": "Élőkép-szolgáltató"
       },
       "live_providers": {
         "auto": "Automatikus",
@@ -161,11 +164,11 @@
         "editor_label": "Média",
         "events_type": "Esemény altípusa",
         "folders": "Mappaazonosítók",
-        "reviewed": "Átnézési állapot szűrő",
+        "reviewed": "Szűrés áttekintési állapot szerint",
         "revieweds": {
-          "all": "Mind (átnézett és át nem nézett)",
-          "reviewed": "Csak átnézett",
-          "unreviewed": "Csak át nem nézett"
+          "all": "Mind (áttekintett és nem áttekintett)",
+          "reviewed": "Csak áttekintett",
+          "unreviewed": "Csak nem áttekintett"
         },
         "type": "Alapértelmezett típus"
       },
@@ -218,7 +221,7 @@
         "occupancy": "Kiváltás az automatikusan felismert jelenlét-érzékelővel",
         "reviews": {
           "description": "Kiváltás a leírás frissülésekor",
-          "editor_label": "Átnézési kiváltók"
+          "editor_label": "Áttekintési kiváltók"
         }
       },
       "webrtc_card": {
@@ -286,6 +289,14 @@
           }
         },
         "thumbnails": {
+          "style": "Stílus",
+          "styles": {
+            "auto": "Automatikus",
+            "hover": "Bélyegkép, részletek rámutatáskor",
+            "plain": "Bélyegkép részletek nélkül",
+            "overlay": "Bélyegkép ráhelyezett részletekkel",
+            "panel": "Bélyegkép részletpanellel"
+          },
           "editor_label": "Bélyegképek",
           "mode": "Mód",
           "modes": {
@@ -295,17 +306,17 @@
             "none": "Nincs",
             "right": "Jobb oldali fiók"
           },
-          "show_download_control": "Letöltés vezérlő megjelenítése",
-          "show_favorite_control": "Kedvenc vezérlő megjelenítése",
-          "show_info_control": "Információ vezérlő megjelenítése",
-          "show_review_control": "Átnézés vezérlő megjelenítése",
-          "show_timeline_control": "Idővonal vezérlő megjelenítése",
+          "show_download_control": "Letöltési gomb megjelenítése",
+          "show_favorite_control": "Kedvencnek jelölő gomb megjelenítése",
+          "show_info_control": "Információs gomb megjelenítése",
+          "show_review_control": "Áttekintési állapot gomb megjelenítése",
+          "show_timeline_control": "Idővonalra ugró gomb megjelenítése",
           "size": "Méret képpontban"
         },
         "timeline": {
           "editor_label": "Mini idővonal",
           "format": {
-            "24h": "24 órás óra használata",
+            "24h": "24 órás időformátum használata",
             "editor_label": "Idő- és dátumformátum"
           },
           "mode": "Mód",
@@ -380,7 +391,7 @@
         "events": "Események",
         "folder": "Mappa",
         "recordings": "Felvételek",
-        "reviews": "Átnézendők"
+        "reviews": "Áttekintések"
       },
       "proxy": {
         "dynamic": "Dinamikus",
@@ -392,7 +403,7 @@
         "ssl_ciphers": {
           "auto": "Automatikus",
           "default": "Alapértelmezett",
-          "editor_label": "SSL titkosítók",
+          "editor_label": "SSL-titkosítási algoritmusok",
           "insecure": "Nem biztonságos",
           "intermediate": "Köztes",
           "modern": "Modern"
@@ -440,6 +451,11 @@
       },
       "icon": "Ikon",
       "id": "Egyedi azonosító",
+      "navigation": "Navigáció",
+      "navigations": {
+        "restricted": "Navigálás csak ebben a mappában és alatta",
+        "unrestricted": "Navigálás a szülőmappákba is"
+      },
       "title": "Cím",
       "type": "Típus",
       "types": {
@@ -487,8 +503,8 @@
         "editor_label": "Élő vezérlők"
       },
       "draggable": "Húzható",
-      "lazy_load": "Az élő kamerák késleltetve töltődnek be",
-      "lazy_unload": "Az élő kamerák késleltetve töltődnek ki",
+      "lazy_load": "Élő kamerák betöltése igény szerint",
+      "lazy_unload": "Élő streamek leállítása a megadott feltételek szerint",
       "microphone": {
         "always_connected": "A mikrofon maradjon mindig csatlakoztatva",
         "audio_processing": {
@@ -522,7 +538,7 @@
         "editor_label": "Médianéző vezérlői"
       },
       "draggable": "Húzható",
-      "lazy_load": "A médianéző a körhintában késleltetve tölti be a médiát",
+      "lazy_load": "A médianéző a körhintában igény szerint tölti be a médiát",
       "snapshot_click_plays_clip": "Pillanatképre kattintva lejátssza a hozzá tartozó klipet",
       "transition_effect": "Médianéző áttűnési effektusa",
       "zoomable": "Nagyítható/mozgatható"
@@ -572,9 +588,9 @@
         "ptz_controls": "PTZ vezérlők megjelenítése",
         "ptz_home": "PTZ kezdőpozíció",
         "recordings": "Felvételek",
-        "reviews": "Átnézendők",
+        "reviews": "Áttekintések",
         "screenshot": "Képernyőkép",
-        "set_review": "Átnézési állapot beállítása",
+        "set_review": "Áttekintési állapot beállítása",
         "snapshots": "Pillanatképek",
         "state_color": "Színezés az entitás állapota szerint",
         "style": "CSS stílus",
@@ -613,9 +629,10 @@
         "card_loading_indicator": "Betöltésjelző",
         "editor_label": "Funkcióbeállítások",
         "max_simultaneous_engine_requests": "Párhuzamos motorkérések",
-        "media_chunk_size": "Média darabmérete"
+        "media_chunk_size": "Egyszerre betöltött médiaelemek száma"
       },
       "style": {
+        "backdrop_filter": "Elmosási effektusok",
         "border_radius": "Lekerekítések",
         "box_shadow": "Árnyékok",
         "editor_label": "Stílusbeállítások"
@@ -717,7 +734,7 @@
             "call": "Hívás indítása",
             "default": "Alapértelmezett nézet",
             "live": "Élő nézet",
-            "media": "Média nézet",
+            "media": "Médianézet",
             "none": "Nincs",
             "update": "Nézet frissítése"
           },
@@ -749,11 +766,11 @@
         "media": "Legutóbbi alapértelmezett média",
         "recording": "Legutóbbi felvétel",
         "recordings": "Felvételgaléria",
-        "review": "Legutóbbi átnézendő média",
-        "reviews": "Átnézendők galériája",
+        "review": "Legutóbbi áttekintendő média",
+        "reviews": "Áttekintések galériája",
         "snapshot": "Legutóbbi pillanatkép",
         "snapshots": "Pillanatkép-galéria",
-        "timeline": "Idővonal nézet"
+        "timeline": "Idővonal-nézet"
       }
     }
   },
@@ -845,7 +862,7 @@
     "home_assistant_elements_load_failed": "Nem sikerült betölteni a szükséges Home Assistant elemeket",
     "image_load_error": "Nem sikerült betölteni a képet",
     "invalid_configuration": "Érvénytelen konfiguráció",
-    "invalid_configuration_no_hint": "Nincs elérhető helymeghatározási tipp (hibás vagy hiányzó típus?)",
+    "invalid_configuration_no_hint": "A hiba helye nem határozható meg (hibás vagy hiányzó típus?)",
     "invalid_configuration_override": "Érvénytelen felülírási konfiguráció",
     "invalid_elements_config": "Érvénytelen képelem-konfiguráció",
     "invalid_response": "Érvénytelen válasz érkezett a Home Assistanttól a kérésre",
@@ -909,7 +926,7 @@
         "entity_unavailable": "A kamera entitás nem érhető el",
         "not_loading": "A média nem töltődik be",
         "playback_error": "Lejátszási hiba",
-        "server_error": "Médiaszerver hiba",
+        "server_error": "Médiaszerver-hiba",
         "stalled": "A stream elakadt",
         "unsupported": "A stream nem támogatott"
       },
@@ -938,16 +955,16 @@
     "media_types": {
       "clips": "Klipek",
       "recordings": "Felvételek",
-      "reviews": "Átnézendők",
+      "reviews": "Áttekintések",
       "snapshots": "Pillanatképek"
     },
     "not_favorite": "Nem kedvenc",
-    "not_reviewed": "Nincs átnézve",
-    "reviewed": "Átnézve",
+    "not_reviewed": "Nincs áttekintve",
+    "reviewed": "Áttekintve",
     "select_camera": "Kamera kiválasztása...",
     "select_favorite": "Kedvenc kiválasztása...",
     "select_media_type": "Média típusának kiválasztása...",
-    "select_reviewed": "Átnézési állapot kiválasztása...",
+    "select_reviewed": "Áttekintési állapot kiválasztása...",
     "select_severity": "Súlyosság kiválasztása...",
     "select_tag": "Címke kiválasztása...",
     "select_what": "Mi...",
@@ -972,6 +989,8 @@
     "camera": "Kamera",
     "download": "Média letöltése",
     "duration": "Időtartam",
+    "in_progress": "REC",
+    "more_details": "+{count} részlet",
     "no_thumbnail": "Nincs elérhető bélyegkép",
     "retain_indefinitely": "Média megőrzése korlátlan ideig",
     "seek": "Ugrás",
