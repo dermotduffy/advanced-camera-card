@@ -186,9 +186,9 @@ type: enddate
 | `format`  | As for the [`startdate` parser](#parser-date-startdate). |
 | `regexp`  | As for the [`startdate` parser](#parser-date-startdate). |
 
-Missing parts of the end date (e.g. the day, when only a time is parsed) are
-taken from the start date. An end date before the start date is assumed to be
-on the following day, e.g. `22:18:51 - 00:00:00` ends at midnight.
+When only a time is parsed, the day of the end date is taken from the start
+date. An end date before the start date is assumed to be on the following day,
+e.g. `22:18:51 - 00:00:00` ends at midnight.
 
 For example, to parse both times out of a title such as `05:54:10 - 08:26:53`:
 

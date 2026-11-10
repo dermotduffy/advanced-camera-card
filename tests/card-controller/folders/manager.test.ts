@@ -326,6 +326,17 @@ describe('FoldersManager', () => {
     });
   });
 
+  it('should get media seek time', () => {
+    const executor = mock<FoldersExecutor>();
+    executor.getMediaSeekTime.mockReturnValue(30);
+    const item = new TestViewMedia();
+    const target = new Date();
+
+    const manager = new FoldersManager(createCardAPI(), executor);
+    expect(manager.getMediaSeekTime(item, target)).toBe(30);
+    expect(executor.getMediaSeekTime).toHaveBeenCalledWith(item, target);
+  });
+
   describe('areResultsFresh', () => {
     it('should delegate freshness check to executor', () => {
       const api = createCardAPI();

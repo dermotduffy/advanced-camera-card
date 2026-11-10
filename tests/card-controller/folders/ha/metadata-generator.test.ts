@@ -310,6 +310,32 @@ describe('MetadataGenerator', () => {
         });
       });
 
+      it('should not take the start time for parts missing from the end date', async () => {
+        expect(
+          await generate('05:54:10 - 08:26', [
+            parsers[0],
+            { type: 'enddate', regexp: '- (?<value>.*)$' },
+          ]),
+        ).toEqual({
+          startDate: new Date(2026, 10, 9, 5, 54, 10),
+          endDate: new Date(2026, 10, 9, 8, 26, 0),
+        });
+      });
+
+      it('should generate end date without a start date', async () => {
+        const parser: Parser = { type: 'enddate', format: 'yyyy-MM-dd HH:mm:ss' };
+        const generator = new MetadataGenerator();
+        await generator.prepare([parser]);
+
+        expect(
+          generator.generate(
+            createBrowseMedia({ title: '2026-11-09 08:26:53' }),
+            undefined,
+            [parser],
+          ),
+        ).toEqual({ endDate: new Date(2026, 10, 9, 8, 26, 53) });
+      });
+
       it('should roll an end date before the start date over midnight', async () => {
         expect(await generate('22:18:51 - 00:00:00')).toEqual({
           startDate: new Date(2026, 10, 9, 22, 18, 51),

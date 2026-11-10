@@ -33,10 +33,7 @@ describe('getMediaSeekTarget', () => {
     );
 
     expect(
-      getMediaSeekTarget(
-        createView({ context: { mediaViewer: { seek: seek } } }),
-        media,
-      ),
+      getMediaSeekTarget(createView({ context: { mediaViewer: { seek } } }), media),
     ).toEqual({ time: seek, inMedia: true });
   });
 

@@ -12,6 +12,7 @@ import { keyed } from 'lit/directives/keyed.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
+import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
@@ -83,6 +84,9 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
 
   @property({ attribute: false })
   public showControls = true;
@@ -466,7 +470,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
 
     const seekTime =
-      (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek.time)) ?? null;
+      (await this.viewItemManager?.getMediaSeekTime(selectedMedia, seek.time)) ?? null;
 
     if (seekTime !== null) {
       void mediaPlayerController.seek?.(seekTime);
@@ -496,6 +500,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
           .resolvedMediaCache=${this.resolvedMediaCache}
           .cameraManager=${this.cameraManager}
           .cardWideConfig=${this.cardWideConfig}
+          .viewItemManager=${this.viewItemManager}
           .forceSelected=${isSelected}
         ></advanced-camera-card-viewer-provider>`,
       )}

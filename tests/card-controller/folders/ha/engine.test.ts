@@ -103,6 +103,52 @@ describe('HAFoldersEngine', () => {
     });
   });
 
+  describe('getMediaSeekTime', () => {
+    const start = new Date('2024-01-01T10:00:00');
+    const end = new Date('2024-01-01T11:00:00');
+    const createMedia = (options?: {
+      startTime?: Date | null;
+      endTime?: Date | null;
+    }): TestViewMedia =>
+      new TestViewMedia({
+        folder: createFolder(),
+        startTime: start,
+        endTime: end,
+        ...options,
+      });
+
+    it('should return the seconds since the start', () => {
+      const engine = new HAFoldersEngine(templateManager);
+
+      expect(
+        engine.getMediaSeekTime(createMedia(), new Date('2024-01-01T10:30:00')),
+      ).toBe(1800);
+    });
+
+    it.each([
+      ['before the start', new Date('2024-01-01T09:59:59')],
+      ['after the end', new Date('2024-01-01T11:00:01')],
+    ])('should not seek to a time %s', (_name: string, target: Date) => {
+      const engine = new HAFoldersEngine(templateManager);
+
+      expect(engine.getMediaSeekTime(createMedia(), target)).toBeNull();
+    });
+
+    it.each([
+      ['a start', { startTime: null }],
+      ['an end', { endTime: null }],
+    ])(
+      'should not seek without %s',
+      (_name: string, options: { startTime?: null; endTime?: null }) => {
+        const engine = new HAFoldersEngine(templateManager);
+
+        expect(
+          engine.getMediaSeekTime(createMedia(options), new Date('2024-01-01T10:30:00')),
+        ).toBeNull();
+      },
+    );
+  });
+
   describe('getDefaultQueryParameters', () => {
     it('should return null for non-ha folder config', () => {
       const folder: FolderConfig = {

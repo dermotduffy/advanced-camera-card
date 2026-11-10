@@ -749,19 +749,17 @@ export class CameraManager {
   public async getMediaSeekTime(media: ViewMedia, target: Date): Promise<number | null> {
     const startTime = media.getPlaybackStartTime();
     const endTime = media.getEndTime();
-    if (!startTime || !endTime || target < startTime || target > endTime) {
-      return null;
-    }
-
     const engine = this._store.getEngineForMedia(media);
-    if (!engine) {
-      // Media without a camera (e.g. folder media) has no engine to map a time
-      // to a position, so assume playback starts at the media start time.
-      return (target.getTime() - startTime.getTime()) / 1000;
-    }
-
     const hass = this._api.getHASSManager().getHASS();
-    if (!hass) {
+
+    if (
+      !hass ||
+      !engine ||
+      !startTime ||
+      !endTime ||
+      target < startTime ||
+      target > endTime
+    ) {
       return null;
     }
 
