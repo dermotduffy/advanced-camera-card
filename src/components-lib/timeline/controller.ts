@@ -19,6 +19,7 @@ import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/ran
 import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
+import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
@@ -37,7 +38,6 @@ import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
-import { mergeViewContext } from '../../view/view';
 import { resolveThumbnailStyle } from '../thumbnail/resolve-style';
 import {
   canMediaBeShownAsTimelineItem,
@@ -545,13 +545,18 @@ export class TimelineController {
         .resetSelectedResult()
         .selectResultIfFound((media) => media.getID() === id, criteria);
       const selectedItem = newResults?.getSelectedResult();
-      const context: ViewContext = mergeViewContext(this._getTimelineContext(), {
-        ...(canMediaBeShownAsTimelineItem(selectedItem) &&
-          // Only attempt to seek if the media has a real end time, otherwise
-          // the viewer cannot actually seek there and shows the unseekable
-          // message.
-          selectedItem.getEndTime() && { mediaViewer: { seek: properties.time } }),
-      });
+
+      // Only attempt to seek if the media has a real end time, otherwise the
+      // viewer cannot actually seek there and would show the unseekable
+      // message.
+      const shouldSeek =
+        canMediaBeShownAsTimelineItem(selectedItem) && !!selectedItem.getEndTime();
+      const modifiers = [
+        new MergeContextViewModifier(this._getTimelineContext()),
+        shouldSeek
+          ? new MergeContextViewModifier({ mediaViewer: { seek: properties.time } })
+          : new RemoveContextPropertyViewModifier('mediaViewer', 'seek'),
+      ];
 
       if (!newResults || !newResults.hasSelectedResult()) {
         // This can happen in a few situations:
@@ -572,7 +577,7 @@ export class TimelineController {
               query: item.query,
               queryResults,
             },
-            modifiers: [new MergeContextViewModifier(context)],
+            modifiers,
           });
         }
       } else {
@@ -581,7 +586,7 @@ export class TimelineController {
             queryResults: newResults,
             view: this._itemClickAction === 'play' ? 'media' : view.view,
           },
-          modifiers: [new MergeContextViewModifier(context)],
+          modifiers,
         });
       }
 

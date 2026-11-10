@@ -98,7 +98,7 @@ describe('MediaStartPositionController', () => {
   });
 
   describe('should resolve to start from the beginning', () => {
-    it('without a camera manager', async () => {
+    it('without a view item manager', async () => {
       const controller = new MediaStartPositionController(
         mock<ReactiveControllerHost>(),
         () => ({ media: createMedia() }),
