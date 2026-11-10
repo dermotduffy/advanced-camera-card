@@ -1,5 +1,3 @@
-export type PeerConnectionFactory = (config: RTCConfiguration) => RTCPeerConnection;
-
 export const GO2RTC_PEER_CONNECTION_CONFIG: RTCConfiguration = {
   bundlePolicy: 'max-bundle',
   iceServers: [
@@ -9,6 +7,3 @@ export const GO2RTC_PEER_CONNECTION_CONFIG: RTCConfiguration = {
     },
   ],
 };
-
-export const createBrowserPeerConnection: PeerConnectionFactory = (config) =>
-  new RTCPeerConnection(config);

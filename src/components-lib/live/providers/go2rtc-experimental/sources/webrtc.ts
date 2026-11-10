@@ -2,17 +2,17 @@ import {
   isServerErrorForMode,
   type Go2RTCMessage,
 } from '../../../../../go2rtc/messages';
-import {
-  createBrowserPeerConnection,
-  GO2RTC_PEER_CONNECTION_CONFIG,
-  type PeerConnectionFactory,
-} from '../../../../../go2rtc/peer-connection';
+import { GO2RTC_PEER_CONNECTION_CONFIG } from '../../../../../go2rtc/peer-connection';
 import type {
   MediaLoadedCapabilities,
   MediaTechnology,
   UnsubscribeCallback,
 } from '../../../../../types';
 import { hasAudio } from '../../../../../utils/audio';
+import {
+  createBrowserPeerConnection,
+  type PeerConnectionFactory,
+} from '../../../../../utils/peer-connection';
 import { Timer } from '../../../../../utils/timer';
 import type {
   StreamProfile,

@@ -54,20 +54,31 @@ describe('supportsHA2WayAudio', () => {
 });
 
 describe('getWebRTCClientConfiguration', () => {
+  const iceServers = [{ urls: ['stun:stun.example.com:3478'] }];
+
   it('should return the peer connection configuration', async () => {
     const hass = createHASS();
-    const iceServers = [{ urls: ['stun:stun.example.com:3478'] }];
-    vi.mocked(hass.callWS).mockResolvedValue({
-      configuration: { iceServers },
-      dataChannel: 'unused',
-    });
+    vi.mocked(hass.callWS).mockResolvedValue({ configuration: { iceServers } });
 
     expect(await getWebRTCClientConfiguration(hass, 'camera.office')).toEqual({
-      iceServers,
+      configuration: { iceServers },
     });
     expect(hass.callWS).toHaveBeenCalledWith({
       type: 'camera/webrtc/get_client_config',
       entity_id: 'camera.office',
+    });
+  });
+
+  it('should return the data channel the camera asks for', async () => {
+    const hass = createHASS();
+    vi.mocked(hass.callWS).mockResolvedValue({
+      configuration: { iceServers },
+      dataChannel: 'camera',
+    });
+
+    expect(await getWebRTCClientConfiguration(hass, 'camera.office')).toEqual({
+      configuration: { iceServers },
+      dataChannel: 'camera',
     });
   });
 });

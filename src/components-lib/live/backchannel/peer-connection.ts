@@ -1,8 +1,9 @@
-import type { PeerConnectionFactory } from '../../../go2rtc/peer-connection';
 import { getErrorDescription } from '../../../utils/basic';
 import { Generation } from '../../../utils/concurrency/generation';
+import type { PeerConnectionFactory } from '../../../utils/peer-connection';
 import { Timer } from '../../../utils/timer';
 import {
+  BackchannelAbandonedError,
   BackchannelError,
   type Backchannel,
   type BackchannelErrorCallback,
@@ -17,7 +18,7 @@ const toBackchannelError = (error: unknown): BackchannelError =>
 
 interface PendingStart {
   resolve: () => void;
-  reject: (error: BackchannelError) => void;
+  reject: (error: BackchannelError | BackchannelAbandonedError) => void;
 }
 
 // A backchannel carried by a WebRTC connection of its own that only sends the
@@ -27,9 +28,9 @@ interface PendingStart {
 // own signaling path, and close that path.
 export abstract class PeerConnectionBackchannel implements Backchannel {
   protected _generation = new Generation();
-  protected _pc: RTCPeerConnection | null = null;
-  protected _transceiver: RTCRtpTransceiver | null = null;
 
+  private _pc: RTCPeerConnection | null = null;
+  private _transceiver: RTCRtpTransceiver | null = null;
   private _errorCallback: BackchannelErrorCallback | null;
   private _connectTimer = new Timer();
   private _outboundTrack: MediaStreamTrack | null = null;
@@ -126,8 +127,9 @@ export abstract class PeerConnectionBackchannel implements Backchannel {
 
     const generation = this._generation.current();
     await transceiver.sender.replaceTrack(track);
-    // A stop (or a new start) while the track was being swapped leaves nothing
-    // for this track to report to.
+
+    // The call may have ended or restarted while the track was being swapped,
+    // and this track's `ended` event must not end a call it does not belong to.
     if (this._generation.isCurrent(generation)) {
       this._watchTrack(track);
     }
@@ -151,7 +153,7 @@ export abstract class PeerConnectionBackchannel implements Backchannel {
     this._pc = null;
     this._transceiver = null;
 
-    pendingStart?.reject(new BackchannelError('abandoned'));
+    pendingStart?.reject(new BackchannelAbandonedError());
   }
 
   private _handleTrackEnded = (): void =>

@@ -37,6 +37,9 @@ import { createHASS, createHASSManager, createRegistryEntity } from '../../test-
 import { createInitializedCamera, createStore } from '../test-utils';
 
 vi.mock('../../../src/ha/ws-request');
+vi.mock('../../../src/ha/camera-webrtc', () => ({
+  supportsHA2WayAudio: vi.fn().mockResolvedValue(false),
+}));
 
 const TEST_CAMERAS: BrowseMedia = {
   title: 'Reolink',
@@ -459,8 +462,6 @@ describe('ReolinkCameraManagerEngine', () => {
     it('should cache event requests', async () => {
       const engine = createPopulatedEngine();
       const store = await createStoreWithReolinkCamera(engine);
-      // Setting the camera up asks for its capabilities; count only the events.
-      vi.mocked(homeAssistantWSRequest).mockClear();
 
       vi.mocked(homeAssistantWSRequest)
         .mockResolvedValueOnce(TEST_CAMERAS)
@@ -1095,8 +1096,6 @@ describe('ReolinkCameraManagerEngine', () => {
     it('should cache media metadata', async () => {
       const engine = createPopulatedEngine();
       const store = await createStoreWithReolinkCamera(engine);
-      // Setting the camera up asks for its capabilities; count only the metadata.
-      vi.mocked(homeAssistantWSRequest).mockClear();
 
       vi.mocked(homeAssistantWSRequest)
         .mockResolvedValueOnce(TEST_CAMERAS)

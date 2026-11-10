@@ -1,13 +1,13 @@
 import {
-  createBrowserPeerConnection,
-  type PeerConnectionFactory,
-} from '../../../go2rtc/peer-connection';
-import {
   getWebRTCClientConfiguration,
   webrtcOfferEventSchema,
 } from '../../../ha/camera-webrtc';
 import type { HomeAssistant } from '../../../ha/types';
 import { getErrorDescription } from '../../../utils/basic';
+import {
+  createBrowserPeerConnection,
+  type PeerConnectionFactory,
+} from '../../../utils/peer-connection';
 import { PeerConnectionBackchannel } from './peer-connection';
 import { BackchannelError, type BackchannelErrorCallback } from './types';
 
@@ -16,12 +16,11 @@ export interface HABackchannelOptions {
   errorCallback?: BackchannelErrorCallback;
 }
 
-// Carries microphone audio to a camera over its own WebRTC connection,
-// negotiated through Home Assistant's camera WebRTC API (`camera/webrtc/offer`),
-// separate from whatever is carrying video. This is the path Home Assistant's
-// own two-way audio uses (2026.11): the camera's WebRTC provider claims its
-// audio backchannel for this connection and releases it when the session
-// closes, so the camera is occupied only for the duration of a call.
+// Carries microphone audio to a camera over a WebRTC connection of its own,
+// negotiated through Home Assistant's camera WebRTC API (`camera/webrtc/offer`)
+// and separate from whatever is carrying video. Home Assistant closes the
+// session when its subscription ends, so the camera's audio backchannel is
+// held only for the duration of a call.
 // See: https://github.com/dermotduffy/advanced-camera-card/issues/2852
 export class HABackchannel extends PeerConnectionBackchannel {
   private _hass: HomeAssistant;
@@ -31,6 +30,7 @@ export class HABackchannel extends PeerConnectionBackchannel {
   private _unsubscribe: (() => Promise<void>) | null = null;
   private _unwatchConnection: (() => void) | null = null;
   private _sessionID: string | null = null;
+
   // Candidates gathered before Home Assistant named the session they belong to.
   private _queuedCandidates: RTCIceCandidate[] = [];
 
@@ -42,9 +42,12 @@ export class HABackchannel extends PeerConnectionBackchannel {
   }
 
   protected async _connect(track: MediaStreamTrack, generation: number): Promise<void> {
-    const configuration = await getWebRTCClientConfiguration(this._hass, this._entityID);
+    const { configuration, dataChannel } = await getWebRTCClientConfiguration(
+      this._hass,
+      this._entityID,
+    );
     if (!this._generation.isCurrent(generation)) {
-      throw new BackchannelError('abandoned');
+      return;
     }
 
     const pc = this._createPeerConnection(
@@ -53,9 +56,16 @@ export class HABackchannel extends PeerConnectionBackchannel {
       track,
       generation,
     );
+
+    // Some cameras only answer an offer that carries the data channel their
+    // WebRTC provider names.
+    if (dataChannel) {
+      pc.createDataChannel(dataChannel);
+    }
+
     pc.addEventListener('icecandidate', (ev) => {
-      // An empty candidate marks the end of gathering, which Home Assistant's
-      // own player does not send either.
+      // An empty candidate only marks the end of ICE candidate gathering and
+      // carries no route to the camera, so there is nothing to send.
       if (this._generation.isCurrent(generation) && ev.candidate?.candidate) {
         this._sendCandidate(ev.candidate);
       }
@@ -63,24 +73,26 @@ export class HABackchannel extends PeerConnectionBackchannel {
 
     const offer = await pc.createOffer();
     if (!this._generation.isCurrent(generation)) {
-      throw new BackchannelError('abandoned');
+      return;
     }
     await pc.setLocalDescription(offer);
     if (!this._generation.isCurrent(generation)) {
-      throw new BackchannelError('abandoned');
+      return;
     }
 
-    // Home Assistant closes the session when its websocket closes, without an
-    // event for it, and a WebRTC session cannot be resumed on a new websocket,
-    // so the subscription is not renewed and a disconnect ends the call. Its
-    // unsubscribe then must not be sent: on the new connection the command id
-    // it carries may belong to another subscription.
+    // Home Assistant closes the session, without telling the browser, when its
+    // websocket closes, and cannot attach the session to a new websocket.
+    // A disconnect therefore ends the call, and the subscription is not renewed.
+    // After a reconnect, the websocket library reuses command ids, so calling
+    // this subscription's unsubscribe would end whichever subscription now
+    // holds its id.
     let disconnected = false;
     const handleDisconnected = (): void => {
       disconnected = true;
       this._unsubscribe = null;
-      this._reportLost(generation, new BackchannelError('failed'));
+      this._reportLost(generation, new BackchannelError('disconnected'));
     };
+
     const connection = this._hass.connection;
     connection.addEventListener('disconnected', handleDisconnected);
     this._unwatchConnection = () =>
@@ -91,11 +103,12 @@ export class HABackchannel extends PeerConnectionBackchannel {
       { type: 'camera/webrtc/offer', entity_id: this._entityID, offer: offer.sdp ?? '' },
       { resubscribe: false },
     );
+
     if (!this._generation.isCurrent(generation)) {
       if (!disconnected) {
         unsubscribe().catch(() => {});
       }
-      throw new BackchannelError('abandoned');
+      return;
     }
     this._unsubscribe = unsubscribe;
   }
@@ -116,8 +129,9 @@ export class HABackchannel extends PeerConnectionBackchannel {
       this._queuedCandidates.push(candidate);
       return;
     }
-    // A candidate Home Assistant refuses only costs that one route to the
-    // camera; the connection state reports whether any route worked.
+
+    // A rejected candidate removes only one possible route to the camera. The
+    // peer connection's state still shows whether any other route connects.
     this._hass
       .callWS({
         type: 'camera/webrtc/candidate',
@@ -136,6 +150,7 @@ export class HABackchannel extends PeerConnectionBackchannel {
     if (!this._generation.isCurrent(generation)) {
       return;
     }
+
     const parsed = webrtcOfferEventSchema.safeParse(raw);
     if (!parsed.success) {
       return;
@@ -164,8 +179,8 @@ export class HABackchannel extends PeerConnectionBackchannel {
       case 'candidate': {
         const { candidate, sdpMid, sdpMLineIndex } = event.candidate;
         // A browser refuses a candidate that names neither its media line nor
-        // its mid; max-bundle puts every track on the first, as Home
-        // Assistant's own player assumes.
+        // its mid. The microphone's audio is this connection's first media
+        // line, so such a candidate is attached to it.
         pc.addIceCandidate(
           sdpMid || sdpMLineIndex != null
             ? { candidate, sdpMid: sdpMid ?? null, sdpMLineIndex: sdpMLineIndex ?? null }

@@ -5,6 +5,7 @@ import { homeAssistantWSRequest } from './ws-request';
 
 const haCameraCapabilitiesSchema = z.object({
   frontend_stream_types: z.string().array(),
+
   // Absent before Home Assistant 2026.11.
   two_way_audio: z.boolean().optional(),
 });
@@ -22,7 +23,6 @@ export const getHACameraCapabilities = async (
 // Home Assistant reports two-way audio only when the integration declares it,
 // the camera streams over WebRTC and the user enabled the "Two-way audio" Labs
 // preview, so the capability alone settles whether a camera can be spoken to.
-// It is read once, as the card sets the camera up.
 // See: https://contributors.home-assistant.io/blog/2026/10/24/camera-two-way-audio/
 export const supportsHA2WayAudio = async (
   hass: HomeAssistant,
@@ -46,20 +46,22 @@ const webrtcClientConfigSchema = z.object({
       .array()
       .optional(),
   }),
-});
 
-// The peer connection settings the camera's WebRTC provider asks clients to
-// use (its ICE servers).
+  // The label of a data channel the client must open in its offer.
+  dataChannel: z.string().optional(),
+});
+type WebRTCClientConfiguration = z.infer<typeof webrtcClientConfigSchema>;
+
+// The settings the camera's WebRTC provider asks clients to use: the peer
+// connection configuration (its ICE servers) and any data channel to open.
 export const getWebRTCClientConfiguration = async (
   hass: HomeAssistant,
   entityID: string,
-): Promise<RTCConfiguration> =>
-  (
-    await homeAssistantWSRequest(hass, webrtcClientConfigSchema, {
-      type: 'camera/webrtc/get_client_config',
-      entity_id: entityID,
-    })
-  ).configuration;
+): Promise<WebRTCClientConfiguration> =>
+  await homeAssistantWSRequest(hass, webrtcClientConfigSchema, {
+    type: 'camera/webrtc/get_client_config',
+    entity_id: entityID,
+  });
 
 // The events of a `camera/webrtc/offer` subscription.
 export const webrtcOfferEventSchema = z.discriminatedUnion('type', [

@@ -1,15 +1,15 @@
 import type { EnabledProxyConfig } from '../../../config/schema/common/proxy';
 import { isServerErrorForMode, type Go2RTCMessage } from '../../../go2rtc/messages';
-import {
-  createBrowserPeerConnection,
-  GO2RTC_PEER_CONNECTION_CONFIG,
-  type PeerConnectionFactory,
-} from '../../../go2rtc/peer-connection';
+import { GO2RTC_PEER_CONNECTION_CONFIG } from '../../../go2rtc/peer-connection';
 import { SignalingChannel, type WebSocketFactory } from '../../../go2rtc/signaling';
 import { resolveEndpointURL } from '../../../ha/resolve-endpoint';
 import type { HomeAssistant } from '../../../ha/types';
 import type { Endpoint, UnsubscribeCallback } from '../../../types';
 import { getErrorDescription } from '../../../utils/basic';
+import {
+  createBrowserPeerConnection,
+  type PeerConnectionFactory,
+} from '../../../utils/peer-connection';
 import { convertToWebSocketURL } from '../../../utils/websocket-url';
 import { PeerConnectionBackchannel } from './peer-connection';
 import { BackchannelError, type BackchannelErrorCallback } from './types';
@@ -55,7 +55,7 @@ export class Go2RTCBackchannel extends PeerConnectionBackchannel {
       proxyEndpointOptions: { websocket: true },
     });
     if (!this._generation.isCurrent(generation)) {
-      throw new BackchannelError('abandoned');
+      return;
     }
     if (!resolvedURL.success) {
       throw new BackchannelError('failed', resolvedURL.error);

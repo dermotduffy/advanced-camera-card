@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { HABackchannel } from '../../../../src/components-lib/live/backchannel/ha';
-import type { BackchannelErrorCallback } from '../../../../src/components-lib/live/backchannel/types';
+import {
+  BackchannelAbandonedError,
+  type BackchannelErrorCallback,
+} from '../../../../src/components-lib/live/backchannel/types';
 import type { HomeAssistant } from '../../../../src/ha/types';
 import {
   FakeMediaStream,
@@ -40,7 +43,7 @@ const setup = (options?: { errorCallback?: BackchannelErrorCallback }): Setup =>
   let callback: ((event: unknown) => void) | null = null;
   const unsubscribe = vi.fn<() => Promise<void>>(() => Promise.resolve());
   vi.mocked(hass.connection.subscribeMessage).mockImplementation(async (cb) => {
-    callback = cb as (event: unknown) => void;
+    callback = cb;
     return unsubscribe;
   });
 
@@ -113,6 +116,33 @@ describe('HABackchannel', () => {
       await started;
 
       expect(s.createPeerConnection).toHaveBeenCalledWith({ iceServers: ICE_SERVERS });
+    });
+
+    it('should open the data channel the camera asks for before offering', async () => {
+      const s = setup();
+      vi.mocked(s.hass.callWS).mockImplementation(async (message) =>
+        message.type === 'camera/webrtc/get_client_config'
+          ? { configuration: { iceServers: ICE_SERVERS }, dataChannel: 'camera' }
+          : null,
+      );
+      const started = s.backchannel.start(createStream().asMediaStream());
+      await connect(s);
+      await started;
+
+      expect(s.createPeerConnection).toHaveBeenCalledWith({ iceServers: ICE_SERVERS });
+      expect(s.pc.createDataChannel).toHaveBeenCalledWith('camera');
+      expect(s.pc.createDataChannel.mock.invocationCallOrder[0]).toBeLessThan(
+        s.pc.createOffer.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('should not open a data channel the camera does not ask for', async () => {
+      const s = setup();
+      const started = s.backchannel.start(createStream().asMediaStream());
+      await connect(s);
+      await started;
+
+      expect(s.pc.createDataChannel).not.toHaveBeenCalled();
     });
 
     it('should send the offer through Home Assistant', async () => {
@@ -301,7 +331,7 @@ describe('HABackchannel', () => {
       const first = s.backchannel.start(createStream().asMediaStream());
       const second = s.backchannel.start(createStream().asMediaStream());
 
-      await expect(first).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(first).rejects.toBeInstanceOf(BackchannelAbandonedError);
       await connect(s);
       await expect(second).resolves.toBeUndefined();
     });
@@ -317,7 +347,7 @@ describe('HABackchannel', () => {
 
       s.fireDisconnected();
       expect(errorCallback).toHaveBeenCalledWith(
-        expect.objectContaining({ reason: 'failed' }),
+        expect.objectContaining({ reason: 'disconnected' }),
       );
       expect(s.unsubscribe).not.toHaveBeenCalled();
       expect(s.pc.close).toHaveBeenCalled();
@@ -335,7 +365,7 @@ describe('HABackchannel', () => {
       const started = s.backchannel.start(createStream().asMediaStream());
       await flushPromises();
       s.fireDisconnected();
-      await expect(started).rejects.toMatchObject({ reason: 'failed' });
+      await expect(started).rejects.toMatchObject({ reason: 'disconnected' });
 
       release(s.unsubscribe);
       await flushPromises();
@@ -362,7 +392,7 @@ describe('HABackchannel', () => {
       const started = s.backchannel.start(createStream().asMediaStream());
       s.backchannel.stop();
 
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
       await flushPromises();
       expect(s.createPeerConnection).not.toHaveBeenCalled();
     });
@@ -388,7 +418,7 @@ describe('HABackchannel', () => {
         s.backchannel.stop();
         release();
 
-        await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+        await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
         await flushPromises();
         expect(s.hass.connection.subscribeMessage).not.toHaveBeenCalled();
       },
@@ -408,7 +438,7 @@ describe('HABackchannel', () => {
       s.backchannel.stop();
       release(s.unsubscribe);
 
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
       await flushPromises();
       expect(s.unsubscribe).toHaveBeenCalled();
     });
@@ -427,7 +457,7 @@ describe('HABackchannel', () => {
       s.backchannel.stop();
       release(() => Promise.reject(new Error('connection lost')));
 
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
     });
   });
 
@@ -565,7 +595,7 @@ describe('HABackchannel', () => {
       const started = s.backchannel.start(createStream().asMediaStream());
       await negotiate(s);
       s.backchannel.stop();
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
 
       s.pc.fireIceCandidate('candidate:late');
       expect(candidateCalls(s.hass)).toHaveLength(0);
@@ -588,7 +618,7 @@ describe('HABackchannel', () => {
       const started = s.backchannel.start(createStream().asMediaStream());
       await flushPromises();
       s.backchannel.stop();
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
 
       s.fireEvent({ type: 'answer', answer: 'v=0' });
       expect(s.pc.setRemoteDescription).not.toHaveBeenCalled();

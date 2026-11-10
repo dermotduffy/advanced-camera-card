@@ -1,9 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import {
-  createBrowserPeerConnection,
-  GO2RTC_PEER_CONNECTION_CONFIG,
-} from '../../src/go2rtc/peer-connection';
+import { GO2RTC_PEER_CONNECTION_CONFIG } from '../../src/go2rtc/peer-connection';
 
 describe('peer-connection', () => {
   it('should configure two STUN servers with max-bundle', () => {
@@ -15,15 +12,5 @@ describe('peer-connection', () => {
         },
       ],
     });
-  });
-
-  it('should construct a real peer connection', () => {
-    const RTCPeerConnectionMock = vi.fn();
-    vi.stubGlobal('RTCPeerConnection', RTCPeerConnectionMock);
-
-    createBrowserPeerConnection(GO2RTC_PEER_CONNECTION_CONFIG);
-
-    expect(RTCPeerConnectionMock).toHaveBeenCalledWith(GO2RTC_PEER_CONNECTION_CONFIG);
-    vi.unstubAllGlobals();
   });
 });
