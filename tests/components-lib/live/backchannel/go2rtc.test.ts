@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { Go2RTCBackchannel } from '../../../../src/components-lib/live/backchannel/go2rtc';
-import type { BackchannelErrorCallback } from '../../../../src/components-lib/live/backchannel/types';
+import {
+  BackchannelAbandonedError,
+  type BackchannelErrorCallback,
+} from '../../../../src/components-lib/live/backchannel/types';
 import {
   resolveEndpointURL,
   type ResolvedEndpoint,
@@ -339,7 +342,7 @@ describe('Go2RTCBackchannel', () => {
       pc.fireConnectionStateChange('failed');
       await flushPromises();
 
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
       expect(errorCallback).not.toHaveBeenCalled();
     });
   });
@@ -480,7 +483,7 @@ describe('Go2RTCBackchannel', () => {
       release({ success: true, url: 'http://go2rtc/api/ws' });
       await flushPromises();
 
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
       expect(pc.transceivers).toHaveLength(0);
     });
 
@@ -720,7 +723,7 @@ describe('Go2RTCBackchannel', () => {
       await flushPromises();
 
       backchannel.stop();
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
 
       rejectOffer(new Error('too late'));
       await flushPromises();

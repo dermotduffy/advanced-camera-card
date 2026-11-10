@@ -384,7 +384,8 @@ A doorbell press is instantaneous, so the card synthesizes a ring window from [`
 type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.front_door
-    # `go2rtc` + `webrtc` is needed for two-way audio.
+    # Two-way audio needs `go2rtc` with `webrtc`, or the `ha` live provider
+    # on Home Assistant 2026.11 and later.
     live_provider: go2rtc
     go2rtc:
       modes:

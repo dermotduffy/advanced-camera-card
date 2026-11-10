@@ -836,6 +836,7 @@
     "awaiting_live": "Waiting for live stream to load",
     "awaiting_media": "Waiting for media to load",
     "call_camera_unreachable": "The camera could not be reached for two-way audio.",
+    "call_connection_lost": "The connection to Home Assistant was lost.",
     "call_invalid_target": "The requested camera or stream is not available to call.",
     "call_microphone_failed": "Your microphone could not be connected.",
     "call_microphone_forbidden": "Microphone access has been denied for this page. Update your browser permissions and try again.",

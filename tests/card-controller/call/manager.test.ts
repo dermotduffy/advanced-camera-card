@@ -11,6 +11,7 @@ import type { CardController } from '../../../src/card-controller/controller';
 import { SubstreamViewModifier } from '../../../src/card-controller/view/modifiers/substream';
 import { createBackchannel } from '../../../src/components-lib/live/backchannel/factory';
 import {
+  BackchannelAbandonedError,
   BackchannelError,
   type Backchannel,
 } from '../../../src/components-lib/live/backchannel/types';
@@ -2384,7 +2385,7 @@ describe('the backchannel', () => {
     const api = createAPI({ view: createView({ camera: 'camera.office' }) });
     vi.mocked(createBackchannel).mockImplementation(() => {
       const backchannel = mock<Backchannel>();
-      backchannel.start.mockRejectedValue(new BackchannelError('abandoned'));
+      backchannel.start.mockRejectedValue(new BackchannelAbandonedError());
       return backchannel;
     });
 
@@ -2532,15 +2533,51 @@ describe('the backchannel', () => {
     expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 
-  it('should report the backchannel being lost mid-call', async () => {
+  it('should end the call and report when the backchannel is lost mid-call', async () => {
     const api = createAPI({ view: createView({ camera: 'camera.office' }) });
-    await startAnsweredCall(api);
+    const { manager } = await startAnsweredCall(api);
+    const backchannel = getBackchannel();
 
     const errorCallback = vi.mocked(createBackchannel).mock.calls[0][2];
     assert(errorCallback);
     errorCallback(new BackchannelError('failed', 'the sky fell'));
 
     expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
+    expect(manager.getCall()).toBeNull();
+    expect(backchannel.stop).toHaveBeenCalled();
+    expect(api.getMicrophoneManager().setTransmissionActive).toHaveBeenLastCalledWith(
+      false,
+    );
+  });
+
+  it('should report a backchannel lost on an answered inbound call', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    manager.initialize();
+    await manager.start({ inbound: true });
+    expect(await manager.answer()).toBe(true);
+
+    const errorCallback = vi.mocked(createBackchannel).mock.calls[0][2];
+    assert(errorCallback);
+    errorCallback(new BackchannelError('failed'));
+
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
+    expect(manager.getCall()).toBeNull();
+  });
+
+  it('should report a lost connection to Home Assistant', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    await startAnsweredCall(api);
+
+    const errorCallback = vi.mocked(createBackchannel).mock.calls[0][2];
+    assert(errorCallback);
+    errorCallback(new BackchannelError('disconnected'));
+
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: { text: 'The connection to Home Assistant was lost.' },
+      }),
+    );
   });
 });
 
