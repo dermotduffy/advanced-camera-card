@@ -1,6 +1,11 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit';
 
 import type { LazyUnloadCondition } from '../config/schema/common/media-actions';
+import type { UnsubscribeCallback } from '../types';
+import {
+  sharedDocumentVisibility,
+  type DocumentVisibility,
+} from '../utils/document-visibility';
 
 interface LazyLoadConfiguration {
   // Whether to wait for the host to intersect (and the document to be visible)
@@ -17,7 +22,8 @@ interface LazyLoadConfiguration {
 
 export class LazyLoadController implements ReactiveController {
   private _host: ReactiveControllerHost & HTMLElement;
-  private _documentVisible = true;
+  private _documentVisibility: DocumentVisibility;
+  private _unsubscribeDocumentVisibility: UnsubscribeCallback | null = null;
   private _intersects = false;
   private _forceSelected = false;
   private _loaded = false;
@@ -26,8 +32,12 @@ export class LazyLoadController implements ReactiveController {
     this._intersectionHandler.bind(this),
   );
 
-  constructor(host: ReactiveControllerHost & HTMLElement) {
+  constructor(
+    host: ReactiveControllerHost & HTMLElement,
+    documentVisibility?: DocumentVisibility,
+  ) {
     this._host = host;
+    this._documentVisibility = documentVisibility ?? sharedDocumentVisibility;
     this._host.addController(this);
   }
 
@@ -58,11 +68,6 @@ export class LazyLoadController implements ReactiveController {
   }
 
   public hostConnected(): void {
-    // Capture the document's actual visibility state on connection. The
-    // `visibilitychange` listener only fires on transitions, so without this
-    // sync read a host that connects while the tab is already hidden would
-    // incorrectly believe the document is visible until the next transition.
-    this._documentVisible = document.visibilityState === 'visible';
     this._addEventHandlers();
   }
 
@@ -72,22 +77,25 @@ export class LazyLoadController implements ReactiveController {
   }
 
   private _addEventHandlers(): void {
-    document.addEventListener('visibilitychange', this._visibilityHandler);
+    this._unsubscribeDocumentVisibility = this._documentVisibility.subscribe(() =>
+      this._lazyLoadOrUnloadIfNecessary(),
+    );
     this._intersectionObserver.observe(this._host);
   }
 
   private _removeEventHandlers(): void {
-    document.removeEventListener('visibilitychange', this._visibilityHandler);
+    this._unsubscribeDocumentVisibility?.();
+    this._unsubscribeDocumentVisibility = null;
     this._intersectionObserver.disconnect();
   }
 
   private _lazyLoadOrUnloadIfNecessary(): void {
+    const documentVisible = this._documentVisibility.isVisible();
     const effectivelyIntersects = this._intersects || this._forceSelected;
-    const shouldBeLoaded =
-      !this._loaded && this._documentVisible && effectivelyIntersects;
+    const shouldBeLoaded = !this._loaded && documentVisible && effectivelyIntersects;
     const shouldBeUnloaded =
       this._loaded &&
-      ((this._unloadConditions.includes('hidden') && !this._documentVisible) ||
+      ((this._unloadConditions.includes('hidden') && !documentVisible) ||
         (this._unloadConditions.includes('unselected') && !effectivelyIntersects));
 
     if (shouldBeLoaded) {
@@ -106,9 +114,4 @@ export class LazyLoadController implements ReactiveController {
     this._intersects = entries.some((entry) => entry.isIntersecting);
     this._lazyLoadOrUnloadIfNecessary();
   }
-
-  private _visibilityHandler = (): void => {
-    this._documentVisible = document.visibilityState === 'visible';
-    this._lazyLoadOrUnloadIfNecessary();
-  };
 }

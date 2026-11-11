@@ -4,9 +4,12 @@ import { VisibilityObserver } from '../../src/components-lib/visibility-observer
 import {
   callIntersectionHandler,
   callVisibilityHandler,
+  changeDocumentVisibility,
+  createDocumentVisibility,
   createParent,
   getMockIntersectionObserver,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../test-utils';
 
 // @vitest-environment jsdom
@@ -27,11 +30,7 @@ describe('VisibilityObserver', () => {
     // Reset document.visibilityState so each test starts with the tab
     // visible and is not affected by leftover state from a prior
     // `callVisibilityHandler(false)`.
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   describe('intersection', () => {
@@ -161,6 +160,24 @@ describe('VisibilityObserver', () => {
 
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it('should respect the document visibility source over the raw document state', async () => {
+      setVisibilityState('hidden');
+      const documentVisibility = createDocumentVisibility(true);
+      const onChange = vi.fn();
+      const observer = new VisibilityObserver(
+        onChange,
+        { emitInitial: true },
+        documentVisibility,
+      );
+      observer.setRoot(createParent());
+
+      await callIntersectionHandler(true);
+      expect(onChange).toHaveBeenLastCalledWith(true);
+
+      await changeDocumentVisibility(documentVisibility, false);
+      expect(onChange).toHaveBeenLastCalledWith(false);
+    });
   });
 
   describe('combining tab and intersection signals', () => {
@@ -204,9 +221,11 @@ describe('VisibilityObserver', () => {
       expect(intersectionObserver?.disconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('should disconnect the intersection observer and remove the visibility listener on destroy', () => {
-      const removeEventListenerSpy = vi.spyOn(global.document, 'removeEventListener');
-      const observer = new VisibilityObserver(vi.fn());
+    it('should disconnect the intersection observer and unsubscribe from document visibility on destroy', () => {
+      const documentVisibility = createDocumentVisibility();
+      const unsubscribe = vi.fn();
+      documentVisibility.subscribe.mockReturnValue(unsubscribe);
+      const observer = new VisibilityObserver(vi.fn(), undefined, documentVisibility);
       observer.setRoot(createParent());
 
       const intersectionObserver = getMockIntersectionObserver();
@@ -214,10 +233,7 @@ describe('VisibilityObserver', () => {
       observer.destroy();
 
       expect(intersectionObserver?.disconnect).toHaveBeenCalled();
-      expect(removeEventListenerSpy).toHaveBeenCalledWith(
-        'visibilitychange',
-        expect.any(Function),
-      );
+      expect(unsubscribe).toHaveBeenCalled();
     });
   });
 

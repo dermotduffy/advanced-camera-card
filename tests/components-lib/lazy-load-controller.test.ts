@@ -14,9 +14,12 @@ import type { LazyUnloadCondition } from '../../src/config/schema/common/media-a
 import {
   callIntersectionHandler,
   callVisibilityHandler,
+  changeDocumentVisibility,
+  createDocumentVisibility,
   createLitElement,
   getMockIntersectionObserver,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../test-utils';
 
 // @vitest-environment jsdom
@@ -31,12 +34,7 @@ describe('LazyLoadController', () => {
 
   beforeEach(() => {
     vi.spyOn(global.document, 'addEventListener');
-    vi.spyOn(global.document, 'removeEventListener');
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   afterEach(() => {
@@ -69,7 +67,10 @@ describe('LazyLoadController', () => {
   });
 
   it('should remove handlers on destroy', () => {
-    const controller = new LazyLoadController(createLitElement());
+    const documentVisibility = createDocumentVisibility();
+    const unsubscribe = vi.fn();
+    documentVisibility.subscribe.mockReturnValue(unsubscribe);
+    const controller = new LazyLoadController(createLitElement(), documentVisibility);
     controller.setConfiguration({
       lazyLoad: true,
       lazyUnloadConditions: ['unselected', 'hidden'],
@@ -79,10 +80,7 @@ describe('LazyLoadController', () => {
     controller.destroy();
 
     expect(getMockIntersectionObserver()?.disconnect).toHaveBeenCalled();
-    expect(global.document.removeEventListener).toHaveBeenCalledWith(
-      'visibilitychange',
-      expect.anything(),
-    );
+    expect(unsubscribe).toHaveBeenCalled();
     expect(controller.isLoaded()).toBe(false);
   });
 
@@ -182,7 +180,10 @@ describe('LazyLoadController', () => {
 
   describe('should lazy unload', () => {
     it('should unload on DOM disconnection', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const documentVisibility = createDocumentVisibility();
+      const unsubscribe = vi.fn();
+      documentVisibility.subscribe.mockReturnValue(unsubscribe);
+      const controller = new LazyLoadController(createLitElement(), documentVisibility);
 
       // No lazy loading.
       controller.setConfiguration({ lazyLoad: false });
@@ -196,10 +197,7 @@ describe('LazyLoadController', () => {
 
       // Should also stop observing.
       expect(getMockIntersectionObserver()?.disconnect).toHaveBeenCalled();
-      expect(global.document.removeEventListener).toHaveBeenCalledWith(
-        'visibilitychange',
-        expect.anything(),
-      );
+      expect(unsubscribe).toHaveBeenCalled();
     });
 
     describe('should lazy unload when not visible', () => {
@@ -226,6 +224,26 @@ describe('LazyLoadController', () => {
           expect(controller.isLoaded()).toBe(shouldBeLoaded);
         },
       );
+
+      it('should respect the document visibility source over the raw document state', async () => {
+        setVisibilityState('hidden');
+        const documentVisibility = createDocumentVisibility(true);
+        const controller = new LazyLoadController(
+          createLitElement(),
+          documentVisibility,
+        );
+        controller.setConfiguration({
+          lazyLoad: true,
+          lazyUnloadConditions: ['hidden'],
+        });
+        controller.hostConnected();
+
+        callIntersectionHandler(true);
+        expect(controller.isLoaded()).toBe(true);
+
+        await changeDocumentVisibility(documentVisibility, false);
+        expect(controller.isLoaded()).toBe(false);
+      });
     });
 
     describe('should lazy unload when not intersecting', () => {
@@ -269,11 +287,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should not load while document is already hidden on connect', () => {
-      Object.defineProperty(document, 'visibilityState', {
-        value: 'hidden',
-        writable: true,
-        configurable: true,
-      });
+      setVisibilityState('hidden');
 
       const controller = new LazyLoadController(createLitElement());
       controller.setConfiguration({

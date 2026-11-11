@@ -8,7 +8,7 @@ import {
 import type { LitElement } from 'lit';
 import screenfull from 'screenfull';
 import { expect, onTestFinished, vi, type Mock } from 'vitest';
-import { mock } from 'vitest-mock-extended';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import type {
   FrigateEvent,
@@ -72,6 +72,7 @@ import type {
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,
 } from '../src/types';
+import type { DocumentVisibility } from '../src/utils/document-visibility';
 import type { ViewItemCapabilities } from '../src/view/types';
 
 // Stand-in for the entity formatting function attached to `hass`.
@@ -384,12 +385,16 @@ export const callMutationHandler = async (n = 0): Promise<void> => {
   );
 };
 
-export const callVisibilityHandler = async (visible: boolean): Promise<void> => {
+export const setVisibilityState = (state: DocumentVisibilityState): void => {
   Object.defineProperty(document, 'visibilityState', {
-    value: visible ? 'visible' : 'hidden',
+    value: state,
     writable: true,
     configurable: true,
   });
+};
+
+export const callVisibilityHandler = async (visible: boolean): Promise<void> => {
+  setVisibilityState(visible ? 'visible' : 'hidden');
 
   const mock = vi.mocked(global.document.addEventListener).mock;
   for (const [evt, cb] of mock.calls) {
@@ -397,6 +402,26 @@ export const callVisibilityHandler = async (visible: boolean): Promise<void> => 
       await (cb as EventListener | ((_: unknown) => Promise<void>))(new Event('foo'));
     }
   }
+};
+
+export const createDocumentVisibility = (
+  visible = true,
+): MockProxy<DocumentVisibility> => {
+  const documentVisibility = mock<DocumentVisibility>();
+  documentVisibility.isVisible.mockReturnValue(visible);
+  documentVisibility.subscribe.mockReturnValue(vi.fn());
+  return documentVisibility;
+};
+
+export const changeDocumentVisibility = async (
+  documentVisibility: MockProxy<DocumentVisibility>,
+  visible: boolean,
+): Promise<void> => {
+  documentVisibility.isVisible.mockReturnValue(visible);
+  for (const [callback] of documentVisibility.subscribe.mock.calls) {
+    callback(visible);
+  }
+  await flushPromises();
 };
 
 export const getResizeObserver = (n = 0): ResizeObserver | null => {

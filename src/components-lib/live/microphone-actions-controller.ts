@@ -20,7 +20,7 @@ interface MicrophoneActionsControllerOptions {
  * different cameras. This gives:
  *  - a single intersection observer scoped to the live root (correct
  *    'visible'/'hidden' semantics for the whole live view, not per-cell), and
- *  - a single document.visibilitychange listener.
+ *  - a single document visibility subscription.
  */
 export class MicrophoneActionsController {
   private _options: MicrophoneActionsControllerOptions | null = null;
