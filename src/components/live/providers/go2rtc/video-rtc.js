@@ -90,6 +90,14 @@ export class VideoRTC extends HTMLElement {
     };
 
     /**
+     * [config] For Advanced Camera Card: returns the ICE servers for a new peer
+     * connection, replacing those in `pcConfig`. Called for every peer
+     * connection, so each reconnect gets a fresh list.
+     * @type {(() => Promise<RTCIceServer[]>) | null}
+     */
+    this.getICEServers = null;
+
+    /**
      * [info] WebSocket connection state. Values: CONNECTING, OPEN, CLOSED
      * @type {number}
      */
@@ -575,8 +583,12 @@ export class VideoRTC extends HTMLElement {
     if (this.pc) {
       this.pc.close();
       this.pc = null;
-      this.pcState = WebSocket.CLOSED;
     }
+
+    // For Advanced Camera Card: the state is reset even without a peer
+    // connection, since `onwebrtc()` marks it connecting while it waits for
+    // the ICE servers.
+    this.pcState = WebSocket.CLOSED;
 
     // reconnect no more than once every X seconds
     const delay = Math.max(this.RECONNECT_TIMEOUT - (Date.now() - this.connectTS), 0);
@@ -703,7 +715,32 @@ export class VideoRTC extends HTMLElement {
   }
 
   onwebrtc() {
-    const pc = new RTCPeerConnection(this.pcConfig);
+    // For Advanced Camera Card: the peer connection is created only once the
+    // ICE servers arrive, so `onwebrtc()` hands off to the asynchronous
+    // `startWebRTC()` and stays synchronous for `onopen()`. When no peer
+    // connection can be created (e.g. a malformed ICE server), the other modes
+    // keep running.
+    const ws = this.ws;
+    this.pcState = WebSocket.CONNECTING;
+    this.startWebRTC(ws).catch((er) => {
+      console.warn(er);
+      if (this.ws === ws) this.pcState = WebSocket.CLOSED;
+    });
+  }
+
+  /**
+   * @param ws {WebSocket} the socket this peer connection negotiates over.
+   */
+  async startWebRTC(ws) {
+    const pcConfig = this.getICEServers
+      ? { ...this.pcConfig, iceServers: await this.getICEServers() }
+      : this.pcConfig;
+
+    // For Advanced Camera Card: the socket may have been replaced, or the
+    // stream torn down, while the ICE servers were requested.
+    if (this.ws !== ws || this.pcState === WebSocket.CLOSED || this.pc) return;
+
+    const pc = new RTCPeerConnection(pcConfig);
 
     pc.addEventListener('icecandidate', (ev) => {
       if (

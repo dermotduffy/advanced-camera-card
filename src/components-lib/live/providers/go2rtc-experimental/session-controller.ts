@@ -86,6 +86,7 @@ export interface SessionSurfaces {
 interface Go2RTCSessionCallbacks {
   getControls: () => boolean;
   getCardWideConfig: () => CardWideConfig | null;
+  getICEServers: () => Promise<RTCIceServer[]>;
   mediaLoadedCallback: (info: UntargetedMediaLoadedInfo) => void;
 
   // The lane that just committed is live on this surface (the component shows
@@ -450,10 +451,14 @@ export class Go2RTCSessionController {
       },
     };
 
-    source = (this._options?.createWebRTCSource ?? createWebRTCSource)(sourceContext, {
-      createPeerConnection: this._options?.createPeerConnection,
-      createMediaStream: this._options?.createMediaStream,
-    });
+    source = (this._options?.createWebRTCSource ?? createWebRTCSource)(
+      sourceContext,
+      this._callbacks.getICEServers,
+      {
+        createPeerConnection: this._options?.createPeerConnection,
+        createMediaStream: this._options?.createMediaStream,
+      },
+    );
 
     this._webRTCSource = source;
     source.start();

@@ -31,6 +31,7 @@ import {
 } from '../../../../components-lib/signed-url-controller.js';
 import type { CardWideConfig } from '../../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
+import { getICEServers } from '../../../../ha/webrtc.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCExperimentalStyle from '../../../../scss/live-go2rtc-experimental.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../../../../types.js';
@@ -143,6 +144,7 @@ export class AdvancedCameraCardGo2RTCExperimental
   private _session = new Go2RTCSessionController({
     getControls: () => this.controls,
     getCardWideConfig: () => this.cardWideConfig ?? null,
+    getICEServers: () => getICEServers(this.hass),
     mediaLoadedCallback: (info) => this._mediaLoadedInfoSourceController.set(info),
 
     surfaceCommittedCallback: (surface) => {

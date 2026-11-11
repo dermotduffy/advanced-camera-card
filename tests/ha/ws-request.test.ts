@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { resolvedMediaSchema, type ResolvedMedia } from '../../src/ha/types';
 import { homeAssistantWSRequest } from '../../src/ha/ws-request';
 import { createHASS } from '../test-utils';
 
+// @vitest-environment jsdom
 describe('homeAssistantWSRequest', () => {
   const request = {
     type: 'foo',
@@ -27,7 +28,9 @@ describe('homeAssistantWSRequest', () => {
     vi.mocked(hass.callWS).mockResolvedValueOnce(JSON.stringify(response));
 
     expect(
-      await homeAssistantWSRequest(hass, resolvedMediaSchema, request, true),
+      await homeAssistantWSRequest(hass, resolvedMediaSchema, request, {
+        passthrough: true,
+      }),
     ).toEqual(response);
   });
 
@@ -66,7 +69,40 @@ describe('homeAssistantWSRequest', () => {
     vi.mocked(hass.callWS).mockResolvedValueOnce(malformedJSONResponse);
 
     await expect(
-      homeAssistantWSRequest(hass, resolvedMediaSchema, request, true),
+      homeAssistantWSRequest(hass, resolvedMediaSchema, request, {
+        passthrough: true,
+      }),
     ).rejects.toThrow(/Received invalid response/);
+  });
+
+  describe('with a timeout', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should return a response that arrives in time', async () => {
+      vi.useFakeTimers();
+      const hass = createHASS();
+      vi.mocked(hass.callWS).mockResolvedValueOnce(response);
+
+      expect(
+        await homeAssistantWSRequest(hass, resolvedMediaSchema, request, {
+          timeoutSeconds: 2,
+        }),
+      ).toEqual(response);
+    });
+
+    it('should throw when the response does not arrive in time', async () => {
+      vi.useFakeTimers();
+      const hass = createHASS();
+      vi.mocked(hass.callWS).mockReturnValueOnce(new Promise(() => {}));
+
+      const result = homeAssistantWSRequest(hass, resolvedMediaSchema, request, {
+        timeoutSeconds: 2,
+      });
+      vi.advanceTimersByTime(2 * 1000);
+
+      await expect(result).rejects.toThrow(/Timed out waiting for response/);
+    });
   });
 });

@@ -32,6 +32,7 @@ export class VideoRTC extends HTMLElement {
   ondata: ((data: ArrayBuffer) => void) | null;
 
   // Custom methods/members.
+  getICEServers: (() => Promise<RTCIceServer[]>) | null;
   mediaPlayerController: MediaPlayerController | null;
   targetID: string | null;
   reconnect();
