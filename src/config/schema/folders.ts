@@ -25,6 +25,11 @@ const startdateParserSchema = z.object({
 });
 export type StartDateParser = z.infer<typeof startdateParserSchema>;
 
+const enddateParserSchema = startdateParserSchema.extend({
+  type: z.literal('enddate'),
+});
+export type EndDateParser = z.infer<typeof enddateParserSchema>;
+
 // Simple alias date -> startdate.
 const dateParserSchema = startdateParserSchema.extend({
   type: z.literal('date'),
@@ -44,6 +49,7 @@ export type ThumbnailParser = z.infer<typeof thumbnailParserSchema>;
 
 const parserSchema = z.discriminatedUnion('type', [
   dateParserSchema,
+  enddateParserSchema,
   startdateParserSchema,
   thumbnailParserSchema,
 ]);

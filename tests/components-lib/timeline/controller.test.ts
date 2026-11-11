@@ -418,6 +418,37 @@ describe('TimelineController', () => {
 
       expect(view.context?.mediaViewer?.seek).toEqual(clickTime);
     });
+
+    it('should clear an earlier seek when clicking media without an end time', async () => {
+      const harness = await createHarness({
+        media: [
+          new TestViewMedia({
+            mediaType: ViewMediaType.Review,
+            cameraID: CAMERA_ID,
+            id: 'review-1',
+            startTime: add(WINDOW.start, { minutes: 29 }),
+            endTime: null,
+          }),
+        ],
+      });
+
+      harness.trigger('click', {
+        what: 'item',
+        item: 'review-1',
+        group: CAMERA_ID,
+        time: add(WINDOW.start, { minutes: 30 }),
+        event: new Event('click'),
+      });
+
+      const parameters = vi.mocked(harness.manager.setViewByParameters).mock
+        .calls[0]?.[0];
+      const view = createView({
+        context: { mediaViewer: { seek: add(WINDOW.start, { minutes: 10 }) } },
+      });
+      parameters?.modifiers?.forEach((modifier) => modifier.modify(view));
+
+      expect(view.context?.mediaViewer?.seek).toBeUndefined();
+    });
   });
 });
 

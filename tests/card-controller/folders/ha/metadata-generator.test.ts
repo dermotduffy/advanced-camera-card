@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { MetadataGenerator } from '../../../../src/card-controller/folders/ha/metadata-generator';
 import type { Parser } from '../../../../src/config/schema/folders';
+import type { BrowseMediaMetadata } from '../../../../src/ha/browse-media/types';
 import { createBrowseMedia, createRichBrowseMedia } from '../../../test-utils';
 
 describe('MetadataGenerator', () => {
@@ -226,6 +227,18 @@ describe('MetadataGenerator', () => {
           );
         });
 
+        it('should not generate an end date without an enddate parser', async () => {
+          const parser: Parser = { type: 'startdate', format: 'HH:mm' };
+          const generator = new MetadataGenerator();
+          await generator.prepare([parser]);
+
+          expect(
+            generator.generate(createBrowseMedia({ title: '22:42' }), undefined, [
+              parser,
+            ]),
+          ).not.toHaveProperty('endDate');
+        });
+
         it('should incorporate parent metadata with a date format', async () => {
           // Parent has a start date at local midnight on 2025-05-26
           const parentBrowseMedia = createRichBrowseMedia({
@@ -248,6 +261,103 @@ describe('MetadataGenerator', () => {
             generator.generate(childBrowseMedia, parentBrowseMedia, [parser])?.startDate,
           ).toEqual(new Date(2025, 4, 26, 22, 42));
         });
+      });
+    });
+
+    describe('should generate end date metadata', () => {
+      const dayFolder = createRichBrowseMedia({
+        title: '2026-11-09',
+        _metadata: { startDate: new Date(2026, 10, 9) },
+      });
+      const parsers: Parser[] = [
+        { type: 'startdate', regexp: '^\\d{2}:\\d{2}:\\d{2}', format: 'HH:mm:ss' },
+        {
+          type: 'enddate',
+          regexp: '- (?<value>\\d{2}:\\d{2}:\\d{2})$',
+          format: 'HH:mm:ss',
+        },
+      ];
+
+      const generate = async (
+        title: string,
+        generatorParsers: Parser[] = parsers,
+      ): Promise<BrowseMediaMetadata | null> => {
+        const generator = new MetadataGenerator();
+        await generator.prepare(generatorParsers);
+        return generator.generate(
+          createBrowseMedia({ title }),
+          dayFolder,
+          generatorParsers,
+        );
+      };
+
+      it('should generate end date with a date format and a regexp', async () => {
+        expect(await generate('05:54:10 - 08:26:53')).toEqual({
+          startDate: new Date(2026, 10, 9, 5, 54, 10),
+          endDate: new Date(2026, 10, 9, 8, 26, 53),
+        });
+      });
+
+      it('should generate end date without a date format', async () => {
+        expect(
+          await generate('05:54:10 - 08:26:53', [
+            parsers[0],
+            { type: 'enddate', regexp: '- (?<value>.*)$' },
+          ]),
+        ).toEqual({
+          startDate: new Date(2026, 10, 9, 5, 54, 10),
+          endDate: new Date(2026, 10, 9, 8, 26, 53),
+        });
+      });
+
+      it('should not take the start time for parts missing from the end date', async () => {
+        expect(
+          await generate('05:54:10 - 08:26', [
+            parsers[0],
+            { type: 'enddate', regexp: '- (?<value>.*)$' },
+          ]),
+        ).toEqual({
+          startDate: new Date(2026, 10, 9, 5, 54, 10),
+          endDate: new Date(2026, 10, 9, 8, 26, 0),
+        });
+      });
+
+      it('should generate end date without a start date', async () => {
+        const parser: Parser = { type: 'enddate', format: 'yyyy-MM-dd HH:mm:ss' };
+        const generator = new MetadataGenerator();
+        await generator.prepare([parser]);
+
+        expect(
+          generator.generate(
+            createBrowseMedia({ title: '2026-11-09 08:26:53' }),
+            undefined,
+            [parser],
+          ),
+        ).toEqual({ endDate: new Date(2026, 10, 9, 8, 26, 53) });
+      });
+
+      it('should roll an end date before the start date over midnight', async () => {
+        expect(await generate('22:18:51 - 00:00:00')).toEqual({
+          startDate: new Date(2026, 10, 9, 22, 18, 51),
+          endDate: new Date(2026, 10, 10, 0, 0, 0),
+        });
+      });
+
+      it('should not incorporate a parent end date', async () => {
+        const parent = createRichBrowseMedia({
+          title: '00:00:00 - 23:59:59',
+          _metadata: {
+            startDate: new Date(2026, 10, 9),
+            endDate: new Date(2026, 10, 9, 23, 59, 59),
+          },
+        });
+        const parser: Parser = { type: 'startdate', format: 'HH:mm:ss' };
+        const generator = new MetadataGenerator();
+        await generator.prepare([parser]);
+
+        expect(
+          generator.generate(createBrowseMedia({ title: '05:54:10' }), parent, [parser]),
+        ).toEqual({ startDate: new Date(2026, 10, 9, 5, 54, 10) });
       });
     });
   });

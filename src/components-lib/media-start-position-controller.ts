@@ -1,13 +1,13 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit';
 
-import type { CameraManager } from '../camera-manager/manager.js';
+import type { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { Generation } from '../utils/concurrency/generation.js';
 import type { ViewMedia } from '../view/item.js';
 import { getMediaSeekTarget } from '../view/media-seek-target.js';
 import type { View } from '../view/view.js';
 
 interface MediaStartPositionControllerOptions {
-  cameraManager?: CameraManager;
+  viewItemManager?: ViewItemManager;
   view?: View;
 
   // The media to compute a start position for, or none when there is nothing to
@@ -59,7 +59,7 @@ export class MediaStartPositionController implements ReactiveController {
   }
 
   public async hostUpdate(): Promise<void> {
-    const { cameraManager, view, media } = this._getOptionsCallback();
+    const { viewItemManager, view, media } = this._getOptionsCallback();
     const contentID = media?.getContentID() ?? null;
 
     if (!media || !contentID) {
@@ -79,7 +79,7 @@ export class MediaStartPositionController implements ReactiveController {
     // without this controller: a player must never wait on a position that
     // cannot be computed.
     const seek = getMediaSeekTarget(view ?? null, media);
-    if (!cameraManager || !seek?.inMedia) {
+    if (!viewItemManager || !seek?.inMedia) {
       this._requestGeneration.invalidate();
       return;
     }
@@ -88,7 +88,7 @@ export class MediaStartPositionController implements ReactiveController {
     const requestID = this._requestGeneration.next();
     let value: number | null = null;
     try {
-      value = await cameraManager.getMediaSeekTime(media, seek.time);
+      value = await viewItemManager.getMediaSeekTime(media, seek.time);
     } catch {
       // Starting from the beginning is the fallback: the carousel still seeks
       // once the media has loaded.
