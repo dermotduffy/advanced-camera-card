@@ -1,7 +1,9 @@
 import type { ViewContext } from 'view';
 
+import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context.js';
 import type { ViewManagerInterface } from '../../card-controller/view/types.js';
+import { createPTZDigitalAction } from '../../utils/action.js';
 import type { PartialZoomSettings, ZoomSettingsObserved } from './types.js';
 
 interface ZoomViewContext {
@@ -61,5 +63,21 @@ export const handleZoomSettingsObservedEvent = (
         }),
       ),
     ],
+  });
+};
+
+/**
+ * Return a zoom target to its default zoom and pan (on a `zoom:home` event),
+ * through the same digital PTZ action that the `ptz_home` menu button and
+ * keyboard shortcut use for a digital target, so the reset goes through the
+ * view like any other requested zoom. The digital action is used directly: the
+ * multi action would move a camera with true PTZ instead.
+ */
+export const handleZoomHomeEvent = (element: HTMLElement, targetID?: string): void => {
+  if (!targetID) {
+    return;
+  }
+  dispatchActionExecutionRequest(element, {
+    actions: createPTZDigitalAction({ targetID }),
   });
 };

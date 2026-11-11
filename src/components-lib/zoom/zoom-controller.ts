@@ -20,6 +20,29 @@ import {
   type ZoomSettingsObserved,
 } from './types';
 
+// A double tap (or double click) while zoomed is reported as `zoom:home`, on
+// which the zoomer's host returns its target to the default zoom and pan
+// through the same action as the `ptz_home` menu button and keyboard shortcut.
+// While zoomed, every gesture is consumed to pan, so the card's own
+// `double_tap_action` never sees one; this is the gesture to get back without
+// pinching out. See:
+// https://github.com/dermotduffy/advanced-camera-card/issues/2851
+//
+// A tap is a single pointer that comes up within TAP_MAX_MS, having moved at
+// most TAP_MAX_MOVE_PX (more is a pan). Two taps make a double tap when the
+// second starts within DOUBLE_TAP_MAX_MS of the end of the first (as Android's
+// double-tap timeout) and ends within DOUBLE_TAP_MAX_DISTANCE_PX of it.
+export const TAP_MAX_MS = 500;
+export const TAP_MAX_MOVE_PX = 10;
+export const DOUBLE_TAP_MAX_MS = 300;
+export const DOUBLE_TAP_MAX_DISTANCE_PX = 40;
+
+interface TapPoint {
+  x: number;
+  y: number;
+  time: number;
+}
+
 export class ZoomController {
   private _element: HTMLElement;
   private _panzoom: PanzoomObject | null = null;
@@ -29,6 +52,10 @@ export class ZoomController {
 
   // Should clicks be allowed to propagate, or consumed as a pan/zoom action?
   private _allowClick = true;
+
+  // The pointer that went down and may become a tap, and the last tap.
+  private _tapStart: TapPoint | null = null;
+  private _lastTap: TapPoint | null = null;
 
   // Whether zoom/pan gestures are active. When `false`, all gesture events pass
   // through untouched (used to yield to PTZ gesture mode).
@@ -85,6 +112,7 @@ export class ZoomController {
 
   private _downHandler = (ev: Event) => {
     if (this._shouldZoomOrPan(ev)) {
+      this._tapStart = this._getTapPoint(ev);
       this._panzoom?.handleDown(ev as PointerEvent);
       ev.stopPropagation();
 
@@ -118,6 +146,7 @@ export class ZoomController {
     if (this._shouldZoomOrPan(ev)) {
       this._panzoom?.handleUp(ev as PointerEvent);
       ev.stopPropagation();
+      this._handleTap(ev);
     }
   };
 
@@ -518,6 +547,56 @@ export class ZoomController {
       arefloatsApproximatelyEqual(y, convertedDefault.y) &&
       arefloatsApproximatelyEqual(scale, defaultScale)
     );
+  }
+
+  /**
+   * Where and when a single pointer is, or null for none or more than one
+   * (a pinch is never a tap).
+   */
+  private _getTapPoint(ev: Event): TapPoint | null {
+    let point: { clientX: number; clientY: number } | undefined;
+    if (window.TouchEvent && ev instanceof TouchEvent) {
+      const touches = ev.type === 'touchstart' ? ev.touches : ev.changedTouches;
+      point = touches.length === 1 ? touches[0] : undefined;
+    } else if (ev instanceof MouseEvent) {
+      point = ev;
+    }
+    return point ? { x: point.clientX, y: point.clientY, time: ev.timeStamp } : null;
+  }
+
+  private _handleTap(ev: Event): void {
+    const start = this._tapStart;
+    this._tapStart = null;
+
+    // A leave or cancel only drops the press in progress: a touch on a
+    // hoverable device also fires pointerleave right after its pointerup.
+    if (!['pointerup', 'touchend'].includes(ev.type)) {
+      return;
+    }
+
+    const end = this._getTapPoint(ev);
+    const isTap =
+      !!start &&
+      !!end &&
+      end.time - start.time <= TAP_MAX_MS &&
+      Math.hypot(end.x - start.x, end.y - start.y) <= TAP_MAX_MOVE_PX;
+
+    if (!isTap) {
+      this._lastTap = null;
+      return;
+    }
+
+    const last = this._lastTap;
+    if (
+      last &&
+      start.time - last.time <= DOUBLE_TAP_MAX_MS &&
+      Math.hypot(end.x - last.x, end.y - last.y) <= DOUBLE_TAP_MAX_DISTANCE_PX
+    ) {
+      this._lastTap = null;
+      fireAdvancedCameraCardEvent(this._element, 'zoom:home');
+    } else {
+      this._lastTap = end;
+    }
   }
 
   private _shouldZoomOrPan(ev: Event): boolean {
