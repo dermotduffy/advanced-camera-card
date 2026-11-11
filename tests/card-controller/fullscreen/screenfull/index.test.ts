@@ -284,6 +284,43 @@ describe('ScreenfullFullScreenProvider', () => {
       expect(screenfull.off).toHaveBeenCalledWith('error', getHandler('error'));
     });
 
+    describe('should limit how long a request is tracked', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should stop tracking a request that neither completes nor fails', async () => {
+        vi.mocked(screenfull.request).mockReturnValue(new Promise(() => {}));
+
+        const tracked = requestFullscreen();
+
+        await vi.advanceTimersByTimeAsync(4999);
+        expect(await isSettled(tracked)).toBe(false);
+
+        await vi.advanceTimersByTimeAsync(1);
+        expect(await isSettled(tracked)).toBe(true);
+        expect(screenfull.off).toHaveBeenCalledWith('change', getHandler('change'));
+        expect(screenfull.off).toHaveBeenCalledWith('error', getHandler('error'));
+      });
+
+      it('should stop the limit once fullscreen changes', async () => {
+        vi.mocked(screenfull.request).mockReturnValue(new Promise(() => {}));
+        const tracked = requestFullscreen();
+        expect(vi.getTimerCount()).toBe(1);
+
+        const changeHandler = getHandler('change');
+        assert(changeHandler);
+        changeHandler(new Event('fullscreenchange'));
+        await tracked;
+
+        expect(vi.getTimerCount()).toBe(0);
+      });
+    });
+
     it('should not track a request made while already in fullscreen', () => {
       setScreenfulEnabled(true);
       setScreenfulFullscreen(true);

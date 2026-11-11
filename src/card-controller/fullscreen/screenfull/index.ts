@@ -4,9 +4,19 @@ import {
   sharedDocumentVisibility,
   type DocumentVisibility,
 } from '../../../utils/document-visibility';
+import { Timer } from '../../../utils/timer';
 import type { CardFullscreenAPI } from '../../types';
 import { FullscreenProviderBase } from '../provider';
 import type { FullscreenHandler, FullscreenProvider } from '../types';
+
+// Android WebView fires the fullscreen change event only once the page is
+// shown again. Should a user lock an Android phone just after requesting
+// fullscreen, the request would stay pending, and the page count as still
+// visible, until the user returns. This may have knock on effects, e.g.
+// microphone staying unmuted. This time limit ends the request instead, after
+// which the page's real visibility applies. This timeout is far longer than a
+// browser takes to enter fullscreen.
+const FULLSCREEN_REQUEST_LIMIT_SECONDS = 5;
 
 export class ScreenfullFullScreenProvider
   extends FullscreenProviderBase
@@ -69,11 +79,14 @@ export class ScreenfullFullScreenProvider
 
   /**
    * Request fullscreen. The returned promise resolves once the request has
-   * completed or failed, and never rejects.
+   * completed or failed, or after `FULLSCREEN_REQUEST_LIMIT_SECONDS`, and never
+   * rejects.
    */
   private _requestFullscreen(element: HTMLElement): Promise<void> {
     return new Promise((resolve) => {
+      const timer = new Timer();
       const settle = (): void => {
+        timer.stop();
         screenfull.off('change', settle);
         screenfull.off('error', settle);
         resolve();
@@ -87,6 +100,8 @@ export class ScreenfullFullScreenProvider
       // Prefixed WebKit reports a failed request only through the error event,
       // which leaves the promise from `screenfull.request()` pending forever.
       screenfull.on('error', settle);
+
+      timer.start(FULLSCREEN_REQUEST_LIMIT_SECONDS, settle);
 
       screenfull.request(element).catch(settle);
     });
