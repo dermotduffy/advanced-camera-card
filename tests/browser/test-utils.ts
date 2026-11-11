@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
 import type {
   AdvancedCameraCardSelect,
@@ -361,4 +363,26 @@ export const getStatusBarItem = (root: ParentNode, title: string): Element | nul
  */
 export const flushPromises = async (): Promise<void> => {
   await new Promise<void>((resolve) => new Timer().start(0, resolve));
+};
+
+/**
+ * Record the configuration of every peer connection created from now on, until
+ * `vi.unstubAllGlobals()`.
+ *
+ * A peer connection with no reachable ICE server can fail, and be closed by its
+ * owner, as soon as it is created, so its configuration is captured on the way
+ * in rather than read back from the owner.
+ */
+export const captureRTCPeerConnectionConfigurations = (): RTCConfiguration[] => {
+  const configurations: RTCConfiguration[] = [];
+  vi.stubGlobal(
+    'RTCPeerConnection',
+    class extends RTCPeerConnection {
+      constructor(configuration?: RTCConfiguration) {
+        super(configuration);
+        configurations.push(configuration ?? {});
+      }
+    },
+  );
+  return configurations;
 };

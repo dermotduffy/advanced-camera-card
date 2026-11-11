@@ -7,7 +7,11 @@ import {
 } from '../../../browser/fake-go2rtc';
 import type { FakeHASS } from '../../../browser/fake-hass';
 import { MountedCardFactory, type MountedCard } from '../../../browser/mounted-card';
-import { CAMERA_ENTITY, createGenericCameraHASS } from '../../../browser/test-utils';
+import {
+  CAMERA_ENTITY,
+  captureRTCPeerConnectionConfigurations,
+  createGenericCameraHASS,
+} from '../../../browser/test-utils';
 
 const go2rtc = useFakeGo2RTC();
 
@@ -66,18 +70,7 @@ describe('AdvancedCameraCardGo2RTCExperimental', () => {
     const hass = createGenericCameraHASS();
     hass.registerCommand('web_rtc/ice_servers', () => iceServers);
 
-    // The fake go2rtc server never answers an offer, so the configuration each
-    // peer connection is created with is captured on the way in.
-    const configurations: RTCConfiguration[] = [];
-    vi.stubGlobal(
-      'RTCPeerConnection',
-      class extends RTCPeerConnection {
-        constructor(configuration?: RTCConfiguration) {
-          super(configuration);
-          configurations.push(configuration ?? {});
-        }
-      },
-    );
+    const configurations = captureRTCPeerConnectionConfigurations();
 
     await mount('office', { modes: ['webrtc'], hass });
 

@@ -1,4 +1,4 @@
-import { assert, describe, expect, it, onTestFinished, vi } from 'vitest';
+import { afterEach, assert, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { VideoRTC } from '../../../../src/components/live/providers/go2rtc/video-rtc';
@@ -7,6 +7,7 @@ import type { FakeHASS } from '../../../browser/fake-hass';
 import { MountedCardFactory, type MountedCard } from '../../../browser/mounted-card';
 import {
   CAMERA_ENTITY,
+  captureRTCPeerConnectionConfigurations,
   createGenericCameraHASS,
   flushPromises,
 } from '../../../browser/test-utils';
@@ -113,36 +114,31 @@ describe('AdvancedCameraCardGo2RTC', () => {
       return player;
     };
 
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
     it("should negotiate WebRTC with Home Assistant's ICE servers", async () => {
       const hass = createGenericCameraHASS();
       hass.registerCommand('web_rtc/ice_servers', () => ICE_SERVERS);
       const player = await mountWebRTC(hass);
+      const configurations = captureRTCPeerConnectionConfigurations();
 
       player.onopen();
 
-      const pc = await vi.waitFor(() => {
-        assert(player.pc);
-        return player.pc;
-      });
-      expect(pc.getConfiguration().iceServers?.map((server) => server.urls)).toEqual(
-        ICE_SERVERS.map((server) => server.urls),
-      );
+      await vi.waitFor(() => expect(configurations).toHaveLength(1));
+      expect(configurations[0].iceServers).toEqual(ICE_SERVERS);
     });
 
     it('should negotiate WebRTC with the player defaults without an ICE servers callback', async () => {
       const player = await mountWebRTC();
       player.getICEServers = null;
+      const configurations = captureRTCPeerConnectionConfigurations();
 
       player.onopen();
 
-      const pc = await vi.waitFor(() => {
-        assert(player.pc);
-        return player.pc;
-      });
-      expect(pc.getConfiguration().iceServers?.map((server) => server.urls)).toEqual(
-        // The browser reports each server's `urls` as an array.
-        player.pcConfig.iceServers?.map((server) => [server.urls].flat()),
-      );
+      await vi.waitFor(() => expect(configurations).toHaveLength(1));
+      expect(configurations[0]).toEqual(player.pcConfig);
     });
 
     it('should give up on WebRTC when the ICE servers are rejected', async () => {
@@ -167,6 +163,7 @@ describe('AdvancedCameraCardGo2RTC', () => {
       const reply = createPromiseWithResolvers<RTCIceServer[]>();
       hass.registerCommand('web_rtc/ice_servers', () => reply.promise);
       const player = await mountWebRTC(hass);
+      const configurations = captureRTCPeerConnectionConfigurations();
 
       player.onopen();
       player.ws = mock<WebSocket>();
@@ -174,7 +171,7 @@ describe('AdvancedCameraCardGo2RTC', () => {
 
       await flushPromises();
 
-      expect(player.pc).toBeNull();
+      expect(configurations).toHaveLength(0);
     });
   });
 
