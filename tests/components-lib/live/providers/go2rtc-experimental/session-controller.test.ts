@@ -28,6 +28,8 @@ import {
   FakeWebSocket,
 } from '../../../../go2rtc/test-utils';
 
+const ICE_SERVERS = [{ urls: 'stun:stun.example.com:3478' }];
+
 const H264_PROFILE: StreamProfile = {
   hasVideo: true,
   hasH265Video: false,
@@ -139,13 +141,16 @@ describe('Go2RTCSessionController', () => {
     const webRTCSources: MockProxy<WebRTCStreamSource>[] = [];
     const webRTCContexts: StreamSourceContext<VideoStreamTarget>[] = [];
     const webRTCOptions: (CreateWebRTCSourceOptions | undefined)[] = [];
+    const webRTCGetICEServers: (() => Promise<RTCIceServer[]>)[] = [];
 
     const createWebRTCSource = vi.fn(
       (
         context: StreamSourceContext<VideoStreamTarget>,
+        getICEServers: () => Promise<RTCIceServer[]>,
         sourceOptions?: CreateWebRTCSourceOptions,
       ) => {
         webRTCContexts.push(context);
+        webRTCGetICEServers.push(getICEServers);
         webRTCOptions.push(sourceOptions);
 
         const source = mock<WebRTCStreamSource>();
@@ -172,6 +177,7 @@ describe('Go2RTCSessionController', () => {
     });
 
     const getControls = vi.fn(() => options?.controls ?? false);
+    const getICEServers = vi.fn(async () => ICE_SERVERS);
     const mediaLoadedCallback = vi.fn();
     const surfaceCommittedCallback = vi.fn();
     const streamErrorCallback = vi.fn();
@@ -180,6 +186,7 @@ describe('Go2RTCSessionController', () => {
       {
         getControls,
         getCardWideConfig: () => options?.cardWideConfig ?? null,
+        getICEServers,
         mediaLoadedCallback,
         surfaceCommittedCallback,
         streamErrorCallback,
@@ -197,12 +204,14 @@ describe('Go2RTCSessionController', () => {
       createBinarySource,
       createWebRTCSource,
       createWebSocket,
+      getICEServers,
       streamErrorCallback,
       mediaLoadedCallback,
       offscreenVideos,
       session,
       surfaceCommittedCallback,
       webRTCContexts,
+      webRTCGetICEServers,
       webRTCOptions,
       webRTCSources,
       webRTCStream,
@@ -276,6 +285,7 @@ describe('Go2RTCSessionController', () => {
         getControls: () => false,
         surfaceCommittedCallback: vi.fn(),
         getCardWideConfig: () => null,
+        getICEServers: async () => ICE_SERVERS,
         mediaLoadedCallback: vi.fn(),
         streamErrorCallback: vi.fn(),
       });
@@ -291,6 +301,15 @@ describe('Go2RTCSessionController', () => {
 
       expect(createBinarySource).toHaveBeenCalledTimes(1);
       expect(createWebRTCSource).toHaveBeenCalledTimes(1);
+    });
+
+    it('should hand the WebRTC source the ICE servers callback', () => {
+      const { session, surfaces, websockets, getICEServers, webRTCGetICEServers } =
+        setup();
+      session.connect('http://host/api/ws?src=camera', surfaces, ['webrtc']);
+      websockets[0].fireOpen();
+
+      expect(webRTCGetICEServers).toEqual([getICEServers]);
     });
 
     it('should keep the channel open when the binary lane drains synchronously while WebRTC is configured', () => {
@@ -1036,6 +1055,7 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback,
           streamErrorCallback: vi.fn(),
         },
@@ -1070,6 +1090,7 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback,
           streamErrorCallback: vi.fn(),
         },
@@ -1096,6 +1117,7 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
@@ -1127,6 +1149,7 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
@@ -1167,6 +1190,7 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },

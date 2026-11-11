@@ -12,6 +12,7 @@ import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { isRecord, isTruthy } from '../../src/utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../src/utils/fire-advanced-camera-card-event';
+import { Timer } from '../../src/utils/timer';
 import { clickElement, deepQuery, deepQueryAll, holdElement } from './dom';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
@@ -350,3 +351,14 @@ export const getStatusBarStrings = (root: ParentNode): string[] =>
  */
 export const getStatusBarItem = (root: ParentNode, title: string): Element | null =>
   getStatusBarItems(root).find((item) => item.getAttribute('title') === title) ?? null;
+
+/**
+ * Wait until every pending promise callback has run: the browser runs a timer
+ * callback only once they all have.
+ *
+ * The `flushPromises` in `tests/test-utils.ts` waits on Node's
+ * `process.nextTick`, which the browser does not have.
+ */
+export const flushPromises = async (): Promise<void> => {
+  await new Promise<void>((resolve) => new Timer().start(0, resolve));
+};

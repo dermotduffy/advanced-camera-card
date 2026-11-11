@@ -4,6 +4,7 @@ import { GO2RTC_PEER_CONNECTION_CONFIG } from '../../../go2rtc/peer-connection';
 import { SignalingChannel, type WebSocketFactory } from '../../../go2rtc/signaling';
 import { resolveEndpointURL } from '../../../ha/resolve-endpoint';
 import type { HomeAssistant } from '../../../ha/types';
+import { getICEServers } from '../../../ha/webrtc';
 import type { Endpoint, UnsubscribeCallback } from '../../../types';
 import { getErrorDescription } from '../../../utils/basic';
 import {
@@ -50,10 +51,13 @@ export class Go2RTCBackchannel extends PeerConnectionBackchannel {
   }
 
   protected async _connect(track: MediaStreamTrack, generation: number): Promise<void> {
-    const resolvedURL = await resolveEndpointURL(this._hass, this._endpoint, {
-      proxyConfig: this._proxyConfig,
-      proxyEndpointOptions: { websocket: true },
-    });
+    const [resolvedURL, iceServers] = await Promise.all([
+      resolveEndpointURL(this._hass, this._endpoint, {
+        proxyConfig: this._proxyConfig,
+        proxyEndpointOptions: { websocket: true },
+      }),
+      getICEServers(this._hass),
+    ]);
     if (!this._generation.isCurrent(generation)) {
       return;
     }
@@ -63,7 +67,7 @@ export class Go2RTCBackchannel extends PeerConnectionBackchannel {
 
     const pc = this._createPeerConnection(
       this._options?.createPeerConnection ?? createBrowserPeerConnection,
-      GO2RTC_PEER_CONNECTION_CONFIG,
+      { ...GO2RTC_PEER_CONNECTION_CONFIG, iceServers },
       track,
       generation,
     );

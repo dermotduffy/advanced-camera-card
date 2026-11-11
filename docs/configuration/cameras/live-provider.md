@@ -37,6 +37,11 @@ cameras:
 > [!NOTE]
 > If `url` is manually set and `proxy.live` is set to `auto` on the camera (the default), the video stream will automatically be proxied via the Home Assistant process if the [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration) is detected. See [proxying](./README.md?id=proxy).
 
+> [!NOTE]
+> For WebRTC, the card uses the STUN/TURN servers configured for Home Assistant.
+> See [`go2rtc` WebRTC fails away from
+> home](../../troubleshooting.md?id=go2rtc-webrtc-fails-away-from-home).
+
 > [!TIP]
 > If you are certain your camera hardware supports 2-way audio but the
 > microphone button is intermittently missing on load, try increasing
