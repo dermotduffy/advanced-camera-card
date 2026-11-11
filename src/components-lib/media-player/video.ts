@@ -1,6 +1,7 @@
 import type { LitElement, ReactiveController } from 'lit';
 
 import type {
+  CapturedFrame,
   FullscreenElement,
   LivenessCallback,
   MediaPlayerController,
@@ -9,7 +10,7 @@ import type {
   UnsubscribeCallback,
 } from '../../types';
 import { hideMediaControlsTemporarily, setControlsOnVideo } from '../../utils/controls';
-import { screenshotVideo } from '../../utils/screenshot';
+import { captureVideoFrame, screenshotVideo } from '../../utils/screenshot';
 import { FrameStallWatchdog } from './frame-stall-watchdog';
 
 export class VideoMediaPlayerController
@@ -18,6 +19,8 @@ export class VideoMediaPlayerController
   private _host: LitElement;
   private _getVideoCallback: () => HTMLVideoElement | null;
   private _getControlsDefaultCallback: (() => boolean) | null;
+  // The media time of the last frame from captureCurrentFrame.
+  private _lastCaptureTime: number | null = null;
 
   // The frame callback registration: the video it was made on and the handle to
   // cancel it with.
@@ -162,6 +165,39 @@ export class VideoMediaPlayerController
 
     const video = this._getVideoCallback();
     return video ? screenshotVideo(video) : null;
+  }
+
+  public captureCurrentFrame(): CapturedFrame | null {
+    const video = this._getVideoCallback();
+
+    // Only a video with a picture (before its first frame it would draw
+    // blank), and one that moved on since the last capture: a paused or
+    // frozen frame is not new, and would be stamped with the wrong time.
+    if (
+      !video ||
+      video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
+      !video.videoWidth ||
+      video.paused ||
+      video.currentTime === this._lastCaptureTime
+    ) {
+      return null;
+    }
+    const time = video.currentTime;
+    const frame = captureVideoFrame(video);
+    if (!frame) {
+      return null;
+    }
+    this._lastCaptureTime = time;
+    return {
+      canvas: frame.canvas,
+      url: frame.url.then((url) => {
+        // Refused: the same frame may be tried again.
+        if (!url && this._lastCaptureTime === time) {
+          this._lastCaptureTime = null;
+        }
+        return url;
+      }),
+    };
   }
 
   public getFullscreenElement(): FullscreenElement | null {

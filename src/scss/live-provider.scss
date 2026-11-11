@@ -42,3 +42,14 @@ advanced-camera-card-icon {
   color: var(--primary-color);
   cursor: help;
 }
+
+// The frame drawn at the last capture (image mode `last_frame`), over the media
+// while it is unloaded or loading again: see `_getDrawnFrame`.
+.drawn-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
