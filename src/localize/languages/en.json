@@ -617,6 +617,11 @@
         "none": "None",
         "outside": "Outside",
         "overlay": "Overlay"
+      },
+      "unavailable_media_buttons": "Unavailable media buttons",
+      "unavailable_media_buttons_modes": {
+        "hidden": "Hidden",
+        "inert": "Shown inert (grayed out)"
       }
     },
     "overrides": {

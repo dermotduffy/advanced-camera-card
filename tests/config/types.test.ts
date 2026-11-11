@@ -433,6 +433,7 @@ describe('config defaults', () => {
         },
         position: 'top',
         style: 'hidden',
+        unavailable_media_buttons: 'hidden',
       },
       performance: {
         features: {

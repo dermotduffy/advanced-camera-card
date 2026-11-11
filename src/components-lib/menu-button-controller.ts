@@ -47,6 +47,24 @@ import {
   isViewSupported,
 } from '../view/view-support';
 
+// The buttons that depend on the loaded media, and the icon and title of the
+// inert button shown in their place while unavailable (the media is loading,
+// or for mute, it has no audio) with `menu.unavailable_media_buttons: inert`. A
+// button whose icon follows a state uses its resting icon.
+type MediaButtonName = 'pip' | 'play' | 'mute' | 'screenshot';
+const MEDIA_BUTTONS: Record<MediaButtonName, { icon: string; title: string }> = {
+  pip: {
+    icon: 'mdi:picture-in-picture-bottom-right',
+    title: 'config.menu.buttons.pip',
+  },
+  play: { icon: 'mdi:play', title: 'config.menu.buttons.play' },
+  mute: { icon: 'mdi:volume-off', title: 'config.menu.buttons.mute' },
+  screenshot: {
+    icon: 'mdi:monitor-screenshot',
+    title: 'config.menu.buttons.screenshot',
+  },
+};
+
 export interface MenuButtonControllerOptions {
   callManager?: CallManager | null;
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
@@ -114,7 +132,11 @@ export class MenuButtonController {
       ),
       this._getExpandButton(config, options?.inExpandedMode),
       this._getFullscreenButton(config, options?.fullscreenManager),
-      this._getPIPButton(config, options?.pipManager),
+      this._orUnavailable(
+        config,
+        'pip',
+        this._getPIPButton(config, options?.pipManager),
+      ),
       this._getCastButton(
         hass,
         config,
@@ -122,9 +144,21 @@ export class MenuButtonController {
         options?.view,
         options?.mediaPlayerController,
       ),
-      this._getPlayPauseButton(config, options?.currentMediaLoadedInfo),
-      this._getMuteUnmuteButton(config, options?.currentMediaLoadedInfo),
-      this._getScreenshotButton(config, options?.currentMediaLoadedInfo),
+      this._orUnavailable(
+        config,
+        'play',
+        this._getPlayPauseButton(config, options?.currentMediaLoadedInfo),
+      ),
+      this._orUnavailable(
+        config,
+        'mute',
+        this._getMuteUnmuteButton(config, options?.currentMediaLoadedInfo),
+      ),
+      this._orUnavailable(
+        config,
+        'screenshot',
+        this._getScreenshotButton(config, options?.currentMediaLoadedInfo),
+      ),
       this._getDisplayModeButton(config, cameraManager, foldersManager, options?.view),
       this._getPTZControlsButton(config, cameraManager, options?.view),
       this._getPTZHomeButton(config, cameraManager, options?.view),
@@ -146,6 +180,37 @@ export class MenuButtonController {
     ].filter(isTruthy);
 
     return buttons;
+  }
+
+  /**
+   * Get a media button, or for an enabled one that is unavailable (the media
+   * is loading, or for mute, it has no audio) with
+   * `menu.unavailable_media_buttons: inert`, an inert button in its place, so the
+   * menu does not change while the media loads.
+   * @param config The card configuration.
+   * @param name The button's name in `menu.buttons`.
+   * @param button The button, or null when it is unavailable.
+   * @returns The button, the inert button, or null.
+   */
+  private _orUnavailable(
+    config: AdvancedCameraCardConfig,
+    name: MediaButtonName,
+    button: MenuItem | null,
+  ): MenuItem | null {
+    if (
+      button ||
+      config.menu.unavailable_media_buttons !== 'inert' ||
+      !config.menu.buttons[name].enabled
+    ) {
+      return button;
+    }
+    return {
+      icon: MEDIA_BUTTONS[name].icon,
+      ...config.menu.buttons[name],
+      type: 'custom:advanced-camera-card-menu-icon',
+      title: localize(MEDIA_BUTTONS[name].title),
+      inert: true,
+    };
   }
 
   private _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {
