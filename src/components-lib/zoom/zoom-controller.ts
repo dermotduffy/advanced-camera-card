@@ -5,7 +5,14 @@ import Panzoom, {
 import { round, throttle } from 'lodash-es';
 
 import {
+  DOUBLE_TAP_PIXELS,
+  DOUBLE_TAP_SECONDS,
+  DRAG_THRESHOLD_PIXELS,
+  HOLD_SECONDS,
+} from '../../const';
+import {
   arefloatsApproximatelyEqual,
+  getDistance,
   isHoverableDevice,
   type Point,
 } from '../../utils/basic';
@@ -20,28 +27,19 @@ import {
   type ZoomSettingsObserved,
 } from './types';
 
-// A double tap (or double click) while zoomed is reported as `zoom:home`, on
-// which the zoomer's host returns its target to the default zoom and pan
-// through the same action as the `ptz_home` menu button and keyboard shortcut.
-// While zoomed, every gesture is consumed to pan, so the card's own
-// `double_tap_action` never sees one; this is the gesture to get back without
-// pinching out. See:
-// https://github.com/dermotduffy/advanced-camera-card/issues/2851
-//
-// A tap is a single pointer that comes up within TAP_MAX_MS, having moved at
-// most TAP_MAX_MOVE_PX (more is a pan). Two taps make a double tap when the
-// second starts within DOUBLE_TAP_MAX_MS of the end of the first (as Android's
-// double-tap timeout) and ends within DOUBLE_TAP_MAX_DISTANCE_PX of it.
-export const TAP_MAX_MS = 500;
-export const TAP_MAX_MOVE_PX = 10;
-export const DOUBLE_TAP_MAX_MS = 300;
-export const DOUBLE_TAP_MAX_DISTANCE_PX = 40;
-
-interface TapPoint {
-  x: number;
-  y: number;
+interface TapPoint extends Point {
   time: number;
 }
+
+// A tap is one pointer going down and up again before it becomes a hold,
+// without moving far enough to become a drag.
+const isTap = (start: TapPoint, end: TapPoint): boolean =>
+  end.time - start.time < HOLD_SECONDS * 1000 &&
+  getDistance(start, end) <= DRAG_THRESHOLD_PIXELS;
+
+const isDoubleTap = (first: TapPoint, second: TapPoint): boolean =>
+  second.time - first.time <= DOUBLE_TAP_SECONDS * 1000 &&
+  getDistance(first, second) <= DOUBLE_TAP_PIXELS;
 
 export class ZoomController {
   private _element: HTMLElement;
@@ -554,44 +552,43 @@ export class ZoomController {
    * (a pinch is never a tap).
    */
   private _getTapPoint(ev: Event): TapPoint | null {
-    let point: { clientX: number; clientY: number } | undefined;
+    let point: { clientX: number; clientY: number } | null = null;
     if (window.TouchEvent && ev instanceof TouchEvent) {
       const touches = ev.type === 'touchstart' ? ev.touches : ev.changedTouches;
-      point = touches.length === 1 ? touches[0] : undefined;
-    } else if (ev instanceof MouseEvent) {
-      point = ev;
+      point = touches.length === 1 ? touches[0] : null;
+    } else if (ev instanceof PointerEvent) {
+      // A non-primary pointer is a second finger, which makes the gesture a
+      // pinch (which does not count as a tap).
+      point = ev.isPrimary ? ev : null;
     }
     return point ? { x: point.clientX, y: point.clientY, time: ev.timeStamp } : null;
   }
 
+  // While zoomed, the controller consumes every gesture to pan, so the card's
+  // `double_tap_action` never sees a double tap. The controller reports one as
+  // `zoom:home` instead.
   private _handleTap(ev: Event): void {
     const start = this._tapStart;
     this._tapStart = null;
 
-    // A leave or cancel only drops the press in progress: a touch on a
-    // hoverable device also fires pointerleave right after its pointerup.
     if (!['pointerup', 'touchend'].includes(ev.type)) {
+      // A leave or cancel while a pointer is down ends the tap in progress, and
+      // any double tap with it. A touch on a hoverable device also fires
+      // pointerleave right after its pointerup, when no pointer is down, and
+      // that must not break a double tap.
+      if (start) {
+        this._lastTap = null;
+      }
       return;
     }
 
     const end = this._getTapPoint(ev);
-    const isTap =
-      !!start &&
-      !!end &&
-      end.time - start.time <= TAP_MAX_MS &&
-      Math.hypot(end.x - start.x, end.y - start.y) <= TAP_MAX_MOVE_PX;
-
-    if (!isTap) {
+    if (!start || !end || !isTap(start, end)) {
       this._lastTap = null;
       return;
     }
 
-    const last = this._lastTap;
-    if (
-      last &&
-      start.time - last.time <= DOUBLE_TAP_MAX_MS &&
-      Math.hypot(end.x - last.x, end.y - last.y) <= DOUBLE_TAP_MAX_DISTANCE_PX
-    ) {
+    if (this._lastTap && isDoubleTap(this._lastTap, end)) {
       this._lastTap = null;
       fireAdvancedCameraCardEvent(this._element, 'zoom:home');
     } else {

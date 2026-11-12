@@ -134,6 +134,9 @@ export interface Point {
   y: number;
 }
 
+export const getDistance = (a: Point, b: Point): number =>
+  Math.hypot(a.x - b.x, a.y - b.y);
+
 interface Box {
   left: number;
   right: number;

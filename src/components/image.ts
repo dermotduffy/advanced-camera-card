@@ -17,7 +17,7 @@ import { MediaLoadWatchdogController } from '../components-lib/media-load-watchd
 import { triggerMediaUnavailableIssue } from '../components-lib/media-unavailable-issue';
 import type { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import {
-  handleZoomHomeEvent,
+  handleDigitalZoomHomeEvent,
   handleZoomSettingsObservedEvent,
 } from '../components-lib/zoom/zoom-view-context';
 import type { CameraConfig } from '../config/schema/cameras';
@@ -137,7 +137,8 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
               this.viewManagerEpoch?.manager,
               zoomTarget,
             )}
-          @advanced-camera-card:zoom:home=${() => handleZoomHomeEvent(this, zoomTarget)}
+          @advanced-camera-card:zoom:home=${() =>
+            handleDigitalZoomHomeEvent(this, zoomTarget)}
         >
           ${intermediateTemplate}
         </advanced-camera-card-zoomer>`

@@ -6,11 +6,11 @@ import {
   type DirectiveParameters,
 } from 'lit/directive.js';
 
-import { ACTION_HANDLER_HOLD_SECONDS } from './const.js';
+import { DOUBLE_TAP_SECONDS, DRAG_THRESHOLD_PIXELS, HOLD_SECONDS } from './const.js';
 import { fireHASSEvent } from './ha/fire-hass-event.js';
 import type { ActionHandlerDetail, ActionHandlerOptions } from './ha/types.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
-import { isRecord, type Point } from './utils/basic.js';
+import { getDistance, isRecord, type Point } from './utils/basic.js';
 import { Timer } from './utils/timer.js';
 
 export interface ActionHandlerInterface extends HTMLElement {
@@ -25,10 +25,6 @@ interface ActionHandlerElement extends HTMLElement {
 export interface AdvancedCameraCardActionHandlerOptions extends ActionHandlerOptions {
   allowPropagation?: boolean;
 }
-// How far a pointer may travel before a press stops counting as a hold
-// (example: a gallery is scrolled by dragging across the thumbnails, that also
-// answer a hold -- a drag must answer the gallery, not the thumbnails).
-const HOLD_MOVE_TOLERANCE_PIXELS = 10;
 
 type PointerPosition = Pick<MouseEvent, 'clientX' | 'clientY'>;
 
@@ -50,7 +46,7 @@ const getEventPoint = (ev: Event): Point | null => {
 };
 
 class ActionHandler extends HTMLElement implements ActionHandlerInterface {
-  public holdTime = ACTION_HANDLER_HOLD_SECONDS;
+  public holdTime = HOLD_SECONDS;
 
   private holdTimer = new Timer();
   private doubleClickTimer = new Timer();
@@ -81,11 +77,11 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       return;
     }
 
+    // A press that travels is a drag, not a hold (example: a gallery is
+    // scrolled by dragging across the thumbnails, that also answer to a hold --
+    // a drag must answer the gallery, not the thumbnails).
     const point = getEventPoint(ev);
-    if (
-      point &&
-      Math.hypot(point.x - origin.x, point.y - origin.y) > HOLD_MOVE_TOLERANCE_PIXELS
-    ) {
+    if (point && getDistance(point, origin) > DRAG_THRESHOLD_PIXELS) {
       this.holdTimer.stop();
       this.held = false;
     }
@@ -165,7 +161,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
           (ev.type === 'click' && (ev as MouseEvent).detail < 2) ||
           !this.doubleClickTimer.isRunning()
         ) {
-          this.doubleClickTimer.start(0.25, () =>
+          this.doubleClickTimer.start(DOUBLE_TAP_SECONDS, () =>
             fireHASSEvent(element, 'action', { action: 'tap' }),
           );
         } else {

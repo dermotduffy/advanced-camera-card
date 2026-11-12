@@ -15,13 +15,13 @@ import {
 } from 'vitest';
 import { mock, mockClear } from 'vitest-mock-extended';
 
+import { ZoomController } from '../../../src/components-lib/zoom/zoom-controller';
 import {
-  DOUBLE_TAP_MAX_DISTANCE_PX,
-  DOUBLE_TAP_MAX_MS,
-  TAP_MAX_MOVE_PX,
-  TAP_MAX_MS,
-  ZoomController,
-} from '../../../src/components-lib/zoom/zoom-controller';
+  DOUBLE_TAP_PIXELS,
+  DOUBLE_TAP_SECONDS,
+  DRAG_THRESHOLD_PIXELS,
+  HOLD_SECONDS,
+} from '../../../src/const';
 import {
   createTouch,
   createTouchEvent,
@@ -36,9 +36,16 @@ vi.mock('lodash-es', () => ({
   throttle: vi.fn((fn) => fn),
 }));
 
-// https://github.com/jsdom/jsdom/issues/2527
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(window as any).PointerEvent = MouseEvent;
+// jsdom has no PointerEvent: https://github.com/jsdom/jsdom/issues/2527
+class PointerEventPolyfill extends MouseEvent {
+  public readonly isPrimary: boolean;
+
+  constructor(type: string, init?: PointerEventInit) {
+    super(type, init);
+    this.isPrimary = init?.isPrimary ?? true;
+  }
+}
+vi.stubGlobal('PointerEvent', PointerEventPolyfill);
 
 const triggerResizeObserver = (): void => {
   const resizeObserverTrigger = vi.mocked(global.ResizeObserver).mock.calls[0][0];
@@ -1058,28 +1065,20 @@ describe('ZoomController', () => {
     expect(element.style.touchAction).toBeFalsy();
   });
 
-  describe('should report a double tap as zoom:home', () => {
-    // The time of each event, set as its `timeStamp`.
-    let now = 0;
+  describe('double tap', () => {
+    const HOLD_MS = HOLD_SECONDS * 1000;
+    const DOUBLE_TAP_MS = DOUBLE_TAP_SECONDS * 1000;
 
-    beforeEach(() => {
-      now = 1000;
-    });
-
-    const advance = (ms: number): void => {
-      now += ms;
-    };
-
-    const dispatch = (element: HTMLElement, ev: Event): void => {
-      Object.defineProperty(ev, 'timeStamp', { value: now });
-      element.dispatchEvent(ev);
-    };
-
-    // A zoomed-in controller whose element has a size, and a listener for its
-    // zoom:home events.
+    // A zoomed-in controller whose element has a size, a listener for its
+    // zoom:home events, and fake timers that set each new event's `timeStamp`.
     const createZoomed = (options?: {
       touch?: boolean;
     }): { element: HTMLElement; panzoom: PanzoomObject; home: Mock } => {
+      vi.useFakeTimers();
+      onTestFinished(() => {
+        vi.useRealTimers();
+      });
+
       mediaSpy.mockReturnValue(<MediaQueryList>{ matches: !options?.touch });
       const element = createAttachedElement();
       setElementToDefaultCardSize(element);
@@ -1094,156 +1093,200 @@ describe('ZoomController', () => {
 
     const pointerTap = (
       element: HTMLElement,
-      options?: { x?: number; y?: number; moveTo?: number; holdMs?: number },
+      options?: { x?: number; moveTo?: number; holdMs?: number },
     ): void => {
       const x = options?.x ?? 100;
-      const y = options?.y ?? 100;
-      dispatch(element, new PointerEvent('pointerdown', { clientX: x, clientY: y }));
-      advance(options?.holdMs ?? 50);
-      dispatch(
-        element,
-        new PointerEvent('pointerup', { clientX: options?.moveTo ?? x, clientY: y }),
+      element.dispatchEvent(
+        new PointerEvent('pointerdown', { clientX: x, clientY: 100 }),
+      );
+      vi.advanceTimersByTime(options?.holdMs ?? 50);
+      element.dispatchEvent(
+        new PointerEvent('pointerup', { clientX: options?.moveTo ?? x, clientY: 100 }),
       );
     };
 
-    const touchTap = (element: HTMLElement, x = 100, y = 100): void => {
-      const touch = createTouch({ target: element, clientX: x, clientY: y });
-      dispatch(element, createTouchEvent('touchstart', { touches: [touch] }));
-      advance(50);
-      dispatch(element, createTouchEvent('touchend', { changedTouches: [touch] }));
+    const touchTap = (element: HTMLElement): void => {
+      const touch = createTouch({ target: element, clientX: 100, clientY: 100 });
+      element.dispatchEvent(createTouchEvent('touchstart', { touches: [touch] }));
+      vi.advanceTimersByTime(50);
+      element.dispatchEvent(createTouchEvent('touchend', { changedTouches: [touch] }));
     };
 
-    it('with a pointer, leaving the zoom itself to the host', () => {
+    it('should report a pointer double tap as zoom:home without zooming itself', () => {
       const { element, panzoom, home } = createZoomed();
 
       pointerTap(element);
       expect(home).not.toHaveBeenCalled();
 
-      advance(DOUBLE_TAP_MAX_MS - 100);
-      pointerTap(element, { x: 100 + DOUBLE_TAP_MAX_DISTANCE_PX - 5 });
+      vi.advanceTimersByTime(50);
+      pointerTap(element, { x: 100 + DOUBLE_TAP_PIXELS - 5 });
 
       expect(home).toHaveBeenCalledTimes(1);
       expect(panzoom.zoom).not.toHaveBeenCalled();
     });
 
-    it('with touch', () => {
+    it('should report a touch double tap as zoom:home', () => {
       const { element, home } = createZoomed({ touch: true });
 
       touchTap(element);
-      advance(100);
+      vi.advanceTimersByTime(50);
       touchTap(element);
 
       expect(home).toHaveBeenCalledTimes(1);
     });
 
-    it('not when the second tap comes too late', () => {
+    it('should start a new double tap with a second tap that ends too late', () => {
       const { element, home } = createZoomed();
 
       pointerTap(element);
-      advance(DOUBLE_TAP_MAX_MS + 1);
+      vi.advanceTimersByTime(DOUBLE_TAP_MS);
       pointerTap(element);
 
       expect(home).not.toHaveBeenCalled();
 
-      // ... but that second tap can start a new double tap.
-      advance(100);
+      vi.advanceTimersByTime(50);
       pointerTap(element);
-      expect(home).toHaveBeenCalledTimes(1);
-    });
-
-    it('when the second tap starts in time, however long it is held', () => {
-      const { element, home } = createZoomed();
-
-      pointerTap(element);
-      advance(DOUBLE_TAP_MAX_MS - 50);
-      pointerTap(element, { holdMs: 200 });
 
       expect(home).toHaveBeenCalledTimes(1);
     });
 
-    it('not when the second tap is too far from the first', () => {
+    it('should not report a second tap that starts in time but ends too late', () => {
       const { element, home } = createZoomed();
 
       pointerTap(element);
-      advance(100);
-      pointerTap(element, { x: 100 + DOUBLE_TAP_MAX_DISTANCE_PX + 1 });
+      vi.advanceTimersByTime(50);
+      pointerTap(element, { holdMs: DOUBLE_TAP_MS });
 
       expect(home).not.toHaveBeenCalled();
     });
 
-    it('not for a pan', () => {
+    it('should not report a second tap too far from the first', () => {
       const { element, home } = createZoomed();
 
       pointerTap(element);
-      advance(100);
-      pointerTap(element, { moveTo: 100 + TAP_MAX_MOVE_PX + 1 });
-      advance(100);
+      vi.advanceTimersByTime(50);
+      pointerTap(element, { x: 100 + DOUBLE_TAP_PIXELS + 1 });
+
+      expect(home).not.toHaveBeenCalled();
+    });
+
+    it('should not count a pan as a tap', () => {
+      const { element, home } = createZoomed();
+
+      pointerTap(element, { moveTo: 100 + DRAG_THRESHOLD_PIXELS + 1 });
+      vi.advanceTimersByTime(50);
       pointerTap(element);
 
       expect(home).not.toHaveBeenCalled();
     });
 
-    it('not for a long press', () => {
+    it('should not count a hold as a tap', () => {
       const { element, home } = createZoomed();
 
+      pointerTap(element, { holdMs: HOLD_MS });
+      vi.advanceTimersByTime(50);
       pointerTap(element);
-      advance(100);
-      pointerTap(element, { holdMs: TAP_MAX_MS + 1 });
 
       expect(home).not.toHaveBeenCalled();
     });
 
-    it('not for a pinch', () => {
+    it('should not count a touch pinch as a tap', () => {
       const { element, home } = createZoomed({ touch: true });
 
       touchTap(element);
-      advance(50);
+      vi.advanceTimersByTime(50);
       const one = createTouch({ target: element, clientX: 100, clientY: 100 });
-      const two = createTouch({ target: element, clientX: 200, clientY: 100 });
-      dispatch(element, createTouchEvent('touchstart', { touches: [one, two] }));
-      dispatch(element, createTouchEvent('touchend', { changedTouches: [one, two] }));
+      const two = createTouch({ target: element, clientX: 105, clientY: 100 });
+      element.dispatchEvent(createTouchEvent('touchstart', { touches: [one, two] }));
+      element.dispatchEvent(
+        createTouchEvent('touchend', { changedTouches: [one, two] }),
+      );
 
       expect(home).not.toHaveBeenCalled();
     });
 
-    it('across a pointerleave after the pointerup', () => {
+    it('should not count a further finger of a pointer pinch as a tap', () => {
       const { element, home } = createZoomed();
 
       pointerTap(element);
-      dispatch(element, new PointerEvent('pointerleave'));
-      advance(100);
+      vi.advanceTimersByTime(20);
+      element.dispatchEvent(
+        new PointerEvent('pointerdown', { clientX: 100, clientY: 100 }),
+      );
+      element.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          clientX: 105,
+          clientY: 100,
+          isPrimary: false,
+        }),
+      );
+      vi.advanceTimersByTime(50);
+      element.dispatchEvent(
+        new PointerEvent('pointerup', { clientX: 105, clientY: 100, isPrimary: false }),
+      );
+
+      expect(home).not.toHaveBeenCalled();
+    });
+
+    it('should report a double tap across a pointerleave after the first pointerup', () => {
+      const { element, home } = createZoomed();
+
+      pointerTap(element);
+      element.dispatchEvent(new PointerEvent('pointerleave'));
+      vi.advanceTimersByTime(50);
       pointerTap(element);
 
       expect(home).toHaveBeenCalledTimes(1);
     });
 
-    it('not for an up without a down', () => {
+    it.each([['pointercancel'], ['pointerleave']])(
+      'should not report a tap after a press that ends in a %s',
+      (type: string) => {
+        const { element, home } = createZoomed();
+
+        pointerTap(element);
+        vi.advanceTimersByTime(20);
+        element.dispatchEvent(
+          new PointerEvent('pointerdown', { clientX: 100, clientY: 100 }),
+        );
+        vi.advanceTimersByTime(20);
+        element.dispatchEvent(new PointerEvent(type));
+        vi.advanceTimersByTime(20);
+        pointerTap(element);
+
+        expect(home).not.toHaveBeenCalled();
+      },
+    );
+
+    it('should not count an up without a down as a tap', () => {
       const { element, home } = createZoomed();
 
-      dispatch(element, new PointerEvent('pointerup', { clientX: 100, clientY: 100 }));
-      advance(100);
+      element.dispatchEvent(
+        new PointerEvent('pointerup', { clientX: 100, clientY: 100 }),
+      );
+      vi.advanceTimersByTime(50);
       pointerTap(element);
 
       expect(home).not.toHaveBeenCalled();
     });
 
-    it('not for an event without a position', () => {
+    it('should not count an event without a position as a tap', () => {
       const { element, home } = createZoomed();
 
       pointerTap(element);
-      advance(100);
-      dispatch(element, new Event('pointerdown'));
-      dispatch(element, new Event('pointerup'));
+      vi.advanceTimersByTime(50);
+      element.dispatchEvent(new Event('pointerdown'));
+      element.dispatchEvent(new Event('pointerup'));
 
       expect(home).not.toHaveBeenCalled();
     });
 
-    it('not while unzoomed (the card handles the gesture)', () => {
+    it('should leave a double tap to the card while unzoomed', () => {
       const { element, panzoom, home } = createZoomed();
       panzoom.getScale = vi.fn().mockReturnValue(1);
 
       pointerTap(element);
-      advance(100);
+      vi.advanceTimersByTime(50);
       pointerTap(element);
 
       expect(panzoom.handleUp).not.toHaveBeenCalled();

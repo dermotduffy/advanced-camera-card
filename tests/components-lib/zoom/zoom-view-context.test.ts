@@ -5,12 +5,13 @@ import { MergeContextViewModifier } from '../../../src/card-controller/view/modi
 import type { ViewManager } from '../../../src/card-controller/view/view-manager';
 import {
   generateViewContextForZoom,
-  handleZoomHomeEvent,
+  handleDigitalZoomHomeEvent,
   handleZoomSettingsObservedEvent,
 } from '../../../src/components-lib/zoom/zoom-view-context';
 
 vi.mock('../../../src/card-controller/view/modifiers/merge-context');
 
+// @vitest-environment jsdom
 describe('generateViewContextForZoom', () => {
   it('with observed', () => {
     expect(
@@ -124,13 +125,13 @@ describe('handleZoomSettingsObservedEvent', () => {
   });
 });
 
-describe('handleZoomHomeEvent', () => {
+describe('handleDigitalZoomHomeEvent', () => {
   it('should request the default zoom for the target', () => {
-    const element = new EventTarget() as HTMLElement;
+    const element = document.createElement('div');
     const handler = vi.fn();
     element.addEventListener('advanced-camera-card:action:execution-request', handler);
 
-    handleZoomHomeEvent(element, 'target');
+    handleDigitalZoomHomeEvent(element, 'target');
 
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -146,11 +147,11 @@ describe('handleZoomHomeEvent', () => {
   });
 
   it('should do nothing without a target', () => {
-    const element = new EventTarget() as HTMLElement;
+    const element = document.createElement('div');
     const handler = vi.fn();
     element.addEventListener('advanced-camera-card:action:execution-request', handler);
 
-    handleZoomHomeEvent(element);
+    handleDigitalZoomHomeEvent(element);
 
     expect(handler).not.toHaveBeenCalled();
   });
