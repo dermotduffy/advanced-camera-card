@@ -10,7 +10,6 @@ import { guard } from 'lit/directives/guard.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import type { CameraManager } from '../camera-manager/manager';
 import type { MediaUnavailableIssueReason } from '../card-controller/issues/issues/media-unavailable';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
 import { MediaLoadWatchdogController } from '../components-lib/media-load-watchdog-controller';
@@ -53,9 +52,6 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
-
-  @property({ attribute: false })
-  public cameraManager?: CameraManager;
 
   @property({ attribute: false })
   public imageConfig?: ImageViewConfig;

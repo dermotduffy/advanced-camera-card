@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
@@ -49,7 +49,7 @@ export class AdvancedCameraCardViewer extends LitElement {
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -74,7 +74,7 @@ export class AdvancedCameraCardViewer extends LitElement {
       !this.hass ||
       !this.viewManagerEpoch ||
       !this.viewerConfig ||
-      !this.cameraManager ||
+      !this.cameraManagerEpoch ||
       !this.cardWideConfig
     ) {
       return;
@@ -89,7 +89,7 @@ export class AdvancedCameraCardViewer extends LitElement {
           cameraID: this.viewManagerEpoch.manager.getView()?.camera ?? null,
           inProgress: !!this.viewManagerEpoch.manager.getView()?.context?.loading?.query,
         },
-        this.cameraManager,
+        this.cameraManagerEpoch.manager,
       );
     }
 
@@ -98,7 +98,7 @@ export class AdvancedCameraCardViewer extends LitElement {
       .viewManagerEpoch=${this.viewManagerEpoch}
       .viewerConfig=${this.viewerConfig}
       .resolvedMediaCache=${this.resolvedMediaCache}
-      .cameraManager=${this.cameraManager}
+      .cameraManagerEpoch=${this.cameraManagerEpoch}
       .cardWideConfig=${this.cardWideConfig}
       .viewItemManager=${this.viewItemManager}
     >

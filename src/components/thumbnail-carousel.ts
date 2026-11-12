@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
-import type { CameraManager } from '../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../camera-manager/lifecycle.js';
 import type { FoldersManager } from '../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
@@ -56,7 +56,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public foldersManager?: FoldersManager;
@@ -91,11 +91,14 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (
-      (changedProps.has('cameraManager') || changedProps.has('foldersManager')) &&
-      this.cameraManager &&
+      (changedProps.has('cameraManagerEpoch') || changedProps.has('foldersManager')) &&
+      this.cameraManagerEpoch &&
       this.foldersManager
     ) {
-      this._builder = new UnifiedQueryBuilder(this.cameraManager, this.foldersManager);
+      this._builder = new UnifiedQueryBuilder(
+        this.cameraManagerEpoch.manager,
+        this.foldersManager,
+      );
     }
 
     if (changedProps.has('config')) {
@@ -114,7 +117,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     }
 
     const renderProperties = [
-      'cameraManager',
+      'cameraManagerEpoch',
       'config',
       'transitionEffect',
       'viewManagerEpoch',
@@ -171,7 +174,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     return html` <advanced-camera-card-thumbnail
       clickable
       class="${classMap(classes)}"
-      .cameraManager=${this.cameraManager}
+      .cameraManagerEpoch=${this.cameraManagerEpoch}
       .hass=${this.hass}
       .filterReviewed=${filterReviewed}
       .filterFavorite=${filterFavorite}
@@ -199,7 +202,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
         } else if (ev.detail.action === 'hold') {
           showMediaInfoNotification(this, item, {
             hass: this.hass,
-            cameraManager: this.cameraManager,
+            cameraManager: this.cameraManagerEpoch?.manager,
             viewItemManager: this.viewItemManager,
             viewManagerEpoch: this.viewManagerEpoch,
             filterReviewed,

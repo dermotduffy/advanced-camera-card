@@ -46,9 +46,6 @@ export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
 
-  // The camera manager, wrapped in an epoch whose identity changes on every
-  // camera lifecycle change so the live subtree re-renders as cameras become
-  // ready or fail. Read the manager from `.manager`.
   @property({ attribute: false })
   public cameraManagerEpoch?: CameraManagerEpoch;
 
@@ -180,7 +177,7 @@ export class AdvancedCameraCardViews extends LitElement {
       .viewManagerEpoch=${this.viewManagerEpoch}
       .thumbnailConfig=${!this.hide ? thumbnailConfig : undefined}
       .timelineConfig=${!this.hide ? miniTimelineConfig : undefined}
-      .cameraManager=${cameraManager}
+      .cameraManagerEpoch=${this.cameraManagerEpoch}
       .foldersManager=${this.foldersManager}
       .conditionStateManager=${this.conditionStateManager}
       .viewItemManager=${this.viewItemManager}
@@ -194,7 +191,6 @@ export class AdvancedCameraCardViews extends LitElement {
             .viewManagerEpoch=${this.viewManagerEpoch}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
-            .cameraManager=${cameraManager}
           >
           </advanced-camera-card-image>`
         : ``}
@@ -203,7 +199,6 @@ export class AdvancedCameraCardViews extends LitElement {
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .galleryConfig=${this.config.media_gallery}
-            .cameraManager=${cameraManager}
             .cameraManagerEpoch=${this.cameraManagerEpoch}
             .foldersManager=${this.foldersManager}
             .viewItemManager=${this.viewItemManager}
@@ -219,7 +214,7 @@ export class AdvancedCameraCardViews extends LitElement {
               .viewManagerEpoch=${this.viewManagerEpoch}
               .viewerConfig=${this.config.media_viewer}
               .resolvedMediaCache=${this.resolvedMediaCache}
-              .cameraManager=${cameraManager}
+              .cameraManagerEpoch=${this.cameraManagerEpoch}
               .cardWideConfig=${this.cardWideConfig}
               .viewItemManager=${this.viewItemManager}
             >
@@ -231,7 +226,7 @@ export class AdvancedCameraCardViews extends LitElement {
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .timelineConfig=${this.config.timeline}
-            .cameraManager=${cameraManager}
+            .cameraManagerEpoch=${this.cameraManagerEpoch}
             .conditionStateManager=${this.conditionStateManager}
             .foldersManager=${this.foldersManager}
             .viewItemManager=${this.viewItemManager}

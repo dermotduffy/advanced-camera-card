@@ -1,7 +1,7 @@
 import { html, LitElement, unsafeCSS, type CSSResult, type TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { CameraManager } from '../../camera-manager/manager';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle';
 import { isMediaReviewed } from '../../components-lib/media/format';
 import { ThumbnailDetailsOverlayController } from '../../components-lib/thumbnail/details-overlay/controller';
 import type { ResolvedThumbnailStyle } from '../../components-lib/thumbnail/resolve-style';
@@ -16,7 +16,7 @@ import '../icon.js';
 @customElement('advanced-camera-card-thumbnail-details-overlay')
 export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public item?: ViewItem;
@@ -31,7 +31,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
 
   protected willUpdate(): void {
     this._controller.calculate({
-      cameraManager: this.cameraManager,
+      cameraManager: this.cameraManagerEpoch?.manager,
       item: this.item,
       thumbnailStyle: this.thumbnailStyle,
       size: this.size,
