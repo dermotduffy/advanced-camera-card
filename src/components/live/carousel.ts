@@ -297,6 +297,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .cardWideConfig=${this.cardWideConfig}
             .preservedFrameManager=${this.preservedFrameManager}
             .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
+            .zoomObserved=${view?.context?.zoom?.[cameraID]?.observed}
             .zoom=${!this._isGesturesPTZActive(view, cameraID)}
             .forceSelected=${isSelectedSlide}
             .locked=${this.locked}

@@ -30,6 +30,7 @@ import {
   ZOOM_DEFAULT_SCALE,
   ZOOM_PRECISION,
   type PartialZoomSettings,
+  type ZoomSettingsBase,
   type ZoomSettingsObserved,
 } from './types';
 
@@ -91,6 +92,11 @@ export class ZoomController {
 
   private _defaultSettings: PartialZoomSettings | null;
   private _settings: PartialZoomSettings | null;
+
+  // Where to start when nothing is requested: the zoom the target was last
+  // seen at before a remount (see `setStartSettings`). Ahead of the default,
+  // dropped by any request or a new default.
+  private _startSettings: ZoomSettingsBase | null = null;
 
   // These values should be suitably less than the value of STEP_DELAY_SECONDS
   // in the ptz_digital action, in order to ensure smooth movements of the
@@ -297,12 +303,17 @@ export class ZoomController {
 
   public setDefaultSettings(config: PartialZoomSettings | null): void {
     this._defaultSettings = config;
+    this._startSettings = null;
     this._clearUserAdjustment();
     this._debouncedUpdater();
   }
 
   public setSettings(config: PartialZoomSettings | null): void {
     this._settings = config;
+
+    // Any request supersedes the start: also an empty one, which returns to
+    // the default (a double tap, the `ptz_home` button or the `h` key).
+    this._startSettings = null;
     this._clearUserAdjustment();
     this._debouncedUpdater();
   }
@@ -310,6 +321,17 @@ export class ZoomController {
   public setDimensionsConfig(dimensionsConfig: CameraDimensionsConfig | null): void {
     this._dimensionsConfig = dimensionsConfig;
     this._updatePictureAspectRatio();
+  }
+
+  /**
+   * Start from the zoom the target was last seen at, unless that was its
+   * default. Set before activation.
+   */
+  public setStartSettings(observed: ZoomSettingsObserved | null): void {
+    this._startSettings =
+      observed && !observed.isDefault
+        ? { zoom: observed.zoom, pan: { ...observed.pan } }
+        : null;
   }
 
   public isActivated(): boolean {
@@ -393,8 +415,12 @@ export class ZoomController {
     );
   }
 
+  // A requested zoom, else the one to start from, else the default.
   private _getConfigToUse(): PartialZoomSettings | null {
-    return isZoomEmpty(this._settings) ? this._defaultSettings : this._settings;
+    if (!isZoomEmpty(this._settings)) {
+      return this._settings;
+    }
+    return this._startSettings ?? this._defaultSettings;
   }
 
   private _clearUserAdjustment(): void {

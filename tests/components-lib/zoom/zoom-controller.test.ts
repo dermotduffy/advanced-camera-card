@@ -1786,4 +1786,84 @@ describe('ZoomController', () => {
       });
     });
   });
+
+  describe('should start from the last observed zoom', () => {
+    const OBSERVED = {
+      zoom: 3,
+      pan: { x: 20, y: 70 },
+      isDefault: false,
+      unzoomed: false,
+    };
+
+    const create = (
+      setup?: (controller: ZoomController) => void,
+    ): { element: HTMLElement; panzoom: PanzoomObject; controller: ZoomController } => {
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+      const controller = new ZoomController(element);
+      setup?.(controller);
+      controller.activate();
+      return { element, panzoom, controller };
+    };
+
+    it('when nothing is requested', () => {
+      const { element } = create((controller) => controller.setStartSettings(OBSERVED));
+
+      expect(Panzoom).toHaveBeenLastCalledWith(
+        element,
+        expect.objectContaining({ startScale: 3 }),
+      );
+    });
+
+    it('but not when that was the default', () => {
+      const { element } = create((controller) =>
+        controller.setStartSettings({ ...OBSERVED, isDefault: true }),
+      );
+
+      expect(Panzoom).toHaveBeenLastCalledWith(
+        element,
+        expect.not.objectContaining({ startScale: expect.anything() }),
+      );
+    });
+
+    it('but not without one', () => {
+      const { element } = create((controller) => controller.setStartSettings(null));
+
+      expect(Panzoom).toHaveBeenLastCalledWith(
+        element,
+        expect.not.objectContaining({ startScale: expect.anything() }),
+      );
+    });
+
+    it('but start from a requested zoom over it', () => {
+      const { element } = create((controller) => {
+        controller.setStartSettings(OBSERVED);
+        controller.setSettings({ zoom: 5 });
+      });
+
+      expect(Panzoom).toHaveBeenLastCalledWith(
+        element,
+        expect.objectContaining({ startScale: 5 }),
+      );
+    });
+
+    it.each([
+      [
+        'an empty request (a return to the default)',
+        (c: ZoomController) => c.setSettings({}),
+      ],
+      ['a new default', (c: ZoomController) => c.setDefaultSettings({ zoom: 2 })],
+    ])('and drop it on %s', (_name: string, change: (c: ZoomController) => void) => {
+      const { panzoom, controller } = create((c) => c.setStartSettings(OBSERVED));
+      vi.mocked(panzoom.getScale).mockReturnValue(3);
+
+      change(controller);
+
+      // The update goes to the default (1 or 2), not back to the start zoom.
+      expect(panzoom.zoom).not.toHaveBeenCalledWith(3, expect.anything());
+      expect(panzoom.zoom).toHaveBeenCalled();
+    });
+  });
 });

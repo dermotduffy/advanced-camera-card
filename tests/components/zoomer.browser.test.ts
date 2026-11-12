@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { dispatchActionExecutionRequest } from '../../src/card-controller/actions/utils/execution-request';
+import { MergeContextViewModifier } from '../../src/card-controller/view/modifiers/merge-context';
+import { ZoomRequestViewModifier } from '../../src/card-controller/view/modifiers/zoom-request';
+import type { ViewManagerInterface } from '../../src/card-controller/view/types';
 import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
 import type { MediaLayoutConfig } from '../../src/config/schema/camera/media-layout';
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
@@ -385,4 +388,113 @@ describe('AdvancedCameraCardZoomer picture limits', () => {
       await waitForTranslateY(card, zoomer, zoomer.offsetHeight / 4);
     },
   );
+});
+
+describe('AdvancedCameraCardZoomer after a remount', () => {
+  const ZOOMED = { zoom: 3, pan: { x: 20, y: 20 } };
+
+  const isZoomed = (report: ZoomSettingsObserved): boolean =>
+    arefloatsApproximatelyEqual(report.zoom, ZOOMED.zoom, 1) &&
+    arefloatsApproximatelyEqual(report.pan.x, ZOOMED.pan.x, 1) &&
+    arefloatsApproximatelyEqual(report.pan.y, ZOOMED.pan.y, 1);
+
+  // Zoom in the way a user's `ptz_digital` button with `absolute` does. The
+  // request is only in the view context until the first zoom report, which
+  // replaces it, so a remount afterwards relies on the observed zoom.
+  const zoomIn = async (card: MountedCard): Promise<HTMLElement> => {
+    const zoomer = await card.waitForSelector<HTMLElement>(
+      'advanced-camera-card-zoomer',
+    );
+    await waitForZoomReport(card, 0, isZoom(1), 'zoom 1');
+    const before = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+    dispatchActionExecutionRequest(zoomer, {
+      actions: createPTZDigitalAction({ absolute: ZOOMED }),
+    });
+    await waitForZoomReport(card, before, isZoomed, 'the zoom in');
+    return zoomer;
+  };
+
+  const getViewManager = (card: MountedCard): ViewManagerInterface =>
+    (
+      card.card as unknown as { _controller: { getViewManager(): ViewManagerInterface } }
+    )._controller.getViewManager();
+
+  it('should keep the zoom and pan through a stream reload', async () => {
+    const card = await mount();
+    const zoomer = await zoomIn(card);
+    const before = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+
+    // As the card's own auto-retry does: a new epoch remounts the provider.
+    const viewManager = getViewManager(card);
+    const cameraID = viewManager.getView()?.camera ?? '';
+    viewManager.setViewWithMergedContext({
+      mediaRetry: { [cameraID]: { epoch: 1, retrying: true } },
+    });
+
+    await waitForZoomReport(card, before, isZoomed, 'the zoom after the reload');
+    const reloaded = await card.waitForSelector<HTMLElement>(
+      'advanced-camera-card-zoomer',
+    );
+    expect(reloaded).not.toBe(zoomer);
+  });
+
+  it('should stay at the default when a return to it is pending at a reload', async () => {
+    const card = await mount();
+    await zoomIn(card);
+    const before = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+
+    // A double tap's request and a stream reload in one view change, so the new
+    // zoomer mounts before the old one could report the default.
+    const viewManager = getViewManager(card);
+    const cameraID = viewManager.getView()?.camera ?? '';
+    viewManager.setViewByParameters({
+      modifiers: [
+        new ZoomRequestViewModifier(cameraID, {}),
+        new MergeContextViewModifier({
+          mediaRetry: { [cameraID]: { epoch: 1, retrying: true } },
+        }),
+      ],
+    });
+
+    await waitForZoomReport(card, before, isZoom(1), 'zoom 1 after the reload');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(getZoomReports(card, before).some(isZoomed)).toBe(false);
+  });
+
+  it('should keep the zoom and pan when the card is shown again', async () => {
+    const card = await mount();
+    const zoomer = await zoomIn(card);
+    const before = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+
+    card.detach();
+    card.attach();
+
+    await waitForZoomReport(card, before, isZoomed, 'the zoom after re-attaching');
+    const reattached = await card.waitForSelector<HTMLElement>(
+      'advanced-camera-card-zoomer',
+    );
+    expect(reattached).not.toBe(zoomer);
+  });
+
+  it('should stay at the default after a double tap home and a remount', async () => {
+    const card = await mount();
+    const zoomer = await zoomIn(card);
+    const beforeTap = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+    tap(zoomer);
+    tap(zoomer);
+    await waitForZoomReport(card, beforeTap, isZoom(1), 'zoom 1 after the double tap');
+
+    const before = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+    card.detach();
+    card.attach();
+    await waitForZoomReport(card, before, isZoom(1), 'zoom 1 after re-attaching');
+    expect(
+      card.events
+        .getEntries(ZOOM_CHANGE_EVENT)
+        .slice(before)
+        .map((entry) => entry.detail)
+        .filter(isZoomSettingsObserved)
+        .some((report) => report.zoom > 1.01),
+    ).toBe(false);
+  });
 });

@@ -24,7 +24,10 @@ import {
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import { PreservedFrameCaptureController } from '../../components-lib/preserved-frame-capture-controller.js';
-import type { PartialZoomSettings } from '../../components-lib/zoom/types.js';
+import type {
+  PartialZoomSettings,
+  ZoomSettingsObserved,
+} from '../../components-lib/zoom/types.js';
 import type { LiveConfig } from '../../config/schema/live.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
@@ -78,6 +81,11 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
+
+  // The zoom this camera was last seen at, to start from when this provider is
+  // remounted (see the zoomer).
+  @property({ attribute: false })
+  public zoomObserved?: ZoomSettingsObserved | null;
 
   @property({ attribute: false })
   public zoom = true;
@@ -317,6 +325,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               : undefined,
           )}
           .settings=${this.zoomSettings}
+          .observedSettings=${this.zoomObserved}
           .zoom=${this.zoom}
           .dimensionsConfig=${config?.dimensions}
           @advanced-camera-card:zoom:zoomed=${() => (this._zoomed = true)}
