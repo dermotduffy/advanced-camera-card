@@ -137,7 +137,7 @@
           "mse": "Media Source Extensions (MSE)",
           "webrtc": "Web Real-Time Communication (WebRTC)"
         },
-        "stream": "Назив strima",
+        "stream": "Назив стрима",
         "url": "URL"
       },
       "icon": "Икона (аутоматски препозната)",
