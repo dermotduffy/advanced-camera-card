@@ -195,7 +195,6 @@ export class AdvancedCameraCardViews extends LitElement {
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
             .cameraManager=${cameraManager}
-            .cameraManagerEpoch=${this.cameraManagerEpoch}
           >
           </advanced-camera-card-image>`
         : ``}
@@ -221,7 +220,6 @@ export class AdvancedCameraCardViews extends LitElement {
               .viewerConfig=${this.config.media_viewer}
               .resolvedMediaCache=${this.resolvedMediaCache}
               .cameraManager=${cameraManager}
-              .cameraManagerEpoch=${this.cameraManagerEpoch}
               .cardWideConfig=${this.cardWideConfig}
               .viewItemManager=${this.viewItemManager}
             >
@@ -234,7 +232,6 @@ export class AdvancedCameraCardViews extends LitElement {
             .viewManagerEpoch=${this.viewManagerEpoch}
             .timelineConfig=${this.config.timeline}
             .cameraManager=${cameraManager}
-            .cameraManagerEpoch=${this.cameraManagerEpoch}
             .conditionStateManager=${this.conditionStateManager}
             .foldersManager=${this.foldersManager}
             .viewItemManager=${this.viewItemManager}
