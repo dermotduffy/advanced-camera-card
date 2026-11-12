@@ -469,6 +469,27 @@ describe('FrigateCamera', () => {
       });
     });
 
+    it('birdseye detected from the camera entity', async () => {
+      const camera = new FrigateCamera(
+        createCameraConfig({ camera_entity: 'camera.birdseye' }),
+        mock<CameraManagerEngine>(),
+        createDependencies({
+          entityRegistryManager: new EntityRegistryManagerMock([
+            createRegistryEntity({
+              entity_id: 'camera.birdseye',
+              unique_id: '8c4e19d258359e82bc0cf9d47b021c46:camera:birdseye',
+              platform: 'frigate',
+            }),
+          ]),
+        }),
+      );
+
+      await camera.initialize();
+      expect(camera.getCapabilities()?.has('live')).toBeTruthy();
+      expect(camera.getCapabilities()?.has('clips')).toBeFalsy();
+      expect(camera.getCapabilities()?.has('recordings')).toBeFalsy();
+    });
+
     describe('should detect 2-way audio', () => {
       const initializeCamera = async (config: unknown): Promise<void> => {
         const camera = new FrigateCamera(

@@ -1,15 +1,21 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
+import {
+  createFrigateCameraDescription,
+  FakeFrigate,
+} from '../../../browser/fake-frigate';
 import { MountedCardFactory, type MountedCard } from '../../../browser/mounted-card';
 import {
   CAMERA_ENTITY,
   CARD_INITIALIZED_MESSAGE,
+  createCameraHASS,
   createGenericCameraHASS,
   createInitializedAutomation,
   createStillImageCameraConfig,
   createStillImageCardConfig,
   getBlockNotificationText,
+  getStatusBarItem,
   isLiveMediaShowing,
 } from '../../../browser/test-utils';
 
@@ -17,6 +23,11 @@ const FAILED_CAMERA_TITLE = 'Camera initialization failed';
 const CARD_FAILED_ISSUE_HEADING = 'Initialization failed';
 
 const MISSING_CAMERA_ENTITY = 'camera.missing';
+
+const CAMERA_ISSUE_TITLE = 'Cameras not fully initialized';
+
+// A fixed interval rather than the default backoff, which jitters delays.
+const RETRY_SECONDS = 10;
 
 const createUninitializableCameraConfig = (id: string): RawAdvancedCameraCardConfig => ({
   ...createStillImageCameraConfig(MISSING_CAMERA_ENTITY),
@@ -38,6 +49,10 @@ const mountCard = async (cameras: RawAdvancedCameraCardConfig[]): Promise<Mounte
   );
 
 describe('CameraInitializationIssue', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should not fail overall initialization when one camera cannot initialize', async () => {
     const card = await mountCard([
       createUninitializableCameraConfig('broken'),
@@ -72,5 +87,37 @@ describe('CameraInitializationIssue', () => {
       expect(getBlockNotificationText(card.card)).toContain(FAILED_CAMERA_TITLE),
     );
     expect(getBlockNotificationText(card.card)).not.toContain(CARD_FAILED_ISSUE_HEADING);
+  });
+
+  it('should recover a partially initialized camera once its entity has a state', async () => {
+    vi.useFakeTimers();
+
+    // Simulate the Frigate integration reloading: the camera entity exists but
+    // has no state yet.
+    const camera = createFrigateCameraDescription();
+    const hass = createCameraHASS([camera]);
+    hass.removeState(CAMERA_ENTITY);
+    new FakeFrigate(hass);
+
+    const card = await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        status_bar: { style: 'outside' },
+        view: { issues: { retry_seconds: RETRY_SECONDS } },
+      }),
+      hass,
+    );
+
+    await card.waitForRender(
+      () => getStatusBarItem(card.card, CAMERA_ISSUE_TITLE),
+      `the ${CAMERA_ISSUE_TITLE} issue being reported`,
+    );
+
+    card.setEntityState(CAMERA_ENTITY, camera.entity);
+    await card.advanceSeconds(RETRY_SECONDS);
+
+    await card.waitForRender(
+      () => !getStatusBarItem(card.card, CAMERA_ISSUE_TITLE) || null,
+      `the ${CAMERA_ISSUE_TITLE} issue being cleared`,
+    );
   });
 });
