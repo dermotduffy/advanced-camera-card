@@ -44,8 +44,8 @@
           "remote-control-entity": "Entitet daljinskog upravljanja",
           "reviews": "Pregledi",
           "seek": "Premotavanje",
-          "snapshots": "Snimci ekrana",
-          "substream": "Pomoćni tok (substream)",
+          "snapshots": "Snimci kamere",
+          "substream": "Pomoćni strim",
           "trigger": "Okidač"
         },
         "disable": "Onemogući",
@@ -59,7 +59,7 @@
           "editor_label": "Kontrolna tabla",
           "view_path": "Putanja prikaza"
         },
-        "editor_label": "Emitovanje (Cast)",
+        "editor_label": "Emitovanje",
         "method": "Način emitovanja",
         "methods": {
           "dashboard": "Kontrolna tabla",
@@ -109,10 +109,10 @@
           "270": "270° u smeru kazaljke na satu"
         }
       },
-      "engine": "Sistem kamere (engine)",
+      "engine": "Sistem kamere",
       "engines": {
         "auto": "Automatski",
-        "editor_label": "Sistem (Engine)",
+        "editor_label": "Sistem",
         "frigate": "Frigate",
         "generic": "Generički",
         "motioneye": "MotionEye",
@@ -137,10 +137,10 @@
           "mse": "Media Source Extensions (MSE)",
           "webrtc": "Web Real-Time Communication (WebRTC)"
         },
-        "stream": "Naziv toka (stream)",
+        "stream": "Naziv strima",
         "url": "URL"
       },
-      "icon": "Ikonica (automatski prepoznata)",
+      "icon": "Ikona (automatski prepoznata)",
       "id": "Jedinstveni ID za ovu kameru na ovoj kartici",
       "image": {
         "editor_label": "Slika",
@@ -155,7 +155,7 @@
         "auto": "Automatski",
         "go2rtc": "go2rtc",
         "go2rtc-experimental": "go2rtc (eksperimentalna implementacija)",
-        "ha": "Home Assistant video tok (npr. HLS, LL-HLS, WebRTC preko HA)",
+        "ha": "Home Assistant video strim (npr. HLS, LL-HLS, WebRTC preko HA)",
         "image": "Slika",
         "jsmpeg": "JSMpeg",
         "webrtc-card": "WebRTC kartica (tj. AlexxIT-ova WebRTC kartica)"
@@ -215,7 +215,7 @@
           "clips": "Događaji sa novim klipovima",
           "editor_label": "Okidač medijskih događaja",
           "events": "Svi događaji",
-          "snapshots": "Događaji sa novim snimcima ekrana"
+          "snapshots": "Događaji sa novim snimcima kamere"
         },
         "motion": "Okidač automatskim prepoznavanjem senzora pokreta",
         "occupancy": "Okidač automatskim prepoznavanjem senzora prisustva",
@@ -233,7 +233,7 @@
     "common": {
       "auto_hide_conditions": {
         "call": "Tokom dvosmernog audio poziva",
-        "casting": "Tokom emitovanja (cast)"
+        "casting": "Tokom emitovanja"
       },
       "controls": {
         "builtin": "Ugrađene video kontrole",
@@ -252,16 +252,16 @@
           "size": "Veličina u pikselima",
           "style": "Stil",
           "styles": {
-            "chevrons": "Strelice (ševroni)",
-            "icons": "Ikonice",
+            "chevrons": "Strelice",
+            "icons": "Ikone",
             "none": "Nema",
-            "thumbnails": "Sličice (thumbnails)"
+            "thumbnails": "Sličice"
           }
         },
         "ptz": {
           "editor_label": "PTZ",
           "hide_home": "Sakrij početni položaj i predefinisane pozicije",
-          "hide_pan_tilt": "Sakrij pomeranje i nagib (pan & tilt)",
+          "hide_pan_tilt": "Sakrij pomeranje i nagib",
           "hide_type": "Sakrij prekidač tipa",
           "hide_zoom": "Sakrij zumiranje",
           "mode": "Režim",
@@ -285,11 +285,11 @@
           "type": "Podrazumevani tip",
           "types": {
             "buttons": "Dugmad",
-            "gestures": "Pokreti (gestovi)"
+            "gestures": "Pokreti"
           }
         },
         "thumbnails": {
-          "editor_label": "Sličice (Thumbnails)",
+          "editor_label": "Sličice",
           "mode": "Režim",
           "modes": {
             "above": "Iznad",
@@ -327,7 +327,7 @@
           },
           "pan_mode": "Podrazumevani režim pomeranja",
           "pan_modes": {
-            "pan": "Pomeranje (pan)",
+            "pan": "Pomeranje",
             "seek": "Pomeranje pretražuje sve medije",
             "seek-in-camera": "Pomeranje pretražuje samo unutar izabrane kamere",
             "seek-in-media": "Pomeranje pretražuje samo unutar izabrane medijske stavke"
@@ -351,7 +351,7 @@
       "events_media_types": {
         "all": "Svi",
         "clips": "Klipovi",
-        "snapshots": "Snimci ekrana"
+        "snapshots": "Snimci kamere"
       },
       "image": {
         "entity": "Entitet za korišćenje u režimu entiteta",
@@ -449,7 +449,7 @@
         "path_info": "Dodatne funkcije za podudaranje putanja dostupne su u uređivaču teksta",
         "url": "URL fascikle medija"
       },
-      "icon": "Ikonica",
+      "icon": "Ikona",
       "id": "Jedinstveni ID",
       "navigation": "Navigacija",
       "navigations": {
@@ -503,7 +503,7 @@
         "editor_label": "Kontrole prikaza uživo"
       },
       "draggable": "Mogućnost prevlačenja",
-      "lazy_load": "Kamere uživo se učitavaju po potrebi (lazy load)",
+      "lazy_load": "Kamere uživo se učitavaju po potrebi",
       "lazy_unload": "Kamere uživo se uklanjaju iz memorije kada nisu u upotrebi",
       "microphone": {
         "always_connected": "Uvek drži mikrofon povezanim",
@@ -571,7 +571,7 @@
         "folders": "Fascikle",
         "fullscreen": "Ceo ekran",
         "gallery": "Galerija",
-        "icon": "Ikonica",
+        "icon": "Ikona",
         "image": "Slika",
         "inert": "Neinteraktivno",
         "info": "Informacije",
@@ -591,14 +591,14 @@
         "reviews": "Pregledi",
         "screenshot": "Snimak ekrana",
         "set_review": "Postavi status pregleda",
-        "snapshots": "Snimci ekrana",
+        "snapshots": "Snimci kamere",
         "state_color": "Boja prema stanju entiteta",
         "style": "CSS stil",
-        "substreams": "Pomoćni tok(ovi)",
+        "substreams": "Pomoćni strim(ovi)",
         "timeline": "Vremenska linija",
         "type": "Tip dugmeta",
         "types": {
-          "momentary": "Trenutno",
+          "momentary": "Dok je pritisnuto",
           "toggle": "Prekidač"
         }
       },
@@ -628,7 +628,7 @@
         "card_loading_effects": "Efekti učitavanja",
         "card_loading_indicator": "Indikator učitavanja",
         "editor_label": "Opcije funkcija",
-        "max_simultaneous_engine_requests": "Paralelni zahtevi sistema (engine)",
+        "max_simultaneous_engine_requests": "Paralelni zahtevi sistema",
         "media_chunk_size": "Veličina bloka medija"
       },
       "style": {
@@ -640,7 +640,7 @@
       "warning": "Aktivan je profil niskih performansi: podrazumevane vrednosti su optimizovane radi smanjenja opterećenja"
     },
     "profiles": {
-      "casting": "Emitovanje (Cast)",
+      "casting": "Emitovanje",
       "doorbell": "Zvono na vratima",
       "editor_label": "Profili konfiguracije",
       "low-performance": "Niske performanse",
@@ -648,7 +648,7 @@
     },
     "remote_control": {
       "entities": {
-        "camera": "Entitet za izbor (Input Select) za upravljanje kamerom",
+        "camera": "Entitet za izbor za upravljanje kamerom",
         "camera_priorities": {
           "card": "Kartica",
           "entity": "Entitet"
@@ -662,7 +662,7 @@
       "height": "Visina u pikselima",
       "items": {
         "enabled": "Omogućeno",
-        "engine": "Sistem kamere (engine)",
+        "engine": "Sistem kamere",
         "issues": "Problemi",
         "permanent": "Zadržava traku prikazanom",
         "priority": "Prioritet",
@@ -769,7 +769,7 @@
         "review": "Najnoviji medij za pregled",
         "reviews": "Galerija pregleda",
         "snapshot": "Najnoviji snimak ekrana",
-        "snapshots": "Galerija snimaka ekrana",
+        "snapshots": "Galerija snimaka kamere",
         "timeline": "Prikaz vremenske linije"
       }
     }
@@ -836,7 +836,8 @@
     "awaiting_live": "Čekanje da se učita prenos uživo",
     "awaiting_media": "Čekanje da se učitaju mediji",
     "call_camera_unreachable": "Kamera nije dostupna za dvosmerni zvuk.",
-    "call_invalid_target": "Tražena kamera ili tok (stream) nisu dostupni za poziv.",
+    "call_connection_lost": "Veza sa Home Assistant-om je prekinuta.",
+    "call_invalid_target": "Tražena kamera ili strimovi nisu dostupni za poziv.",
     "call_microphone_failed": "Vaš mikrofon nije mogao biti povezan.",
     "call_microphone_forbidden": "Pristup mikrofonu je odbijen za ovu stranicu. Ažurirajte dozvole pregledača i pokušajte ponovo.",
     "call_microphone_unsupported": "Pristup mikrofonu nije dostupan u ovom pregledaču (npr. zahteva HTTPS).",
@@ -870,12 +871,13 @@
     "live_camera_no_endpoint": "Nije moguće dobiti krajnju tačku kamere za ovog dobavljača prikaza uživo (nepotpuna konfiguracija?)",
     "live_camera_not_found": "Konfigurisani camera_entity nije pronađen",
     "microphone_not_supported": "Mikrofon nije podržan u ovom pregledaču",
-    "no_camera_engine": "Nije moguće odrediti odgovarajući sistem (engine) za kameru",
+    "no_camera_engine": "Nije moguće odrediti odgovarajući sistem za kameru",
     "no_camera_entity": "Nije moguće pronaći entitet kamere",
     "no_camera_for_image": "Nijedna kamera nije konfigurisana za režim slike kamere",
     "no_camera_id": "Nije moguće odrediti ID kamere za sledeću kameru, možda će biti potrebno ručno podesiti parametar 'id'",
     "no_camera_or_media_for_timeline": "Nema dostupne kamere ili medija za vremensku liniju",
     "no_live_camera": "Parametar camera_entity mora biti podešen i važeći za ovog dobavljača prikaza uživo",
+    "timeout_response": "Isteklo je vreme čekanja na odgovor od Home Assistant-a za zahtev",
     "too_many_automations": "Previše ugnježdenih poziva automatizacija, proverite konfiguraciju zbog petlji",
     "troubleshooting": "Proverite rešavanje problema",
     "upgrade_available": "Dostupna je automatska nadogradnja konfiguracije kartice, posetite vizuelni uređivač kartice",
@@ -888,7 +890,7 @@
     },
     "config_upgrade": {
       "heading": "Dostupna je nadogradnja konfiguracije",
-      "text": "Dostupna je nadogradnja konfiguracije. Da biste nadogradili, uredite ovu karticu (ikonica olovke na kontrolnoj tabli → meni sa tri tačke → Uredi) i kliknite na dugme 'Automatska nadogradnja' u uređivaču kartice"
+      "text": "Dostupna je nadogradnja konfiguracije. Da biste nadogradili, uredite ovu karticu (ikona olovke na kontrolnoj tabli → meni sa tri tačke → Uredi) i kliknite na dugme 'Automatska nadogradnja' u uređivaču kartice"
     },
     "config_upgrade_failure": {
       "heading": "Konfiguracija nije mogla biti u potpunosti nadograđena",
@@ -914,7 +916,7 @@
     "legacy_resource": {
       "heading": "Otkriven je zastareli resurs kontrolne table",
       "remove": "Ukloni zastareli resurs",
-      "text_both": "Zastareli resurs 'frigate-hass-card.js' je još uvek registrovan, molimo vas da ga ručno uklonite ili kliknete na ikonicu za brisanje da biste ga automatski uklonili. Biće uklonjen u budućem izdanju",
+      "text_both": "Zastareli resurs 'frigate-hass-card.js' je još uvek registrovan, molimo vas da ga ručno uklonite ili kliknete na ikonu za brisanje da biste ga automatski uklonili. Biće uklonjen u budućem izdanju",
       "text_only_legacy": "Zastareli resurs 'frigate-hass-card.js' mora biti zamenjen sa 'advanced-camera-card.js'. Biće uklonjen u budućem izdanju"
     },
     "media_query": {
@@ -927,10 +929,10 @@
         "not_loading": "Mediji se ne učitavaju",
         "playback_error": "Greška pri reprodukciji",
         "server_error": "Greška servera medija",
-        "stalled": "Tok (stream) je zastao",
-        "unsupported": "Tok (stream) nije podržan"
+        "stalled": "Strim je zastao",
+        "unsupported": "Strim nije podržan"
       },
-      "text": "Mediji trenutno nisu dostupni. To se može dogoditi iz više razloga, na primer ako kamera postane nedostupna, tok (stream) zastane ili zakaže, ili mediji još nisu završili učitavanje. Kartica nastavlja automatski da pokušava ponovo. Za prikaze uživo može biti prikazana statična slika dok se tok učitava (ako je konfigurisano i podrazumevano)"
+      "text": "Mediji trenutno nisu dostupni. To se može dogoditi iz više razloga, na primer ako kamera postane nedostupna, strim zastane ili zakaže, ili mediji još nisu završili učitavanje. Kartica nastavlja automatski da pokušava ponovo. Za prikaze uživo može biti prikazana statična slika dok se strim učitava (ako je konfigurisano i podrazumevano)"
     },
     "troubleshooting_guide": "Vodič za rešavanje problema",
     "view_incompatible": {
@@ -956,7 +958,7 @@
       "clips": "Klipovi",
       "recordings": "Snimci",
       "reviews": "Pregledi",
-      "snapshots": "Snimci ekrana"
+      "snapshots": "Snimci kamere"
     },
     "not_favorite": "Nije omiljeno",
     "not_reviewed": "Nije pregledano",
