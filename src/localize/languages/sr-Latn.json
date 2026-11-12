@@ -289,14 +289,6 @@
           }
         },
         "thumbnails": {
-          "style": "Stil",
-          "styles": {
-            "auto": "Automatski",
-            "hover": "Sličica sa detaljima pri prelasku mišem",
-            "plain": "Sličica bez detalja",
-            "overlay": "Sličica sa detaljima preko slike",
-            "panel": "Sličica sa panelom detalja"
-          },
           "editor_label": "Sličice (Thumbnails)",
           "mode": "Režim",
           "modes": {
@@ -311,7 +303,15 @@
           "show_info_control": "Prikaži kontrolu za informacije",
           "show_review_control": "Prikaži kontrolu za pregled",
           "show_timeline_control": "Prikaži kontrolu vremenske linije",
-          "size": "Veličina u pikselima"
+          "size": "Veličina u pikselima",
+          "style": "Stil",
+          "styles": {
+            "auto": "Automatski",
+            "hover": "Sličica sa detaljima pri prelasku mišem",
+            "overlay": "Sličica sa detaljima preko slike",
+            "panel": "Sličica sa panelom detalja",
+            "plain": "Sličica bez detalja"
+          }
         },
         "timeline": {
           "editor_label": "Mini vremenska linija",
@@ -780,9 +780,8 @@
   },
   "editor": {
     "add_new_camera": "Dodaj kameru",
-    "back": "Nazad",
-    "edit": "Uredi",
     "add_new_folder": "Dodaj fasciklu",
+    "back": "Nazad",
     "camera": "Kamera",
     "cameras": "Kamere",
     "cameras_secondary": "Koje kamere će se prikazivati na ovoj kartici",
@@ -790,6 +789,7 @@
     "dimensions": "Dimenzije",
     "dimensions_secondary": "Opcije dimenzija i oblika kartice",
     "docs": "Dokumentacija",
+    "edit": "Uredi",
     "folders": "Fascikle",
     "folders_secondary": "Koje fascikle će se prikazivati na ovoj kartici",
     "image": "Slika",
