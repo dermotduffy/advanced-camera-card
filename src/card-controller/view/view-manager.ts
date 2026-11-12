@@ -418,8 +418,8 @@ export class ViewManager implements ViewManagerInterface {
 
   /**
    * A camera gained media capabilities. If the current view's query was
-   * default-derived and the re-derived query now covers more cameras, rebuild
-   * it atomically (query first, then one _setView) to avoid blanking the UI.
+   * default-derived, or the view has no query yet, re-derive it and rebuild the
+   * view atomically (query first, then one _setView) to avoid blanking the UI.
    * If no view exists, re-attempt the default view.
    */
   public async handleCameraLifecycleChange(): Promise<void> {
@@ -428,8 +428,10 @@ export class ViewManager implements ViewManagerInterface {
       return;
     }
 
+    // The card only replaces a query it derived itself, or the absence of one;
+    // a query the user chose is kept.
     const view = this._view;
-    if (!view?.query || view.query.getOrigin() !== 'default') {
+    if (!view || (view.query && view.query.getOrigin() !== 'default')) {
       return;
     }
 
@@ -453,6 +455,11 @@ export class ViewManager implements ViewManagerInterface {
 
     const newView = this._view.clone();
     applyViewModifiers(newView, viewModifiers);
+
+    // No camera can serve a query for this view yet.
+    if (!view.query && !newView.query) {
+      return;
+    }
 
     // Re-select the item the user was looking at before the rebuild.
     if (previouslySelectedID && newView.queryResults) {

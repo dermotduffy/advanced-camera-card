@@ -1190,6 +1190,50 @@ describe('handleCameraLifecycleChange', () => {
     expect(viewQueryExecutor.getNewQueryModifiers).not.toHaveBeenCalled();
   });
 
+  it('should add a query to a view that had none', async () => {
+    const api = createInitializedCardAPI();
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView());
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+    const query = new UnifiedQuery({ origin: 'default' });
+    const queryResults = new QueryResults({
+      results: [new TestViewMedia({ cameraID: 'c1' })],
+    });
+    viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([
+      new SetQueryViewModifier({ query, queryResults }),
+    ]);
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+    manager.setViewDefault();
+
+    await manager.handleCameraLifecycleChange();
+
+    expect(manager.getView()?.query).toBe(query);
+    expect(manager.getView()?.queryResults).toBe(queryResults);
+  });
+
+  it('should keep a view without a query when none can be derived', async () => {
+    const api = createInitializedCardAPI();
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView());
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+    viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
+
+    const manager = new ViewManager(api, {
+      viewFactory: factory,
+      viewQueryExecutor,
+    });
+    manager.setViewDefault();
+
+    const viewBefore = manager.getView();
+    await manager.handleCameraLifecycleChange();
+
+    expect(manager.getView()).toBe(viewBefore);
+  });
+
   it('should preserve the selected item by ID across a rebuild', async () => {
     const api = createInitializedCardAPI();
     const selectedMedia = new TestViewMedia({ cameraID: 'c1', id: 'item-42' });
