@@ -16,6 +16,7 @@ import {
   formatDateAndTime,
   generateFloatApproximatelyEqualsCustomizer,
   getChildrenFromElement,
+  getDistance,
   getDurationString,
   getErrorDescription,
   getUnanimousValue,
@@ -178,6 +179,12 @@ describe('errorToConsole', () => {
     spy.mockClear();
     errorToConsole(null);
     expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+describe('getDistance', () => {
+  it('should measure the straight-line distance between two points', () => {
+    expect(getDistance({ x: 1, y: 2 }, { x: 4, y: 6 })).toBe(5);
   });
 });
 

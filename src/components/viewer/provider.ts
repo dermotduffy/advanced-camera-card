@@ -23,7 +23,10 @@ import {
   SignedURLController,
 } from '../../components-lib/signed-url-controller.js';
 import type { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
-import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
+import {
+  handleDigitalZoomHomeEvent,
+  handleZoomSettingsObservedEvent,
+} from '../../components-lib/zoom/zoom-view-context.js';
 import type { CameraConfig } from '../../config/schema/cameras.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { ViewerConfig } from '../../config/schema/viewer.js';
@@ -243,6 +246,8 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
                 this.viewManagerEpoch?.manager,
                 mediaID,
               )}
+            @advanced-camera-card:zoom:home=${() =>
+              handleDigitalZoomHomeEvent(this, mediaID)}
           >
             ${intermediateTemplate}
           </advanced-camera-card-zoomer>`

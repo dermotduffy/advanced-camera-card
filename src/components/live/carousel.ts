@@ -22,7 +22,10 @@ import { MediaHeightController } from '../../components-lib/media-height-control
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import { PTZDragController } from '../../components-lib/ptz/drag-controller.js';
 import type { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
-import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
+import {
+  handleDigitalZoomHomeEvent,
+  handleZoomSettingsObservedEvent,
+} from '../../components-lib/zoom/zoom-view-context.js';
 import {
   ptzControlsDefaults,
   type PTZControlType,
@@ -298,6 +301,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
                 this.viewManagerEpoch?.manager,
                 cameraID,
               )}
+            @advanced-camera-card:zoom:home=${() =>
+              handleDigitalZoomHomeEvent(this, cameraID)}
           >
           </advanced-camera-card-live-provider>`,
         )}
