@@ -15,6 +15,7 @@ import {
 } from 'vitest';
 import { mock, mockClear } from 'vitest-mock-extended';
 
+import type { PartialZoomSettings } from '../../../src/components-lib/zoom/types';
 import { ZoomController } from '../../../src/components-lib/zoom/zoom-controller';
 import {
   DOUBLE_TAP_PIXELS,
@@ -429,6 +430,106 @@ describe('ZoomController', () => {
             detail: expect.objectContaining({ isDefault: true }),
           }),
         );
+      });
+
+      it.each([
+        ['an empty default', {}],
+        ['a default with only a pan', { pan: { x: 20, y: 70 } }],
+      ])(
+        'should not treat a zoom as default with %s',
+        (_name: string, defaultSettings: PartialZoomSettings) => {
+          const element = createAttachedElement();
+          setElementToDefaultCardSize(element);
+
+          const changeFunc = vi.fn();
+          element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
+
+          vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+          const controller = createAndRegisterZoom(element);
+          controller.setDefaultSettings(defaultSettings);
+
+          element.dispatchEvent(
+            new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+              detail: {
+                x: 51,
+                y: 51,
+                scale: 2,
+                isSVG: false,
+                originalEvent: new PointerEvent('pointermove'),
+              },
+            }),
+          );
+
+          expect(changeFunc).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              detail: expect.objectContaining({ isDefault: false }),
+            }),
+          );
+        },
+      );
+
+      it('should treat a zoomed default without a pan as centred', () => {
+        const element = createAttachedElement();
+        setElementToDefaultCardSize(element);
+
+        const changeFunc = vi.fn();
+        element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
+
+        vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+        const controller = createAndRegisterZoom(element);
+        controller.setDefaultSettings({ zoom: 2 });
+
+        // Panzoom's pan for the centre is 0/0 at any scale.
+        element.dispatchEvent(
+          new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+            detail: {
+              x: 0,
+              y: 0,
+              scale: 2,
+              isSVG: false,
+              originalEvent: new PointerEvent('pointermove'),
+            },
+          }),
+        );
+
+        expect(changeFunc).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            detail: expect.objectContaining({ isDefault: true }),
+          }),
+        );
+      });
+
+      it('should compare only the scale with a zoomed default before there is a size', () => {
+        const element = createAttachedElement();
+
+        const changeFunc = vi.fn();
+        element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
+
+        vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+        const controller = createAndRegisterZoom(element);
+        controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+
+        for (const [scale, isDefault] of [
+          [2, true],
+          [3, false],
+        ] as const) {
+          element.dispatchEvent(
+            new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+              detail: {
+                x: 0,
+                y: 0,
+                scale,
+                isSVG: false,
+                originalEvent: new PointerEvent('pointermove'),
+              },
+            }),
+          );
+          expect(changeFunc).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              detail: expect.objectContaining({ isDefault }),
+            }),
+          );
+        }
       });
 
       it('should treat being unzoomed as default when the configured default is empty', () => {
