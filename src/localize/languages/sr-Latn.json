@@ -1,0 +1,1007 @@
+{
+  "actions": {
+    "abort": "Radnja prekinuta",
+    "confirmation": "Da li ste sigurni da želite da izvršite ovu radnju"
+  },
+  "common": {
+    "advanced_camera_card": "Napredna kartica za kameru",
+    "advanced_camera_card_description": "Napredna kartica za kameru",
+    "close": "Zatvori",
+    "event": "Događaj",
+    "folder": "Fascikla",
+    "in_progress": "U toku",
+    "no_media": "Nema medija za prikaz",
+    "notification": "Obaveštenje",
+    "retry": "Pokušaj ponovo",
+    "set_reviews": {
+      "reviewed": "Označi kao pregledano",
+      "unreviewed": "Označi kao nepregledano"
+    },
+    "severities": {
+      "high": "Visoka",
+      "low": "Niska",
+      "medium": "Srednja"
+    },
+    "severity": "Ozbiljnost",
+    "today": "Danas",
+    "up": "Gore",
+    "yesterday": "Juče"
+  },
+  "config": {
+    "cameras": {
+      "always_error_if_entity_unavailable": "Uvek tretiraj nedostupnost entiteta kao grešku",
+      "camera_entity": "Entitet kamere",
+      "capabilities": {
+        "capabilities": {
+          "2-way-audio": "Dvosmerni zvuk",
+          "clips": "Klipovi",
+          "favorite-events": "Omiljeni događaji",
+          "favorite-recordings": "Omiljeni snimci",
+          "live": "Uživo",
+          "menu": "Meni",
+          "ptz": "PTZ",
+          "recordings": "Snimci",
+          "remote-control-entity": "Entitet daljinskog upravljanja",
+          "reviews": "Pregledi",
+          "seek": "Premotavanje",
+          "snapshots": "Snimci kamere",
+          "substream": "Pomoćni strim",
+          "trigger": "Okidač"
+        },
+        "disable": "Onemogući",
+        "disable_except": "Onemogući osim",
+        "editor_label": "Mogućnosti",
+        "force": "Prisili"
+      },
+      "cast": {
+        "dashboard": {
+          "dashboard_path": "Putanja kontrolne table",
+          "editor_label": "Kontrolna tabla",
+          "view_path": "Putanja prikaza"
+        },
+        "editor_label": "Emitovanje",
+        "method": "Način emitovanja",
+        "methods": {
+          "dashboard": "Kontrolna tabla",
+          "standard": "Standardni"
+        }
+      },
+      "dependencies": {
+        "all_cameras": "Prikaži događaje za sve kamere uz ovu kameru",
+        "cameras": "Prikaži događaje za određene kamere uz ovu kameru",
+        "editor_label": "Zavisnosti"
+      },
+      "dimensions": {
+        "aspect_ratio": "Statična razmera slike",
+        "editor_label": "Dimenzije",
+        "layout": {
+          "editor_label": "Raspored kamere",
+          "fit": "Uklapanje rasporeda",
+          "fits": {
+            "contain": "Medij je uklopljen unutar okvira",
+            "cover": "Medij se proporcionalno širi da pokrije karticu",
+            "fill": "Medij je razvučen da popuni karticu"
+          },
+          "pan": {
+            "editor_label": "Pomeranje rasporeda",
+            "x": "Horizontalno %",
+            "y": "Vertikalno %"
+          },
+          "position": {
+            "editor_label": "Položaj pokrivanja rasporeda",
+            "x": "Horizontalno %",
+            "y": "Vertikalno %"
+          },
+          "view_box": {
+            "bottom": "Donji uvučeni deo %",
+            "editor_label": "Okvir prikaza rasporeda",
+            "left": "Levi uvučeni deo %",
+            "right": "Desni uvučeni deo %",
+            "top": "Gornji uvučeni deo %"
+          },
+          "zoom": "Faktor zumiranja"
+        },
+        "rotation": "Rotacija",
+        "rotations": {
+          "0": "Nema",
+          "90": "90° u smeru kazaljke na satu",
+          "180": "180° u smeru kazaljke na satu",
+          "270": "270° u smeru kazaljke na satu"
+        }
+      },
+      "engine": "Sistem kamere",
+      "engines": {
+        "auto": "Automatski",
+        "editor_label": "Sistem",
+        "frigate": "Frigate",
+        "generic": "Generički",
+        "motioneye": "MotionEye",
+        "reolink": "Reolink",
+        "tplink": "TP-Link"
+      },
+      "frigate": {
+        "camera_name": "Naziv Frigate kamere (automatski prepoznat iz entiteta)",
+        "client_id": "ID Frigate klijenta (za >1 Frigate server)",
+        "editor_label": "Frigate",
+        "labels": "Frigate oznake/filteri objekata",
+        "url": "URL Frigate servera",
+        "zones": "Frigate zone"
+      },
+      "go2rtc": {
+        "editor_label": "go2rtc",
+        "metadata_fetch_timeout_seconds": "Istek vremena za preuzimanje metapodataka u sekundama",
+        "modes": {
+          "editor_label": "go2rtc režimi",
+          "mjpeg": "Motion JPEG (MJPEG)",
+          "mp4": "MPEG-4 (MP4)",
+          "mse": "Media Source Extensions (MSE)",
+          "webrtc": "Web Real-Time Communication (WebRTC)"
+        },
+        "stream": "Naziv strima",
+        "url": "URL"
+      },
+      "icon": "Ikona (automatski prepoznata)",
+      "id": "Jedinstveni ID za ovu kameru na ovoj kartici",
+      "image": {
+        "editor_label": "Slika",
+        "refresh_seconds": "Sekunde između osvežavanja slike uživo (0=nikada)",
+        "url": "URL slike koji se koristi umesto snimka entiteta kamere"
+      },
+      "live_provider": "Dobavljač prikaza uživo za ovu kameru",
+      "live_provider_options": {
+        "editor_label": "Dobavljač prikaza uživo"
+      },
+      "live_providers": {
+        "auto": "Automatski",
+        "go2rtc": "go2rtc",
+        "go2rtc-experimental": "go2rtc (eksperimentalna implementacija)",
+        "ha": "Home Assistant video strim (npr. HLS, LL-HLS, WebRTC preko HA)",
+        "image": "Slika",
+        "jsmpeg": "JSMpeg",
+        "webrtc-card": "WebRTC kartica (tj. AlexxIT-ova WebRTC kartica)"
+      },
+      "media": {
+        "editor_label": "Mediji",
+        "events_type": "Podtip događaja",
+        "folders": "ID-jevi fascikli",
+        "reviewed": "Filter statusa pregleda",
+        "revieweds": {
+          "all": "Svi (i pregledani i nepregledani)",
+          "reviewed": "Samo pregledani",
+          "unreviewed": "Samo nepregledani"
+        },
+        "type": "Podrazumevani tip"
+      },
+      "motioneye": {
+        "editor_label": "MotionEye",
+        "images": {
+          "directory_pattern": "Obrazac direktorijuma",
+          "editor_label": "Slike",
+          "file_pattern": "Obrazac datoteke"
+        },
+        "movies": {
+          "directory_pattern": "Obrazac direktorijuma",
+          "editor_label": "Video snimci",
+          "file_pattern": "Obrazac datoteke"
+        },
+        "url": "URL MotionEye korisničkog interfejsa"
+      },
+      "proxy": {
+        "editor_label": "Proksiranje",
+        "live": "Uživo",
+        "media": "Mediji"
+      },
+      "reolink": {
+        "editor_label": "Reolink",
+        "media_resolution": {
+          "editor_label": "Rezolucija medija",
+          "high": "Visoka rezolucija",
+          "low": "Niska rezolucija"
+        },
+        "url": "URL Reolink korisničkog interfejsa"
+      },
+      "title": "Naslov (automatski prepoznat)",
+      "triggers": {
+        "doorbell": "Okidač automatskim prepoznavanjem entiteta događaja zvona",
+        "editor_label": "Okidači",
+        "entities": "Okidač iz drugih entiteta",
+        "events": {
+          "add_new_event": "Dodaj okidač događaja",
+          "editor_label": "Home Assistant događaji",
+          "event_data": "Filter podataka događaja",
+          "event_type": "Tip događaja"
+        },
+        "media_events": {
+          "clips": "Događaji sa novim klipovima",
+          "editor_label": "Okidač medijskih događaja",
+          "events": "Svi događaji",
+          "snapshots": "Događaji sa novim snimcima kamere"
+        },
+        "motion": "Okidač automatskim prepoznavanjem senzora pokreta",
+        "occupancy": "Okidač automatskim prepoznavanjem senzora prisustva",
+        "reviews": {
+          "description": "Okidač pri ažuriranju opisa",
+          "editor_label": "Okidači pregleda"
+        }
+      },
+      "webrtc_card": {
+        "editor_label": "WebRTC kartica",
+        "entity": "Entitet kamere WebRTC kartice",
+        "url": "URL kamere WebRTC kartice"
+      }
+    },
+    "common": {
+      "auto_hide_conditions": {
+        "call": "Tokom dvosmernog audio poziva",
+        "casting": "Tokom emitovanja"
+      },
+      "controls": {
+        "builtin": "Ugrađene video kontrole",
+        "filter": {
+          "editor_label": "Filter medija",
+          "mode": "Režim filtera",
+          "modes": {
+            "left": "Filter medija u fioci sa leve strane",
+            "none": "Bez filtera medija",
+            "right": "Filter medija u fioci sa desne strane"
+          }
+        },
+        "next_previous": {
+          "auto_hide": "Automatski sakrij",
+          "editor_label": "Sledeće i prethodno",
+          "size": "Veličina u pikselima",
+          "style": "Stil",
+          "styles": {
+            "chevrons": "Strelice",
+            "icons": "Ikone",
+            "none": "Nema",
+            "thumbnails": "Sličice"
+          }
+        },
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Sakrij početni položaj i predefinisane pozicije",
+          "hide_pan_tilt": "Sakrij pomeranje i nagib",
+          "hide_type": "Sakrij prekidač tipa",
+          "hide_zoom": "Sakrij zumiranje",
+          "mode": "Režim",
+          "modes": {
+            "auto": "Automatski",
+            "off": "Isključeno",
+            "on": "Uključeno"
+          },
+          "orientation": "Orijentacija",
+          "orientations": {
+            "horizontal": "Horizontalno",
+            "vertical": "Vertikalno"
+          },
+          "position": "Položaj",
+          "positions": {
+            "bottom-left": "Dole levo",
+            "bottom-right": "Dole desno",
+            "top-left": "Gore levo",
+            "top-right": "Gore desno"
+          },
+          "type": "Podrazumevani tip",
+          "types": {
+            "buttons": "Dugmad",
+            "gestures": "Pokreti"
+          }
+        },
+        "thumbnails": {
+          "editor_label": "Sličice",
+          "mode": "Režim",
+          "modes": {
+            "above": "Iznad",
+            "below": "Ispod",
+            "left": "Leva fioka",
+            "none": "Nema",
+            "right": "Desna fioka"
+          },
+          "show_download_control": "Prikaži kontrolu za preuzimanje",
+          "show_favorite_control": "Prikaži kontrolu za omiljeno",
+          "show_info_control": "Prikaži kontrolu za informacije",
+          "show_review_control": "Prikaži kontrolu za pregled",
+          "show_timeline_control": "Prikaži kontrolu vremenske linije",
+          "size": "Veličina u pikselima",
+          "style": "Stil",
+          "styles": {
+            "auto": "Automatski",
+            "hover": "Sličica sa detaljima pri prelasku mišem",
+            "overlay": "Sličica sa detaljima preko slike",
+            "panel": "Sličica sa panelom detalja",
+            "plain": "Sličica bez detalja"
+          }
+        },
+        "timeline": {
+          "editor_label": "Mini vremenska linija",
+          "format": {
+            "24h": "Koristi 24-časovni format vremena",
+            "editor_label": "Format vremena i datuma"
+          },
+          "mode": "Režim",
+          "modes": {
+            "above": "Iznad",
+            "below": "Ispod",
+            "none": "Nema"
+          },
+          "pan_mode": "Podrazumevani režim pomeranja",
+          "pan_modes": {
+            "pan": "Pomeranje",
+            "seek": "Pomeranje pretražuje sve medije",
+            "seek-in-camera": "Pomeranje pretražuje samo unutar izabrane kamere",
+            "seek-in-media": "Pomeranje pretražuje samo unutar izabrane medijske stavke"
+          }
+        },
+        "wheel": "Točkić miša pomera vrtešku medija"
+      },
+      "display": {
+        "editor_label": "Prikaz",
+        "grid_columns": "Tačan broj kolona mreže",
+        "grid_max_columns": "Maksimalan broj kolona mreže",
+        "grid_selected_position": "Položaj izabranog medija u mreži",
+        "grid_selected_positions": {
+          "default": "Izabrana stavka na podrazumevanom položaju",
+          "first": "Izabrana stavka je prva u mreži",
+          "last": "Izabrana stavka je poslednja u mreži"
+        },
+        "grid_selected_width_factor": "Povećaj širinu izabranog medija za ovaj faktor",
+        "mode": "Režim"
+      },
+      "events_media_types": {
+        "all": "Svi",
+        "clips": "Klipovi",
+        "snapshots": "Snimci kamere"
+      },
+      "image": {
+        "entity": "Entitet za korišćenje u režimu entiteta",
+        "entity_parameters": "Parametri upita dodati URL-ovima slika zasnovanim na entitetu (npr. width=1920&height=1080)",
+        "mode": "Režim slike",
+        "modes": {
+          "auto": "Automatski izabrano na osnovu konfiguracije",
+          "camera": "Home Assistant snimak kamere entiteta kamere",
+          "default": "Podrazumevana ugrađena slika",
+          "entity": "Entitet sa atributom entity_picture",
+          "screensaver": "Nasumična slika",
+          "url": "Proizvoljna slika određena URL-om"
+        },
+        "proxy": {
+          "editor_label": "Proksiranje slike"
+        },
+        "refresh_seconds": "Sekunde između osvežavanja (0=nikada)",
+        "url": "URL statične slike"
+      },
+      "interaction_modes": {
+        "active": "Samo tokom aktivne interakcije",
+        "all": "Uvek bez obzira na interakciju",
+        "inactive": "Samo kada nema interakcije"
+      },
+      "media_action_conditions": {
+        "call_mute": "Po završetku poziva",
+        "call_unmute": "Po javljanju na poziv",
+        "hidden": "Pri skrivanju pregledača/kartice",
+        "microphone_mute": "Pri isključivanju mikrofona",
+        "microphone_unmute": "Pri uključivanju mikrofona",
+        "selected": "Pri izboru",
+        "unselected": "Pri poništavanju izbora",
+        "visible": "Pri vidljivosti pregledača/kartice"
+      },
+      "media_types": {
+        "auto": "Automatski",
+        "events": "Događaji",
+        "folder": "Fascikla",
+        "recordings": "Snimci",
+        "reviews": "Pregledi"
+      },
+      "proxy": {
+        "dynamic": "Dinamički",
+        "modes": {
+          "auto": "Automatski",
+          "false": "Onemogućeno",
+          "true": "Omogućeno"
+        },
+        "ssl_ciphers": {
+          "auto": "Automatski",
+          "default": "Podrazumevano",
+          "editor_label": "SSL šifre",
+          "insecure": "Nebezbedno",
+          "intermediate": "Srednje",
+          "modern": "Moderno"
+        },
+        "ssl_verification": {
+          "auto": "Automatski",
+          "editor_label": "SSL provera",
+          "false": "Onemogućeno",
+          "true": "Omogućeno"
+        }
+      },
+      "timeline": {
+        "clustering_threshold": "Broj događaja pre grupisanja (0=bez grupisanja)",
+        "show_recordings": "Prikaži snimke",
+        "style": "Stil vremenske linije",
+        "styles": {
+          "ribbon": "Događaji na jednoj traci",
+          "stack": "Naslagani i grupisani događaji"
+        },
+        "window_seconds": "Podrazumevana dužina prozora vremenske linije u sekundama"
+      },
+      "transition_effects": {
+        "none": "Bez prelaza",
+        "slide": "Klizni prelaz"
+      }
+    },
+    "dimensions": {
+      "aspect_ratio": "Razmera (npr. '16:9')",
+      "aspect_ratio_mode": "Režim razmere slike",
+      "aspect_ratio_modes": {
+        "dynamic": "Dinamički",
+        "static": "Statički",
+        "unconstrained": "Neograničeno"
+      },
+      "height": "Visina kartice u CSS jedinicama (npr. '500px')"
+    },
+    "editor": {
+      "mode": "Puni uređivač"
+    },
+    "folders": {
+      "ha": {
+        "editor_label": "Opcije Home Assistant fascikle medija",
+        "path_info": "Dodatne funkcije za podudaranje putanja dostupne su u uređivaču teksta",
+        "url": "URL fascikle medija"
+      },
+      "icon": "Ikona",
+      "id": "Jedinstveni ID",
+      "navigation": "Navigacija",
+      "navigations": {
+        "restricted": "Ograničeno na ovu fasciklu ili ispod nje",
+        "unrestricted": "Dozvoljeno iznad ove fascikle"
+      },
+      "title": "Naslov",
+      "type": "Tip",
+      "types": {
+        "ha": "Home Assistant fascikla medija"
+      }
+    },
+    "image": {
+      "zoomable": "Mogućnost zumiranja/pomeranja"
+    },
+    "live": {
+      "auto_mute": "Automatski isključi zvuk kamera uživo",
+      "auto_pause": "Automatski pauziraj kamere uživo",
+      "auto_play": "Automatski reprodukuj kamere uživo",
+      "auto_unmute": "Automatski uključi zvuk kamera uživo",
+      "controls": {
+        "call": {
+          "answer": "Odgovori na poziv",
+          "button_size": "Veličina dugmeta za kontrolu poziva",
+          "editor_label": "Dvosmerni audio poziv",
+          "enabled": "Prikaži kontrole poziva na ekranu",
+          "end": "Završi dvosmerni audio poziv",
+          "lock": "Zaključaj korisnički interfejs tokom aktivnog poziva",
+          "mute_audio": "Isključi zvuk",
+          "mute_microphone": "Isključi mikrofon",
+          "reject": "Odbij poziv",
+          "ringtone": {
+            "editor_label": "Melodija zvona",
+            "repeat": "Ponavljanja melodije zvona po dolaznom pozivu (0=neograničeno)",
+            "type": "Tip",
+            "types": {
+              "arpeggio": "Arpeđo",
+              "chime": "Zvončić",
+              "custom": "Prilagođeni audio URL",
+              "melody": "Melodija",
+              "none": "Nema",
+              "westminster": "Vestminster"
+            },
+            "url": "Prilagođeni URL"
+          },
+          "start": "Započni dvosmerni audio poziv",
+          "unanswered_timeout_seconds": "Sekunde pre prekida neodgovorenih dolaznih poziva (0=nikada)",
+          "unmute_audio": "Uključi zvuk",
+          "unmute_microphone": "Uključi mikrofon"
+        },
+        "editor_label": "Kontrole prikaza uživo"
+      },
+      "draggable": "Mogućnost prevlačenja",
+      "lazy_load": "Kamere uživo se učitavaju po potrebi",
+      "lazy_unload": "Kamere uživo se uklanjaju iz memorije kada nisu u upotrebi",
+      "microphone": {
+        "always_connected": "Uvek drži mikrofon povezanim",
+        "audio_processing": {
+          "auto_gain_control": "Automatska kontrola pojačanja",
+          "channel_count": "Broj kanala (1=mono)",
+          "echo_cancellation": "Poništavanje eha",
+          "editor_label": "Obrada zvuka",
+          "modes": {
+            "auto": "Automatski",
+            "false": "Onemogućeno",
+            "true": "Omogućeno"
+          },
+          "noise_suppression": "Smanjenje buke"
+        },
+        "auto_mute": "Automatski isključi mikrofon",
+        "auto_unmute": "Automatski uključi mikrofon",
+        "editor_label": "Mikrofon",
+        "mute_after_microphone_mute_seconds": "Sekunde nakon isključivanja mikrofona pre isključivanja dolaznog zvuka"
+      },
+      "preload": "Unapred učitaj prikaz uživo u pozadini",
+      "show_image_during_load": "Prikaži statičnu sliku dok se učitava prenos uživo",
+      "transition_effect": "Efekat prelaza kamere uživo",
+      "zoomable": "Mogućnost zumiranja/pomeranja"
+    },
+    "media_viewer": {
+      "auto_mute": "Automatski isključi zvuk medija",
+      "auto_pause": "Automatski pauziraj medije",
+      "auto_play": "Automatski reprodukuj medije",
+      "auto_unmute": "Automatski uključi zvuk medija",
+      "controls": {
+        "editor_label": "Kontrole pregledača medija"
+      },
+      "draggable": "Mogućnost prevlačenja",
+      "lazy_load": "Mediji u pregledaču medija se učitavaju po potrebi u vrtešci",
+      "snapshot_click_plays_clip": "Klik na snimak kamere reprodukuje povezani klip",
+      "transition_effect": "Efekat prelaza pregledača medija",
+      "zoomable": "Mogućnost zumiranja/pomeranja"
+    },
+    "menu": {
+      "alignment": "Poravnanje",
+      "alignments": {
+        "bottom": "Dole",
+        "left": "Levo",
+        "right": "Desno",
+        "top": "Gore"
+      },
+      "auto_hide": "Uslovi automatskog skrivanja",
+      "button_size": "Veličina dugmeta u pikselima",
+      "buttons": {
+        "alignment": "Poravnanje",
+        "alignments": {
+          "matching": "Podudarajuće",
+          "opposing": "Suprotno"
+        },
+        "call": "Poziv / Dvosmerni zvuk",
+        "camera_ui": "Korisnički interfejs kamere",
+        "cameras": "Kamere",
+        "clips": "Klipovi",
+        "display_mode": "Režim prikaza",
+        "download": "Preuzmi",
+        "editor_label": "Dugmad menija",
+        "enabled": "Omogućeno",
+        "expand": "Proširi",
+        "folders": "Fascikle",
+        "fullscreen": "Ceo ekran",
+        "gallery": "Galerija",
+        "icon": "Ikona",
+        "image": "Slika",
+        "inert": "Neinteraktivno",
+        "info": "Informacije",
+        "iris": "Iris / Podrazumevani prikaz / Prikaži meni",
+        "live": "Uživo",
+        "media": "Mediji",
+        "media_player": "Pošalji na plejer medija",
+        "microphone": "Mikrofon",
+        "mute": "Isključi / Uključi zvuk",
+        "permanent": "Prikaži kada je meni skriven",
+        "pip": "Slika u slici",
+        "play": "Reprodukuj / Pauziraj",
+        "priority": "Prioritet",
+        "ptz_controls": "Prikaži PTZ kontrole",
+        "ptz_home": "PTZ početni položaj",
+        "recordings": "Snimci",
+        "reviews": "Pregledi",
+        "screenshot": "Snimak ekrana",
+        "set_review": "Postavi status pregleda",
+        "snapshots": "Snimci kamere",
+        "state_color": "Boja prema stanju entiteta",
+        "style": "CSS stil",
+        "substreams": "Pomoćni strim(ovi)",
+        "timeline": "Vremenska linija",
+        "type": "Tip dugmeta",
+        "types": {
+          "momentary": "Dok je pritisnuto",
+          "toggle": "Prekidač"
+        }
+      },
+      "position": "Položaj",
+      "positions": {
+        "bottom": "Dole",
+        "left": "Levo",
+        "right": "Desno",
+        "top": "Gore"
+      },
+      "style": "Stil",
+      "styles": {
+        "hidden": "Skriveno",
+        "hover": "Pri prelasku mišem",
+        "hover-card": "Pri prelasku mišem (preko cele kartice)",
+        "none": "Nema",
+        "outside": "Spolja",
+        "overlay": "Preko slike"
+      }
+    },
+    "overrides": {
+      "info": "Uslovne zamene su aktivne i mogu poništiti vrednosti prikazane ovde. Uredite ih u uređivaču koda"
+    },
+    "performance": {
+      "features": {
+        "animated_progress_indicator": "Animirani napredak",
+        "card_loading_effects": "Efekti učitavanja",
+        "card_loading_indicator": "Indikator učitavanja",
+        "editor_label": "Opcije funkcija",
+        "max_simultaneous_engine_requests": "Paralelni zahtevi sistema",
+        "media_chunk_size": "Veličina bloka medija"
+      },
+      "style": {
+        "backdrop_filter": "Efekti zamućenja",
+        "border_radius": "Zaobljenje ivica",
+        "box_shadow": "Senke",
+        "editor_label": "Opcije stila"
+      },
+      "warning": "Aktivan je profil niskih performansi: podrazumevane vrednosti su optimizovane radi smanjenja opterećenja"
+    },
+    "profiles": {
+      "casting": "Emitovanje",
+      "doorbell": "Zvono na vratima",
+      "editor_label": "Profili konfiguracije",
+      "low-performance": "Niske performanse",
+      "scrubbing": "Brzo premotavanje videa"
+    },
+    "remote_control": {
+      "entities": {
+        "camera": "Entitet za izbor za upravljanje kamerom",
+        "camera_priorities": {
+          "card": "Kartica",
+          "entity": "Entitet"
+        },
+        "camera_priority": "Koji izbor kamere ima prioritet",
+        "editor_label": "Entiteti daljinskog upravljanja"
+      }
+    },
+    "status_bar": {
+      "auto_hide": "Uslovi automatskog skrivanja",
+      "height": "Visina u pikselima",
+      "items": {
+        "enabled": "Omogućeno",
+        "engine": "Sistem kamere",
+        "issues": "Problemi",
+        "permanent": "Zadržava traku prikazanom",
+        "priority": "Prioritet",
+        "resolution": "Rezolucija",
+        "severity": "Ozbiljnost",
+        "technology": "Tehnologija",
+        "title": "Naslov"
+      },
+      "popup_seconds": "Sekunde prikaza iskačuće trake",
+      "position": "Položaj",
+      "positions": {
+        "bottom": "Dole",
+        "top": "Gore"
+      },
+      "style": "Stil",
+      "styles": {
+        "hover": "Pri prelasku mišem",
+        "hover-card": "Pri prelasku mišem (preko cele kartice)",
+        "none": "Nema",
+        "outside": "Spolja",
+        "overlay": "Preko slike",
+        "popup": "Iskačući"
+      }
+    },
+    "view": {
+      "camera_select": "Prikaz pri izboru kamere",
+      "default": "Podrazumevani prikaz",
+      "default_cycle_camera": "Kruži kroz kamere kada se ažurira podrazumevani prikaz",
+      "default_reset": {
+        "after_interaction": "Vrati na podrazumevani prikaz nakon završetka interakcije korisnika",
+        "editor_label": "Ponašanje vraćanja na podrazumevani prikaz",
+        "entities": "Vrati na podrazumevani prikaz pri promeni stanja entiteta",
+        "every_seconds": "Vrati na podrazumevani prikaz svakih X sekundi (0=nikada)",
+        "interaction_mode": "Kako se ponaša vraćanje na podrazumevani prikaz tokom interakcije korisnika sa karticom"
+      },
+      "dim": "Zatamni kada nema interakcije",
+      "interaction_seconds": "Sekunde neaktivnosti pre završetka stanja interakcije (0=nikada)",
+      "issues": {
+        "editor_label": "Problemi/Greške",
+        "interaction_mode": "Kako se ponašaju automatski ponovni pokušaji tokom interakcije korisnika sa karticom",
+        "retry_seconds": "Sekunde između automatskih ponovnih pokušaja [podrazumevano=prilagodljivo, 0=onemogućeno]"
+      },
+      "keyboard_shortcuts": {
+        "editor_label": "Prečice na tastaturi",
+        "enabled": "Prečice na tastaturi omogućene",
+        "ptz_down": "PTZ dole",
+        "ptz_home": "PTZ početni položaj",
+        "ptz_left": "PTZ levo",
+        "ptz_right": "PTZ desno",
+        "ptz_up": "PTZ gore",
+        "ptz_zoom_in": "PTZ uvećaj",
+        "ptz_zoom_out": "PTZ umanji"
+      },
+      "theme": {
+        "themes": {
+          "dark": "Tamna",
+          "editor_label": "Teme",
+          "ha": "Home Assistant",
+          "light": "Svetla",
+          "traditional": "Tradicionalna"
+        }
+      },
+      "triggers": {
+        "actions": {
+          "editor_label": "Radnje okidača",
+          "interaction_mode": "Kako obraditi radnje kada korisnik ima interakciju sa karticom",
+          "trigger": "Okidač",
+          "triggers": {
+            "call": "Započni poziv",
+            "default": "Podrazumevani prikaz",
+            "live": "Prikaz uživo",
+            "media": "Prikaz medija",
+            "none": "Nema",
+            "update": "Ažuriraj prikaz"
+          },
+          "untrigger": "Prekid okidača",
+          "untriggers": {
+            "call": "Završi poziv",
+            "default": "Podrazumevani prikaz",
+            "none": "Nema"
+          }
+        },
+        "editor_label": "Ponašanje okidača",
+        "event_hold_seconds": "Sekunde zadržavanja trenutnog okidača (npr. pritisak na zvono, HA događaj na magistrali) vidljivim pre odlaganja prekida okidača nakon završetka",
+        "filter_selected_camera": "Pokreni okidač samo na izabranoj kameri",
+        "show_trigger_status": "Prikaži pulsirajuću ivicu kada je okidač aktiviran",
+        "untrigger_delay_seconds": "Sekunde odlaganja nakon promene stanja okidača pre prekida",
+        "untrigger_force_seconds": "Sekunde pre prinudnog prekida okidača"
+      },
+      "views": {
+        "auto": "Automatski",
+        "clip": "Najnoviji klip",
+        "clips": "Galerija klipova",
+        "current": "Trenutni prikaz",
+        "diagnostics": "Dijagnostika",
+        "folder": "Mediji fascikle",
+        "folders": "Galerija fascikli",
+        "gallery": "Podrazumevana galerija medija",
+        "image": "Statična slika",
+        "live": "Prikaz uživo",
+        "media": "Najnovija podrazumevana medijska stavka",
+        "recording": "Najnoviji snimak",
+        "recordings": "Galerija snimaka",
+        "review": "Najnoviji medij za pregled",
+        "reviews": "Galerija pregleda",
+        "snapshot": "Najnoviji snimak kamere",
+        "snapshots": "Galerija snimaka kamere",
+        "timeline": "Prikaz vremenske linije"
+      }
+    }
+  },
+  "display_modes": {
+    "grid": "Prikaži pregledač medija za svaku kameru u mreži",
+    "single": "Prikaži jedan pregledač medija"
+  },
+  "editor": {
+    "add_new_camera": "Dodaj kameru",
+    "add_new_folder": "Dodaj fasciklu",
+    "back": "Nazad",
+    "camera": "Kamera",
+    "cameras": "Kamere",
+    "cameras_secondary": "Koje kamere će se prikazivati na ovoj kartici",
+    "delete": "Obriši",
+    "dimensions": "Dimenzije",
+    "dimensions_secondary": "Opcije dimenzija i oblika kartice",
+    "docs": "Dokumentacija",
+    "edit": "Uredi",
+    "folders": "Fascikle",
+    "folders_secondary": "Koje fascikle će se prikazivati na ovoj kartici",
+    "image": "Slika",
+    "image_secondary": "Opcije prikaza statične slike",
+    "live": "Uživo",
+    "live_secondary": "Opcije prikaza kamere uživo",
+    "media_gallery": "Galerija medija",
+    "media_gallery_secondary": "Opcije galerije medija",
+    "media_viewer": "Pregledač medija",
+    "media_viewer_secondary": "Pregledač za statične medije",
+    "menu": "Meni",
+    "menu_secondary": "Opcije izgleda i ponašanja menija",
+    "performance": "Performanse",
+    "performance_secondary": "Opcije performansi kartice",
+    "profiles": "Profili",
+    "profiles_secondary": "Izaberite unapred podešene skupove podrazumevanih vrednosti",
+    "remote_control": "Daljinsko upravljanje",
+    "remote_control_secondary": "Opcije za daljinsko upravljanje karticom",
+    "simple_coverage": "Ova kartica ima podešavanja koja jednostavni uređivač ne prikazuje. Uključite puni uređivač da biste ih videli",
+    "status_bar": "Statusna traka",
+    "status_bar_secondary": "Opcije izgleda i ponašanja statusne trake",
+    "timeline": "Vremenska linija",
+    "timeline_secondary": "Opcije vremenske linije događaja",
+    "toggle_diagnostics": "Uključi/isključi dijagnostiku",
+    "upgrade": "Nadogradi",
+    "upgrade_available": "Dostupna je automatska nadogradnja konfiguracije kartice",
+    "view": "Prikaz",
+    "view_secondary": "Šta kartica treba da prikazuje i kako to da prikazuje"
+  },
+  "elements": {
+    "ptz": {
+      "down": "Dole",
+      "home": "Početni položaj",
+      "left": "Levo",
+      "presets": "Predefinisane pozicije",
+      "right": "Desno",
+      "type": "Tip PTZ-a",
+      "up": "Gore",
+      "zoom_in": "Uvećaj",
+      "zoom_out": "Umanji"
+    }
+  },
+  "error": {
+    "awaiting_live": "Čekanje da se učita prenos uživo",
+    "awaiting_media": "Čekanje da se učitaju mediji",
+    "call_camera_unreachable": "Kamera nije dostupna za dvosmerni zvuk.",
+    "call_connection_lost": "Veza sa Home Assistant-om je prekinuta.",
+    "call_invalid_target": "Tražena kamera ili strim nisu dostupni za poziv.",
+    "call_microphone_failed": "Vaš mikrofon nije mogao biti povezan.",
+    "call_microphone_forbidden": "Pristup mikrofonu je odbijen za ovu stranicu. Ažurirajte dozvole pregledača i pokušajte ponovo.",
+    "call_microphone_unsupported": "Pristup mikrofonu nije dostupan u ovom pregledaču (npr. zahteva HTTPS).",
+    "call_no_two_way_audio": "Ova kamera ne podržava dvosmerni zvuk.",
+    "call_unavailable_heading": "Dvosmerni zvuk nije dostupan",
+    "camera_initialization": "Inicijalizacija kamere nije uspela",
+    "camera_initialization_reolink": "Nije moguće inicijalizovati Reolink kameru",
+    "configuration_error": "Greška u konfiguraciji",
+    "could_not_create_elements": "Nije moguće kreirati elemente slike",
+    "diagnostics": "Dijagnostika kartice. Molimo pregledajte da li sadrži poverljive informacije pre deljenja",
+    "download_failed": "Preuzimanje nije uspelo",
+    "download_no_media": "Nema medija za preuzimanje",
+    "download_sign_failed": "Nije moguće potpisati URL medija za preuzimanje",
+    "duplicate_camera_id": "Duplirani ID kamere za sledeću kameru, koristite parametar 'id' za jedinstvenu identifikaciju kamera",
+    "duplicate_folder_id": "Duplirani ID fascikle za sledeću fasciklu, koristite parametar 'id' za jedinstvenu identifikaciju fascikli",
+    "empty_response": "Primljen prazan odgovor od Home Assistant-a za zahtev",
+    "failed_fetch": "Nije moguće preuzeti URL",
+    "failed_proxy": "Nije moguće proksirati preko Home Assistant-a",
+    "failed_response": "Neuspešno primanje odgovora od Home Assistant-a za zahtev",
+    "failed_retain": "Nije moguće zadržati događaj",
+    "failed_sign": "Nije moguće potpisati Home Assistant URL",
+    "fetching_diagnostics": "Preuzimanje dijagnostike",
+    "home_assistant_elements_load_failed": "Nije moguće učitati potrebne Home Assistant elemente",
+    "image_load_error": "Nije moguće učitati sliku",
+    "invalid_configuration": "Neispravna konfiguracija",
+    "invalid_configuration_no_hint": "Nema dostupne naznake lokacije (loš ili nedostajući tip?)",
+    "invalid_configuration_override": "Neispravna konfiguracija zamene",
+    "invalid_elements_config": "Neispravna konfiguracija elemenata slike",
+    "invalid_response": "Primljen neispravan odgovor od Home Assistant-a za zahtev",
+    "jsmpeg_no_player": "Nije moguće pokrenuti JSMPEG plejer",
+    "live_camera_no_endpoint": "Nije moguće dobiti krajnju tačku kamere za ovog dobavljača prikaza uživo (nepotpuna konfiguracija?)",
+    "live_camera_not_found": "Konfigurisani camera_entity nije pronađen",
+    "microphone_not_supported": "Mikrofon nije podržan u ovom pregledaču",
+    "no_camera_engine": "Nije moguće odrediti odgovarajući sistem za kameru",
+    "no_camera_entity": "Nije moguće pronaći entitet kamere",
+    "no_camera_for_image": "Nijedna kamera nije konfigurisana za režim slike kamere",
+    "no_camera_id": "Nije moguće odrediti ID kamere za sledeću kameru, možda će biti potrebno ručno podesiti parametar 'id'",
+    "no_camera_or_media_for_timeline": "Nema dostupne kamere ili medija za vremensku liniju",
+    "no_live_camera": "Parametar camera_entity mora biti podešen i važeći za ovog dobavljača prikaza uživo",
+    "timeout_response": "Isteklo je vreme čekanja na odgovor od Home Assistant-a za zahtev",
+    "too_many_automations": "Previše ugnježdenih poziva automatizacija, proverite konfiguraciju zbog petlji",
+    "troubleshooting": "Proverite rešavanje problema",
+    "upgrade_available": "Dostupna je automatska nadogradnja konfiguracije kartice, posetite vizuelni uređivač kartice",
+    "webrtc_card_reported_error": "WebRTC kartica je prijavila grešku",
+    "webrtc_card_waiting": "Čekanje da se WebRTC kartica učita..."
+  },
+  "issues": {
+    "config_error": {
+      "heading": "Greška u konfiguraciji"
+    },
+    "config_upgrade": {
+      "heading": "Dostupna je nadogradnja konfiguracije",
+      "text": "Dostupna je nadogradnja konfiguracije. Da biste nadogradili, uredite ovu karticu (ikona olovke na kontrolnoj tabli → meni sa tri tačke → Uredi) i kliknite na dugme 'Automatska nadogradnja' u uređivaču kartice"
+    },
+    "config_upgrade_failure": {
+      "heading": "Konfiguracija nije mogla biti u potpunosti nadograđena",
+      "text": "Automatska nadogradnja konfiguracije nije uspešno završena. Nenadograđena konfiguracija je izdvojena pod '__UPGRADE_FAILURE__' u vašoj konfiguraciji. Ručno pregledajte, nadogradite i uklonite te stavke."
+    },
+    "connection": {
+      "lost": {
+        "heading": "Veza je izgubljena",
+        "text": "Veza sa Home Assistant-om je izgubljena"
+      },
+      "starting": {
+        "heading": "Home Assistant se pokreće",
+        "text": "Čekanje da se završi pokretanje Home Assistant-a"
+      }
+    },
+    "event_subscription": {
+      "heading": "Pretplate na Home Assistant događaje",
+      "text": "Kartica nije mogla da se pretplati na jedan ili više tipova Home Assistant događaja i nastaviće da pokušava ponovo"
+    },
+    "initialization": {
+      "heading": "Inicijalizacija nije uspela"
+    },
+    "legacy_resource": {
+      "heading": "Otkriven je zastareli resurs kontrolne table",
+      "remove": "Ukloni zastareli resurs",
+      "text_both": "Zastareli resurs 'frigate-hass-card.js' je još uvek registrovan, molimo vas da ga ručno uklonite ili kliknete na ikonu za brisanje da biste ga automatski uklonili. Biće uklonjen u budućem izdanju",
+      "text_only_legacy": "Zastareli resurs 'frigate-hass-card.js' mora biti zamenjen sa 'advanced-camera-card.js'. Biće uklonjen u budućem izdanju"
+    },
+    "media_query": {
+      "heading": "Upit za medije nije uspeo"
+    },
+    "media_unavailable": {
+      "heading": "Mediji nisu dostupni",
+      "reasons": {
+        "entity_unavailable": "Entitet kamere nije dostupan",
+        "not_loading": "Mediji se ne učitavaju",
+        "playback_error": "Greška pri reprodukciji",
+        "server_error": "Greška servera medija",
+        "stalled": "Strim je zastao",
+        "unsupported": "Strim nije podržan"
+      },
+      "text": "Mediji trenutno nisu dostupni. To se može dogoditi iz više razloga, na primer ako kamera postane nedostupna, strim zastane ili zakaže, ili mediji još nisu završili učitavanje. Kartica nastavlja automatski da pokušava ponovo. Za prikaze uživo može biti prikazana statična slika dok se strim učitava (ako je konfigurisano i podrazumevano)"
+    },
+    "troubleshooting_guide": "Vodič za rešavanje problema",
+    "view_incompatible": {
+      "heading": "Prikaz nije podržan",
+      "text": "Izabrana kamera ili medij ne podržava ovaj prikaz"
+    }
+  },
+  "key_assigner": {
+    "assign": "Dodeli",
+    "modifiers": {
+      "alt": "Alt",
+      "ctrl": "Ctrl",
+      "meta": "Meta",
+      "shift": "Shift"
+    },
+    "unassign": "Ukloni dodelu"
+  },
+  "media_filter": {
+    "camera": "Kamera",
+    "favorite": "Omiljeno",
+    "media_type": "Tip medija",
+    "media_types": {
+      "clips": "Klipovi",
+      "recordings": "Snimci",
+      "reviews": "Pregledi",
+      "snapshots": "Snimci kamere"
+    },
+    "not_favorite": "Nije omiljeno",
+    "not_reviewed": "Nije pregledano",
+    "reviewed": "Pregledano",
+    "select_camera": "Izaberite kameru...",
+    "select_favorite": "Izaberite omiljeno...",
+    "select_media_type": "Izaberite tip medija...",
+    "select_reviewed": "Izaberite status pregleda...",
+    "select_severity": "Izaberite ozbiljnost...",
+    "select_tag": "Izaberite oznaku...",
+    "select_what": "Izaberite šta...",
+    "select_when": "Izaberite kada...",
+    "select_where": "Izaberite gde...",
+    "tag": "Oznaka",
+    "what": "Šta",
+    "when": "Kada",
+    "whens": {
+      "custom": "Prilagođeno",
+      "past_month": "Prošli mesec",
+      "past_week": "Prošla nedelja",
+      "today": "Danas",
+      "yesterday": "Juče"
+    },
+    "where": "Gde"
+  },
+  "media_viewer": {
+    "unseekable": "Vreme premotavanja nije pronađeno u mediju"
+  },
+  "thumbnail": {
+    "camera": "Kamera",
+    "download": "Preuzmi medij",
+    "duration": "Trajanje",
+    "in_progress": "REC",
+    "more_details": "+{count} detalja",
+    "no_thumbnail": "Sličica nije dostupna",
+    "retain_indefinitely": "Zadrži medij trajno",
+    "seek": "Premotaj",
+    "start": "Početak",
+    "tag": "Oznaka",
+    "timeline": "Prikaži medij na vremenskoj liniji",
+    "where": "Gde"
+  },
+  "timeline": {
+    "select_date": "Izaberite datum"
+  }
+}
