@@ -144,7 +144,7 @@ describe('config defaults', () => {
         },
         draggable: true,
         lazy_load: true,
-        lazy_unload: [],
+        lazy_unload: ['unselected', 'hidden'],
         microphone: {
           always_connected: false,
           audio_processing: {
