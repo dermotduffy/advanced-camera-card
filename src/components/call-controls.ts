@@ -1,6 +1,7 @@
 import {
   html,
   LitElement,
+  nothing,
   unsafeCSS,
   type CSSResultGroup,
   type PropertyValues,
@@ -8,10 +9,12 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import type { MicrophoneState } from '../card-controller/types.js';
 import type { ActionConfig } from '../config/schema/actions/types.js';
+import type { CallButtonsConfig } from '../config/schema/live.js';
 import { localize } from '../localize/localize.js';
 import callControlsStyle from '../scss/call-controls.scss?inline';
 import {
@@ -22,6 +25,7 @@ import {
 } from '../utils/action.js';
 import { hasPopOutAnimationEnded } from '../utils/animation.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
+import { getStyleWithStateIconColor } from '../utils/style.js';
 
 import './icon.js';
 
@@ -56,6 +60,14 @@ export class AdvancedCameraCardCallControls extends LitElement {
   // The size, in pixels, of the control buttons.
   @property({ attribute: false })
   public buttonSize?: number;
+
+  // A configured icon and style per button (`live.controls.call.buttons`).
+  @property({ attribute: false })
+  public buttonsConfig?: CallButtonsConfig;
+
+  // Whether a progress ring turns (`performance.features.animated_progress_indicator`).
+  @property({ attribute: false })
+  public progressAnimated = true;
 
   // True while the exit animation plays after `active` turns false.
   @state()
@@ -123,6 +135,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
     return html`
       <div class="buttons">
         ${this._renderButton(
+          'reject',
           'mdi:phone-hangup',
           localize('config.live.controls.call.reject'),
           {
@@ -130,10 +143,15 @@ export class AdvancedCameraCardCallControls extends LitElement {
             action: createCallEndAction(),
           },
         )}
-        ${this._renderButton('mdi:phone', localize('config.live.controls.call.answer'), {
-          emphasis: 'positive',
-          action: createCallAnswerAction(),
-        })}
+        ${this._renderButton(
+          'answer',
+          'mdi:phone',
+          localize('config.live.controls.call.answer'),
+          {
+            emphasis: 'positive',
+            action: createCallAnswerAction(),
+          },
+        )}
       </div>
     `;
   }
@@ -146,6 +164,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
     return html`
       <div class="buttons">
         ${this._renderButton(
+          'end',
           'mdi:phone-hangup',
           localize('config.live.controls.call.end'),
           {
@@ -154,6 +173,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
           },
         )}
         ${this._renderButton(
+          'microphone',
           microphoneMuted ? 'mdi:microphone-off' : 'mdi:microphone',
           microphoneMuted
             ? localize('config.live.controls.call.unmute_microphone')
@@ -166,6 +186,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
           },
         )}
         ${this._renderButton(
+          'audio',
           audioMuted ? 'mdi:volume-off' : 'mdi:volume-high',
           audioMuted
             ? localize('config.live.controls.call.unmute_audio')
@@ -194,6 +215,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
   };
 
   private _renderButton(
+    name: keyof CallButtonsConfig,
     icon: string,
     label: string,
     options?: {
@@ -203,12 +225,24 @@ export class AdvancedCameraCardCallControls extends LitElement {
       handler?: () => void;
     },
   ): TemplateResult {
+    // As for a menu button: a configured icon replaces the button's own, a
+    // configured style is merged over it (and colours the icon too). With
+    // `progress`, a ring spins around the button (or stands still when
+    // animated progress indicators are switched off).
+    const config = this.buttonsConfig?.[name];
+    const progress = !!config?.progress;
     return html`
       <ha-icon-button
         .label=${label}
         title=${label}
         ?disabled=${!!options?.disabled}
-        class=${options?.emphasis ?? ''}
+        aria-busy=${progress ? 'true' : nothing}
+        class=${classMap({
+          ...(options?.emphasis && { [options.emphasis]: true }),
+          progress,
+          'progress-static': progress && !this.progressAnimated,
+        })}
+        style=${styleMap(getStyleWithStateIconColor(config?.style))}
         @click=${() => {
           if (options?.handler) {
             options.handler();
@@ -217,7 +251,9 @@ export class AdvancedCameraCardCallControls extends LitElement {
           }
         }}
       >
-        <advanced-camera-card-icon .icon=${{ icon }}></advanced-camera-card-icon>
+        <advanced-camera-card-icon
+          .icon=${{ icon: config?.icon ?? icon }}
+        ></advanced-camera-card-icon>
       </ha-icon-button>
     `;
   }

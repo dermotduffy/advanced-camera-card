@@ -33,6 +33,7 @@ const DOC_LINKS: Record<string, string> = {
   live: 'configuration/live',
   'live.controls': 'configuration/live?id=controls',
   'live.controls.call': 'configuration/live?id=call',
+  'live.controls.call.buttons': 'configuration/live?id=buttons',
   'live.controls.next_previous': 'configuration/live?id=next_previous',
   'live.controls.ptz': 'configuration/live?id=ptz',
   'live.controls.thumbnails': 'configuration/live?id=thumbnails',

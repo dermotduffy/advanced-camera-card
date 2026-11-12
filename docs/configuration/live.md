@@ -58,6 +58,7 @@ live:
 | Option                       | Default | Description                                                                                                                                                                                                                                                                                                                                                                                         |
 | ---------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `button_size`                | `40`    | The size of the call control buttons in pixels. Must be &gt;= `20`.                                                                                                                                                                                                                                                                                                                                 |
+| `buttons`                    |         | The icon and style of each call control button. See [`buttons`](#buttons).                                                                                                                                                                                                                                                                                                                          |
 | `enabled`                    | `true`  | Whether the on-screen call controls are shown during a call. Set to `false` to hide them and drive calls from the [`menu`](./menu.md) instead. When hiding the controls, be sure to also remove `call` from `menu.auto_hide` so the menu stays visible allowing the call to be controlled. See [Driving calls from the menu](../examples.md?id=driving-calls-from-the-menu) for a complete example. |
 | `lock`                       | `true`  | Whether to lock the rest of the card controls/actions while a call is in progress. Prevents an accidental tap, swipe or action mid-call. Set to `false` to allow interactions regardless of call state.                                                                                                                                                                                             |
 | `ringtone`                   |         | The audible chime played while an inbound call (e.g. one started by [`view.triggers.actions.trigger: call`](./view.md?id=trigger-action-configuration)) is ringing. Stops as soon as the call is answered or ended. Manual calls never ring. See [`ringtone`](#ringtone).                                                                                                                           |
@@ -68,6 +69,55 @@ live:
 > happens no sound is produced and no error is shown. The underlying behavior is
 > documented in [MDN's Autoplay
 > guide](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay).
+
+#### `buttons`
+
+The icon and style of each call control button, as for [menu buttons](./menu.md): a configured `icon` replaces the button's own icon in all its states, and a configured `style` is merged over its own (so a `color` replaces its emphasis colour, and colours the icon). Combined with [`overrides`](./overrides.md) they can follow [conditions](./conditions-triggers.md), e.g. to show a ring around the microphone while a camera's talk session connects:
+
+```yaml
+live:
+  controls:
+    call:
+      buttons:
+        answer:
+          icon: mdi:phone-in-talk
+        end:
+          style:
+            color: orange
+```
+
+The microphone and audio buttons show by their icon (and the open microphone by its colour) whether they are muted: a configured `icon` or `color` on them hides that, unless it is set through an override that only applies in one state (e.g. with the [`microphone` condition](./conditions-triggers.md)).
+
+| Button       | Shown            |
+| ------------ | ---------------- |
+| `answer`     | before answering |
+| `reject`     | before answering |
+| `end`        | after answering  |
+| `microphone` | after answering  |
+| `audio`      | after answering  |
+
+Each takes:
+
+| Option     | Default | Description                                                                                                                                                                                                                                                                          |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `icon`     |         | An icon in place of the button's own (e.g. `mdi:phone-in-talk`).                                                                                                                                                                                                                     |
+| `style`    |         | CSS properties for the button (e.g. `color: green`).                                                                                                                                                                                                                                 |
+| `progress` | `false` | Whether a ring spins around the button (in the button's colour), e.g. while something it depends on is getting ready. The ring stands still with [`performance.features.animated_progress_indicator`](./performance.md) set to `false`, and when the system asks for reduced motion. |
+
+Example: a spinning ring around the microphone while the talk session connects, until an entity that reports it is `ready`:
+
+```yaml
+overrides:
+  - conditions:
+      - condition: microphone
+        muted: false
+      - condition: state
+        entity: sensor.office_talk
+        state_not: ready
+    merge:
+      live.controls.call.buttons.microphone:
+        progress: true
+```
 
 #### `ringtone`
 
@@ -287,6 +337,10 @@ live:
     builtin: true
     call:
       button_size: 40
+      buttons:
+        answer:
+          icon: mdi:phone
+          progress: false
       lock: true
       ringtone:
         type: chime

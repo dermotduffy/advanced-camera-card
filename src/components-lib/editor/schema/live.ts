@@ -28,6 +28,44 @@ const getCallSchema = (): HAFormExpandableSchema => ({
     { name: 'enabled', selector: { boolean: {} } },
     { name: 'lock', selector: { boolean: {} } },
     {
+      name: 'buttons',
+      type: 'expandable',
+      title: localize('config.live.controls.call.buttons.editor_label'),
+      icon: 'mdi:gesture-tap-button',
+      schema: (['answer', 'reject', 'end', 'microphone', 'audio'] as const).map(
+        (button) => ({
+          name: button,
+          type: 'expandable' as const,
+          title: localize(`config.live.controls.call.buttons.${button}`),
+          schema: [
+            {
+              name: 'icon',
+              label: localize('config.menu.buttons.icon'),
+              selector: { icon: {} },
+            },
+            {
+              type: 'expandable' as const,
+              title: localize('config.menu.buttons.style'),
+              icon: 'mdi:palette',
+              docPath: ['live', 'controls', 'call', 'buttons'],
+              schema: [
+                {
+                  name: 'style',
+                  label: localize('config.menu.buttons.style'),
+                  selector: { object: {} },
+                },
+              ],
+            },
+            {
+              name: 'progress',
+              label: localize('config.live.controls.call.buttons.progress'),
+              selector: { boolean: {} },
+            },
+          ],
+        }),
+      ),
+    },
+    {
       name: 'ringtone',
       type: 'expandable',
       title: localize('config.live.controls.call.ringtone.editor_label'),

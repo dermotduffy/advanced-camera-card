@@ -74,3 +74,38 @@ ha-icon-button {
     color: var(--advanced-camera-card-call-controls-positive-color);
   }
 }
+
+// `live.controls.call.buttons.*.progress`: a ring spins around the button, in
+// its own colour; the icon stays still. Always a circle (whatever the button's
+// border radius): only a circle can turn without sweeping out of the button.
+ha-icon-button.progress {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: progress-rotate 1s linear infinite;
+  }
+
+  &.progress-static::after {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ha-icon-button.progress::after {
+    animation: none;
+  }
+}
+
+@keyframes progress-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

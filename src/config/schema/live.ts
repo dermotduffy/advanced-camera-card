@@ -22,6 +22,7 @@ import {
   MICROPHONE_UNMUTE_CONDITIONS,
 } from './common/media-actions';
 import { transitionEffectConfigSchema } from './common/transition-effect';
+import { menuBaseSchema } from './elements/custom/menu/base';
 
 const microphoneAudioProcessingDefault = {
   auto_gain_control: 'auto' as const,
@@ -71,8 +72,26 @@ const ringtoneConfigSchema = z.object({
 });
 export type RingtoneConfig = z.infer<typeof ringtoneConfigSchema>;
 
+// The icon and style of a call control button, as for a menu button: a
+// configured icon replaces the button's own (in every state), a configured
+// style is merged over its own (e.g. its emphasis colour), and `progress`
+// spins a ring around it. With `overrides` they can follow conditions.
+const callButtonSchema = menuBaseSchema.pick({ icon: true, style: true }).extend({
+  progress: z.boolean().optional(),
+});
+
+const callButtonsSchema = z.object({
+  answer: callButtonSchema.optional(),
+  reject: callButtonSchema.optional(),
+  end: callButtonSchema.optional(),
+  microphone: callButtonSchema.optional(),
+  audio: callButtonSchema.optional(),
+});
+export type CallButtonsConfig = z.infer<typeof callButtonsSchema>;
+
 const callConfigDefault = {
   button_size: 40,
+  buttons: {},
   enabled: true,
   lock: true,
   ringtone: { ...ringtoneConfigDefault },
@@ -81,6 +100,7 @@ const callConfigDefault = {
 
 const callConfigSchema = z.object({
   button_size: z.number().min(BUTTON_SIZE_MIN).default(callConfigDefault.button_size),
+  buttons: callButtonsSchema.default(callConfigDefault.buttons),
   enabled: z.boolean().default(callConfigDefault.enabled),
   lock: z.boolean().default(callConfigDefault.lock),
   ringtone: ringtoneConfigSchema.default(callConfigDefault.ringtone),

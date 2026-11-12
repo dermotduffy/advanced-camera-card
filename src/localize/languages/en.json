@@ -474,6 +474,15 @@
         "call": {
           "answer": "Answer call",
           "button_size": "Call control button size",
+          "buttons": {
+            "answer": "Answer button",
+            "audio": "Audio button",
+            "editor_label": "Buttons",
+            "end": "End button",
+            "microphone": "Microphone button",
+            "progress": "Show a spinning ring around the button",
+            "reject": "Reject button"
+          },
           "editor_label": "Two-way audio call",
           "enabled": "Show on-screen call controls",
           "end": "End 2-way audio call",
