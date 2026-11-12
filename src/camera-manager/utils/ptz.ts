@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type {
   PTZAction,
   PTZActionPhase,
@@ -14,9 +16,9 @@ import { PTZMovementType, type PTZCapabilities } from '../../types';
  * @returns The configured action, or `null` if the preset is not configured.
  */
 export const getConfiguredPTZPresetAction = (
-  ptzConfig: CameraConfig['ptz'],
+  ptzConfig: ReadonlyDeep<CameraConfig['ptz']>,
   preset: string,
-): ActionConfig | null => {
+): ReadonlyDeep<ActionConfig> | null => {
   const presets = ptzConfig.presets;
   if (!presets) {
     return null;
@@ -27,13 +29,13 @@ export const getConfiguredPTZPresetAction = (
 };
 
 export const getConfiguredPTZAction = (
-  cameraConfig: CameraConfig,
+  cameraConfig: ReadonlyDeep<CameraConfig>,
   action: PTZAction,
   options?: {
     phase?: PTZActionPhase;
     preset?: string;
   },
-): ActionConfig | ActionConfig[] | null => {
+): ReadonlyDeep<ActionConfig | ActionConfig[]> | null => {
   if (action === 'preset') {
     return options?.preset
       ? getConfiguredPTZPresetAction(cameraConfig.ptz, options.preset)
@@ -48,7 +50,7 @@ export const getConfiguredPTZAction = (
 };
 
 const hasConfiguredPTZAction = (
-  cameraConfig: CameraConfig,
+  cameraConfig: ReadonlyDeep<CameraConfig>,
   action: PTZBaseAction,
   options?: {
     phase?: PTZActionPhase;
@@ -59,7 +61,7 @@ const hasConfiguredPTZAction = (
 };
 
 export const getConfiguredPTZMovementType = (
-  cameraConfig: CameraConfig,
+  cameraConfig: ReadonlyDeep<CameraConfig>,
   action: PTZBaseAction,
 ): PTZMovementType[] | null => {
   const continuous =
@@ -102,7 +104,7 @@ export const mergePTZCapabilities = (
 };
 
 export const getPTZCapabilitiesFromCameraConfig = (
-  cameraConfig: CameraConfig,
+  cameraConfig: ReadonlyDeep<CameraConfig>,
 ): PTZCapabilities | null => {
   const left = getConfiguredPTZMovementType(cameraConfig, 'left');
   const right = getConfiguredPTZMovementType(cameraConfig, 'right');

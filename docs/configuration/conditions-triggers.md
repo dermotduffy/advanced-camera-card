@@ -306,6 +306,10 @@ As a **condition**, `true` while the card has finished starting up -- usable,
 not merely present. As a **trigger**, fires each time the card finishes starting
 up, useful for running an [automation](./automations.md) on card start.
 
+The card has finished starting up once it knows which cameras it has (not
+necessarily when all of those cameras are themselves fully available). As such,
+an automation using this trigger may run before any camera is showing video.
+
 ```yaml
 # As a condition:
 conditions:

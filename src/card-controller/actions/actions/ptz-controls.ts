@@ -1,8 +1,12 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { PTZControlsActionConfig } from '../../../config/schema/actions/custom/ptz-controls';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class PTZControlsAction extends AdvancedCameraCardAction<PTZControlsActionConfig> {
+export class PTZControlsAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<PTZControlsActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

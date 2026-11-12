@@ -29,6 +29,16 @@ export const createPerformanceConfig = (config: unknown): PerformanceConfig => {
   return performanceConfigSchema.parse(config);
 };
 
+// Deep freeze camera configurations under test to ensure any attempts to write
+// to them result in a failure (e.g. writing to shared zod defaults).
 export const createCameraConfig = (config?: unknown): CameraConfig => {
-  return cameraConfigSchema.parse(config ?? {});
+  return deepFreeze(cameraConfigSchema.parse(config ?? {}));
+};
+
+const deepFreeze = <T>(value: T): T => {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    Object.values(value).forEach(deepFreeze);
+  }
+  return value;
 };

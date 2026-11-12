@@ -1,8 +1,12 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CallServiceActionConfig } from '../../../config/schema/actions/stock/call-service';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class CallServiceAction extends AdvancedCameraCardAction<CallServiceActionConfig> {
+export class CallServiceAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<CallServiceActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

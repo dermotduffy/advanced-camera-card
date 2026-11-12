@@ -7,7 +7,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { CameraManager } from '../camera-manager/manager';
+import type { CameraManagerEpoch } from '../camera-manager/lifecycle';
 import type { FoldersManager } from '../card-controller/folders/manager';
 import type { ViewItemManager } from '../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
@@ -32,7 +32,7 @@ export class AdvancedCameraCardTimeline extends LitElement {
   public timelineConfig?: TimelineConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public foldersManager?: FoldersManager;
@@ -57,7 +57,7 @@ export class AdvancedCameraCardTimeline extends LitElement {
         .viewManagerEpoch=${this.viewManagerEpoch}
         .timelineConfig=${this.timelineConfig}
         .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
-        .cameraManager=${this.cameraManager}
+        .cameraManagerEpoch=${this.cameraManagerEpoch}
         .foldersManager=${this.foldersManager}
         .conditionStateManager=${this.conditionStateManager}
         .viewItemManager=${this.viewItemManager}

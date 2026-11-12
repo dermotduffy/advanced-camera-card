@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { ActionConfig, Actions } from '../../config/schema/actions/types';
 import { arrayify } from '../../utils/basic';
 import type { CardLockAPI } from '../types';
@@ -24,7 +26,9 @@ export class LockManager {
     return this._epoch;
   }
 
-  public getAllowedActions(actions: ActionConfig | ActionConfig[]): ActionConfig[] {
+  public getAllowedActions(
+    actions: ReadonlyDeep<ActionConfig | ActionConfig[]>,
+  ): readonly ReadonlyDeep<ActionConfig>[] {
     if (!this.isLocked()) {
       return arrayify(actions);
     }
@@ -55,7 +59,7 @@ export class LockManager {
     );
   }
 
-  private _isActionBlocked(action: ActionConfig): boolean {
+  private _isActionBlocked(action: ReadonlyDeep<ActionConfig>): boolean {
     return this._policies.some((policy) => {
       return policy.isActive() && policy.shouldBlockAction(action);
     });

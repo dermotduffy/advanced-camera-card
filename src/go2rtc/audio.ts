@@ -63,13 +63,14 @@ const fetch2WayAudioSupport = async (
   }
 };
 
-// Caller must verify the live provider is go2rtc before calling.
+// Caller must verify the live provider is go2rtc before calling. Resolves to
+// `null` when the answer is unknown.
 export const supports2WayAudio = async (
   hass: HomeAssistant,
   metadataFetchTimeoutSeconds: number,
   go2rtcMetadataEndpoint?: Endpoint | null,
   proxyConfig?: EnabledProxyConfig,
-): Promise<boolean> => {
+): Promise<boolean | null> => {
   if (!go2rtcMetadataEndpoint) {
     return false;
   }
@@ -77,7 +78,7 @@ export const supports2WayAudio = async (
   const key = go2rtcMetadataEndpoint.endpoint;
   const cachedPromise = twoWayAudioSupportCache.get(key);
   if (cachedPromise) {
-    return (await cachedPromise) ?? false;
+    return await cachedPromise;
   }
 
   const request = fetch2WayAudioSupport(
@@ -99,5 +100,5 @@ export const supports2WayAudio = async (
     twoWayAudioSupportCache.delete(key);
   }
 
-  return isSupported ?? false;
+  return isSupported;
 };

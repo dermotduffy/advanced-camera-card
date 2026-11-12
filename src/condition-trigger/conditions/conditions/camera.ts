@@ -1,11 +1,13 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CameraBase } from '../../../config/schema/condition-trigger/common/camera';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator } from './types';
 
 export class CameraConditionEvaluator implements ConditionEvaluator {
-  private _condition: CameraBase;
+  private _condition: ReadonlyDeep<CameraBase>;
 
-  constructor(condition: CameraBase) {
+  constructor(condition: ReadonlyDeep<CameraBase>) {
     this._condition = condition;
   }
 

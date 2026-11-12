@@ -50,9 +50,9 @@ describe('UnifiedQueryTransformer', () => {
 
     it('should not affect folder queries', () => {
       const folder = createFolder({ id: 'f1', title: 'Test' });
-      const query = new UnifiedQuery([
-        { source: QuerySource.Folder, folder, path: [{}] },
-      ]);
+      const query = new UnifiedQuery({
+        nodes: [{ source: QuerySource.Folder, folder, path: [{}] }],
+      });
 
       const stripped = UnifiedQueryTransformer.stripTimeRange(query);
       const node = stripped.getNodes()[0];
@@ -86,9 +86,9 @@ describe('UnifiedQueryTransformer', () => {
 
     it('should not affect folder queries', () => {
       const folder = createFolder({ id: 'f1', title: 'Test' });
-      const query = new UnifiedQuery([
-        { source: QuerySource.Folder, folder, path: [{}] },
-      ]);
+      const query = new UnifiedQuery({
+        nodes: [{ source: QuerySource.Folder, folder, path: [{}] }],
+      });
 
       const rebuilt = UnifiedQueryTransformer.rebuildQuery(query, {
         start: new Date(),
@@ -131,9 +131,9 @@ describe('UnifiedQueryTransformer', () => {
 
     it('should not affect folder queries', () => {
       const folder = createFolder({ id: 'f1', title: 'Test' });
-      const query = new UnifiedQuery([
-        { source: QuerySource.Folder, folder, path: [{}] },
-      ]);
+      const query = new UnifiedQuery({
+        nodes: [{ source: QuerySource.Folder, folder, path: [{}] }],
+      });
 
       const converted = UnifiedQueryTransformer.convertToClips(query);
       const node = converted.getNodes()[0];

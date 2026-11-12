@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { CardActionsAPI } from '../card-controller/types.js';
 import type { ZoomSettingsBase } from '../components-lib/zoom/types.js';
 import type { CallAnswerActionConfig } from '../config/schema/actions/custom/call-answer.js';
@@ -412,23 +414,25 @@ export const hasAction = (config?: ActionConfig | ActionConfig[]): boolean => {
   return arrayify(config).some((item) => isIfAction(item) || item.action !== 'none');
 };
 
-export const isIfAction = (action: ActionConfig): action is IfActionConfig => {
+export const isIfAction = <T extends ReadonlyDeep<ActionConfig>>(
+  action: T,
+): action is T & ReadonlyDeep<IfActionConfig> => {
   // The `if`/`then`/`else` action is structural: it has no `action:`
   // discriminator and is identified by the presence of an `if` key.
   return !('action' in action) && 'if' in action;
 };
 
-export const isStandardAction = (
-  action: ActionConfig,
-): action is Exclude<ActionConfig, IfActionConfig> => {
+export const isStandardAction = <T extends ReadonlyDeep<ActionConfig>>(
+  action: T,
+): action is T & ReadonlyDeep<Exclude<ActionConfig, IfActionConfig>> => {
   // Every action except the structural `if`/`then`/`else` action carries an
   // `action:` discriminator.
   return 'action' in action;
 };
 
-export const isAdvancedCameraCardCustomAction = (
-  action: ActionConfig,
-): action is AdvancedCameraCardCustomActionConfig => {
+export const isAdvancedCameraCardCustomAction = <T extends ReadonlyDeep<ActionConfig>>(
+  action: T,
+): action is T & ReadonlyDeep<AdvancedCameraCardCustomActionConfig> => {
   return (
     isStandardAction(action) &&
     action.action === 'fire-dom-event' &&
@@ -443,7 +447,7 @@ export const isAdvancedCameraCardCustomAction = (
  * @param action The action config.
  * @returns The action's identifying name.
  */
-export const getActionName = (action: ActionConfig): string => {
+export const getActionName = (action: ReadonlyDeep<ActionConfig>): string => {
   if (isIfAction(action)) {
     return 'if';
   }

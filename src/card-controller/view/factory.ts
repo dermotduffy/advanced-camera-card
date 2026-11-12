@@ -5,12 +5,12 @@ import { resolveViewName } from '../../view/utils/resolve-default';
 import { View, type ViewParameters } from '../../view/view';
 import {
   doesViewRequireCamera,
+  getCameraIDsSupportingView,
   getCameraIDsWithCapabilityForView,
-  isViewSupportedByCamera,
 } from '../../view/view-support';
 import type { CardViewAPI } from '../types';
 import { applyViewModifiers } from './modifiers';
-import { ViewIncompatible, type ViewFactoryOptions } from './types';
+import { ViewDeferred, ViewIncompatible, type ViewFactoryOptions } from './types';
 
 interface ResolvedViewTarget {
   viewName: AdvancedCameraCardView;
@@ -60,25 +60,51 @@ export class ViewFactory {
       return options.params.camera;
     }
 
-    const cameraIDs = [
-      ...getCameraIDsWithCapabilityForView(
-        viewName,
-        this._api.getCameraManager(),
-        this._api.getFoldersManager(),
-      ),
-    ];
+    const isCycling = !!options?.baseView?.camera && config.view.default_cycle_camera;
+    const cameraIDs = this._getCandidateCameraIDs(viewName, isCycling);
 
-    if (
-      cameraIDs.length &&
-      options?.baseView?.camera &&
-      config.view.default_cycle_camera
-    ) {
+    if (cameraIDs.length && isCycling && options?.baseView?.camera) {
       const currentIndex = cameraIDs.indexOf(options.baseView.camera);
       const targetIndex = currentIndex + 1 >= cameraIDs.length ? 0 : currentIndex + 1;
       return cameraIDs[targetIndex];
     }
 
     return cameraIDs[0] ?? null;
+  }
+
+  // Deterministic: config order, not initialization order. When `all` is
+  // false, stops at the first camera that can serve the view.
+  private _getCandidateCameraIDs(
+    viewName: AdvancedCameraCardView,
+    all: boolean,
+  ): string[] {
+    const cameraManager = this._api.getCameraManager();
+    const candidateCameraIDs: string[] = [];
+
+    for (const cameraID of cameraManager.getStore().getCameraIDs()) {
+      const candidates = getCameraIDsSupportingView(
+        viewName,
+        cameraManager,
+        this._api.getFoldersManager(),
+        cameraID,
+      );
+
+      if (candidates === null) {
+        throw new ViewDeferred({ view: viewName });
+      }
+
+      if (!candidates.size) {
+        continue;
+      }
+
+      candidateCameraIDs.push(...candidates);
+
+      if (!all) {
+        break;
+      }
+    }
+
+    return candidateCameraIDs;
   }
 
   public getViewByParameters(options?: ViewFactoryOptions): View | null {
@@ -157,16 +183,22 @@ export class ViewFactory {
       return this._handleNoCameraForView(viewName, config, options);
     }
 
-    if (
-      cameraID &&
-      !isViewSupportedByCamera(
+    if (cameraID) {
+      const supported = getCameraIDsSupportingView(
         viewName,
         this._api.getCameraManager(),
         this._api.getFoldersManager(),
         cameraID,
-      )
-    ) {
-      return this._handleUnsupportedView(viewName, cameraID, config, options);
+      );
+      if (!supported?.size) {
+        return this._handleUnsupportedView(
+          viewName,
+          cameraID,
+          config,
+          options,
+          supported,
+        );
+      }
     }
 
     return { viewName, cameraID };
@@ -199,16 +231,24 @@ export class ViewFactory {
     cameraID: string,
     config: AdvancedCameraCardConfig,
     options?: ViewFactoryOptions,
+    supported?: Set<string> | null,
   ): ResolvedViewTarget {
+    if (supported === null) {
+      throw new ViewDeferred({ camera: cameraID, view: viewName });
+    }
+
     const defaultViewName = this._getDefaultViewName(config);
     if (
       options?.failSafe &&
-      isViewSupportedByCamera(
+      /* v8 ignore next: getCameraIDsSupportingView returns null only while a camera is
+      initializing, and _ensureViewCompatibility defers before this path is reached in that
+      case -- @preserve */
+      !!getCameraIDsSupportingView(
         defaultViewName,
         this._api.getCameraManager(),
         this._api.getFoldersManager(),
         cameraID,
-      )
+      )?.size
     ) {
       return { viewName: defaultViewName, cameraID };
     }

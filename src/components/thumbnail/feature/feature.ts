@@ -9,7 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import type { CameraManager } from '../../../camera-manager/manager';
+import type { CameraManagerEpoch } from '../../../camera-manager/lifecycle';
 import type { ViewItemManager } from '../../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../../card-controller/view/types';
 import { getMediaSeverity, isMediaReviewed } from '../../../components-lib/media/format';
@@ -30,7 +30,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
@@ -71,9 +71,9 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
   private _controller = new ThumbnailFeatureController();
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    if (['item', 'cameraManager'].some((prop) => changedProperties.has(prop))) {
+    if (['item', 'cameraManagerEpoch'].some((prop) => changedProperties.has(prop))) {
       this._controller.calculate({
-        cameraManager: this.cameraManager,
+        cameraManager: this.cameraManagerEpoch?.manager,
         item: this.item,
       });
     }
@@ -130,7 +130,6 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       </div>
       <advanced-camera-card-thumbnail-controls
         .hass=${this.hass}
-        .cameraManager=${this.cameraManager}
         .viewItemManager=${this.viewItemManager}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .item=${this.item}

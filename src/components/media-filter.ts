@@ -11,7 +11,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import type { CameraManager } from '../camera-manager/manager';
+import type { CameraManagerEpoch } from '../camera-manager/lifecycle';
 import type { FoldersManager } from '../card-controller/folders/manager';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
 import {
@@ -36,7 +36,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -71,36 +71,38 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
       this._mediaFilterController.setViewManager(this.viewManagerEpoch?.manager ?? null);
     }
 
+    const cameraManager = this.cameraManagerEpoch?.manager;
     if (
-      (changedProps.has('cameraManager') || changedProps.has('foldersManager')) &&
-      this.cameraManager &&
+      (changedProps.has('cameraManagerEpoch') || changedProps.has('foldersManager')) &&
+      cameraManager &&
       this.foldersManager
     ) {
       this._mediaFilterController.computeCameraOptions(
-        this.cameraManager,
+        cameraManager,
         this.foldersManager,
       );
-      void this._mediaFilterController.computeMetadataOptions(this.cameraManager);
+      void this._mediaFilterController.computeMetadataOptions(cameraManager);
     }
 
     // The first time the viewManager is set, compute the initial default selections.
     if (
       (!changedProps.get('viewManager') || changedProps.has('foldersManager')) &&
       this.viewManagerEpoch &&
-      this.cameraManager &&
+      cameraManager &&
       this.foldersManager
     ) {
       this._mediaFilterController.computeInitialDefaultsFromView(
-        this.cameraManager,
+        cameraManager,
         this.foldersManager,
       );
     }
   }
 
   protected render(): TemplateResult | void {
+    const cameraManager = this.cameraManagerEpoch?.manager;
     const valueChange = async () => {
       if (
-        !this.cameraManager ||
+        !cameraManager ||
         !this.foldersManager ||
         !this.viewManagerEpoch ||
         !this.cardWideConfig
@@ -108,7 +110,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
         return;
       }
       await this._mediaFilterController.valueChangeHandler(
-        this.cameraManager,
+        cameraManager,
         this.foldersManager,
         this.cardWideConfig,
         {
@@ -145,7 +147,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
       await valueChange();
     };
 
-    if (!this.cameraManager || !this.viewManagerEpoch) {
+    if (!cameraManager || !this.viewManagerEpoch) {
       return;
     }
 

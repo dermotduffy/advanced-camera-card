@@ -8,6 +8,7 @@ import type {
   HassServiceTarget,
   MessageBase,
 } from 'home-assistant-js-websocket';
+import type { ReadonlyDeep } from 'type-fest';
 import { z } from 'zod';
 
 declare global {
@@ -135,8 +136,8 @@ export interface HomeAssistant {
   callService: (
     domain: ServiceCallRequest['domain'],
     service: ServiceCallRequest['service'],
-    serviceData?: ServiceCallRequest['serviceData'],
-    target?: ServiceCallRequest['target'],
+    serviceData?: ReadonlyDeep<ServiceCallRequest['serviceData']>,
+    target?: ReadonlyDeep<ServiceCallRequest['target']>,
   ) => Promise<void>;
   callApi: <T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',

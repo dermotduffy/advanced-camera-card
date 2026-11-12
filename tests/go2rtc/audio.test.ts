@@ -28,14 +28,15 @@ describe('supports2WayAudio', () => {
     expect(await supports2WayAudio(hass, 2, null)).toBe(false);
   });
 
-  it('should return false if fetch fails', async () => {
+  it('should return null if fetch fails', async () => {
     vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
     vi.mocked(homeAssistantSignAndFetch).mockRejectedValue(new Error('fetch error'));
 
     const spy = vi.spyOn(console, 'warn');
     const result = await supports2WayAudio(hass, 2, endpoint);
 
-    expect(result).toBe(false);
+    // The metadata could not be read, so support is unknown rather than absent.
+    expect(result).toBeNull();
     expect(spy).toHaveBeenCalledWith('fetch error');
     spy.mockRestore();
   });
@@ -127,10 +128,10 @@ describe('supports2WayAudio', () => {
     expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
   });
 
-  it('should return false if proxied endpoint is null', async () => {
+  it('should return null if proxied endpoint is null', async () => {
     vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(null);
 
-    expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+    expect(await supports2WayAudio(hass, 2, endpoint)).toBeNull();
   });
 
   describe('should cache answers', () => {
@@ -201,14 +202,14 @@ describe('supports2WayAudio', () => {
 
       const spy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
-      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
-      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBeNull();
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBeNull();
 
       expect(homeAssistantSignAndFetch).toHaveBeenCalledTimes(2);
       spy.mockRestore();
     });
 
-    it('should return false to simultaneous callers when the fetch fails', async () => {
+    it('should return null to simultaneous callers when the fetch fails', async () => {
       vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
       vi.mocked(homeAssistantSignAndFetch).mockRejectedValue(new Error('fetch error'));
 
@@ -219,7 +220,7 @@ describe('supports2WayAudio', () => {
           supports2WayAudio(hass, 2, endpoint),
           supports2WayAudio(hass, 2, endpoint),
         ]),
-      ).toEqual([false, false]);
+      ).toEqual([null, null]);
 
       expect(homeAssistantSignAndFetch).toHaveBeenCalledTimes(1);
       spy.mockRestore();
@@ -228,8 +229,8 @@ describe('supports2WayAudio', () => {
     it('should not reuse an unavailable proxied endpoint', async () => {
       vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(null);
 
-      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
-      expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBeNull();
+      expect(await supports2WayAudio(hass, 2, endpoint)).toBeNull();
 
       expect(createProxiedEndpointIfNecessary).toHaveBeenCalledTimes(2);
     });

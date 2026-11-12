@@ -120,18 +120,32 @@ export const getCameraIDsWithCapabilityForView = (
     : cameraManager.getStore().getCameraIDsWithCapability(capability, options);
 };
 
-export const isViewSupportedByCamera = (
+const isAnyCameraInitializing = (
+  cameraManager: CameraManager,
+  cameraID: string,
+): boolean =>
+  [...cameraManager.getStore().getAllDependentCameras(cameraID)].some((dependentID) =>
+    cameraManager.isCameraInitializing(dependentID),
+  );
+
+// Returns the camera IDs that can serve the view (including dependencies), or
+// null if unknown.
+export const getCameraIDsSupportingView = (
   view: AdvancedCameraCardView,
   cameraManager: CameraManager,
   foldersManager: FoldersManager,
   cameraID: string,
-): boolean => {
-  return !!getCameraIDsWithCapabilityForView(
+): Set<string> | null => {
+  const cameraIDs = getCameraIDsWithCapabilityForView(
     view,
     cameraManager,
     foldersManager,
     cameraID,
-  )?.size;
+  );
+  if (cameraIDs.size) {
+    return cameraIDs;
+  }
+  return isAnyCameraInitializing(cameraManager, cameraID) ? null : new Set();
 };
 
 export const isViewSupported = (
@@ -142,7 +156,9 @@ export const isViewSupported = (
 ): boolean => {
   return (
     isViewAvailable(viewName, cameraManager, foldersManager) &&
+    // Unknown support is treated as unsupported until it can be determined.
     (!cameraID ||
-      isViewSupportedByCamera(viewName, cameraManager, foldersManager, cameraID))
+      (getCameraIDsSupportingView(viewName, cameraManager, foldersManager, cameraID)
+        ?.size ?? 0) > 0)
   );
 };

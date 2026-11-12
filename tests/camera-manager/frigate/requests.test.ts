@@ -43,9 +43,12 @@ describe('frigate requests', () => {
     hass.config.time_zone = 'Europe/Dublin';
 
     vi.mocked(homeAssistantWSRequest).mockResolvedValue(recordingSummary);
-    expect(await getRecordingsSummary(hass, 'clientID', 'camera.office')).toBe(
-      recordingSummary,
-    );
+    expect(
+      await getRecordingsSummary(hass, {
+        clientID: 'clientID',
+        cameraName: 'camera.office',
+      }),
+    ).toBe(recordingSummary);
     expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       recordingSummarySchema,
@@ -215,7 +218,9 @@ describe('frigate requests', () => {
     ];
     const hass = createHASS();
     vi.mocked(homeAssistantWSRequest).mockResolvedValue(ptzInfo);
-    expect(await getPTZInfo(hass, 'clientID', 'camera.office')).toBe(ptzInfo);
+    expect(
+      await getPTZInfo(hass, { clientID: 'clientID', cameraName: 'camera.office' }),
+    ).toBe(ptzInfo);
     expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       ptzInfoSchema,

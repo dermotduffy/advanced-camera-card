@@ -1,3 +1,4 @@
+import type { ReadonlyDeep } from 'type-fest';
 import { assert, describe, expect, it, vi } from 'vitest';
 
 import { AutomationsManager } from '../../../src/card-controller/automations-manager';
@@ -24,7 +25,9 @@ import { createConfig } from '../../config/test-utils';
 import { createCardAPI, createHASS, createStateEntity } from '../../test-utils';
 import { createView } from '../../view/test-utils';
 
-const isGeneratedAction = (action: ActionConfig): action is GeneratedActionConfig =>
+const isGeneratedAction = <T extends ReadonlyDeep<ActionConfig>>(
+  action: T,
+): action is T & ReadonlyDeep<GeneratedActionConfig> =>
   'advanced_camera_card_action' in action &&
   action.advanced_camera_card_action === GENERATED_ACTION;
 

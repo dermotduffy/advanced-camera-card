@@ -98,24 +98,21 @@ describe('ReolinkCamera', () => {
     describe('should detect channel', () => {
       it('without a camera_entity', async () => {
         const config = createCameraConfig();
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
+          hassManager: createHASSManager(),
+          entityRegistryManager: mock<EntityRegistryManagerLive>(),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+        });
 
-        expect(
-          async () =>
-            await camera.initialize({
-              hassManager: createHASSManager(),
-              entityRegistryManager: mock<EntityRegistryManagerLive>(),
-              deviceRegistryManager: mock<DeviceRegistryManager>(),
-            }),
-        ).rejects.toThrow('Could not find camera entity');
+        await expect(camera.initialize()).rejects.toThrow(
+          'Could not find camera entity',
+        );
       });
 
       it('without a unique_id', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
         const entityRegistryManager = new EntityRegistryManagerMock([
           createRegistryEntity({
             entity_id: 'camera.office_reolink',
@@ -123,21 +120,21 @@ describe('ReolinkCamera', () => {
           }),
         ]);
 
-        expect(
-          async () =>
-            await camera.initialize({
-              hassManager: createHASSManager(),
-              entityRegistryManager,
-              deviceRegistryManager: mock<DeviceRegistryManager>(),
-            }),
-        ).rejects.toThrow('Could not initialize Reolink camera');
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
+          hassManager: createHASSManager(),
+          entityRegistryManager,
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+        });
+
+        await expect(camera.initialize()).rejects.toThrow(
+          'Could not initialize Reolink camera',
+        );
       });
 
       it('without a valid unique_id', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
         const entityRegistryManager = new EntityRegistryManagerMock([
           createRegistryEntity({
             entity_id: 'camera.office_reolink',
@@ -145,38 +142,38 @@ describe('ReolinkCamera', () => {
             platform: 'reolink',
           }),
         ]);
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
+          hassManager: createHASSManager(),
+          entityRegistryManager,
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+        });
 
-        expect(
-          async () =>
-            await camera.initialize({
-              hassManager: createHASSManager(),
-              entityRegistryManager,
-              deviceRegistryManager: mock<DeviceRegistryManager>(),
-            }),
-        ).rejects.toThrow('Could not initialize Reolink camera');
+        await expect(camera.initialize()).rejects.toThrow(
+          'Could not initialize Reolink camera',
+        );
       });
 
       it('successfully with a directly connected camera', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
         const entityRegistryManager = new EntityRegistryManagerMock([cameraEntity]);
 
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
 
-        expect(camera.getChannel()).toBe(0);
+        await camera.initialize();
+
+        expect(camera.getIdentity()?.channel).toBe(0);
       });
 
       it('successfully with an NVR-connected camera with channel in configuration_url', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
         const entityRegistryManager = new EntityRegistryManagerMock([
           createRegistryEntity({
             entity_id: 'camera.office_reolink',
@@ -194,20 +191,21 @@ describe('ReolinkCamera', () => {
           model: 'RLN8-410',
         });
 
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager,
           deviceRegistryManager,
         });
 
-        expect(camera.getChannel()).toBe(3);
+        await camera.initialize();
+
+        expect(camera.getIdentity()?.channel).toBe(3);
       });
 
       it('successfully with hyphenated host id', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
         const entityRegistryManager = new EntityRegistryManagerMock([
           createRegistryEntity({
             entity_id: 'camera.office_reolink',
@@ -216,20 +214,21 @@ describe('ReolinkCamera', () => {
           }),
         ]);
 
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
 
-        expect(camera.getChannel()).toBe(7);
+        await camera.initialize();
+
+        expect(camera.getIdentity()?.channel).toBe(7);
       });
 
       it('successfully with a default fallback channel', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
         const entityRegistryManager = new EntityRegistryManagerMock([
           createRegistryEntity({
             entity_id: 'camera.office_reolink',
@@ -238,20 +237,21 @@ describe('ReolinkCamera', () => {
           }),
         ]);
 
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
 
-        expect(camera.getChannel()).toBe(0);
+        await camera.initialize();
+
+        expect(camera.getIdentity()?.channel).toBe(0);
       });
 
       it('successfully with colon in host id', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
         const entityRegistryManager = new EntityRegistryManagerMock([
           createRegistryEntity({
             entity_id: 'camera.office_reolink',
@@ -260,13 +260,15 @@ describe('ReolinkCamera', () => {
           }),
         ]);
 
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
 
-        expect(camera.getChannel()).toBe(7);
+        await camera.initialize();
+
+        expect(camera.getIdentity()?.channel).toBe(7);
       });
 
       describe('should detect channel from configuration URL', () => {
@@ -274,7 +276,6 @@ describe('ReolinkCamera', () => {
           const config = createCameraConfig({
             camera_entity: 'camera.office_reolink',
           });
-          const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
           const entityRegistryManager = new EntityRegistryManagerMock([
             createRegistryEntity({
               entity_id: 'camera.office_reolink',
@@ -284,20 +285,21 @@ describe('ReolinkCamera', () => {
             }),
           ]);
 
-          await camera.initialize({
+          const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
             hassManager: createHASSManager(),
             entityRegistryManager,
             deviceRegistryManager: mock<DeviceRegistryManager>(),
           });
 
-          expect(camera.getChannel()).toBe(0);
+          await camera.initialize();
+
+          expect(camera.getIdentity()?.channel).toBe(0);
         });
 
         it('should return null if device has no configuration_url', async () => {
           const config = createCameraConfig({
             camera_entity: 'camera.office_reolink',
           });
-          const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
           const entityRegistryManager = new EntityRegistryManagerMock([
             createRegistryEntity({
               entity_id: 'camera.office_reolink',
@@ -315,20 +317,21 @@ describe('ReolinkCamera', () => {
             model: 'RLN8-410',
           });
 
-          await camera.initialize({
+          const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
             hassManager: createHASSManager(),
             entityRegistryManager,
             deviceRegistryManager,
           });
 
-          expect(camera.getChannel()).toBe(0);
+          await camera.initialize();
+
+          expect(camera.getIdentity()?.channel).toBe(0);
         });
 
         it('should return null if configuration_url is invalid', async () => {
           const config = createCameraConfig({
             camera_entity: 'camera.office_reolink',
           });
-          const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
           const entityRegistryManager = new EntityRegistryManagerMock([
             createRegistryEntity({
               entity_id: 'camera.office_reolink',
@@ -346,20 +349,21 @@ describe('ReolinkCamera', () => {
             model: 'RLN8-410',
           });
 
-          await camera.initialize({
+          const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
             hassManager: createHASSManager(),
             entityRegistryManager,
             deviceRegistryManager,
           });
 
-          expect(camera.getChannel()).toBe(0);
+          await camera.initialize();
+
+          expect(camera.getIdentity()?.channel).toBe(0);
         });
 
         it('should return null if ch parameter is not a number', async () => {
           const config = createCameraConfig({
             camera_entity: 'camera.office_reolink',
           });
-          const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
           const entityRegistryManager = new EntityRegistryManagerMock([
             createRegistryEntity({
               entity_id: 'camera.office_reolink',
@@ -377,13 +381,15 @@ describe('ReolinkCamera', () => {
             model: 'RLN8-410',
           });
 
-          await camera.initialize({
+          const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
             hassManager: createHASSManager(),
             entityRegistryManager,
             deviceRegistryManager,
           });
 
-          expect(camera.getChannel()).toBe(0);
+          await camera.initialize();
+
+          expect(camera.getIdentity()?.channel).toBe(0);
         });
       });
     });
@@ -393,13 +399,13 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: ['continuous'],
@@ -415,9 +421,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             createRegistryEntity({
@@ -439,6 +443,8 @@ describe('ReolinkCamera', () => {
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
 
+        await camera.initialize();
+
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           zoomIn: ['continuous'],
           zoomOut: ['continuous'],
@@ -449,9 +455,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager({
             hass: createHASS({
               'select.office_reolink_ptz_preset': createStateEntity({
@@ -465,6 +469,8 @@ describe('ReolinkCamera', () => {
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: ['continuous'],
@@ -490,13 +496,13 @@ describe('ReolinkCamera', () => {
             },
           },
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: ['relative'],
@@ -521,9 +527,7 @@ describe('ReolinkCamera', () => {
             },
           },
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager({
             hass: createHASS({
               'select.office_reolink_ptz_preset': createStateEntity({
@@ -538,6 +542,8 @@ describe('ReolinkCamera', () => {
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
 
+        await camera.initialize();
+
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: ['continuous'],
           right: ['continuous'],
@@ -548,6 +554,22 @@ describe('ReolinkCamera', () => {
           presets: ['home', 'preset-one', 'preset-two'],
         });
       });
+    });
+  });
+
+  describe('should get provisional capabilities', () => {
+    it('should claim clips before initialization', () => {
+      const camera = new ReolinkCamera(
+        createCameraConfig(),
+        mock<CameraManagerEngine>(),
+        {
+          hassManager: createHASSManager(),
+          entityRegistryManager: mock<EntityRegistryManagerLive>(),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+        },
+      );
+
+      expect(camera.getCapabilities().has('clips')).toBe(true);
     });
   });
 
@@ -706,6 +728,11 @@ describe('ReolinkCamera', () => {
         const camera = new ReolinkCamera(
           createCameraConfig(cameraConfig),
           mock<CameraManagerEngine>(),
+          {
+            hassManager: createHASSManager(),
+            entityRegistryManager: new EntityRegistryManagerMock(),
+            deviceRegistryManager: mock<DeviceRegistryManager>(),
+          },
         );
         expect(camera.getProxyConfig()).toEqual(expectedResult);
       },
@@ -717,13 +744,13 @@ describe('ReolinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.office_reolink',
       });
-      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
         deviceRegistryManager: mock<DeviceRegistryManager>(),
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       await camera.executePTZAction(executor, 'left');
@@ -745,9 +772,7 @@ describe('ReolinkCamera', () => {
           },
         },
       });
-      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([
           cameraEntity,
@@ -755,6 +780,8 @@ describe('ReolinkCamera', () => {
         ]),
         deviceRegistryManager: mock<DeviceRegistryManager>(),
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
 
@@ -774,13 +801,13 @@ describe('ReolinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.office_reolink',
       });
-      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
         deviceRegistryManager: mock<DeviceRegistryManager>(),
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
@@ -814,13 +841,13 @@ describe('ReolinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.office_reolink',
       });
-      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
         deviceRegistryManager: mock<DeviceRegistryManager>(),
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       await camera.executePTZAction(executor, 'left');
@@ -832,9 +859,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager({
             hass: createHASS({
               'select.office_reolink_ptz_preset': createStateEntity({
@@ -848,6 +873,8 @@ describe('ReolinkCamera', () => {
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'preset', { preset: 'preset-two' });
@@ -871,13 +898,13 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'preset');
@@ -890,9 +917,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -900,6 +925,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           zoomIn: ['relative'],
@@ -911,9 +938,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -927,6 +952,8 @@ describe('ReolinkCamera', () => {
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
 
+        await camera.initialize();
+
         expect(camera.getCapabilities()?.getPTZCapabilities()).toBeNull();
       });
 
@@ -934,9 +961,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -948,6 +973,8 @@ describe('ReolinkCamera', () => {
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
 
+        await camera.initialize();
+
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           zoomIn: ['continuous'],
           zoomOut: ['continuous'],
@@ -958,9 +985,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -968,6 +993,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_in', {
@@ -995,9 +1022,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1005,6 +1030,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_out', {
@@ -1032,9 +1059,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1042,6 +1067,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_in', {
@@ -1069,9 +1096,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1079,6 +1104,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_out', {
@@ -1106,9 +1133,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1116,6 +1141,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_in', {
@@ -1134,9 +1161,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1144,6 +1169,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_in', {
@@ -1161,9 +1188,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1171,6 +1196,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_in');
@@ -1182,9 +1209,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1195,6 +1220,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_in', { phase: 'start' });
@@ -1214,9 +1241,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1225,6 +1250,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, 'zoom_in', { phase: 'start' });
@@ -1236,9 +1263,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             cameraEntity,
@@ -1246,6 +1271,8 @@ describe('ReolinkCamera', () => {
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         // Range of 5: 10% = 0.5, rounds to 1, step = max(1, 1) = 1.

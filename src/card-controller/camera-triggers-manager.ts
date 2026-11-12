@@ -27,9 +27,22 @@ interface CameraTriggerState {
   untriggerForceTimer?: Timer;
 }
 
+// The outcome of evaluating a single camera's already-on trigger entities.
+interface InitialTriggerResult {
+  // The event to fire as the startup trigger action, or null when none of the
+  // camera's triggered entities should drive one.
+  actionEvent: CameraEvent | null;
+
+  triggered: boolean;
+}
+
 export class CameraTriggersManager {
   private _api: CardCameraTriggersAPI;
   private _states: Map<string, CameraTriggerState> = new Map();
+
+  // Ready cameras whose already-on trigger entities have not been evaluated
+  // yet.
+  private _camerasPendingEvaluation = new Set<string>();
 
   private _throttledTriggerAction = throttle(this._triggerAction.bind(this), 1000, {
     trailing: true,
@@ -61,48 +74,93 @@ export class CameraTriggersManager {
     return mostRecent?.[0] ?? null;
   }
 
-  public handleInitialCameraTriggers = async (): Promise<boolean> => {
-    const hass = this._api.getHASSManager().getHASS();
+  /**
+   * Evaluate the cameras that became ready too early to be evaluated then. Run
+   * as the initial-trigger initialization aspect, which follows the view being
+   * set.
+   */
+  public handleInitialTriggers = async (): Promise<boolean> => {
     let triggered = false;
-    let startupActionEvent: CameraEvent | null = null;
-    this.reset();
 
-    for (const [cameraID, camera] of this._api
-      .getCameraManager()
-      .getStore()
-      .getCameras()) {
-      // A camera without the trigger capability never subscribes to its
-      // configured trigger entities, so its already-on entities must not
-      // synthesize a trigger here either.
-      if (!camera.getCapabilities()?.has('trigger')) {
-        continue;
-      }
-
-      for (const entityID of camera.getConfig().triggers.entities) {
-        if (isTriggeredState(hass?.states[entityID]?.state)) {
-          triggered = true;
-          const event: CameraEvent = {
-            cameraID,
-            id: entityID,
-            type: 'new',
-          };
-          if (
-            await this.handleCameraEvent(event, {
-              skipAction: true,
-            })
-          ) {
-            startupActionEvent ??= event;
-          }
-        }
-      }
-    }
-
-    if (startupActionEvent) {
-      await this._throttledTriggerAction(startupActionEvent);
+    // Each evaluation awaits, during which another camera can become ready and
+    // be added. Loop until none is left rather than iterating a snapshot.
+    while (this._camerasPendingEvaluation.size) {
+      const [cameraID] = this._camerasPendingEvaluation;
+      this._camerasPendingEvaluation.delete(cameraID);
+      triggered = (await this._evaluateReadyCamera(cameraID)) || triggered;
     }
 
     return triggered;
   };
+
+  /**
+   * Handle a single camera reaching the ready state.
+   */
+  public handleCameraLifecycleChange = async (cameraID: string): Promise<boolean> => {
+    // `handleCameraEvent` drops an event while no camera is selected (i.e.
+    // before the card has initialized) since it needs to respect
+    // `filter_selected_camera`. Evaluating now would silently lose this
+    // camera's already-on entities, so leave it for `handleInitialTriggers`
+    // which is run after the view exists.
+    if (!this._api.getViewManager().hasView()) {
+      this._camerasPendingEvaluation.add(cameraID);
+      return false;
+    }
+
+    return await this._evaluateReadyCamera(cameraID);
+  };
+
+  // Evaluate a ready camera's trigger entities, firing its trigger action if
+  // necessary.
+  private async _evaluateReadyCamera(cameraID: string): Promise<boolean> {
+    const result = await this._getInitialTriggersForCamera(cameraID);
+    if (result.actionEvent) {
+      await this._throttledTriggerAction(result.actionEvent);
+    }
+    return result.triggered;
+  }
+
+  private async _getInitialTriggersForCamera(
+    cameraID: string,
+  ): Promise<InitialTriggerResult> {
+    const cameraManager = this._api.getCameraManager();
+    const camera = cameraManager.getStore().getCamera(cameraID);
+
+    // A camera that has not finished initializing has not subscribed to its
+    // trigger entities, so its already-on entities must not synthesize a
+    // trigger (yet).
+    if (!camera || !cameraManager.isCameraReady(cameraID)) {
+      return { actionEvent: null, triggered: false };
+    }
+
+    if (!camera.getCapabilities().has('trigger')) {
+      return { actionEvent: null, triggered: false };
+    }
+
+    const hass = this._api.getHASSManager().getHASS();
+    let triggered = false;
+    let actionEvent: CameraEvent | null = null;
+
+    for (const entityID of camera.getTriggerEntities()) {
+      if (isTriggeredState(hass?.states[entityID]?.state)) {
+        triggered = true;
+        const event: CameraEvent = {
+          cameraID,
+          id: entityID,
+          type: 'new',
+        };
+        if (
+          await this.handleCameraEvent(event, {
+            skipAction: true,
+          })
+        ) {
+          actionEvent ??= event;
+        }
+      }
+    }
+
+    return { actionEvent, triggered };
+  }
 
   // Returns true if the event was accepted into trigger state processing.
   // Returns false if it was ignored (e.g. missing config/view or camera filter
@@ -454,6 +512,7 @@ export class CameraTriggersManager {
     this._throttledTriggerAction.cancel();
     this._stopAllTimers();
     this._states.clear();
+    this._camerasPendingEvaluation.clear();
     this._setConditionStateIfNecessary();
   }
 

@@ -21,7 +21,7 @@ describe('UnifiedQuery', () => {
 
     it('should construct with initial nodes', () => {
       const nodes = [createEventQuery('front')];
-      const query = new UnifiedQuery(nodes);
+      const query = new UnifiedQuery({ nodes: nodes });
       expect(query.hasNodes()).toBe(true);
     });
 

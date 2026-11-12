@@ -42,7 +42,7 @@ import {
   type QueryResults,
   type QueryReturnType,
 } from '../types';
-import { ReolinkCamera } from './camera';
+import { isReolinkCamera, ReolinkCamera } from './camera';
 import type {
   BrowseMediaReolinkCameraMetadata,
   ReolinkEventQueryResults,
@@ -168,15 +168,17 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       : null;
   }
 
-  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
-    const camera = new ReolinkCamera(cameraConfig, this, {
-      eventCallback: this._eventCallback,
-    });
-    return await camera.initialize({
-      hassManager: this._hassManager,
-      entityRegistryManager: this._entityRegistryManager,
-      deviceRegistryManager: this._deviceRegistryManager,
-    });
+  public createCamera(cameraConfig: CameraConfig): Camera {
+    return new ReolinkCamera(
+      cameraConfig,
+      this,
+      {
+        hassManager: this._hassManager,
+        entityRegistryManager: this._entityRegistryManager,
+        deviceRegistryManager: this._deviceRegistryManager,
+      },
+      { eventCallback: this._eventCallback },
+    );
   }
 
   private async _getMatchingDirectories(
@@ -192,7 +194,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     const entity = camera.getEntity();
     const configID = entity?.config_entry_id;
 
-    if (camera.getChannel() === null || !configID) {
+    const identity = camera.getIdentity();
+    if (!identity || !configID) {
       return null;
     }
 
@@ -211,7 +214,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
             _parent?: RichBrowseMedia<BrowseMediaReolinkCameraMetadata>,
           ) => this._reolinkCameraMetadataGenerator(media),
           matcher: (media: RichBrowseMedia<BrowseMediaReolinkCameraMetadata>): boolean =>
-            media._metadata?.channel === camera.getChannel() &&
+            media._metadata?.channel === identity.channel &&
             media._metadata?.configEntryID === configID,
         },
       ],
@@ -229,7 +232,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       [
         {
           targets: [
-            `media-source://reolink/RES|${configID}|${camera.getChannel()}|` +
+            `media-source://reolink/RES|${configID}|${identity.channel}|` +
               `${cameraConfig.reolink?.media_resolution === 'low' ? 'sub' : 'main'}`,
           ],
           metadataGenerator: (
@@ -271,15 +274,9 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       }
 
       const camera = store.getCamera(cameraID);
-      const directories =
-        camera && camera instanceof ReolinkCamera
-          ? await this._getMatchingDirectories(
-              hass,
-              camera,
-              perCameraQuery,
-              engineOptions,
-            )
-          : null;
+      const directories = isReolinkCamera(camera)
+        ? await this._getMatchingDirectories(hass, camera, perCameraQuery, engineOptions)
+        : null;
       const limit = perCameraQuery.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT;
       let media: RichBrowseMedia<BrowseMediaMetadata>[] = [];
 
@@ -365,7 +362,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     const days: Set<string> = new Set();
     const getDaysForCamera = async (cameraID: string): Promise<void> => {
       const camera = store.getCamera(cameraID);
-      if (!camera || !(camera instanceof ReolinkCamera)) {
+      if (!isReolinkCamera(camera)) {
         return;
       }
       const directories = await this._getMatchingDirectories(
@@ -404,10 +401,10 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
 
   public getCameraMetadata(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
   ): CameraManagerCameraMetadata {
     return {
-      ...super.getCameraMetadata(hass, cameraConfig),
+      ...super.getCameraMetadata(hass, camera),
       engineIcon: 'reolink',
     };
   }

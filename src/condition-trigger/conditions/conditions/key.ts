@@ -1,11 +1,13 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { KeyBase } from '../../../config/schema/condition-trigger/common/key';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator } from './types';
 
 export class KeyConditionEvaluator implements ConditionEvaluator {
-  private _condition: KeyBase;
+  private _condition: ReadonlyDeep<KeyBase>;
 
-  constructor(condition: KeyBase) {
+  constructor(condition: ReadonlyDeep<KeyBase>) {
     this._condition = condition;
   }
 

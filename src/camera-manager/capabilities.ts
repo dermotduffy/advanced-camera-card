@@ -12,8 +12,8 @@ export class Capabilities {
   constructor(
     capabilities: CapabilitiesRaw,
     options?: {
-      disable?: CapabilityKey[];
-      disableExcept?: CapabilityKey[];
+      disable?: readonly CapabilityKey[];
+      disableExcept?: readonly CapabilityKey[];
     },
   ) {
     this._capabilities = capabilities;

@@ -1,8 +1,12 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { StatusBarActionConfig } from '../../../config/schema/actions/types';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class StatusBarAction extends AdvancedCameraCardAction<StatusBarActionConfig> {
+export class StatusBarAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<StatusBarActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

@@ -1,9 +1,6 @@
-import type { HomeAssistant } from '../../ha/types';
 import type { CapabilitiesRaw, Endpoint } from '../../types';
-import type { CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
 import type { CameraEndpointsContext, CameraProxyConfig } from '../types';
-import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 export class MotionEyeCamera extends EntityCamera {
   public getProxyConfig(): CameraProxyConfig {
@@ -20,17 +17,11 @@ export class MotionEyeCamera extends EntityCamera {
     return this._config.motioneye?.url ? { endpoint: this._config.motioneye.url } : null;
   }
 
-  protected async _getRawCapabilities(
-    hass: HomeAssistant,
-    options: CameraInitializationOptions,
-  ): Promise<CapabilitiesRaw> {
-    const ptz = getPTZCapabilitiesFromCameraConfig(this.getConfig());
-
+  protected override _deriveConfiguredCapabilities(): CapabilitiesRaw {
     return {
-      ...(await super._getRawCapabilities(hass, options)),
+      ...super._deriveConfiguredCapabilities(),
       clips: true,
       snapshots: true,
-      ...(ptz && { ptz }),
     };
   }
 }

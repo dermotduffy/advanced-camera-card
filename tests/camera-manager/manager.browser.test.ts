@@ -30,9 +30,9 @@ const createSubscribingCameraConfig = (
 });
 
 describe('CameraManager', () => {
-  it('should release the subscriptions of cameras that initialized before initialization failed', async () => {
-    // Duplicate identifiers are rejected only after every camera has been
-    // built, so both cameras are live and subscribed when the failure happens.
+  it('should never open a subscription when initialization fails', async () => {
+    // Duplicate identifiers fail the camera build while every camera is still
+    // uninitialized, so no subscription is ever registered for either camera.
     const DUPLICATE_ID = 'duplicate';
 
     const card = await MountedCardFactory.createFromSource(
@@ -52,9 +52,7 @@ describe('CameraManager', () => {
       expect(getBlockNotificationText(card.card)).toContain(INIT_FAILED_ISSUE_HEADING),
     );
 
-    // Both cameras are unreachable once initialization has failed, so nothing
-    // else could ever release what they subscribed to.
-    await vi.waitFor(() => expect(card.getOpenEventSubscriptionCount()).toBe(0));
+    expect(card.getOpenEventSubscriptionCount()).toBe(0);
 
     card.destroy();
   });

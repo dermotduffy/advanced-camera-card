@@ -93,6 +93,12 @@ export class ViewQueryExecutor {
         return [];
       }
 
+      // _executeNewQuery derives queries from the view type, not from user
+      // actions (e.g. filtering), so every query through this closure is
+      // default-derived (consequences: eligible for rebuild should cameras gain
+      // capabilities post initial-initialization).
+      query.setOrigin('default');
+
       const items = await runner.execute(query, {
         useCache: queryExecutorOptions?.useCache,
       });

@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { Condition } from '../../config/schema/condition-trigger/conditions/types';
 import type { Trigger } from '../../config/schema/condition-trigger/triggers/types';
 import { AndConditionEvaluator } from './conditions/and';
@@ -24,7 +26,7 @@ import { UserAgentConditionEvaluator } from './conditions/user-agent';
 import { ViewConditionEvaluator } from './conditions/view';
 
 export const createConditionEvaluator = (
-  condition: Condition,
+  condition: ReadonlyDeep<Condition>,
   context: EvaluatorContext,
 ): ConditionEvaluator => {
   switch (condition.condition) {

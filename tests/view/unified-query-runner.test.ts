@@ -136,7 +136,7 @@ describe('UnifiedQueryRunner', () => {
         mock<ConditionStateManagerReadonlyInterface>(),
       );
 
-      const query = new UnifiedQuery([createEventQuery('camera1')]);
+      const query = new UnifiedQuery({ nodes: [createEventQuery('camera1')] });
       expect(runner.areResultsFresh(new Date(), query)).toBe(false);
     });
 
@@ -150,7 +150,7 @@ describe('UnifiedQueryRunner', () => {
         mock<ConditionStateManagerReadonlyInterface>(),
       );
 
-      const query = new UnifiedQuery([createFolderQuery('f1')]);
+      const query = new UnifiedQuery({ nodes: [createFolderQuery('f1')] });
       expect(runner.areResultsFresh(new Date(), query)).toBe(false);
     });
   });
@@ -200,7 +200,7 @@ describe('UnifiedQueryRunner', () => {
         mock<ConditionStateManagerReadonlyInterface>(),
       );
 
-      const query = new UnifiedQuery([createFolderQuery('f1')]);
+      const query = new UnifiedQuery({ nodes: [createFolderQuery('f1')] });
       const result = await runner.extend(query, [], 'earlier');
 
       expect(result).toBeNull();
@@ -216,7 +216,7 @@ describe('UnifiedQueryRunner', () => {
         mock<ConditionStateManagerReadonlyInterface>(),
       );
 
-      const query = new UnifiedQuery([createEventQuery('camera1')]);
+      const query = new UnifiedQuery({ nodes: [createEventQuery('camera1')] });
       const result = await runner.extend(query, [], 'earlier');
 
       expect(result).toBeNull();

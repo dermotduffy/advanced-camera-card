@@ -1,9 +1,13 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { MoreInfoActionConfig } from '../../../config/schema/actions/stock/more-info';
 import { fireHASSEvent } from '../../../ha/fire-hass-event';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class MoreInfoAction extends AdvancedCameraCardAction<MoreInfoActionConfig> {
+export class MoreInfoAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<MoreInfoActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

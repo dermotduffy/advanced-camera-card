@@ -9,8 +9,9 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
+import type { ReadonlyDeep } from 'type-fest';
 
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import { QueryType } from '../../camera-manager/types.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
@@ -71,7 +72,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -111,7 +112,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       };
     }
     const cameraID = this.media?.getCameraID();
-    const camera = cameraID ? this.cameraManager?.getStore().getCamera(cameraID) : null;
+    const camera = cameraID
+      ? this.cameraManagerEpoch?.manager.getStore().getCamera(cameraID)
+      : null;
     return {
       hass: this.hass,
       endpoint: { endpoint: resolvedMedia.url },
@@ -147,7 +150,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     if (
       !this.hass ||
       !view ||
-      !this.cameraManager ||
+      !this.cameraManagerEpoch ||
       !this.media ||
       // If this specific media item has no clip, then do nothing (even if all
       // the other media items do).
@@ -195,10 +198,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     return classifyMimeType(this._resolvedMediaController.getValue()?.mime_type);
   }
 
-  private _getRelevantCameraConfig(): CameraConfig | null {
+  private _getRelevantCameraConfig(): ReadonlyDeep<CameraConfig> | null {
     const cameraID = this.media?.getCameraID();
     return cameraID
-      ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null
+      ? this.cameraManagerEpoch?.manager.getStore().getCameraConfig(cameraID) ?? null
       : null;
   }
 
@@ -209,7 +212,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     const cameraID = this.media.getCameraID();
     const mediaID = this.media.getID() ?? undefined;
     const cameraConfig = cameraID
-      ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null
+      ? this.cameraManagerEpoch?.manager.getStore().getCameraConfig(cameraID) ?? null
       : null;
     const view = this.viewManagerEpoch?.manager.getView();
 

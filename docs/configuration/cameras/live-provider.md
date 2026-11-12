@@ -43,8 +43,11 @@ cameras:
 > home](../../troubleshooting.md?id=go2rtc-webrtc-fails-away-from-home).
 
 > [!TIP]
-> If you are certain your camera hardware supports 2-way audio but the
-> microphone button is intermittently missing on load, try increasing
+> The call button appears once the metadata fetch above has answered, so it may
+> arrive a moment after the rest of the camera appears loaded. If the fetch does
+> not respond, the card reports the camera as partially initialized and retries,
+> and the button appears upon a later success. If you are certain your camera
+> hardware supports 2-way audio but the button stays missing, try increasing
 > `metadata_fetch_timeout_seconds` or use
 > [`capabilities.force`](./README.md?id=capabilities) to skip metadata
 > detection entirely. If it is _never_ present, check the `go2rtc` stream

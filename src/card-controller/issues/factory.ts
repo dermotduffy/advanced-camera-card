@@ -1,6 +1,7 @@
 import type { SubscriptionHealthInterface } from '../../ha/connection/subscription-health-monitor';
 import type { CardIssueManagerAPI } from '../types';
 import { IssueManager } from './issue-manager';
+import { CameraInitializationIssue } from './issues/camera-initialization';
 import { ConfigErrorIssue } from './issues/config-error';
 import { ConfigUpgradeIssue } from './issues/config-upgrade';
 import { ConfigUpgradeFailureIssue } from './issues/config-upgrade-failure';
@@ -33,6 +34,7 @@ export const createIssueManager = (
   manager.addIssue(new LegacyResourceIssue(changeCallback));
   manager.addIssue(new MediaQueryIssue(api));
   manager.addIssue(new MediaUnavailableIssue(api));
+  manager.addIssue(new CameraInitializationIssue(api));
 
   return manager;
 };

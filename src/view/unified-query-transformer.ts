@@ -23,7 +23,7 @@ export class UnifiedQueryTransformer {
       const { start, end, ...rest } = node;
       return rest;
     });
-    return new UnifiedQuery(nodes);
+    return new UnifiedQuery({ nodes });
   }
 
   static rebuildQuery(query: UnifiedQuery, options: RebuildOptions): UnifiedQuery {
@@ -41,7 +41,7 @@ export class UnifiedQueryTransformer {
       }
       return node;
     });
-    return new UnifiedQuery(nodes);
+    return new UnifiedQuery({ nodes });
   }
 
   static convertToClips(query: UnifiedQuery): UnifiedQuery {
@@ -52,6 +52,6 @@ export class UnifiedQueryTransformer {
           ? { ...node, hasClip: true, hasSnapshot: undefined }
           : node,
       );
-    return new UnifiedQuery(nodes);
+    return new UnifiedQuery({ nodes });
   }
 }

@@ -1,11 +1,13 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { MicrophoneBase } from '../../../config/schema/condition-trigger/common/microphone';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator } from './types';
 
 export class MicrophoneConditionEvaluator implements ConditionEvaluator {
-  private _condition: MicrophoneBase;
+  private _condition: ReadonlyDeep<MicrophoneBase>;
 
-  constructor(condition: MicrophoneBase) {
+  constructor(condition: ReadonlyDeep<MicrophoneBase>) {
     this._condition = condition;
   }
 
