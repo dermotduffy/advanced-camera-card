@@ -359,7 +359,7 @@
         "mode": "Režim slike",
         "modes": {
           "auto": "Automatski izabrano na osnovu konfiguracije",
-          "camera": "Home Assistant snimak ekrana entiteta kamere",
+          "camera": "Home Assistant snimak kamere entiteta kamere",
           "default": "Podrazumevana ugrađena slika",
           "entity": "Entitet sa atributom entity_picture",
           "screensaver": "Nasumična slika",
@@ -539,7 +539,7 @@
       },
       "draggable": "Mogućnost prevlačenja",
       "lazy_load": "Mediji u pregledaču medija se učitavaju po potrebi u vrtešci",
-      "snapshot_click_plays_clip": "Klik na snimak ekrana reprodukuje povezani klip",
+      "snapshot_click_plays_clip": "Klik na snimak kamere reprodukuje povezani klip",
       "transition_effect": "Efekat prelaza pregledača medija",
       "zoomable": "Mogućnost zumiranja/pomeranja"
     },
@@ -768,7 +768,7 @@
         "recordings": "Galerija snimaka",
         "review": "Najnoviji medij za pregled",
         "reviews": "Galerija pregleda",
-        "snapshot": "Najnoviji snimak ekrana",
+        "snapshot": "Najnoviji snimak kamere",
         "snapshots": "Galerija snimaka kamere",
         "timeline": "Prikaz vremenske linije"
       }
@@ -837,7 +837,7 @@
     "awaiting_media": "Čekanje da se učitaju mediji",
     "call_camera_unreachable": "Kamera nije dostupna za dvosmerni zvuk.",
     "call_connection_lost": "Veza sa Home Assistant-om je prekinuta.",
-    "call_invalid_target": "Tražena kamera ili strimovi nisu dostupni za poziv.",
+    "call_invalid_target": "Tražena kamera ili strim nisu dostupni za poziv.",
     "call_microphone_failed": "Vaš mikrofon nije mogao biti povezan.",
     "call_microphone_forbidden": "Pristup mikrofonu je odbijen za ovu stranicu. Ažurirajte dozvole pregledača i pokušajte ponovo.",
     "call_microphone_unsupported": "Pristup mikrofonu nije dostupan u ovom pregledaču (npr. zahteva HTTPS).",
