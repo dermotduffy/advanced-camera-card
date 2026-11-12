@@ -508,6 +508,7 @@ describe('config defaults', () => {
         format: {
           '24h': true,
         },
+        recording_retention_hours: 1,
         show_recordings: true,
         style: 'stack',
         window_seconds: 3600,

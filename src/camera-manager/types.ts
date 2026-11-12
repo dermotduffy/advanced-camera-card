@@ -144,6 +144,9 @@ export interface CameraProxyConfig extends ResolvedProxyConfig {
 
 export interface EngineOptions {
   useCache?: boolean;
+  // Hours of Frigate recording segments kept on either side of a request.
+  // Comes from `timeline.recording_retention_hours`.
+  recordingRetentionHours?: number;
 }
 
 export interface CameraEvent {

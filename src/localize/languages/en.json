@@ -417,6 +417,7 @@
       },
       "timeline": {
         "clustering_threshold": "Number of events before clustering (0=no clustering)",
+        "recording_retention_hours": "Hours of recordings to keep outside the visible window",
         "show_recordings": "Show recordings",
         "style": "Timeline style",
         "styles": {

@@ -160,10 +160,17 @@ export class AdvancedCameraCardViews extends LitElement {
           ? this.config.timeline.controls.thumbnails
           : undefined;
 
+    const recordingRetentionHours = this.config.timeline.recording_retention_hours;
     const miniTimelineConfig = view?.is('live')
-      ? this.config.live.controls.timeline
+      ? {
+          ...this.config.live.controls.timeline,
+          recording_retention_hours: recordingRetentionHours,
+        }
       : view?.isViewerView()
-        ? this.config.media_viewer.controls.timeline
+        ? {
+            ...this.config.media_viewer.controls.timeline,
+            recording_retention_hours: recordingRetentionHours,
+          }
         : undefined;
 
     const cameraConfig = view?.camera

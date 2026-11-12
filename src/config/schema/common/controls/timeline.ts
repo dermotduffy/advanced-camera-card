@@ -54,7 +54,11 @@ export const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
   pan_mode: timelinePanModeSchema.optional().default(miniTimelineConfigDefault.pan_mode),
   style: timelineCoreConfigSchema.shape.style.default(miniTimelineConfigDefault.style),
 });
-export type MiniTimelineControlConfig = z.infer<typeof miniTimelineConfigSchema>;
+export type MiniTimelineControlConfig = z.infer<typeof miniTimelineConfigSchema> & {
+  // Copied from the main timeline setting so live and viewer timelines keep
+  // the same amount of recording data. Not a separate mini-timeline option.
+  recording_retention_hours?: number;
+};
 
 // The config consumed by the shared `timeline-core` component: the core fields,
 // plus the mini-only extras (`pan_mode` etc.) made optional since the full

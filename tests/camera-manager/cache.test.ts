@@ -162,4 +162,44 @@ describe('RecordingSegmentsCache', () => {
     cache.expireMatches('camera-1', (segment) => segment === segments[0]);
     expect(sortBy(cache.get('camera-1', range))).toEqual(segments.splice(1));
   });
+
+  it('should forget segments outside the retained range', () => {
+    const earlier = sub(now, { hours: 3 });
+    const later = add(range.end, { hours: 3 });
+    cache.add('camera-1', { start: earlier, end: now }, [
+      createSegment(earlier, 'before'),
+    ]);
+    cache.add('camera-1', { start: range.start, end: add(range.end, { seconds: 1 }) }, [
+      ...segments,
+      createSegment(range.end, 'boundary'),
+      createSegment(add(range.end, { seconds: 1 }), 'after'),
+    ]);
+    cache.add('camera-1', { start: later, end: add(later, { hours: 1 }) }, [
+      createSegment(later, 'later'),
+    ]);
+
+    cache.retain('camera-1', range);
+
+    expect(cache.get('camera-1', { start: earlier, end: now })).toBeNull();
+    expect(
+      cache.get('camera-1', { start: later, end: add(later, { hours: 1 }) }),
+    ).toBeNull();
+    expect(cache.get('camera-1', range)).toEqual([
+      ...segments,
+      createSegment(range.end, 'boundary'),
+    ]);
+    expect(cache.getCameraIDs()).toEqual(['camera-1']);
+  });
+
+  it('should drop a camera once nothing remains in range', () => {
+    cache.add('camera-1', pastRange, [createSegment(sub(now, { minutes: 30 }), 'old')]);
+    cache.retain('camera-1', range);
+    expect(cache.getCameraIDs()).toEqual([]);
+    expect(cache.get('camera-1', pastRange)).toBeNull();
+  });
+
+  it('should ignore retention for an unknown camera', () => {
+    cache.retain('missing', range);
+    expect(cache.getCameraIDs()).toEqual([]);
+  });
 });

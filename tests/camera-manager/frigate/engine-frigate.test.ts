@@ -1894,6 +1894,164 @@ describe('FrigateCameraManagerEngine', () => {
 
       expect(getRecordingSegments).toHaveBeenCalled();
     });
+
+    it('should forget segments more than an hour outside the request', async () => {
+      const cache = new RecordingSegmentsCache();
+      const engine = createEngine({ cache });
+      const hass = createHASS();
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      const hourStart = new Date('2026-03-14T20:00:00Z');
+      const hourEnd = new Date('2026-03-14T21:00:00Z');
+      const near = new Date('2026-03-14T19:30:00Z');
+      const before = new Date('2026-03-14T17:00:00Z');
+      const after = new Date('2026-03-14T23:00:00Z');
+      const segment = (date: Date, id: string) => ({
+        start_time: date.getTime() / 1000,
+        end_time: date.getTime() / 1000 + 10,
+        id,
+      });
+
+      cache.add('camera-1', { start: before, end: after }, [
+        segment(before, 'before'),
+        segment(near, 'near'),
+        segment(hourStart, 'hour'),
+        segment(after, 'after'),
+      ]);
+
+      const result = await engine.getRecordingSegments(hass, store, {
+        type: QueryType.RecordingSegments,
+        cameraIDs: new Set(['camera-1']),
+        start: hourStart,
+        end: hourEnd,
+      });
+
+      expect(getRecordingSegments).not.toHaveBeenCalled();
+      assert(result);
+      expect([...result.values()][0]).toMatchObject({
+        cached: true,
+        segments: [segment(hourStart, 'hour')],
+      });
+      expect(
+        cache.get('camera-1', {
+          start: before,
+          end: new Date('2026-03-14T18:00:00Z'),
+        }),
+      ).toBeNull();
+      expect(
+        cache.get('camera-1', {
+          start: after,
+          end: new Date('2026-03-14T23:30:00Z'),
+        }),
+      ).toBeNull();
+
+      const panBack = await engine.getRecordingSegments(hass, store, {
+        type: QueryType.RecordingSegments,
+        cameraIDs: new Set(['camera-1']),
+        start: new Date('2026-03-14T19:00:00Z'),
+        end: new Date('2026-03-14T19:59:00Z'),
+      });
+
+      expect(getRecordingSegments).not.toHaveBeenCalled();
+      assert(panBack);
+      expect([...panBack.values()][0]).toMatchObject({
+        cached: true,
+        segments: [segment(near, 'near')],
+      });
+    });
+
+    it('should forget segments outside a narrower retention margin', async () => {
+      const cache = new RecordingSegmentsCache();
+      const engine = createEngine({ cache });
+      const hass = createHASS();
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      const hourStart = new Date('2026-03-14T20:00:00Z');
+      const hourEnd = new Date('2026-03-14T21:00:00Z');
+      const near = new Date('2026-03-14T19:30:00Z');
+      const segment = (date: Date, id: string) => ({
+        start_time: date.getTime() / 1000,
+        end_time: date.getTime() / 1000 + 10,
+        id,
+      });
+
+      cache.add('camera-1', { start: near, end: hourEnd }, [
+        segment(near, 'near'),
+        segment(hourStart, 'hour'),
+      ]);
+
+      await engine.getRecordingSegments(
+        hass,
+        store,
+        {
+          type: QueryType.RecordingSegments,
+          cameraIDs: new Set(['camera-1']),
+          start: hourStart,
+          end: hourEnd,
+        },
+        { recordingRetentionHours: 0 },
+      );
+
+      expect(
+        cache.get('camera-1', {
+          start: near,
+          end: new Date('2026-03-14T19:59:00Z'),
+        }),
+      ).toBeNull();
+    });
+
+    it('should not forget segments when the cache is bypassed', async () => {
+      const cache = new RecordingSegmentsCache();
+      const engine = createEngine({ cache });
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+      const start = new Date('2026-03-14T20:00:00Z');
+      const end = new Date('2026-03-14T21:00:00Z');
+      const earlier = new Date('2026-03-14T12:00:00Z');
+      const kept = {
+        start_time: earlier.getTime() / 1000,
+        end_time: earlier.getTime() / 1000 + 10,
+        id: 'kept',
+      };
+
+      cache.add('camera-1', { start: earlier, end: new Date('2026-03-14T13:00:00Z') }, [
+        kept,
+      ]);
+      vi.mocked(getRecordingSegments).mockResolvedValue([
+        {
+          start_time: start.getTime() / 1000,
+          end_time: start.getTime() / 1000 + 10,
+          id: 'fetched',
+        },
+      ]);
+
+      await engine.getRecordingSegments(
+        createHASS(),
+        store,
+        {
+          type: QueryType.RecordingSegments,
+          cameraIDs: new Set(['camera-1']),
+          start,
+          end,
+        },
+        { useCache: false },
+      );
+
+      expect(
+        cache.get('camera-1', {
+          start: earlier,
+          end: new Date('2026-03-14T13:00:00Z'),
+        }),
+      ).toEqual([kept]);
+    });
   });
 
   describe('generateMediaFromEvents', () => {
