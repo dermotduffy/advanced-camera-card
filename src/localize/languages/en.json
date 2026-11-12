@@ -9,8 +9,9 @@
     "close": "Close",
     "event": "Event",
     "folder": "Folder",
-    "in_progress": "In progress...",
+    "in_progress": "In progress",
     "no_media": "No media to display",
+    "notification": "Notification",
     "retry": "Retry",
     "set_reviews": {
       "reviewed": "Mark as reviewed",
@@ -22,7 +23,9 @@
       "medium": "Medium"
     },
     "severity": "Severity",
-    "up": "Up"
+    "today": "Today",
+    "up": "Up",
+    "yesterday": "Yesterday"
   },
   "config": {
     "cameras": {
@@ -295,13 +298,20 @@
             "none": "None",
             "right": "Right drawer"
           },
-          "show_details": "Show details",
           "show_download_control": "Show download control",
           "show_favorite_control": "Show favorite control",
           "show_info_control": "Show info control",
           "show_review_control": "Show review control",
           "show_timeline_control": "Show timeline control",
-          "size": "Size in pixels"
+          "size": "Size in pixels",
+          "style": "Style",
+          "styles": {
+            "auto": "Automatic",
+            "hover": "Thumbnail with details on hover",
+            "overlay": "Thumbnail with details overlay",
+            "panel": "Thumbnail with details panel",
+            "plain": "Thumbnail without details"
+          }
         },
         "timeline": {
           "editor_label": "Mini Timeline",
@@ -441,6 +451,11 @@
       },
       "icon": "Icon",
       "id": "Unique ID",
+      "navigation": "Navigation",
+      "navigations": {
+        "restricted": "Restricted to this folder or below",
+        "unrestricted": "Allowed above this folder"
+      },
       "title": "Title",
       "type": "Type",
       "types": {
@@ -578,6 +593,7 @@
         "set_review": "Set review status",
         "snapshots": "Snapshots",
         "state_color": "Color by entity state",
+        "style": "CSS style",
         "substreams": "Substream(s)",
         "timeline": "Timeline",
         "type": "Button type",
@@ -616,6 +632,7 @@
         "media_chunk_size": "Media chunk size"
       },
       "style": {
+        "backdrop_filter": "Blur effects",
         "border_radius": "Curves",
         "box_shadow": "Shadows",
         "editor_label": "Style Options"
@@ -763,9 +780,8 @@
   },
   "editor": {
     "add_new_camera": "Add camera",
-    "back": "Back",
-    "edit": "Edit",
     "add_new_folder": "Add folder",
+    "back": "Back",
     "camera": "Camera",
     "cameras": "Cameras",
     "cameras_secondary": "What cameras to render on this card",
@@ -773,6 +789,7 @@
     "dimensions": "Dimensions",
     "dimensions_secondary": "Card dimensions & shape options",
     "docs": "Documentation",
+    "edit": "Edit",
     "folders": "Folders",
     "folders_secondary": "What folders to render on this card",
     "image": "Image",
@@ -819,6 +836,7 @@
     "awaiting_live": "Waiting for live stream to load",
     "awaiting_media": "Waiting for media to load",
     "call_camera_unreachable": "The camera could not be reached for two-way audio.",
+    "call_connection_lost": "The connection to Home Assistant was lost.",
     "call_invalid_target": "The requested camera or stream is not available to call.",
     "call_microphone_failed": "Your microphone could not be connected.",
     "call_microphone_forbidden": "Microphone access has been denied for this page. Update your browser permissions and try again.",
@@ -860,6 +878,7 @@
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
+    "timeout_response": "Timed out waiting for response from Home Assistant for request",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
@@ -870,8 +889,8 @@
     "camera_initialization": {
       "heading": "Cameras not fully initialized",
       "states": {
-        "failed": "Camera initialization failed",
-        "degraded": "Camera partially initialized"
+        "degraded": "Camera partially initialized",
+        "failed": "Camera initialization failed"
       },
       "text": "One or more cameras could not be fully initialized. Cameras that fail to initialize cannot function; cameras that are degraded may only offer partial functionality (for example no two-way audio). The card will keep retrying automatically."
     },
@@ -918,7 +937,7 @@
         "entity_unavailable": "Camera entity unavailable",
         "not_loading": "Media not loading",
         "playback_error": "Playback error",
-        "server_error": "Streaming server error",
+        "server_error": "Media server error",
         "stalled": "Stream stalled",
         "unsupported": "Stream not supported"
       },
@@ -981,13 +1000,14 @@
     "camera": "Camera",
     "download": "Download media",
     "duration": "Duration",
+    "in_progress": "REC",
+    "more_details": "+{count} details",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Retain media indefinitely",
     "seek": "Seek",
     "start": "Start",
     "tag": "Tag",
     "timeline": "See media in timeline",
-    "title": "Title",
     "where": "Where"
   },
   "timeline": {

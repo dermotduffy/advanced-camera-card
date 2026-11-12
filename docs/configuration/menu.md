@@ -67,7 +67,36 @@ menu:
 | `inert`       | `false`                                                                                                                                                                                                                                                                                                                                                       | If `true` the button is shown but rendered as inert (grayed out, non-interactive). Differs from `enabled: false`, which removes the button entirely.                                                                                                                                                                         |
 | `permanent`   | `false`                                                                                                                                                                                                                                                                                                                                                       | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`    | `50`                                                                                                                                                                                                                                                                                                                                                          | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
-| `state_color` | `true`                                                                                                                                                                                                                                                                                                                                                        | Whether to colorize the button based on the state of a related entity (where applicable).                                                                                                                                                                                                                                    |
+| `state_color` | `true`                                                                                                                                                                                                                                                                                                                                                        | Whether to colorize the button based on the state of a related entity (where applicable). A `color` in `style` takes precedence.                                                                                                                                                                                             |
+| `style`       |                                                                                                                                                                                                                                                                                                                                                               | CSS to style the button with, e.g. `color: green`. See [button styling](#button-styling).                                                                                                                                                                                                                                    |
+
+### Button styling
+
+```yaml
+menu:
+  buttons:
+    call:
+      style:
+        color: green
+```
+
+CSS declarations apply to the button, in the same way [picture element
+`style`](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object)
+works in Home Assistant (e.g. `background`, `border` and `opacity` style the
+whole button, not just the icon). The icon inherits `color` from the button, but
+not its size: the button and its icon are both sized by
+[`button_size`](#menu).
+
+A user configured `style` always wins. When not specified the card chooses the
+styling.
+
+> [!TIP] On an entity-based button such as a
+> [`menu-state-icon`](elements/custom/README.md?id=menu-state-icon), `color` applies in
+> every entity state. Set `--state-icon-color` alongside it for a different color while
+> the entity is inactive.
+
+To change colors for every button instead of styling just one, consider setting
+[`view.theme.overrides`](view.md?id=overrides).
 
 ### Additional options: `microphone`
 

@@ -384,7 +384,8 @@ A doorbell press is instantaneous, so the card synthesizes a ring window from [`
 type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.front_door
-    # `go2rtc` + `webrtc` is needed for two-way audio.
+    # Two-way audio needs `go2rtc` with `webrtc`, or the `ha` live provider
+    # on Home Assistant 2026.11 and later.
     live_provider: go2rtc
     go2rtc:
       modes:
@@ -793,6 +794,200 @@ folders:
         - matchers:
             - type: title
               regexp: 'Person.*'
+```
+
+### Folder thumbnails
+
+Home Assistant does not generate thumbnails for media files, so a folder of
+recordings may be shown as a gallery of icons unless the [`thumbnail`
+parser](./configuration/folders.md?id=parser-thumbnail) is used to configure
+where thumbnail images are.
+
+#### Thumbnail alongside the media
+
+Media and its thumbnail in the same folder, e.g. `front-door.mp4` and
+`front-door.jpg`.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      # Open HA -> Media, navigate into the desired folder and copy its URL here.
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Ffront-door
+      path:
+        - parsers:
+            - type: thumbnail
+```
+
+#### Thumbnail with a different name to the media
+
+As above, but where the thumbnail has an extra suffix, e.g.
+`2026-08-28_14-30-00.mp4` and `2026-08-28_14-30-00_thumb.jpg`. A regular
+expression reduces each title to a value the card compares: `(?<value>.+?)` is
+the part that is kept, `(?:_thumb)?` discards a `_thumb` suffix if the title has
+one, and `\.[^.]+$` discards the file extension. Both titles above reduce to
+`2026-08-28_14-30-00`, so the card matches them to one another.
+
+That value is only ever compared between titles: no file is named
+`2026-08-28_14-30-00`, and both files keep their own names. Because the
+extension is discarded rather than compared, the card uses whichever of the
+matched media Home Assistant reports as an image, whatever its file type.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Ffront-door
+      path:
+        - parsers:
+            - type: thumbnail
+              regexp: '^(?<value>.+?)(?:_thumb)?\.[^.]+$'
+```
+
+Where the thumbnail keeps the media extension instead, e.g. `front-door.mp4` and
+`front-door.mp4.jpg`, `[^.]+` keeps everything up to the first `.`, so both
+titles yield `front-door`.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Ffront-door
+      path:
+        - parsers:
+            - type: thumbnail
+              regexp: '^(?<value>[^.]+)'
+```
+
+#### A folder of images
+
+Each image is shown as its _own_ thumbnail, without any other configuration.
+
+> [!WARNING]
+> If the images are large, they will be slower to load than purpose-made
+> thumbnails.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Fbirds
+      path:
+        - parsers:
+            - type: thumbnail
+```
+
+#### Folders with a thumbnail
+
+Folders are matched in the same way as media, so a folder named `2026-08-28`
+alongside an image named `2026-08-28.jpg` is shown with that image.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Ffront-door
+      path:
+        - parsers:
+            - type: thumbnail
+```
+
+#### Thumbnails in a separate directory tree
+
+Media under `my_media` with thumbnails under `my_thumbnails`, e.g.
+`my_media/2026-08-28/front-door.mp4` and
+`my_thumbnails/2026-08-28/front-door.jpg`. A template rewrites the media source
+ID of the media into that of its thumbnail.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Fmy_media
+      path:
+        - {}
+        - parsers:
+            - type: thumbnail
+              value_template: >-
+                {{ acc.media.id | replace('/my_media/', '/my_thumbnails/') |
+                regex_replace('\.[^.]+$', '.jpg') }}
+```
+
+#### Thumbnails in a single flat directory
+
+Thumbnails named after the media file, all kept in one directory. The template
+builds the media source ID from the media title rather than rewriting its ID.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Ffront-door
+      path:
+        - parsers:
+            - type: thumbnail
+              value_template: >-
+                media-source://media_source/local/thumbs/{{ acc.media.title |
+                regex_replace('\.[^.]+$', '.jpg') }}
+```
+
+#### Thumbnails served by a webserver
+
+A template may render an ordinary URL instead of a media source ID.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Ffront-door
+      path:
+        - parsers:
+            - type: thumbnail
+              value_template: >-
+                https://thumbs.mydomain.io/{{ acc.media.title |
+                regex_replace('\.[^.]+$', '.jpg') }}
+```
+
+#### One fixed image for a whole folder
+
+A `value_template` that contains no template at all is used as-is.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/directory%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2Ffront-door
+      path:
+        - parsers:
+            - type: thumbnail
+              value_template: media-source://media_source/local/branding/front-door.jpg
 ```
 
 ### Show a folder as a camera's default media
@@ -1819,6 +2014,8 @@ cameras:
 
 ## Zoom
 
+[](configuration/common/y-key-warning.md ':include')
+
 ### Pre-defining camera zoom and pan
 
 This example changes the default [zoom/pan settings for a camera](./configuration/cameras/README.md?id=layout-configuration) to always zoom in on a given area:
@@ -1832,7 +2029,7 @@ cameras:
         zoom: 3
         pan:
           x: 20
-          y: 80
+          'y': 80
 ```
 
 ### Disable zooming in media views
@@ -1848,7 +2045,7 @@ cameras:
         zoom: 3
         pan:
           x: 20
-          y: 80
+          'y': 80
 media_viewer:
   zoomable: false
 ```
@@ -1874,7 +2071,7 @@ overrides:
         zoom: 3
         pan:
           x: 100
-          y: 100
+          'y': 100
 ```
 
 ### Automatically zoom based on state
@@ -1902,7 +2099,7 @@ automations:
           zoom: 4
           pan:
             x: 38
-            y: 20
+            'y': 20
   # Door closes: zoom back out.
   - triggers:
       - trigger: state

@@ -3,7 +3,7 @@ import type { ReadonlyDeep } from 'type-fest';
 import type { SetReviewActionConfig } from '../../../config/schema/actions/custom/set-review';
 import { toggleReviewed } from '../../../utils/media-actions';
 import { ViewItemClassifier } from '../../../view/item-classifier';
-import { getReviewedQueryFilterFromQuery } from '../../../view/utils/query-filter';
+import { getBooleanQueryFilter } from '../../../view/utils/query-filter';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
@@ -27,22 +27,12 @@ export class SetReviewAction extends AdvancedCameraCardAction<
       return;
     }
 
-    const results = await Promise.all([
-      toggleReviewed(
-        item,
-        api.getViewItemManager(),
-        viewManager.getEpoch(),
-        getReviewedQueryFilterFromQuery(view?.query, item),
-      ),
-      api.getEffectsManager().startEffect('check', {
-        duration: 0.4,
-        fadeIn: false,
-      }),
-    ]);
-
-    // Trigger UI update to refresh menu icon state
-    if (results[0]) {
-      api.getCardElementManager().update();
-    }
+    await toggleReviewed(
+      api.getCardElementManager().getElement(),
+      item,
+      api.getViewItemManager(),
+      viewManager.getEpoch(),
+      getBooleanQueryFilter('reviewed', view?.query, item) ?? undefined,
+    );
   }
 }

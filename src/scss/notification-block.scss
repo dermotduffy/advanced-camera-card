@@ -1,3 +1,4 @@
+@use './color-mix.scss' as *;
 @use './z-index.scss' as *;
 @use './notification-common.scss';
 
@@ -32,7 +33,14 @@
 
   // A container that cannot usefully be scrolled can set this to 'hidden'.
   overflow-y: var(--advanced-camera-card-notification-block-overflow-y, auto);
+
   scrollbar-width: thin;
+  // `scrollbar-width` above is respected by Firefox only. Despite the name, the
+  // prefixed selector covers every other supported browser.
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
   text-align: center;
 }
 
@@ -53,12 +61,13 @@
     gap: 4px;
     padding: 4px 8px;
     border-radius: var(--advanced-camera-card-button-border-radius);
-    background: color-mix(in srgb, var(--notification-control-color), transparent 92%);
+
+    @include color-mixed(background, --notification-control-color, 92%);
 
     // When there are no interactive controls (spinner-only case, e.g.
     // Connection / Starting full-card notifications) drop the pill chrome so
     // the spinner looks like a status indicator, not a clickable button.
-    &:not(:has(.control)) {
+    &.spinner-only {
       padding: 0;
       background: none;
     }

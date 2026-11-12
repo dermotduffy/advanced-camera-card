@@ -1,5 +1,4 @@
 import { fromUnixTime } from 'date-fns';
-import { isEqual } from 'lodash-es';
 
 import type { Severity } from '../../severity';
 import {
@@ -23,6 +22,7 @@ import {
   getRecordingMediaContentID,
   getRecordingTitle,
   getReviewMediaContentID,
+  getReviewPlaybackStartTime,
   getReviewSeverity,
   getReviewThumbnailURL,
   getReviewTitle,
@@ -98,13 +98,6 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   public getTags(): string[] | null {
     return this._subLabels;
   }
-  public isGroupableWith(that: EventViewMedia): boolean {
-    return (
-      this.getMediaType() === that.getMediaType() &&
-      isEqual(this.getWhere(), that.getWhere()) &&
-      isEqual(this.getWhat(), that.getWhat())
-    );
-  }
 }
 
 export class FrigateRecordingViewMedia extends ViewMedia implements RecordingViewMedia {
@@ -158,18 +151,21 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
   private _contentID: string;
   private _thumbnail: string | null;
   private _title: string;
+  private _playbackStartTime: Date;
 
   constructor(
     cameraID: string,
     review: FrigateReview,
     contentID: string,
     thumbnail: string | null,
+    playbackStartTime: Date,
   ) {
     super(ViewMediaType.Review, { cameraID });
     this._review = review;
     this._contentID = contentID;
     this._thumbnail = thumbnail;
     this._title = this._review.data.metadata?.title ?? getReviewTitle(review);
+    this._playbackStartTime = playbackStartTime;
   }
 
   public getID(): string {
@@ -177,6 +173,9 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
   }
   public getStartTime(): Date {
     return fromUnixTime(this._review.start_time);
+  }
+  public getPlaybackStartTime(): Date {
+    return this._playbackStartTime;
   }
   public getEndTime(): Date | null {
     return this._review.end_time ? fromUnixTime(this._review.end_time) : null;
@@ -253,13 +252,19 @@ export class FrigateViewMediaFactory {
     recording: FrigateRecording,
     identity: FrigateIdentity,
     cameraTitle: string,
+    timeZone: string,
   ): FrigateRecordingViewMedia {
     return new FrigateRecordingViewMedia(
       ViewMediaType.Recording,
       cameraID,
       recording,
       getRecordingID(identity, recording),
-      getRecordingMediaContentID(identity.clientID, identity.cameraName, recording),
+      getRecordingMediaContentID(
+        identity.clientID,
+        identity.cameraName,
+        recording,
+        timeZone,
+      ),
       getRecordingTitle(cameraTitle, recording),
     );
   }
@@ -268,12 +273,14 @@ export class FrigateViewMediaFactory {
     cameraID: string,
     review: FrigateReview,
     identity: FrigateIdentity,
+    timeZone: string,
   ): FrigateReviewViewMedia {
     return new FrigateReviewViewMedia(
       cameraID,
       review,
-      getReviewMediaContentID(identity.clientID, identity.cameraName, review),
+      getReviewMediaContentID(identity.clientID, identity.cameraName, review, timeZone),
       getReviewThumbnailURL(identity.clientID, review),
+      getReviewPlaybackStartTime(review, timeZone),
     );
   }
 }

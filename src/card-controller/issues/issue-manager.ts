@@ -203,16 +203,6 @@ export class IssueManager {
       this._retryTimer.reset();
       return;
     }
-    if (!this._stateManager.canRetryNow()) {
-      // An issue still has a failing problem but cannot retry right now. Cancel
-      // the pending timer so it does not fire a retry the issue cannot take --
-      // but do not reset(), which is reserved for the resolved case above.
-      // Consequently no retry is scheduled here; scheduling resumes on a later
-      // evaluate() (any condition-state change re-runs this), once the issue
-      // reports it can retry again or has resolved.
-      this._retryTimer.cancel();
-      return;
-    }
     if (this._retryTimer.isRunning()) {
       return;
     }
@@ -238,15 +228,19 @@ export class IssueManager {
         : retryConfig,
     );
 
-    // Schedule without advancing: the backoff only escalates if the retry
-    // actually runs (via the explicit advance() below), not when it's gated.
+    // Scheduled whether or not a retry can run right now: a hold can end with
+    // nothing else happening on the card (e.g. media given time to finish
+    // loading), so the timer has to come back and look rather than waiting to
+    // be woken. Scheduled without advancing: the backoff only escalates if the
+    // retry actually runs (via the explicit advance() below), not when it's
+    // held.
     this._retryTimer.schedule(
       () => {
         if (!this._stateManager.needsRetry()) {
           this._retryTimer.reset();
           return;
         }
-        if (this._isScheduledRetryAllowed()) {
+        if (this._isScheduledRetryAllowed() && this._stateManager.canRetryNow()) {
           this._stateManager.retry();
 
           // This attempt counts: advance the backoff so the next schedule
@@ -256,8 +250,11 @@ export class IssueManager {
           this._retryTimer.advance();
           this.evaluate();
         } else {
-          // Retry was gated (e.g. user interaction). Not a failed attempt; the
-          // backoff stays put and we re-arm at the same delay.
+          // Retry was gated: the user is interacting, or every issue that needs
+          // one is holding off (e.g. media still loading). Nothing was
+          // attempted, so the backoff stays put and we re-arm at the same delay
+          // rather than escalating towards the ten minute cap for retries that
+          // never ran.
           this._scheduleRetryIfNeeded();
         }
       },

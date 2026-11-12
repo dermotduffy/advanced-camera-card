@@ -44,10 +44,11 @@ performance:
     # [...]
 ```
 
-| Option          | Default | Description                                        |
-| --------------- | ------- | -------------------------------------------------- |
-| `border_radius` | `true`  | If `false` minimizes the usage of rounded corners. |
-| `box_shadow`    | `true`  | If `false` minimizes the usage of shadows.         |
+| Option            | Default | Description                                        |
+| ----------------- | ------- | -------------------------------------------------- |
+| `backdrop_filter` | `true`  | If `false` disables the usage of blur effects.     |
+| `border_radius`   | `true`  | If `false` minimizes the usage of rounded corners. |
+| `box_shadow`      | `true`  | If `false` minimizes the usage of shadows.         |
 
 ### The `low-performance` profile
 
@@ -66,6 +67,7 @@ performance:
     media_chunk_size: 50
     max_simultaneous_engine_requests: 100
   style:
+    backdrop_filter: true
     border_radius: true
     box_shadow: true
 ```

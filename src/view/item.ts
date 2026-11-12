@@ -1,6 +1,6 @@
 import { clone } from 'lodash-es';
 
-import type { FolderPathComponent } from '../card-controller/folders/types';
+import type { FolderPathLevel } from '../card-controller/folders/types';
 import type { FolderConfig } from '../config/schema/folders';
 import type { Severity } from '../severity';
 
@@ -14,7 +14,7 @@ export enum ViewMediaType {
 export interface ViewMediaSourceOptions {
   cameraID?: string;
   folder?: FolderConfig;
-  path?: readonly FolderPathComponent[];
+  path?: readonly FolderPathLevel[];
 }
 
 export class ViewMedia {
@@ -42,6 +42,9 @@ export class ViewMedia {
   public getStartTime(): Date | null {
     return null;
   }
+  public getPlaybackStartTime(): Date | null {
+    return this.getStartTime();
+  }
   public getEndTime(): Date | null {
     return null;
   }
@@ -60,6 +63,8 @@ export class ViewMedia {
   public getDescription(): string | null {
     return null;
   }
+
+  // Returns a URL, or the Home Assistant media source ID of an image.
   public getThumbnail(): string | null {
     return null;
   }
@@ -78,12 +83,6 @@ export class ViewMedia {
     return !!startTime && !!endTime && seek >= startTime && seek <= endTime;
   }
 
-  // Sets the favorite attribute (if any). This purely sets the media item as a
-  // favorite in JS.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public setFavorite(_favorite: boolean): void {
-    return;
-  }
   public getSeverity(): Severity | null {
     return null;
   }
@@ -92,13 +91,26 @@ export class ViewMedia {
   }
 
   /**
-   * Creates a shallow clone of this ViewMedia instance.
+   * Whether another object describes this same item.
    *
-   * This is needed because Lit components use reference equality (===) to
-   * detect property changes. When we mutate an item's state (e.g.,
-   * setReviewed), the reference doesn't change, so Lit doesn't re-render. By
-   * cloning the item before mutation and replacing it in the QueryResults, we
-   * ensure Lit sees a new reference and updates the UI.
+   * Two separate objects can describe one item, so the comparison is by
+   * identifier rather than by object. Media and folders never match one
+   * another, since their identifiers come from different namespaces. An item
+   * without an identifier can only be matched by object.
+   */
+  public isSameAs(other: ViewItem): boolean {
+    const id = this.getID();
+    return (
+      this === other ||
+      (other instanceof ViewMedia && id !== null && id === other.getID())
+    );
+  }
+
+  /**
+   * Creates a shallow copy. Note this will (intentionally) result in underlying
+   * data objects being shared between clones -- this ensures state written
+   * through one object is visible through the other (e.g. favorite/review
+   * status).
    */
   public clone(): this {
     return clone(this);
@@ -109,7 +121,6 @@ export interface EventViewMedia extends ViewMedia {
   getScore(): number | null;
   getWhat(): string[] | null;
   getTags(): string[] | null;
-  isGroupableWith(that: EventViewMedia): boolean;
 }
 
 export interface RecordingViewMedia extends ViewMedia {
@@ -119,7 +130,6 @@ export interface RecordingViewMedia extends ViewMedia {
 export interface ReviewViewMedia extends ViewMedia {
   getWhat(): string[] | null;
   isReviewed(): boolean | null;
-  setReviewed(reviewed: boolean): void;
 }
 
 interface ViewFolderParameters {
@@ -127,20 +137,25 @@ interface ViewFolderParameters {
   id?: string | null;
   title?: string | null;
   thumbnail?: string | null;
+
+  // Whether the folder configuration chose the thumbnail (rather than Home
+  // Assistant reporting it).
+  isThumbnailConfigured?: boolean;
 }
 
 export class ViewFolder {
   private _folder: FolderConfig;
-  private _path: readonly FolderPathComponent[];
+  private _path: readonly FolderPathLevel[];
 
   private _icon: string | null;
   private _id: string | null;
   private _title: string | null;
   private _thumbnail: string | null;
+  private _isThumbnailConfigured: boolean;
 
   constructor(
     folder: FolderConfig,
-    path: readonly FolderPathComponent[],
+    path: readonly FolderPathLevel[],
     params?: ViewFolderParameters,
   ) {
     this._folder = folder;
@@ -150,12 +165,13 @@ export class ViewFolder {
     this._id = params?.id ?? null;
     this._title = params?.title ?? null;
     this._thumbnail = params?.thumbnail ?? null;
+    this._isThumbnailConfigured = params?.isThumbnailConfigured ?? false;
   }
 
   public getFolder(): FolderConfig {
     return this._folder;
   }
-  public getPath(): readonly FolderPathComponent[] {
+  public getPath(): readonly FolderPathLevel[] {
     return this._path;
   }
   public getID(): string | null {
@@ -170,6 +186,9 @@ export class ViewFolder {
   public getThumbnail(): string | null {
     return this._thumbnail;
   }
+  public isThumbnailConfigured(): boolean {
+    return this._isThumbnailConfigured;
+  }
   public getIcon(): string | null {
     return this._icon;
   }
@@ -178,6 +197,15 @@ export class ViewFolder {
   }
   public isFavorite(): boolean | null {
     return null;
+  }
+
+  /** See ViewMedia.isSameAs() for explanation. */
+  public isSameAs(other: ViewItem): boolean {
+    const id = this.getID();
+    return (
+      this === other ||
+      (other instanceof ViewFolder && id !== null && id === other.getID())
+    );
   }
 
   /** See ViewMedia.clone() for explanation. */

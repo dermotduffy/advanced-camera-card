@@ -10,6 +10,7 @@ import { ACTION_HANDLER_HOLD_SECONDS } from './const.js';
 import { fireHASSEvent } from './ha/fire-hass-event.js';
 import type { ActionHandlerDetail, ActionHandlerOptions } from './ha/types.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
+import { isRecord, type Point } from './utils/basic.js';
 import { Timer } from './utils/timer.js';
 
 export interface ActionHandlerInterface extends HTMLElement {
@@ -24,6 +25,29 @@ interface ActionHandlerElement extends HTMLElement {
 export interface AdvancedCameraCardActionHandlerOptions extends ActionHandlerOptions {
   allowPropagation?: boolean;
 }
+// How far a pointer may travel before a press stops counting as a hold
+// (example: a gallery is scrolled by dragging across the thumbnails, that also
+// answer a hold -- a drag must answer the gallery, not the thumbnails).
+const HOLD_MOVE_TOLERANCE_PIXELS = 10;
+
+type PointerPosition = Pick<MouseEvent, 'clientX' | 'clientY'>;
+
+const isPointerPosition = (value: unknown): value is PointerPosition =>
+  isRecord(value) &&
+  typeof value.clientX === 'number' &&
+  typeof value.clientY === 'number';
+
+// A mouse event holds `clientX` and `clientY` itself. A touch event holds no
+// position of its own: it lists a `Touch` per finger, and the first one is the
+// finger that began the press.
+const getEventPoint = (ev: Event): Point | null => {
+  const position = isPointerPosition(ev)
+    ? ev
+    : isRecord(ev) && isRecord(ev.touches) && isPointerPosition(ev.touches[0])
+      ? ev.touches[0]
+      : null;
+  return position ? { x: position.clientX, y: position.clientY } : null;
+};
 
 class ActionHandler extends HTMLElement implements ActionHandlerInterface {
   public holdTime = ACTION_HANDLER_HOLD_SECONDS;
@@ -33,6 +57,8 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
 
   private held = false;
   private started = false;
+
+  private holdOrigin: Point | null = null;
 
   public connectedCallback(): void {
     ['mouseup', 'mousewheel', 'scroll', 'touchcancel', 'wheel'].forEach((ev) => {
@@ -45,6 +71,25 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       );
     });
   }
+
+  private _cancelHoldOnMove = (ev: Event): void => {
+    const origin = this.holdOrigin;
+
+    // Caution: this method is called on every move/touch over the element.
+    // Nothing expensive should run before this.
+    if (!origin) {
+      return;
+    }
+
+    const point = getEventPoint(ev);
+    if (
+      point &&
+      Math.hypot(point.x - origin.x, point.y - origin.y) > HOLD_MOVE_TOLERANCE_PIXELS
+    ) {
+      this.holdTimer.stop();
+      this.held = false;
+    }
+  };
 
   public bind(
     element: ActionHandlerElement,
@@ -62,8 +107,9 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       ev.stopPropagation();
     });
 
-    const start = (): void => {
+    const start = (ev: Event): void => {
       this.held = false;
+      this.holdOrigin = getEventPoint(ev);
       this.holdTimer.start(this.holdTime, () => {
         this.held = true;
       });
@@ -79,6 +125,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const endTap = (_ev: Event): void => {
       this.holdTimer.stop();
+      this.holdOrigin = null;
 
       if (this.started) {
         this.started = false;
@@ -105,7 +152,13 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
 
       endTap(ev);
 
-      if (options?.hasHold && this.held) {
+      const isKeyPress = ev instanceof KeyboardEvent;
+
+      // A synthetic click (e.g. code calling `click()`) won't carry a
+      // click-count detail. Synthetic clicks should not count for holds.
+      const isSyntheticClick = ev instanceof MouseEvent && ev.detail === 0;
+
+      if (options?.hasHold && this.held && !isKeyPress && !isSyntheticClick) {
         fireHASSEvent(element, 'action', { action: 'hold' });
       } else if (options?.hasDoubleClick) {
         if (
@@ -141,6 +194,9 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
 
     // If the mouse leaves the element, this is considered the end of the interaction.
     element.addEventListener('mouseleave', endTap);
+
+    element.addEventListener('mousemove', this._cancelHoldOnMove, { passive: true });
+    element.addEventListener('touchmove', this._cancelHoldOnMove, { passive: true });
   }
 }
 

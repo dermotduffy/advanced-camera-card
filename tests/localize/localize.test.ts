@@ -182,6 +182,36 @@ describe('loadLanguages', () => {
     expect(localize('common.no_media')).toBe('Nenhuma mídia para exibir');
   });
 
+  it('should load and use Slovak translations', async () => {
+    const { loadLanguages, localize } = await importFresh();
+    const hass = mock<HomeAssistant>();
+    hass.language = 'sk';
+
+    await loadLanguages(hass);
+
+    expect(localize('actions.abort')).toBe('Prerušená akcia');
+  });
+
+  it('should load and use Hungarian translations', async () => {
+    const { loadLanguages, localize } = await importFresh();
+    const hass = mock<HomeAssistant>();
+    hass.language = 'hu';
+
+    await loadLanguages(hass);
+
+    expect(localize('actions.abort')).toBe('Művelet megszakítva');
+  });
+
+  it('should load and use Russian translations', async () => {
+    const { loadLanguages, localize } = await importFresh();
+    const hass = mock<HomeAssistant>();
+    hass.language = 'ru';
+
+    await loadLanguages(hass);
+
+    expect(localize('actions.abort')).toBe('Действие отменено');
+  });
+
   it('should fall back to English for unsupported language', async () => {
     const { loadLanguages, localize } = await importFresh();
     const hass = mock<HomeAssistant>();

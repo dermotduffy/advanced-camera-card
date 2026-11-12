@@ -1,6 +1,7 @@
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RETRY_EXPONENTIAL_BASE_SECONDS } from '../../../../src/card-controller/issues/issue-manager';
+import { MEDIA_UNAVAILABLE_REASONS } from '../../../../src/card-controller/issues/issues/media-unavailable';
 import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../../src/components-lib/live/liveness/detectors/entity-availability';
 import { MEDIA_LOADING_TIMEOUT_SECONDS } from '../../../../src/components-lib/media-load-watchdog-controller';
 import { FRAME_STALL_SECONDS } from '../../../../src/components-lib/media-player/frame-stall-watchdog';
@@ -18,9 +19,11 @@ import {
   createUnansweredMediaURL,
   getTestMediaRequestCount,
   useTestMedia,
+  waitForTestMediaRequestCount,
 } from '../../../browser/test-media';
 import {
   CAMERA_ENTITY,
+  CAMERA_NAME,
   CARD_INITIALIZED_MESSAGE,
   createGenericCameraHASS,
   createInitializedAutomation,
@@ -29,12 +32,14 @@ import {
   getBlockNotificationText,
   getStatusBarItem,
   isLiveMediaShowing,
+  RESIZE_LOOP_CONSOLE_ERROR,
   waitUntilObservedVisible,
   type CameraHASSOptions,
   type GenericCameraHASSOptions,
 } from '../../../browser/test-utils';
 
 const SECOND_CAMERA_ENTITY = 'camera.hallway';
+const SECOND_CAMERA_NAME = 'hallway';
 
 const OVERRIDE_ENTITY = 'input_boolean.override';
 
@@ -124,13 +129,8 @@ const mountCardGrid = async (
       ...(options?.entities && { entities: options.entities }),
 
       // The grid observes both its own size and its cells', so a cell resize
-      // can resize the host and vice versa. Chromium reports each round it has
-      // to defer as an uncaught error. How many rounds that takes follows the
-      // browser's frame scheduling, not the card: measured anywhere between
-      // none and three for the same test. So it cannot be counted, only
-      // tolerated, and only for the grid: anywhere else it would mean
-      // something new.
-      toleratedConsoleErrors: [/ResizeObserver loop completed/],
+      // can resize the host and vice versa.
+      toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR],
     },
   );
 
@@ -205,7 +205,7 @@ describe('MediaUnavailableIssue', () => {
     // Which camera, not just that something is wrong: with several on screen an
     // issue report that does not say which one leaves the user guessing.
     expect(getBlockNotificationText(card.card)).toContain('Camera entity unavailable');
-    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_NAME);
   });
 
   it('should leave the cameras that are still working alone', async () => {
@@ -251,7 +251,7 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
     await waitForIssueReported(card);
 
-    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_NAME);
 
     // Nothing here asks the card to try again: the retry runs on its own.
     await card.advanceSeconds(RETRY_EXPONENTIAL_BASE_SECONDS);
@@ -291,7 +291,7 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
     await waitForIssueReported(card);
 
-    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_NAME);
   });
 
   it('should stay silent about a carousel camera that is not on screen', async () => {
@@ -321,7 +321,7 @@ describe('MediaUnavailableIssue', () => {
     await card.clickNextPreviousControl('right');
     await waitForIssueReported(card);
 
-    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_NAME);
   });
 
   it('should keep an issue across a detach and re-attach', async () => {
@@ -374,7 +374,7 @@ describe('MediaUnavailableIssue', () => {
     await card.clickControl(MEDIA_ISSUE_TITLE);
     const notification = await card.waitForSelector('advanced-camera-card-notification');
 
-    expect(notification.shadowRoot?.textContent).toContain(SECOND_CAMERA_ENTITY);
+    expect(notification.shadowRoot?.textContent).toContain(SECOND_CAMERA_NAME);
     expect(notification.shadowRoot?.textContent).toContain('Media not loading');
   });
 
@@ -390,7 +390,7 @@ describe('MediaUnavailableIssue', () => {
     await waitForIssueReported(card);
 
     expect(getBlockNotificationText(card.card)).toContain('Could not load image');
-    expect(getBlockNotificationText(card.card)).toContain(CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(CAMERA_NAME);
 
     expect(card.events.getEntries('advanced-camera-card:issue:trigger')).toHaveLength(1);
   });
@@ -452,6 +452,34 @@ describe('MediaUnavailableIssue', () => {
     expect(isIssueReported(card)).toBe(true);
   });
 
+  it('should wait out the grace period before rebuilding a slow camera', async () => {
+    const retrySeconds = 5;
+    const mediaURL = createUnansweredMediaURL();
+    const card = await mountCard({
+      view: { issues: { retry_seconds: retrySeconds } },
+      cameras: [createStillImageCameraConfig(CAMERA_ENTITY, mediaURL)],
+    });
+
+    await waitForTestMediaRequestCount(mediaURL, 1);
+
+    await card.advanceSeconds(MEDIA_LOADING_TIMEOUT_SECONDS);
+    expect(isIssueReported(card)).toBe(true);
+
+    // Several retries fall due during the grace period, but rebuilding would
+    // discard a load that may still complete.
+    await card.advanceSeconds(
+      MEDIA_UNAVAILABLE_REASONS.not_loading.rebuildGraceSeconds - 1,
+    );
+    expect(getTestMediaRequestCount(mediaURL)).toBe(1);
+
+    // Past the grace period the attempt has had long enough, and the next retry
+    // replaces it.
+    await card.advanceSeconds(retrySeconds + 1);
+    await waitForTestMediaRequestCount(mediaURL, 2);
+
+    expect(getTestMediaRequestCount(mediaURL)).toBeGreaterThan(1);
+  });
+
   it('should keep retrying a camera that is still broken', async () => {
     // Must use the real clock: fake time moves the card's timers instantly, so
     // a request would never get a chance to answer between one retry and the
@@ -485,12 +513,14 @@ describe('MediaUnavailableIssue', () => {
     expect(isLiveMediaShowing(card.card)).toBe(true);
 
     // Exactly the two attempts that failed, so the retry ran once rather than
-    // spinning until something happened to work.
+    // spinning until something happened to work. A refused request is reported
+    // as a server error rather than a slow load, which is what allows it to be
+    // retried without waiting.
     expect(
       card.events
         .getEntries('advanced-camera-card:issue:trigger')
         .map((entry) => getIssueReason(entry.detail)),
-    ).toEqual(['not_loading', 'not_loading']);
+    ).toEqual(['server_error', 'server_error']);
   });
 
   it('should re-attempt when the retry control is used', async () => {

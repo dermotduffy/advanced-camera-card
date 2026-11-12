@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 
 import { SetReviewAction } from '../../../../src/card-controller/actions/actions/set-review';
 import { ViewMediaType } from '../../../../src/view/item';
@@ -17,7 +18,12 @@ describe('SetReviewAction', () => {
 
     const queryResults = new QueryResults({ results: [item], selectedIndex: 0 });
     const view = createView({ queryResults });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+    const viewManager = api.getViewManager();
+    vi.mocked(viewManager.getView).mockReturnValue(view);
+    vi.mocked(viewManager.getEpoch).mockReturnValue({ manager: viewManager });
+
+    const element = mock<HTMLElement>();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
 
     const action = new SetReviewAction(
       {},
@@ -29,12 +35,14 @@ describe('SetReviewAction', () => {
     await action.execute(api);
 
     expect(api.getViewItemManager().reviewMedia).toHaveBeenCalledWith(item, true);
+    expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalled();
 
-    // toggleReviewed mutates the item in-place
-    expect(item.isReviewed()).toBe(true);
-
-    // Verify UI update is triggered to refresh menu icon
-    expect(api.getCardElementManager().update).toHaveBeenCalled();
+    expect(element.dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'advanced-camera-card:media:reviewed',
+        detail: item,
+      }),
+    );
   });
 
   it('should set reviewed to true when requested and currently false', async () => {
@@ -47,7 +55,12 @@ describe('SetReviewAction', () => {
 
     const queryResults = new QueryResults({ results: [item], selectedIndex: 0 });
     const view = createView({ queryResults });
-    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+    const viewManager = api.getViewManager();
+    vi.mocked(viewManager.getView).mockReturnValue(view);
+    vi.mocked(viewManager.getEpoch).mockReturnValue({ manager: viewManager });
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(
+      mock<HTMLElement>(),
+    );
 
     const action = new SetReviewAction(
       {},
@@ -60,7 +73,7 @@ describe('SetReviewAction', () => {
     await action.execute(api);
 
     expect(api.getViewItemManager().reviewMedia).toHaveBeenCalledWith(item, true);
-    expect(item.isReviewed()).toBe(true);
+    expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalled();
   });
 
   it('should not act when requested state matches current state', async () => {
@@ -147,7 +160,7 @@ describe('SetReviewAction', () => {
     expect(api.getViewItemManager().reviewMedia).not.toHaveBeenCalled();
   });
 
-  it('should not update UI if review action fails', async () => {
+  it('should not trigger a media reviewed event if the review action fails', async () => {
     const api = createCardAPI();
     const item = new TestViewMedia({
       cameraID: 'camera.office',
@@ -162,6 +175,9 @@ describe('SetReviewAction', () => {
       new Error('error'),
     );
 
+    const element = mock<HTMLElement>();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+
     const action = new SetReviewAction(
       {},
       {
@@ -172,6 +188,6 @@ describe('SetReviewAction', () => {
     await action.execute(api);
 
     expect(api.getViewItemManager().reviewMedia).toHaveBeenCalledWith(item, true);
-    expect(api.getCardElementManager().update).not.toHaveBeenCalled();
+    expect(element.dispatchEvent).not.toHaveBeenCalled();
   });
 });

@@ -31,6 +31,7 @@ import {
 } from '../../../../components-lib/signed-url-controller.js';
 import type { CardWideConfig } from '../../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
+import { getICEServers } from '../../../../ha/webrtc.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCExperimentalStyle from '../../../../scss/live-go2rtc-experimental.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../../../../types.js';
@@ -143,6 +144,7 @@ export class AdvancedCameraCardGo2RTCExperimental
   private _session = new Go2RTCSessionController({
     getControls: () => this.controls,
     getCardWideConfig: () => this.cardWideConfig ?? null,
+    getICEServers: () => getICEServers(this.hass),
     mediaLoadedCallback: (info) => this._mediaLoadedInfoSourceController.set(info),
 
     surfaceCommittedCallback: (surface) => {
@@ -191,6 +193,13 @@ export class AdvancedCameraCardGo2RTCExperimental
     this._session.reset();
     this._activeSurface = null;
     this._mediaLoadedInfoSourceController.clear();
+  }
+
+  // Lit keeps updating a detached element, and every update re-signs the URL
+  // and re-establishes the session, so a detached provider would otherwise
+  // stream to nothing.
+  protected shouldUpdate(): boolean {
+    return this.isConnected;
   }
 
   protected willUpdate(changedProps: PropertyValues): void {

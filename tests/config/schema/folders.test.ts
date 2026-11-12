@@ -54,6 +54,20 @@ describe('transformPathURLToPathArray', () => {
     });
   });
 
+  describe('should strip an empty media class from a path component', () => {
+    it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
+      const url =
+        `${urlPrefix}media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source/` +
+        '%2Cmedia-source%3A%2F%2Fmedia_source%2Flocal%2FLanding';
+      const result = transformPathURLToPathArray(url);
+      expect(result).toEqual([
+        { id: 'media-source://' },
+        { id: 'media-source://media_source' },
+        { id: 'media-source://media_source/local/Landing' },
+      ]);
+    });
+  });
+
   describe('should return the root for unknown URLs', () => {
     it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
       const url = `${urlPrefix}something-completely-different`;
@@ -108,6 +122,7 @@ describe('should be able to re-parse a folder', () => {
 
     const expectedFolder: FolderConfigWithoutID = {
       type: 'ha',
+      navigation: 'restricted',
       ha: {
         url: [
           {
@@ -125,5 +140,47 @@ describe('should be able to re-parse a folder', () => {
 
     const parsedFolder_2 = foldersConfigSchema.parse(parsedFolders);
     expect(parsedFolder_2).toEqual([expectedFolder]);
+  });
+});
+
+describe('thumbnail parser', () => {
+  it('should reject both a regexp and a value template', () => {
+    expect(
+      foldersConfigSchema.safeParse([
+        {
+          type: 'ha',
+          ha: {
+            path: [
+              {
+                parsers: [
+                  { type: 'thumbnail', regexp: '.*', value_template: '{{ 1 }}' },
+                ],
+              },
+            ],
+          },
+        },
+      ]).success,
+    ).toBe(false);
+  });
+});
+
+describe('enddate parser', () => {
+  const parseParser = (parser: unknown) =>
+    foldersConfigSchema.safeParse([
+      { type: 'ha', ha: { path: [{ parsers: [parser] }] } },
+    ]);
+
+  it('should accept an enddate parser', () => {
+    expect(
+      parseParser({
+        type: 'enddate',
+        regexp: '- (?<value>\\d{2}:\\d{2}:\\d{2})$',
+        format: 'HH:mm:ss',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('should reject an invalid enddate parser', () => {
+    expect(parseParser({ type: 'enddate', format: 42 }).success).toBe(false);
   });
 });

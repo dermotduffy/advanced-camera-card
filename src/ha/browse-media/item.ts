@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
-import { isEqual } from 'lodash-es';
 
-import type { FolderPathComponent } from '../../card-controller/folders/types';
+import type { FolderPathLevel } from '../../card-controller/folders/types';
 import type { FolderConfig } from '../../config/schema/folders';
 import { formatDateAndTime } from '../../utils/basic';
 import {
@@ -89,7 +88,7 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
     return startTime ? formatDateAndTime(startTime) : this._browseMedia.title;
   }
   public getThumbnail(): string | null {
-    return this._browseMedia.thumbnail;
+    return this._browseMedia._metadata?.thumbnailOverride ?? this._browseMedia.thumbnail;
   }
   public getIcon(): string | null {
     return this._icon;
@@ -103,12 +102,6 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
   public getTags(): string[] | null {
     return null;
   }
-  public isGroupableWith(that: EventViewMedia): boolean {
-    return (
-      this.getMediaType() === that.getMediaType() &&
-      isEqual(this.getWhat(), that.getWhat())
-    );
-  }
 }
 
 export class BrowseMediaViewFolder extends ViewFolder {
@@ -116,14 +109,15 @@ export class BrowseMediaViewFolder extends ViewFolder {
 
   constructor(
     folder: FolderConfig,
-    path: readonly FolderPathComponent[],
+    path: readonly FolderPathLevel[],
     browseMedia: RichBrowseMedia<BrowseMediaMetadata>,
   ) {
     super(folder, path, {
       id: browseMedia.media_content_id,
       icon: getIcon(browseMedia.children_media_class ?? browseMedia.media_class),
       title: browseMedia.title,
-      thumbnail: browseMedia.thumbnail,
+      thumbnail: browseMedia._metadata?.thumbnailOverride ?? browseMedia.thumbnail,
+      isThumbnailConfigured: !!browseMedia._metadata?.thumbnailOverride,
     });
     this._browseMedia = browseMedia;
   }

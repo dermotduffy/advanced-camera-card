@@ -734,6 +734,34 @@ describe('state condition', () => {
     ).toBeFalsy();
   });
 
+  it.each([
+    ['input_text.expected', true],
+    ['input_text.a_1', true],
+    ['input_text.', false],
+    ['input_text._expected', false],
+    ['input_text.__expected', false],
+    ['input_text.expected_', false],
+    ['input_text.expected__name', false],
+  ])('should resolve only a valid input helper ID: %s', (entityID, shouldResolve) => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: 'binary_sensor.foo',
+        state: entityID,
+      },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'armed' }),
+          [entityID]: createStateEntity({ state: 'armed' }),
+        }),
+      }).result,
+    ).toBe(shouldResolve);
+  });
+
   it('should not resolve a non-input entity name', () => {
     // Only `input_*` helpers are resolved; other entity names compare literally.
     const evaluator = createConditionEvaluator(

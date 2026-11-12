@@ -1,10 +1,9 @@
 import { z } from 'zod';
 
 import { actionsBaseSchema } from '../actions/types';
+import { styleSchema } from '../common/style';
 
 export const elementsBaseSchema = actionsBaseSchema.extend({
-  style: z
-    .record(z.string(), z.string().nullable().or(z.undefined()).or(z.number()))
-    .optional(),
+  style: styleSchema.optional(),
   title: z.string().nullable().optional(),
 });

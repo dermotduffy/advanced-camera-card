@@ -9,6 +9,19 @@ import { createCardAPI, setScreenfulEnabled } from '../../test-utils';
 
 // @vitest-environment jsdom
 describe('FullscreenProviderFactory', () => {
+  const createStubDocument = (element: HTMLElement): Document => {
+    const stubDocument = mock<Document>();
+
+    // The no-deprecated check needs to be disabled because mocking
+    // `createElement` matches its deprecated overload (the one for legacy
+    // elements such as `marquee`), even though this test only ever creates a
+    // `video` element.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    stubDocument.createElement.mockReturnValue(element);
+
+    return stubDocument;
+  };
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -28,10 +41,7 @@ describe('FullscreenProviderFactory', () => {
       Partial<WebkitHTMLVideoElement>;
     element['webkitEnterFullscreen'] = vi.fn();
 
-    const stubDocument = mock<Document>();
-    stubDocument.createElement.mockReturnValue(element);
-
-    vi.stubGlobal('document', stubDocument);
+    vi.stubGlobal('document', createStubDocument(element));
 
     expect(FullscreenProviderFactory.create(createCardAPI(), vi.fn())).toBeInstanceOf(
       WebkitFullScreenProvider,
@@ -45,10 +55,7 @@ describe('FullscreenProviderFactory', () => {
       Partial<WebkitHTMLVideoElement>;
     element['webkitEnterFullscreen'] = undefined;
 
-    const stubDocument = mock<Document>();
-    stubDocument.createElement.mockReturnValue(element);
-
-    vi.stubGlobal('document', stubDocument);
+    vi.stubGlobal('document', createStubDocument(element));
 
     expect(FullscreenProviderFactory.create(createCardAPI(), vi.fn())).toBeNull();
   });

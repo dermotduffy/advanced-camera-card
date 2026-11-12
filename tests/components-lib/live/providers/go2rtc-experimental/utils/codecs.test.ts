@@ -6,7 +6,11 @@ import {
   GO2RTC_CODECS,
   selectSupportedCodecs,
 } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/utils/codecs';
-import { CHROME_USER_AGENT, SAFARI_17_USER_AGENT } from '../test-utils';
+import {
+  ANDROID_WEBVIEW_USER_AGENT,
+  CHROME_USER_AGENT,
+  SAFARI_17_USER_AGENT,
+} from '../test-utils';
 
 const safariUserAgent = (version: number): string =>
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 ' +
@@ -15,6 +19,12 @@ const safariUserAgent = (version: number): string =>
 describe('getCodecsForUserAgent', () => {
   it('should return all codecs for non-Safari browsers', () => {
     expect(getCodecsForUserAgent(CHROME_USER_AGENT)).toEqual([...GO2RTC_CODECS]);
+  });
+
+  it('should return all codecs for an Android WebView', () => {
+    expect(getCodecsForUserAgent(ANDROID_WEBVIEW_USER_AGENT)).toEqual([
+      ...GO2RTC_CODECS,
+    ]);
   });
 
   it('should exclude AAC and later for Safari before version 13', () => {

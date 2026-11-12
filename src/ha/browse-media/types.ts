@@ -7,6 +7,7 @@ export interface BrowseMediaMetadata {
   startDate?: Date;
   endDate?: Date;
   what?: string[];
+  thumbnailOverride?: string;
 }
 
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_player/browse_media.py#L90

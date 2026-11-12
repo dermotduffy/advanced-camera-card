@@ -1,4 +1,4 @@
-import type { LitElement } from 'lit';
+import type { LitElement, ReactiveController } from 'lit';
 
 import type {
   FullscreenElement,
@@ -40,13 +40,19 @@ interface ImageMediaPlayerControllerOptions {
 }
 
 // Image player composed from opt-in capabilities.
-export class ImageMediaPlayerController implements MediaPlayerController {
+export class ImageMediaPlayerController
+  implements MediaPlayerController, ReactiveController
+{
   private _host: LitElement;
   private _getImageCallback: () => HTMLImageElement | null;
   private _screenshotProvider: ImageScreenshotProvider | null;
 
   private _stallWatchdog: FrameStallWatchdog | null = null;
-  private _loadListener: (() => void) | null = null;
+
+  // The frame source: the image the load listener was added to, and the
+  // listener itself.
+  private _frameCallback: { image: HTMLImageElement; listener: () => void } | null =
+    null;
 
   public readonly playback?: PlaybackControl;
   public readonly subscribeLiveness?: (
@@ -89,6 +95,26 @@ export class ImageMediaPlayerController implements MediaPlayerController {
       this.subscribeLiveness = (callback): UnsubscribeCallback =>
         stallWatchdog.subscribe(callback);
     }
+
+    host.addController(this);
+  }
+
+  // The host can replace its image element so the frame callback has to move
+  // with it. Left on the old element it would be watching something detached
+  // that never presents another frame.
+  //
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2726
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2718
+  public hostUpdated(): void {
+    if (!this._frameCallback) {
+      return;
+    }
+    const image = this._getImageCallback();
+    if (!image || image === this._frameCallback.image) {
+      return;
+    }
+    this._stopFrameSource();
+    this._startFrameSource();
   }
 
   public async mute(): Promise<void> {
@@ -135,18 +161,16 @@ export class ImageMediaPlayerController implements MediaPlayerController {
     if (!image) {
       return false;
     }
-    this._loadListener = (): void => {
+    const listener = (): void => {
       this._stallWatchdog?.notifyFrame();
     };
-    image.addEventListener('load', this._loadListener);
+    this._frameCallback = { image, listener };
+    image.addEventListener('load', listener);
     return true;
   }
 
   private _stopFrameSource(): void {
-    const image = this._getImageCallback();
-    if (image && this._loadListener) {
-      image.removeEventListener('load', this._loadListener);
-    }
-    this._loadListener = null;
+    this._frameCallback?.image.removeEventListener('load', this._frameCallback.listener);
+    this._frameCallback = null;
   }
 }

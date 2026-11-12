@@ -216,16 +216,18 @@ cameras:
         # [...]
 ```
 
-| Option     | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ---------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fit`      | `contain` | If `contain`, the media is contained within the camera container/card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the camera/card dimensions are fully covered. If `fill`, the media is stretched to fill the camera/card dimensions (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit) for technical details and a visualization. Note that if `aspect_ratio` is also set, this is controlling the behavior "within" that aspect-ratio, otherwise it's within the container for the camera (which is effectively the whole card for single card configurations).                                                                                                                              |
-| `pan`      |           | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when "digitally zoomed in" (see `zoom` parameter). This can be effectively used to "pan"/cut the media shown. A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [visualizations](#layout-visualizations) below.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `position` |           | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover` (for other values of `fit` this option has no effect). This can be effectively used to "pan"/cut the media shown. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the camera/card dimensions (in which case `x` controls the position) or the media height is larger than the camera/card dimensions (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-position) for technicals. See [visualizations](#layout-visualizations) below. |
-| `view_box` |           | A dictionary that may contain a `top`, `bottom`, `left` and `right` percentage (`0` - `100`) to precisely crop what part of the media to show by specifying a % inset value from each side. Browsers apply this cropping after `position` and `fit` have been applied. Unlike `zoom`, the user cannot dynamically zoom back out -- however the builtin media controls will work as normal. See [visualizations](#layout-visualizations) below. Limited [browser support](https://caniuse.com/mdn-css_properties_object-view-box): ![Chrome](../../images/browsers/chrome_16x16.png 'Google Chrome :no-zoom') ![Chromium](../../images/browsers/chromium_16x16.png 'Chromium :no-zoom') ![Edge](../../images/browsers/edge_16x16.png 'Microsoft Edge :no-zoom')                                                                                                                |
-| `zoom`     | `1.0`     | A value between `1.0` and `10.0` inclusive that defines how much additional "digital zoom" to apply to this camera by default. Unlike with `view_box` the user can easily "zoom back out". Often used in conjuction with `pan`. When zoomed in the [builtin browser media controls](../live.md?id=controls) will automatically be disabled (as otherwise they would be enlarged also).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Option     | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `fit`      | `contain` | If `contain`, the media is contained within the camera container/card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the camera/card dimensions are fully covered. If `fill`, the media is stretched to fill the camera/card dimensions (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit) for technical details and a visualization. Note that if `aspect_ratio` is also set, this is controlling the behavior "within" that aspect-ratio, otherwise it's within the container for the camera (which is effectively the whole card for single card configurations).                                                                                                                                                                               |
+| `pan`      |           | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when "digitally zoomed in" (see `zoom` parameter). This can be effectively used to "pan"/cut the media shown. A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [visualizations](#layout-visualizations) below. Quote the `y` key as `'y':` (see warning below).                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `position` |           | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover` (for other values of `fit` this option has no effect). This can be effectively used to "pan"/cut the media shown. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the camera/card dimensions (in which case `x` controls the position) or the media height is larger than the camera/card dimensions (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-position) for technicals. See [visualizations](#layout-visualizations) below. Quote the `y` key as `'y':` (see warning below). |
+| `view_box` |           | A dictionary that may contain a `top`, `bottom`, `left` and `right` percentage (`0` - `100`) to precisely crop what part of the media to show by specifying a % inset value from each side. Browsers apply this cropping after `position` and `fit` have been applied. Unlike `zoom`, the user cannot dynamically zoom back out -- however the builtin media controls will work as normal. See [visualizations](#layout-visualizations) below. Limited [browser support](https://caniuse.com/mdn-css_properties_object-view-box): ![Chrome](../../images/browsers/chrome_16x16.png 'Google Chrome :no-zoom') ![Chromium](../../images/browsers/chromium_16x16.png 'Chromium :no-zoom') ![Edge](../../images/browsers/edge_16x16.png 'Microsoft Edge :no-zoom')                                                                                                                                                                 |
+| `zoom`     | `1.0`     | A value between `1.0` and `10.0` inclusive that defines how much additional "digital zoom" to apply to this camera by default. Unlike with `view_box` the user can easily "zoom back out". Often used in conjuction with `pan`. When zoomed in the [builtin browser media controls](../live.md?id=controls) will automatically be disabled (as otherwise they would be enlarged also).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 > [!NOTE]
 > Layout operations are effectively applied in this order: `fit`, `position`, `view_box`, `zoom` then `pan`.
+
+[](../common/y-key-warning.md ':include')
 
 See [media layout examples](../../examples.md?id=media-layout).
 
@@ -483,12 +485,12 @@ cameras:
     cast:
       method: standard
     dimensions:
-      aspect_ratio: 16:9
+      aspect_ratio: '16:9'
       layout:
         fit: contain
         position:
           x: 50
-          y: 50
+          'y': 50
     always_error_if_entity_unavailable: false
   - camera_entity: camera.entrance
     icon: 'mdi:car'
@@ -508,7 +510,7 @@ cameras:
         zoom: 2.0
         pan:
           x: 50
-          y: 50
+          'y': 50
   - camera_entity: camera.manual-ptz
     ptz:
       c2r_delay_between_calls_seconds: 0.2
@@ -540,27 +542,26 @@ cameras:
         device: '048123'
         cmd: up
       # Equivalent continuous short form (only `down` shown)
-      service: service.send_command
-      data_up_start:
+      data_start_down:
         device: '048123'
         cmd: down
         phase: start
-      data_up_stop:
+      data_end_down:
         device: '048123'
         cmd: down
         phase: stop
       presets:
         # Preset using long form.
         armchair:
-        action: perform-action
-        perform_action: service.of_your_choice
+          action: perform-action
+          perform_action: service.of_your_choice
           data:
             device: '048123'
             cmd: preset
             preset: armchair
         # Preset using short form.
         service: service.of_your_choice
-        window:
+        data_window:
           device: '048123'
           cmd: preset
           preset: window
@@ -575,19 +576,24 @@ cameras:
     capabilities:
       disable_except:
         - clips
+        - remote-control-entity
         - favorite-events
         - favorite-recordings
         - live
         - menu
         - ptz
         - recordings
+        - reviews
         - seek
         - snapshots
         - substream
-        - trigger
         - 2-way-audio
+        - trigger
       disable:
         # Capabilities to selectively disable.
+        - substream
+      force:
+        - 2-way-audio
   - camera_entity: camera.rotated
     dimensions:
       rotation: 90

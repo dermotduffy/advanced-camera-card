@@ -1,7 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CardController } from '../../../../src/card-controller/controller';
-import { MediaUnavailableIssue } from '../../../../src/card-controller/issues/issues/media-unavailable';
+import {
+  MEDIA_UNAVAILABLE_REASONS,
+  MediaUnavailableIssue,
+} from '../../../../src/card-controller/issues/issues/media-unavailable';
 import type { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../../src/view/target-id';
 import type { View } from '../../../../src/view/view';
@@ -12,6 +15,9 @@ import {
 } from '../../../camera-manager/test-utils';
 import { createCardAPI } from '../../../test-utils';
 import { createView } from '../../../view/test-utils';
+
+// Read from the policy itself rather than restated here.
+const LOADING_GRACE_SECONDS = MEDIA_UNAVAILABLE_REASONS.not_loading.rebuildGraceSeconds;
 
 const createAPIWithView = (view: View | null): CardController => {
   const api = createCardAPI();
@@ -339,7 +345,7 @@ describe('MediaUnavailableIssue', () => {
       ['entity_unavailable' as const, 'Camera entity unavailable', 'mdi:cctv-off'],
       ['not_loading' as const, 'Media not loading', 'mdi:progress-helper'],
       ['playback_error' as const, 'Playback error', 'mdi:alert-circle'],
-      ['server_error' as const, 'Streaming server error', 'mdi:server-network-off'],
+      ['server_error' as const, 'Media server error', 'mdi:server-network-off'],
       ['stalled' as const, 'Stream stalled', 'mdi:motion-pause'],
       ['unsupported' as const, 'Stream not supported', 'mdi:video-off-outline'],
     ])('should give the %s cause its own text and icon', (reason, text, icon) => {
@@ -482,6 +488,154 @@ describe('MediaUnavailableIssue', () => {
       // Recovery clears it out of band, via a resolve from whatever observes
       // the media -- not by the retry itself.
       expect(issue.hasIssue()).toBe(true);
+    });
+  });
+
+  describe('rebuilding a load that has not arrived', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should not rebuild media that is still loading', () => {
+      const api = createAPIDisplaying('camera-1');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+
+      vi.advanceTimersByTime(LOADING_GRACE_SECONDS * 1000 - 1);
+
+      expect(issue.retry()).toBe(false);
+      expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
+    });
+
+    it('should rebuild media that has still not arrived once the grace period has passed', () => {
+      const api = createAPIDisplaying('camera-1');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+
+      vi.advanceTimersByTime(LOADING_GRACE_SECONDS * 1000);
+
+      issue.retry();
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaEpoch: { 'camera-1': 1 },
+      });
+    });
+
+    it('should rebuild media that has failed at once', () => {
+      const api = createAPIDisplaying('camera-1');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+
+      issue.retry();
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaEpoch: { 'camera-1': 1 },
+      });
+    });
+
+    it('should rebuild media that is still loading when the user asks', () => {
+      const api = createAPIDisplaying('camera-1');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+
+      issue.retry(true);
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaEpoch: { 'camera-1': 1 },
+      });
+    });
+
+    it('should only rebuild media that is ready for a retry', () => {
+      const api = createAPIDisplaying('camera-1', 'camera-2');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+      issue.trigger({ targetID: 'camera-2', reason: 'stalled' });
+
+      issue.retry();
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaEpoch: { 'camera-2': 1 },
+      });
+    });
+
+    it('should not let repeated reports of one failure postpone the rebuild', () => {
+      const api = createAPIDisplaying('camera-1');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+
+      vi.advanceTimersByTime(LOADING_GRACE_SECONDS * 0.5 * 1000);
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+      vi.advanceTimersByTime(LOADING_GRACE_SECONDS * 0.5 * 1000);
+
+      issue.retry();
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaEpoch: { 'camera-1': 1 },
+      });
+    });
+
+    it('should rebuild at once when media that was still loading is reported as failed', () => {
+      const api = createAPIDisplaying('camera-1');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+
+      issue.retry();
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaEpoch: { 'camera-1': 1 },
+      });
+    });
+
+    it('should not allow a retry while everything on screen is still loading', () => {
+      const api = createAPIDisplaying('camera-1');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+
+      expect(issue.canRetryNow()).toBe(false);
+
+      vi.advanceTimersByTime(LOADING_GRACE_SECONDS * 1000);
+
+      expect(issue.canRetryNow()).toBe(true);
+    });
+
+    it('should allow a retry when any media has failed', () => {
+      const api = createAPIDisplaying('camera-1', 'camera-2');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+      issue.trigger({ targetID: 'camera-2', reason: 'stalled' });
+
+      expect(issue.canRetryNow()).toBe(true);
+    });
+
+    it('should give a rebuilt load a fresh grace period', () => {
+      const api = createAPIDisplaying('camera-1');
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+      vi.advanceTimersByTime(LOADING_GRACE_SECONDS * 1000);
+      issue.retry();
+
+      vi.mocked(api.getViewManager().setViewWithMergedContext).mockClear();
+
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
+      vi.advanceTimersByTime(LOADING_GRACE_SECONDS * 1000 - 1);
+      issue.retry();
+
+      expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
     });
   });
 

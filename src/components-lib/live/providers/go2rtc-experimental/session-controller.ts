@@ -2,7 +2,6 @@ import { isEqual } from 'lodash-es';
 
 import { GO2RTC_MODES, type Go2RTCMode } from '../../../../config/schema/cameras';
 import type { CardWideConfig } from '../../../../config/schema/types';
-import type { PeerConnectionFactory } from '../../../../go2rtc/peer-connection';
 import { SignalingChannel, type WebSocketFactory } from '../../../../go2rtc/signaling';
 import type {
   MediaPlayerController,
@@ -18,6 +17,7 @@ import {
 } from '../../../../utils/controls';
 import { log } from '../../../../utils/debug';
 import { createMediaLoadedInfo } from '../../../../utils/media-info';
+import type { PeerConnectionFactory } from '../../../../utils/peer-connection';
 import { RetryTimer } from '../../../../utils/retry-timer';
 import { convertToWebSocketURL } from '../../../../utils/websocket-url';
 import type { MediaSourceFactory } from './adapters/media-source';
@@ -86,6 +86,7 @@ export interface SessionSurfaces {
 interface Go2RTCSessionCallbacks {
   getControls: () => boolean;
   getCardWideConfig: () => CardWideConfig | null;
+  getICEServers: () => Promise<RTCIceServer[]>;
   mediaLoadedCallback: (info: UntargetedMediaLoadedInfo) => void;
 
   // The lane that just committed is live on this surface (the component shows
@@ -454,10 +455,14 @@ export class Go2RTCSessionController {
       },
     };
 
-    source = (this._options?.createWebRTCSource ?? createWebRTCSource)(sourceContext, {
-      createPeerConnection: this._options?.createPeerConnection,
-      createMediaStream: this._options?.createMediaStream,
-    });
+    source = (this._options?.createWebRTCSource ?? createWebRTCSource)(
+      sourceContext,
+      this._callbacks.getICEServers,
+      {
+        createPeerConnection: this._options?.createPeerConnection,
+        createMediaStream: this._options?.createMediaStream,
+      },
+    );
 
     this._webRTCSource = source;
     source.start();

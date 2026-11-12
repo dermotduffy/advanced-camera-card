@@ -10,5 +10,5 @@ import { arrayify } from '../../../utils/basic';
 //
 // For a list of strings use `stringOrArray` instead, which keeps the falsy
 // values `arrayify` drops.
-export const preprocessToArray = <T extends z.ZodTypeAny>(arraySchema: T) =>
+export const preprocessToArray = <T extends z.ZodType>(arraySchema: T) =>
   z.preprocess((value) => (value === undefined ? value : arrayify(value)), arraySchema);

@@ -17,8 +17,9 @@
   height: 100%;
 
   user-select: none;
+  -webkit-user-select: none;
+
   -webkit-touch-callout: none;
-  -khtml-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 :host([direction='vertical']) .embla__container {

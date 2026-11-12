@@ -1,4 +1,4 @@
-import { add, endOfHour, fromUnixTime, startOfHour } from 'date-fns';
+import { add, fromUnixTime } from 'date-fns';
 import { isEqual, orderBy, throttle, uniqWith } from 'lodash-es';
 
 import type { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
@@ -10,11 +10,16 @@ import { hasUnsupportedFilters, QuerySource } from '../../query-source.js';
 import type { Endpoint } from '../../types';
 import {
   allPromises,
-  formatDate,
   isTruthy,
   prettifyTitle,
   runWhenIdleIfSupported,
 } from '../../utils/basic';
+import {
+  createDayHourResolver,
+  endOfHourInTimeZone,
+  hourInTimeZoneToDate,
+  startOfHourInTimeZone,
+} from '../../utils/timezone';
 import { ViewMediaType, type ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../view/types';
@@ -350,19 +355,44 @@ export class FrigateCameraManagerEngine
     return output.length ? output : null;
   }
 
+  // Return every cached payload with the given id; there can be several, since
+  // each query parses its own returned data from Frigate. The cache holds
+  // results of every query type, so `select` returns the payloads within a
+  // result, or null if it does not handle that type.
+  private _getCachedPayloads<T extends { id: string }>(
+    id: string,
+    select: (results: QueryResults) => T[] | null,
+  ): T[] {
+    const payloads: T[] = [];
+    for (const [, results] of this._requestCache.entries()) {
+      payloads.push(...(select(results) ?? []).filter((payload) => payload.id === id));
+    }
+    return payloads;
+  }
+
   public async favoriteMedia(
     hass: HomeAssistant,
     camera: Camera,
     media: ViewMedia,
     favorite: boolean,
   ): Promise<void> {
-    const clientID = getFrigateClientID(camera);
-    if (!FrigateViewMediaClassifier.isFrigateEvent(media) || !clientID) {
+    const instanceID = getFrigateClientID(camera);
+    if (!FrigateViewMediaClassifier.isFrigateEvent(media) || !instanceID) {
       return;
     }
 
-    await retainEvent(hass, clientID, media.getID(), favorite);
+    const eventID = media.getID();
+    await retainEvent(hass, instanceID, eventID, favorite);
+
+    const cachedEvents = this._getCachedPayloads(eventID, (results) =>
+      FrigateQueryResultsClassifier.isFrigateEventQueryResults(results) &&
+      results.instanceID === instanceID
+        ? results.events
+        : null,
+    );
+
     media.setFavorite(favorite);
+    cachedEvents.forEach((event) => (event.retain_indefinitely = favorite));
   }
 
   public async reviewMedia(
@@ -371,12 +401,23 @@ export class FrigateCameraManagerEngine
     media: ViewMedia,
     reviewed: boolean,
   ): Promise<void> {
-    const clientID = getFrigateClientID(camera);
-    if (!FrigateViewMediaClassifier.isFrigateReview(media) || !clientID) {
+    const instanceID = getFrigateClientID(camera);
+    if (!FrigateViewMediaClassifier.isFrigateReview(media) || !instanceID) {
       return;
     }
 
-    await setReviewsReviewed(hass, clientID, [media.getID()], reviewed);
+    const reviewID = media.getID();
+    await setReviewsReviewed(hass, instanceID, [reviewID], reviewed);
+
+    const cachedReviews = this._getCachedPayloads(reviewID, (results) =>
+      FrigateQueryResultsClassifier.isFrigateReviewQueryResults(results) &&
+      results.instanceID === instanceID
+        ? results.reviews
+        : null,
+    );
+
+    media.setReviewed(reviewed);
+    cachedReviews.forEach((review) => (review.has_been_reviewed = reviewed));
   }
 
   private _buildInstanceToCameraIDMapFromQuery(
@@ -439,7 +480,7 @@ export class FrigateCameraManagerEngine
       const cachedResult =
         engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
-        output.set(query, cachedResult as EventQueryResults);
+        output.set(instanceQuery, cachedResult as EventQueryResults);
         return;
       }
 
@@ -468,7 +509,11 @@ export class FrigateCameraManagerEngine
       };
 
       if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+        this._requestCache.set(
+          instanceQuery,
+          { ...result, cached: true },
+          result.expiry,
+        );
       }
       output.set(instanceQuery, result);
     };
@@ -518,7 +563,7 @@ export class FrigateCameraManagerEngine
       const cachedResult =
         engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
-        output.set(query, cachedResult as FrigateReviewQueryResults);
+        output.set(instanceQuery, cachedResult as FrigateReviewQueryResults);
         return;
       }
 
@@ -557,7 +602,11 @@ export class FrigateCameraManagerEngine
       };
 
       if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+        this._requestCache.set(
+          instanceQuery,
+          { ...result, cached: true },
+          result.expiry,
+        );
       }
       output.set(instanceQuery, result);
     };
@@ -607,12 +656,20 @@ export class FrigateCameraManagerEngine
 
       for (const dayData of recordingSummary ?? []) {
         for (const hourData of dayData.hours) {
-          const hour = add(dayData.day, { hours: hourData.hour });
-          const startHour = startOfHour(hour);
-          const endHour = endOfHour(hour);
+          // The day and hour carry no timezone, so converting them to a point
+          // in time needs to use the HA timezone, as the Frigate integration
+          // returns the summary using that timezone.
+          const startHour = hourInTimeZoneToDate(
+            dayData.day,
+            hourData.hour,
+            hass.config.time_zone,
+          );
+          const endHour = endOfHourInTimeZone(startHour, hass.config.time_zone);
+          // The query window and a recording hour can start on different
+          // minutes, so an overlap counts.
           if (
-            (!query.start || startHour >= query.start) &&
-            (!query.end || endHour <= query.end)
+            (!query.end || startHour <= query.end) &&
+            (!query.start || endHour >= query.start)
           ) {
             recordings.push({
               cameraID: cameraID,
@@ -834,6 +891,7 @@ export class FrigateCameraManagerEngine
           recording,
           queryableCamera,
           this.getCameraMetadata(hass, camera).title,
+          hass.config.time_zone,
         ),
       );
     }
@@ -841,7 +899,7 @@ export class FrigateCameraManagerEngine
   }
 
   public generateMediaFromReviews(
-    _hass: HomeAssistant,
+    hass: HomeAssistant,
     store: CameraManagerReadOnlyConfigStore,
     query: ReviewQuery,
     results: QueryReturnType<ReviewQuery>,
@@ -866,7 +924,12 @@ export class FrigateCameraManagerEngine
         continue;
       }
       output.push(
-        FrigateViewMediaFactory.createReviewViewMedia(cameraID, review, queryableCamera),
+        FrigateViewMediaFactory.createReviewViewMedia(
+          cameraID,
+          review,
+          queryableCamera,
+          hass.config.time_zone,
+        ),
       );
     }
     return output;
@@ -900,10 +963,14 @@ export class FrigateCameraManagerEngine
     }
 
     // For recordings/reviews, use hour boundaries since Frigate recordings are
-    // hour-long. For clips/snapshots, use the actual media time range.
+    // hour-long, bucketed by the Frigate integration in the Home Assistant
+    // timezone. For clips/snapshots, use the actual media time range.
     const isRecordingBased = mediaType === 'recording' || mediaType === 'review';
-    const start = isRecordingBased ? startOfHour(mediaStart) : mediaStart;
-    const end = isRecordingBased ? endOfHour(mediaStart) : mediaEnd;
+    const timeZone = hass.config.time_zone;
+    const start = isRecordingBased
+      ? startOfHourInTimeZone(mediaStart, timeZone)
+      : mediaStart;
+    const end = isRecordingBased ? endOfHourInTimeZone(mediaStart, timeZone) : mediaEnd;
 
     if (!end || target < start || target > end) {
       return null;
@@ -998,6 +1065,8 @@ export class FrigateCameraManagerEngine
       }
     };
 
+    const resolveDayHour = createDayHourResolver(hass.config.time_zone);
+
     const processRecordings = async (cameraIDs: Set<string>): Promise<void> => {
       const recordings = await this.getRecordings(
         hass,
@@ -1024,7 +1093,9 @@ export class FrigateCameraManagerEngine
 
         for (const recording of result.recordings) {
           // Frigate recordings are always 1 hour long, i.e. never span a day.
-          days.add(formatDate(recording.startTime));
+          // The event summary reports its days in the Home Assistant timezone,
+          // so use the same timezone here.
+          days.add(resolveDayHour(recording.startTime).day);
         }
       }
     };
@@ -1076,8 +1147,12 @@ export class FrigateCameraManagerEngine
     // Performance: _recordingSegments is potentially very large (e.g. 10K - 1M
     // items) and each item must be examined, so care required here to stick to
     // nothing worse than O(n) performance.
+    const resolveDayHour = createDayHourResolver(hass.config.time_zone);
     const getHourID = (cameraID: string, startTime: Date): string => {
-      return `${cameraID}/${startTime.getDate()}/${startTime.getHours()}`;
+      // Recordings are bucketed by the Home Assistant hour, so segments must be
+      // bucketed the same way to be matched against them.
+      const { day, hour } = resolveDayHour(startTime);
+      return `${cameraID}/${day}/${hour}`;
     };
 
     const results = await this.getRecordings(hass, store, recordingQuery);

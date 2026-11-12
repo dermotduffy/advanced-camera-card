@@ -22,15 +22,17 @@ export class VideoRTC extends HTMLElement {
 
   oninit(): void;
   send(value: unknown): void;
-  onpcvideo(ev: Event): void;
+  onpcvideo(video2: HTMLVideoElement, pc: RTCPeerConnection): void;
   onconnect(): void;
   ondisconnect(): void;
   onclose(): void;
   onopen(): void;
   onwebrtc(): void;
   onmessage: Record<string, (msg: { type: string; value: string }) => void>;
+  ondata: ((data: ArrayBuffer) => void) | null;
 
   // Custom methods/members.
+  getICEServers: (() => Promise<RTCIceServer[]>) | null;
   mediaPlayerController: MediaPlayerController | null;
   targetID: string | null;
   reconnect();

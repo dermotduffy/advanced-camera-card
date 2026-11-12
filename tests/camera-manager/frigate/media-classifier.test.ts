@@ -59,6 +59,7 @@ describe('FrigateViewMediaClassifier', () => {
         createFrigateReview(),
         'content_id',
         'thumbnail',
+        new Date(),
       );
       expect(FrigateViewMediaClassifier.isFrigateReview(media)).toBe(true);
     });
@@ -87,6 +88,7 @@ describe('FrigateViewMediaClassifier', () => {
         createFrigateReview(),
         'content_id',
         'thumbnail',
+        new Date(),
       );
       expect(FrigateViewMediaClassifier.isFrigateMedia(media)).toBe(true);
     });

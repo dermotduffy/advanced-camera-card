@@ -1,3 +1,10 @@
+import { vi } from 'vitest';
+
+import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
+import type {
+  AdvancedCameraCardSelect,
+  SelectValues,
+} from '../../src/components/select';
 import type {
   PartialAdvancedCameraCardConfig,
   RawAdvancedCameraCardConfig,
@@ -5,13 +12,16 @@ import type {
 import type { Entity } from '../../src/ha/registry/entity/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
-import { isTruthy } from '../../src/utils/basic';
-import { clickElement, deepQuery, deepQueryAll } from './dom';
+import { isRecord, isTruthy } from '../../src/utils/basic';
+import { fireAdvancedCameraCardEvent } from '../../src/utils/fire-advanced-camera-card-event';
+import { Timer } from '../../src/utils/timer';
+import { clickElement, deepQuery, deepQueryAll, holdElement } from './dom';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
 import type { MountedCard } from './mounted-card';
 
 export const CAMERA_ENTITY = 'camera.office';
+export const CAMERA_NAME = 'office';
 
 // A same-origin still red image, served by the Vite dev server. The same image
 // is handed on by the worker in test-media.ts, which can be asked to misbehave
@@ -121,6 +131,12 @@ export const createStillImageCardConfig = (
 // What an initialized card writes, as the pattern the console is searched for.
 export const CARD_INITIALIZED_MESSAGE = /card initialized/;
 
+// A resize the browser had to defer, which it reports as an uncaught error. How
+// many it defers follows its own frame scheduling rather than the card: the
+// same test has been measured producing anywhere between none and three.
+// Tolerate it only where something is known to resize in rounds.
+export const RESIZE_LOOP_CONSOLE_ERROR = /ResizeObserver loop completed/;
+
 /**
  * An automation that reports every time the card finishes initializing. A card
  * announces nothing else when it is ready to be acted on, and it initializes
@@ -140,6 +156,14 @@ export const isMediaLoadedInfoEventDetail = (
   'info' in detail &&
   'signal' in detail &&
   detail.signal instanceof AbortSignal;
+
+export const isZoomSettingsObserved = (
+  detail: unknown,
+): detail is ZoomSettingsObserved =>
+  isRecord(detail) &&
+  typeof detail.isDefault === 'boolean' &&
+  isRecord(detail.pan) &&
+  typeof detail.pan.x === 'number';
 
 /**
  * The text of a block notification rendered in place of content (e.g. full-card
@@ -213,6 +237,28 @@ export const getMediaViewerMediaURLs = (root: ParentNode): string[] =>
     .filter((url) => url !== null);
 
 /**
+ * Set one of the media filter's selectors, named by the label it shows (e.g.
+ * 'Media Type'), without opening its dropdown. The media filter reads the
+ * select element's value when the change event fires, so both are set by hand.
+ */
+export const setMediaFilter = async (
+  card: MountedCard,
+  label: string,
+  value: SelectValues,
+): Promise<void> => {
+  const select = deepQuery<AdvancedCameraCardSelect>(
+    card.card,
+    `advanced-camera-card-select[label="${label}"]`,
+  );
+  if (!select) {
+    throw new Error(`There is no media filter selector labelled: ${label}`);
+  }
+  select.value = value;
+  fireAdvancedCameraCardEvent(select, 'select:change', value);
+  await card.updateComplete;
+};
+
+/**
  * The thumbnails on screen.
  */
 export const getThumbnails = (root: ParentNode): HTMLElement[] =>
@@ -229,12 +275,20 @@ export const clickThumbnail = async (root: ParentNode, index: number): Promise<v
   await clickElement(thumbnail);
 };
 
+export const holdThumbnail = async (root: ParentNode, index: number): Promise<void> => {
+  const thumbnail = getThumbnails(root)[index];
+  if (!thumbnail) {
+    throw new Error(`There is no thumbnail at index ${index} to hold`);
+  }
+  await holdElement(thumbnail);
+};
+
 export const waitForThumbnails = async (
   card: MountedCard,
   count: number,
 ): Promise<void> => {
   await card.waitForRender(
-    () => (getThumbnails(card.card).length >= count ? true : null),
+    () => (getThumbnails(card.card).length === count ? true : null),
     `${count} thumbnail(s)`,
   );
 };
@@ -299,3 +353,36 @@ export const getStatusBarStrings = (root: ParentNode): string[] =>
  */
 export const getStatusBarItem = (root: ParentNode, title: string): Element | null =>
   getStatusBarItems(root).find((item) => item.getAttribute('title') === title) ?? null;
+
+/**
+ * Wait until every pending promise callback has run: the browser runs a timer
+ * callback only once they all have.
+ *
+ * The `flushPromises` in `tests/test-utils.ts` waits on Node's
+ * `process.nextTick`, which the browser does not have.
+ */
+export const flushPromises = async (): Promise<void> => {
+  await new Promise<void>((resolve) => new Timer().start(0, resolve));
+};
+
+/**
+ * Record the configuration of every peer connection created from now on, until
+ * `vi.unstubAllGlobals()`.
+ *
+ * A peer connection with no reachable ICE server can fail, and be closed by its
+ * owner, as soon as it is created, so its configuration is captured on the way
+ * in rather than read back from the owner.
+ */
+export const captureRTCPeerConnectionConfigurations = (): RTCConfiguration[] => {
+  const configurations: RTCConfiguration[] = [];
+  vi.stubGlobal(
+    'RTCPeerConnection',
+    class extends RTCPeerConnection {
+      constructor(configuration?: RTCConfiguration) {
+        super(configuration);
+        configurations.push(configuration ?? {});
+      }
+    },
+  );
+  return configurations;
+};

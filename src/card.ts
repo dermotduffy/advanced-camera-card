@@ -316,6 +316,7 @@ export class AdvancedCameraCard extends LitElement {
             pipManager: this._controller.getPIPManager(),
             showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
             view: view,
+            viewItemManager: this._controller.getViewItemManager(),
             viewManager: this._controller.getViewManager(),
           },
         )}
@@ -489,6 +490,9 @@ export class AdvancedCameraCard extends LitElement {
               .microphoneState=${this._controller.getMicrophoneManager().getState()}
               .call=${this._controller.getCallManager().getCall() ?? undefined}
               .locked=${this._controller.getLockManager().isLocked()}
+              .drawerPinned=${!!this._controller
+                .getNotificationManager()
+                .getNotification()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
                 ? this._controller.getCameraTriggersManager().getTriggeredCameraIDs()
@@ -556,6 +560,7 @@ export class AdvancedCameraCard extends LitElement {
                 .notification=${this._controller
                   .getNotificationManager()
                   .getNotification()}
+                .focusReturnElement=${this}
               ></advanced-camera-card-notification>`
             : ''}
         </ha-card>`,

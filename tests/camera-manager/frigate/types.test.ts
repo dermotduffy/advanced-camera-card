@@ -3,28 +3,28 @@ import { describe, expect, it } from 'vitest';
 import { recordingSummarySchema } from '../../../src/camera-manager/frigate/types';
 
 describe('recordingSummarySchema', () => {
-  it('should parse day string to date', () => {
-    const result = recordingSummarySchema.parse([
-      {
-        day: '2023-05-06',
-        events: 10,
-        hours: [],
-      },
-    ]);
-    expect(result[0].day).toBeInstanceOf(Date);
-    expect(result[0].day.getFullYear()).toBe(2023);
+  it('should reject a day that is not in YYYY-MM-DD form', () => {
+    expect(() =>
+      recordingSummarySchema.parse([
+        {
+          day: '6th May 2023',
+          events: 5,
+          hours: [],
+        },
+      ]),
+    ).toThrow();
   });
 
-  it('should pass through non-string day values', () => {
-    const date = new Date('2023-05-06');
-    const result = recordingSummarySchema.parse([
-      {
-        day: date,
-        events: 5,
-        hours: [],
-      },
-    ]);
-    expect(result[0].day).toEqual(date);
+  it('should reject a day that is not a real calendar date', () => {
+    expect(() =>
+      recordingSummarySchema.parse([
+        {
+          day: '2023-02-31',
+          events: 5,
+          hours: [],
+        },
+      ]),
+    ).toThrow();
   });
 
   it('should preprocess hour from string to number', () => {

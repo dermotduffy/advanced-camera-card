@@ -133,6 +133,17 @@ class HAIconStub extends LitElement {
   `;
 }
 
+/**
+ * Home Assistant's dropdown shows the element that opens it, and shows its
+ * items in a popup only once opened. Nothing here opens it, so only the
+ * trigger is rendered.
+ */
+class HADropdownStub extends LitElement {
+  protected render(): TemplateResult {
+    return html`<slot name="trigger"></slot>`;
+  }
+}
+
 interface PictureElementConfig {
   type: string;
 }
@@ -222,6 +233,8 @@ const createStub = (element: string): CustomElementConstructor => {
     case 'ha-state-icon':
     case 'state-badge':
       return class extends HAIconStub {};
+    case 'ha-dropdown':
+      return class extends HADropdownStub {};
 
     case 'hui-conditional-element':
       return class extends HuiConditionalElementStub {};

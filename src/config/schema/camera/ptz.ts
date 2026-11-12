@@ -116,6 +116,6 @@ export const ptzCameraConfigSchema = z.preprocess(
       // This is used by the data_ style of action.
       service: z.string().optional(),
     })
-    // We allow passthrough as there may be user-configured presets as "actions_<preset>" .
-    .passthrough(),
+    // Unknown keys are kept as there may be user-configured presets as "actions_<preset>" .
+    .loose(),
 );

@@ -90,16 +90,24 @@ media_viewer:
       # [...]
 ```
 
-| Option                  | Default | Description                                                                                                                                                     |
-| ----------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mode`                  | `none`  | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`). |
-| `show_details`          | `false` | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.                                                        |
-| `show_download_control` | `false` | Whether to show the download control on each thumbnail.                                                                                                         |
-| `show_favorite_control` | `true`  | Whether to show the favorite ('star') control on each thumbnail.                                                                                                |
-| `show_info_control`     | `true`  | Whether to show the info ('i') control on each thumbnail.                                                                                                       |
-| `show_review_control`   | `true`  | Whether to show the review ('check') control on each thumbnail.                                                                                                 |
-| `show_timeline_control` | `false` | Whether to show the timeline ('target') control on each thumbnail.                                                                                              |
-| `size`                  | `100`   | The size of the thumbnails in the thumbnail carousel pixels. Must be &gt;= `75` and &lt;= `300`.                                                                |
+| Option                  | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `style`                 | `auto`  | How details are presented for each thumbnail. `auto` chooses from the configuration and the available width. `plain` shows just the thumbnail without details. `overlay` shows the details over the thumbnail, `hover` shows those same details only while the pointer is over the thumbnail, and `panel` shows a details panel beside the thumbnail. `hover` is rendered as `overlay` when there is no pointer. |
+| `mode`                  | `right` | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`). With `style: auto`, a `left` or `right` drawer shows a details panel beside each thumbnail, while `above` and `below` show the details on hover instead, or as a permanent overlay on touch devices without a pointer.                           |
+| `show_download_control` | `false` | Whether to show the download control on each thumbnail.                                                                                                                                                                                                                                                                                                                                                          |
+| `show_favorite_control` | `true`  | Whether to show the favorite ('star') control on each thumbnail.                                                                                                                                                                                                                                                                                                                                                 |
+| `show_info_control`     | `true`  | Whether to show the info ('i') control on each thumbnail. Ignored when `style` is `panel` as the panel shows the information.                                                                                                                                                                                                                                                                                    |
+| `show_review_control`   | `true`  | Whether to show the review ('check') control on each thumbnail.                                                                                                                                                                                                                                                                                                                                                  |
+| `show_timeline_control` | `false` | Whether to show the timeline ('target') control on each thumbnail.                                                                                                                                                                                                                                                                                                                                               |
+| `size`                  | `100`   | The size of the thumbnails in the thumbnail carousel pixels. Must be &gt;= `75` and &lt;= `300`.                                                                                                                                                                                                                                                                                                                 |
+
+> [!NOTE]
+> The `show_*_control` options are advisory. A `false` always hides that control,
+> but a `true` is only honored where there is sufficient space to usefully show
+> the control.
+
+> [!TIP]
+> Holding a thumbnail shows the same information the info ('i') control does.
 
 ### `timeline`
 
@@ -153,7 +161,7 @@ media_viewer:
 | Option                       | Default   | Description                                                                                                                                                                                                                                                                                                                      |
 | ---------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `grid_columns`               |           | If specified the grid will always have exactly this number of columns.                                                                                                                                                                                                                                                           |
-| `grid_max_columns`           | `4`       | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns.                                                                                                                                                                                                                    |
+| `grid_max_columns`           |           | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns. By default the number of columns is unlimited.                                                                                                                                                                     |
 | `grid_selected_position`     | `default` | Controls where the selected item should be laid out in the grid. If `default`, the cameras are laid out in the order they are specified in the configuration and selecting a camera does not change this order. If `first`, the selected camera is moved to the start of the grid, if `last` it is moved to the end of the grid. |
 | `grid_selected_width_factor` | `2`       | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc.                                                                                                               |
 | `mode`                       | `single`  | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid` configuration.                                                                                                                                                                                                                   |
@@ -190,7 +198,7 @@ media_viewer:
       style: thumbnails
     wheel: true
     ptz:
-      mode: off
+      mode: 'off'
       position: bottom-right
       orientation: horizontal
       hide_pan_tilt: false
@@ -201,8 +209,8 @@ media_viewer:
         right: 5%
     thumbnails:
       size: 100
-      mode: none
-      show_details: false
+      mode: right
+      style: auto
       show_download_control: false
       show_favorite_control: true
       show_info_control: true

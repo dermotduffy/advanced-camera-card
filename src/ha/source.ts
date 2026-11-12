@@ -11,5 +11,10 @@ export type HASSListener = (hass: HomeAssistant, oldHass: HomeAssistant | null) 
 
 export interface HASSSource {
   getHASS(): HomeAssistant | null;
+
+  // Whether the current HASS is ready to be talked to. Consumers must ask here
+  // rather than testing the HASS themselves.
+  isReady(): boolean;
+
   addListener(listener: HASSListener): UnsubscribeCallback;
 }

@@ -6,7 +6,7 @@ import {
 } from '../../config/schema/folders';
 import type { HomeAssistant } from '../../ha/types';
 import type { Endpoint } from '../../types';
-import type { ViewFolder, ViewItem } from '../../view/item';
+import type { ViewFolder, ViewItem, ViewMedia } from '../../view/item';
 import type { ViewItemCapabilities } from '../../view/types';
 import type { TemplateRenderer } from '../templates';
 import { sortItems } from '../view/sort';
@@ -29,18 +29,6 @@ export class FoldersExecutor {
     return this._getFolderEngine(folder.type)?.getDefaultQueryParameters(folder) ?? null;
   }
 
-  public generateChildFolderQuery(
-    query: FolderQuery,
-    folder: ViewFolder,
-  ): FolderQuery | null {
-    return (
-      this._getFolderEngine(query.folder.type)?.generateChildFolderQuery(
-        query,
-        folder,
-      ) ?? null
-    );
-  }
-
   public async expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,
@@ -55,6 +43,14 @@ export class FoldersExecutor {
         engineOptions,
       )) ?? null;
     return results ? sortItems(results) : null;
+  }
+
+  public getUpQuery(query: FolderQuery): FolderQuery | null {
+    return this._getFolderEngine(query.folder.type)?.getUpQuery(query) ?? null;
+  }
+
+  public getDownQuery(item: ViewFolder): FolderQuery | null {
+    return this._getFolderEngine(item.getFolder()?.type)?.getDownQuery(item) ?? null;
   }
 
   public getItemCapabilities(item: ViewItem): ViewItemCapabilities | null {
@@ -84,6 +80,13 @@ export class FoldersExecutor {
       hass,
       item,
       favorite,
+    );
+  }
+
+  public getMediaSeekTime(media: ViewMedia, target: Date): number | null {
+    return (
+      this._getFolderEngine(media.getFolder()?.type)?.getMediaSeekTime(media, target) ??
+      null
     );
   }
 

@@ -11,7 +11,10 @@ import {
 } from '../../src/camera-manager/lifecycle';
 import type { CameraManager } from '../../src/camera-manager/manager';
 import { CameraManagerStore } from '../../src/camera-manager/store';
-import { type CameraEventCallback } from '../../src/camera-manager/types';
+import {
+  type CameraEventCallback,
+  type CameraManagerCameraMetadata,
+} from '../../src/camera-manager/types';
 import type { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher';
 import { type CameraConfig } from '../../src/config/schema/cameras';
 import type { EntityRegistryManager } from '../../src/ha/registry/entity/types';
@@ -176,5 +179,13 @@ export const createCameraManager = (store?: CameraManagerStore): CameraManager =
     manager: cameraManager,
   }));
 
+  return cameraManager;
+};
+
+export const createCameraManagerWithMetadata = (
+  metadata?: CameraManagerCameraMetadata,
+): CameraManager => {
+  const cameraManager = createCameraManager();
+  vi.mocked(cameraManager.getCameraMetadata).mockReturnValue(metadata ?? null);
   return cameraManager;
 };

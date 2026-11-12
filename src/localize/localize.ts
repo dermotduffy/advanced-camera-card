@@ -60,6 +60,8 @@ export const loadLanguages = async (hass: HomeAssistant): Promise<void> => {
     languages[lang] = await import('./languages/de.json');
   } else if (lang === 'fr') {
     languages[lang] = await import('./languages/fr.json');
+  } else if (lang === 'hu') {
+    languages[lang] = await import('./languages/hu.json');
   } else if (lang === 'it') {
     languages[lang] = await import('./languages/it.json');
   } else if (lang === 'pl') {
@@ -68,6 +70,10 @@ export const loadLanguages = async (hass: HomeAssistant): Promise<void> => {
     languages[lang] = await import('./languages/pt-PT.json');
   } else if (lang === 'pt_BR') {
     languages[lang] = await import('./languages/pt-BR.json');
+  } else if (lang === 'ru') {
+    languages[lang] = await import('./languages/ru.json');
+  } else if (lang === 'sk') {
+    languages[lang] = await import('./languages/sk.json');
   }
 
   advancedCameraCardLanguage = lang;

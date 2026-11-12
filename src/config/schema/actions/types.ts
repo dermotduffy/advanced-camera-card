@@ -51,7 +51,7 @@ export type NotificationActionConfig = z.infer<
   advanced_camera_card_action: 'notification';
   notification: Notification;
 };
-const notificationActionConfigSchema: z.ZodSchema<NotificationActionConfig> =
+const notificationActionConfigSchema: z.ZodType<NotificationActionConfig> =
   advancedCameraCardCustomActionsBaseSchema.extend({
     advanced_camera_card_action: z.literal('notification'),
     notification: z.lazy(() => notificationSchema),
@@ -64,7 +64,7 @@ export type StatusBarActionConfig = z.infer<
   status_bar_action: 'add' | 'remove' | 'reset';
   items?: StatusBarItem[];
 };
-export const statusBarActionConfigSchema: z.ZodSchema<StatusBarActionConfig> =
+export const statusBarActionConfigSchema: z.ZodType<StatusBarActionConfig> =
   advancedCameraCardCustomActionsBaseSchema.extend({
     advanced_camera_card_action: z.literal('status_bar'),
     status_bar_action: z.enum(['add', 'remove', 'reset']),
@@ -110,7 +110,7 @@ export type IfActionConfig = z.infer<typeof actionBaseSchema> & {
   then: ActionConfig[];
   else?: ActionConfig[];
 };
-const ifActionConfigSchema: z.ZodSchema<IfActionConfig> = actionBaseSchema.extend({
+const ifActionConfigSchema: z.ZodType<IfActionConfig> = actionBaseSchema.extend({
   if: preprocessToArray(conditionSchema.array()),
   then: preprocessToArray(z.lazy(() => actionConfigSchema).array()),
   else: preprocessToArray(z.lazy(() => actionConfigSchema).array()).optional(),
@@ -188,6 +188,10 @@ const notificationControlSchema = notificationBaseSchema.extend({
 });
 export type NotificationControl = z.infer<typeof notificationControlSchema>;
 
+export interface InternalNotificationControl extends NotificationControl {
+  className?: string;
+}
+
 // A context item is a preformatted string or a structured object that is
 // YAML-dumped at render time (see NotificationContextController).
 const notificationContextItemSchema = z.union([z.string(), z.custom<object>(isRecord)]);
@@ -203,6 +207,11 @@ const notificationSchema = z.object({
   controls: notificationControlSchema.array().optional(),
 });
 export type Notification = z.infer<typeof notificationSchema>;
+
+// Extended internally to include values that are not user-configurable.
+export interface InternalNotification extends Omit<Notification, 'controls'> {
+  controls?: InternalNotificationControl[];
+}
 
 // ============================================================================
 //                         Status Bar Elements

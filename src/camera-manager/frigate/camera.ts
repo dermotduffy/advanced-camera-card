@@ -1,5 +1,4 @@
-import { format } from 'date-fns';
-import type { ReadonlyDeep } from 'type-fest';
+import { getUnixTime } from 'date-fns';
 
 import type { ActionsExecutor } from '../../card-controller/actions/types';
 import type { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
@@ -319,47 +318,42 @@ export class FrigateCamera extends Camera {
     };
   }
 
-  // Build a go2rtc endpoint from an explicitly-configured go2rtc URL, or
-  // otherwise from the Frigate integration's proxy under the given path (the
-  // integration exposes the go2rtc stream API under 'mse' and the metadata API
-  // under 'go2rtc'). Without either a configured URL or a resolved client_id
-  // there is no usable endpoint.
-  private _buildGo2RTCEndpoint(
-    path: 'go2rtc' | 'mse',
-    builder: (
-      cameraConfig: ReadonlyDeep<CameraConfig>,
-      options: { url: string; stream?: string },
-    ) => Endpoint | null,
-  ): Endpoint | null {
-    const clientID = this.getClientID();
-    const url =
-      this._config.go2rtc?.url ?? (clientID ? `/api/frigate/${clientID}/${path}` : null);
-    if (!url) {
-      return null;
-    }
-    return builder(this._config, {
-      url,
-      stream: this._config.go2rtc?.stream ?? this._getCameraName() ?? undefined,
-    });
+  private _getGo2RTCStream(): string | null {
+    return this._config.go2rtc?.stream ?? this._getCameraName();
   }
 
+  private _getFrigateProxyURL(path: string): string | null {
+    const clientID = this.getClientID();
+    return clientID ? `/api/frigate/${clientID}/${path}` : null;
+  }
+
+  private _getFrigateProxyEndpoint(path: string): Endpoint | null {
+    const url = this._getFrigateProxyURL(path);
+    return url ? { endpoint: url, sign: true } : null;
+  }
+
+  // Without a configured go2rtc URL the card asks Frigate's own stream-info
+  // endpoint, which probes go2rtc on its behalf.
   protected override _getGo2RTCMetadataEndpoint(): Endpoint | null {
-    return this._buildGo2RTCEndpoint('go2rtc', getGo2RTCMetadataEndpoint);
+    const stream = this._getGo2RTCStream();
+    if (!stream) {
+      return null;
+    }
+    if (this._config.go2rtc?.url) {
+      return getGo2RTCMetadataEndpoint(this._config, { stream });
+    }
+    return this._getFrigateProxyEndpoint(`go2rtc/streams/${encodeURIComponent(stream)}`);
   }
 
   protected override _getGo2RTCStreamEndpoint(): Endpoint | null {
-    return this._buildGo2RTCEndpoint('mse', getGo2RTCStreamEndpoint);
+    const stream = this._getGo2RTCStream();
+    const url = this._config.go2rtc?.url ?? this._getFrigateProxyURL('mse');
+    return stream && url ? getGo2RTCStreamEndpoint(this._config, { url, stream }) : null;
   }
 
   private _getJSMPEGEndpoint(): Endpoint | null {
-    const identity = this.getIdentity();
-    if (!identity) {
-      return null;
-    }
-    return {
-      endpoint: `/api/frigate/${identity.clientID}/jsmpeg/${identity.cameraName}`,
-      sign: true,
-    };
+    const cameraName = this._getCameraName();
+    return cameraName ? this._getFrigateProxyEndpoint(`jsmpeg/${cameraName}`) : null;
   }
 
   protected override _getUIEndpoint(context?: CameraEndpointsContext): Endpoint | null {
@@ -376,8 +370,15 @@ export class FrigateCamera extends Camera {
       return { endpoint: cameraURL };
     }
 
-    const eventsURL = `${this._config.frigate.url}/events?camera=${this._config.frigate.camera_name}`;
-    const recordingsURL = `${this._config.frigate.url}/recording/${this._config.frigate.camera_name}`;
+    const eventsURL = `${this._config.frigate.url}/explore?cameras=${this._config.frigate.camera_name}`;
+    const recordingsURL = `${this._config.frigate.url}/review?cameras=${this._config.frigate.camera_name}`;
+
+    // Frigate takes the time as `<camera>_<seconds>` and only reads it from
+    // 0.18. The camera is named as well so earlier versions still filter to it.
+    const getTimestampURL = (startTime: Date | null): string =>
+      startTime
+        ? `${recordingsURL}&timestamp=${this._config.frigate.camera_name}_${getUnixTime(startTime)}`
+        : recordingsURL;
 
     // If media is available, use it for a more precise URL.
     switch (context?.media?.getMediaType()) {
@@ -385,11 +386,8 @@ export class FrigateCamera extends Camera {
       case 'snapshot':
         return { endpoint: eventsURL };
       case 'recording':
-        const startTime = context.media.getStartTime();
-        return {
-          endpoint:
-            recordingsURL + (startTime ? '/' + format(startTime, 'yyyy-MM-dd/HH') : ''),
-        };
+      case 'review':
+        return { endpoint: getTimestampURL(context.media.getStartTime()) };
     }
 
     // Fall back to using the view.

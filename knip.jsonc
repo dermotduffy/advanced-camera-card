@@ -18,7 +18,6 @@
 
     // Reached through the string-based `compat.extends()` call in
     // `eslint.config.mjs`, which knip cannot follow.
-    "@typescript-eslint/eslint-plugin",
     "eslint-config-prettier",
 
     // Referenced from the `release` block in `package.json`.

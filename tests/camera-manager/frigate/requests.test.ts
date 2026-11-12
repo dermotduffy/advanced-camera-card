@@ -37,7 +37,7 @@ describe('frigate requests', () => {
     const recordingSummary = {
       events: 0,
       hours: [],
-      day: new Date(),
+      day: '2023-05-06',
     };
     const hass = createHASS();
     hass.config.time_zone = 'Europe/Dublin';
@@ -58,7 +58,7 @@ describe('frigate requests', () => {
         camera: 'camera.office',
         timezone: 'Europe/Dublin',
       }),
-      true,
+      { passthrough: true },
     );
   });
 
@@ -90,7 +90,7 @@ describe('frigate requests', () => {
         after: 1,
         before: 0,
       }),
-      true,
+      { passthrough: true },
     );
   });
 
@@ -113,7 +113,7 @@ describe('frigate requests', () => {
           event_id: 'eventID',
           retain: true,
         }),
-        true,
+        { passthrough: true },
       );
     });
 
@@ -136,7 +136,7 @@ describe('frigate requests', () => {
           event_id: 'eventID',
           retain: true,
         }),
-        true,
+        { passthrough: true },
       );
     });
   });
@@ -177,7 +177,7 @@ describe('frigate requests', () => {
         has_snapshot: true,
         favorites: true,
       }),
-      true,
+      { passthrough: true },
     );
   });
 
@@ -204,7 +204,7 @@ describe('frigate requests', () => {
         instance_id: 'clientID',
         timezone: 'Europe/Dublin',
       }),
-      true,
+      { passthrough: true },
     );
   });
 
@@ -229,7 +229,7 @@ describe('frigate requests', () => {
         instance_id: 'clientID',
         camera: 'camera.office',
       }),
-      true,
+      { passthrough: true },
     );
   });
 
@@ -279,7 +279,7 @@ describe('frigate requests', () => {
         limit: 10,
         reviewed: false,
       }),
-      true,
+      { passthrough: true },
     );
   });
 

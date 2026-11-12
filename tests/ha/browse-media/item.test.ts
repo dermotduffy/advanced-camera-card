@@ -149,6 +149,20 @@ describe('BrowseMediaEventViewMedia', () => {
     expect(viewMedia.getThumbnail()).toEqual('thumbnail.jpg');
   });
 
+  it('should prefer the thumbnail from metadata', () => {
+    const browseMedia = createRichBrowseMedia({
+      thumbnail: 'thumbnail.jpg',
+      _metadata: {
+        thumbnailOverride: 'media-source://media_source/local/folder/clip.jpg',
+      },
+    });
+
+    const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
+    expect(viewMedia.getThumbnail()).toEqual(
+      'media-source://media_source/local/folder/clip.jpg',
+    );
+  });
+
   describe('should get what', () => {
     it('should get what from metadata', () => {
       const browseMedia = createRichBrowseMedia({
@@ -184,68 +198,6 @@ describe('BrowseMediaEventViewMedia', () => {
     expect(viewMedia.getTags()).toBeNull();
   });
 
-  describe('should determine what is groupable', () => {
-    it('should return true when groupable', () => {
-      const browseMedia_1 = createRichBrowseMedia({
-        _metadata: {
-          startDate: new Date('2025-05-05T07:46:00Z'),
-          endDate: new Date('2025-05-05T07:48:00Z'),
-          cameraID: 'camera.office',
-          what: ['car'],
-        },
-      });
-
-      const browseMedia_2 = createRichBrowseMedia({
-        _metadata: {
-          startDate: new Date('2025-05-05T07:48:00Z'),
-          endDate: new Date('2025-05-05T07:50:00Z'),
-          cameraID: 'camera.office',
-          what: ['car'],
-        },
-      });
-
-      const viewMedia_1 = new BrowseMediaEventViewMedia(
-        ViewMediaType.Clip,
-        browseMedia_1,
-      );
-      const viewMedia_2 = new BrowseMediaEventViewMedia(
-        ViewMediaType.Clip,
-        browseMedia_2,
-      );
-      expect(viewMedia_1.isGroupableWith(viewMedia_2)).toBe(true);
-    });
-
-    it('should return false when media types are different', () => {
-      const browseMedia_1 = createRichBrowseMedia({
-        _metadata: {
-          startDate: new Date('2025-05-05T07:46:00Z'),
-          endDate: new Date('2025-05-05T07:48:00Z'),
-          cameraID: 'camera.office',
-          what: ['car'],
-        },
-      });
-
-      const browseMedia_2 = createRichBrowseMedia({
-        _metadata: {
-          startDate: new Date('2025-05-05T07:48:00Z'),
-          endDate: new Date('2025-05-05T07:50:00Z'),
-          cameraID: 'camera.office',
-          what: ['car'],
-        },
-      });
-
-      const viewMedia_1 = new BrowseMediaEventViewMedia(
-        ViewMediaType.Clip,
-        browseMedia_1,
-      );
-      const viewMedia_2 = new BrowseMediaEventViewMedia(
-        ViewMediaType.Snapshot,
-        browseMedia_2,
-      );
-      expect(viewMedia_1.isGroupableWith(viewMedia_2)).toBe(false);
-    });
-  });
-
   describe('should set icon', () => {
     it('should set icon from known  media class', () => {
       const browseMedia = createBrowseMedia({
@@ -279,6 +231,31 @@ describe('BrowseMediaEventViewMedia', () => {
         browseMedia,
       );
       expect(viewMedia.getIcon()).toBeNull();
+    });
+  });
+
+  describe('should set thumbnail', () => {
+    it('should set thumbnail reported by Home Assistant', () => {
+      const browseMedia = createRichBrowseMedia({
+        thumbnail: 'thumbnail.jpg',
+      });
+
+      const viewFolder = new BrowseMediaViewFolder(createFolder(), [], browseMedia);
+      expect(viewFolder.getThumbnail()).toBe('thumbnail.jpg');
+      expect(viewFolder.isThumbnailConfigured()).toBe(false);
+    });
+
+    it('should prefer the thumbnail from metadata', () => {
+      const browseMedia = createRichBrowseMedia({
+        thumbnail: 'thumbnail.jpg',
+        _metadata: {
+          thumbnailOverride: 'media-source://folder/2026-08-28.jpg',
+        },
+      });
+
+      const viewFolder = new BrowseMediaViewFolder(createFolder(), [], browseMedia);
+      expect(viewFolder.getThumbnail()).toBe('media-source://folder/2026-08-28.jpg');
+      expect(viewFolder.isThumbnailConfigured()).toBe(true);
     });
   });
 });

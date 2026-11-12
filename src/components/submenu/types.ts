@@ -6,6 +6,7 @@ export interface SubmenuItem extends Actions {
   subtitle?: string;
   icon?: string;
   entity?: string;
+  state_color?: boolean;
   style?: Record<string, string>;
   enabled?: boolean;
   selected?: boolean;

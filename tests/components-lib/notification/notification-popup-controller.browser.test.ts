@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 
 import type { Notification } from '../../../src/config/schema/actions/types';
 import { createLogAction } from '../../../src/utils/action';
@@ -6,6 +6,7 @@ import {
   clickElement,
   deepQuery,
   getFocusedElement,
+  isFocusIndicatorDrawn,
   pressKey,
   pressTab,
 } from '../../browser/dom';
@@ -55,6 +56,26 @@ const mount = async (
 const showNotification = async (card: MountedCard): Promise<HTMLElement> => {
   card.setEntityState(TRIGGER_ENTITY, 'on');
   return await card.waitForSelector<HTMLElement>('.notification');
+};
+
+const waitForNotificationRemoval = async (card: MountedCard): Promise<void> => {
+  await card.waitForRender(
+    () => (deepQuery(card.card, '.notification') ? null : true),
+    'the notification to be removed',
+  );
+};
+
+const dismissNotificationWithKeyboard = async (card: MountedCard): Promise<void> => {
+  await pressKey('Escape');
+  await waitForNotificationRemoval(card);
+};
+
+const dismissNotificationWithPointer = async (card: MountedCard): Promise<void> => {
+  const close = deepQuery<HTMLElement>(card.card, 'button.close');
+  assert(close);
+
+  await clickElement(close);
+  await waitForNotificationRemoval(card);
 };
 
 describe('NotificationPopupController', () => {
@@ -121,24 +142,76 @@ describe('NotificationPopupController', () => {
     expect(getFocusedElement()).toBe(close);
   });
 
-  it('should return focus to where it was once dismissed', async () => {
+  it('should ARIA-label itself by its heading', async () => {
+    const card = await mount();
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
+
+    const notification = await showNotification(card);
+
+    expect(notification.getAttribute('role')).toBe('alertdialog');
+
+    const labelledBy = notification.getAttribute('aria-labelledby');
+    assert(labelledBy);
+    expect(deepQuery(card.card, `#${labelledBy}`)?.textContent).toContain(
+      NOTIFICATION.heading?.text,
+    );
+    expect(notification.hasAttribute('aria-label')).toBe(false);
+  });
+
+  it('should ARIA-label itself when it has no heading', async () => {
+    const card = await mount({ body: { text: BODY_TEXT } });
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
+
+    const notification = await showNotification(card);
+
+    expect(notification.getAttribute('aria-label')).toBe('Notification');
+    expect(notification.hasAttribute('aria-labelledby')).toBe(false);
+  });
+
+  it('should hand focus to the card once dismissed', async () => {
     const card = await mount();
     await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
     const elsewhere = document.createElement('button');
+    elsewhere.textContent = 'elsewhere';
     document.body.appendChild(elsewhere);
-    elsewhere.focus();
+    await clickElement(elsewhere);
 
     await showNotification(card);
-    expect(getFocusedElement()).not.toBe(elsewhere);
+    await dismissNotificationWithKeyboard(card);
 
-    await pressKey('Escape');
-    await card.waitForRender(
-      () => (deepQuery(card.card, '.notification') ? null : true),
-      'the notification to be removed',
-    );
+    // Notification returns focus back to the card.
+    expect(getFocusedElement()).toBe(card.card);
+  });
 
-    expect(getFocusedElement()).toBe(elsewhere);
+  it('should not draw an indicator on the card for a pointer user', async () => {
+    const card = await mount();
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
+
+    await clickElement(await card.waitForSelector('advanced-camera-card-live-provider'));
+
+    await showNotification(card);
+    await dismissNotificationWithPointer(card);
+
+    expect(getFocusedElement()).toBe(card.card);
+
+    expect(isFocusIndicatorDrawn(card.card)).toBe(false);
+  });
+
+  it('should draw an indicator on the card for a keyboard user', async () => {
+    const card = await mount();
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
+
+    await pressTab();
+    expect(getFocusedElement()).toBe(card.card);
+    expect(isFocusIndicatorDrawn(card.card)).toBe(true);
+
+    await showNotification(card);
+    await dismissNotificationWithKeyboard(card);
+
+    expect(getFocusedElement()).toBe(card.card);
+
+    expect(isFocusIndicatorDrawn(card.card)).toBe(true);
   });
 
   it('should activate a notification control from the keyboard', async () => {

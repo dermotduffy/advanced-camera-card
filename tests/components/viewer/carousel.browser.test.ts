@@ -96,6 +96,37 @@ describe('AdvancedCameraCardViewerCarousel', () => {
     expect(getSelectedThumbnail(card.card)).toBe(getThumbnails(card.card)[1]);
   });
 
+  it('should resolve each media item only once', async () => {
+    const { card, hass } = await mountCardWithFrigate(EVENTS, {
+      view: { default: 'clips' },
+    });
+
+    const resolvedContentIDs = (): string[] =>
+      hass
+        .getCommandLog()
+        .filter((message) => message.type === 'media_source/resolve_media')
+        .map((message) => String(message['media_content_id']));
+
+    await waitForThumbnails(card, EVENTS.length);
+    await clickThumbnail(card.card, 1);
+    await waitForMediaViewerMedia(card, 'clip.webm?event=older');
+
+    expect(resolvedContentIDs()).toEqual([
+      'media-source://frigate/frigate/event/clips/office/older',
+    ]);
+
+    // Go the next, then previous: should have only asked for 'older' once.
+    await clickNextPreviousMedia(card.card, 'right');
+    await waitForMediaViewerMedia(card, 'clip.webm?event=newer');
+    await clickNextPreviousMedia(card.card, 'left');
+    await waitForMediaViewerMedia(card, 'clip.webm?event=older');
+
+    expect(resolvedContentIDs()).toEqual([
+      'media-source://frigate/frigate/event/clips/office/older',
+      'media-source://frigate/frigate/event/clips/office/newer',
+    ]);
+  });
+
   it('should show the media selected in the thumbnail carousel', async () => {
     const card = await mountViewer(EVENTS, { config: CONFIG_THUMBNAILS_BELOW });
 
@@ -225,5 +256,27 @@ describe('AdvancedCameraCardViewerCarousel', () => {
 
     await card.waitForSelector('advanced-camera-card-gallery');
     expect(deepQuery(card.card, 'advanced-camera-card-viewer-carousel')).toBeNull();
+  });
+
+  it('should cap its own height to fit the media it shows', async () => {
+    const card = await mountViewer();
+
+    const carousel = deepQuery<HTMLElement>(
+      card.card,
+      'advanced-camera-card-viewer-carousel',
+    );
+    assert(carousel);
+
+    await card.waitForRender(
+      () => carousel.style.maxHeight || null,
+      'the carousel capping its own height',
+    );
+
+    // Outside a grid the carousel fills the card, so the cap is what gives the
+    // card the height of its media rather than of whatever contains it.
+    // Computed: the inline cap is a var() with the pixel height as fallback.
+    expect(parseFloat(getComputedStyle(carousel).maxHeight)).toBe(
+      carousel.getBoundingClientRect().height,
+    );
   });
 });

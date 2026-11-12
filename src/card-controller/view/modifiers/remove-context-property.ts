@@ -14,7 +14,8 @@ export class RemoveContextPropertyViewModifier<T extends keyof ViewContext>
     this._property = property;
   }
 
-  public modify(view: View): void {
+  public modify(view: View): boolean {
     view.removeContextProperty(this._key, this._property);
+    return true;
   }
 }

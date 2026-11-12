@@ -864,13 +864,13 @@ elements:
       advanced_camera_card_action: substream_on
       stream: camera.front_door_hd
   - type: custom:advanced-camera-card-menu-icon
-      icon: mdi:alpha-o-circle
-      title: Log to console
-      tap_action:
-        action: custom:advanced-camera-card-action
-        advanced_camera_card_action: log
-        message: "Hello, world!"
-        level: debug
+    icon: mdi:alpha-o-circle
+    title: Log to console
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: log
+      message: 'Hello, world!'
+      level: debug
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-m-circle
     title: Media player play
@@ -948,7 +948,7 @@ elements:
         zoom: 5
         pan:
           x: 58
-          y: 14
+          'y': 14
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-a-circle-outline
     title: Smart select between real and digital PTZ

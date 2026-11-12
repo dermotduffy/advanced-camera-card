@@ -1,12 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { BrowseMediaEventViewMedia } from '../../src/ha/browse-media/item';
 import { findBestMediaTimeIndex } from '../../src/utils/find-best-media-time-index';
-import { ViewFolder } from '../../src/view/item';
+import { ViewFolder, ViewMediaType } from '../../src/view/item';
+import { createFolder, createRichBrowseMedia } from '../test-utils';
 import { TestViewMedia } from '../view/test-utils';
 
 describe('findBestMediaTimeIndex', () => {
   it('should handle non-media items', () => {
-    const folder = new ViewFolder({ id: 'folder', type: 'ha', title: 'folder' }, []);
+    const folder = new ViewFolder(
+      { id: 'folder', type: 'ha', title: 'folder', navigation: 'restricted' },
+      [],
+    );
     const media = new TestViewMedia({
       startTime: new Date('2024-01-01T10:00:00'),
       endTime: new Date('2024-01-01T11:00:00'),
@@ -15,6 +20,33 @@ describe('findBestMediaTimeIndex', () => {
     const index = findBestMediaTimeIndex(
       [folder, media],
       new Date('2024-01-01T10:30:00'),
+    );
+    expect(index).toBe(1);
+  });
+
+  it('should find folder media covering the time', () => {
+    const createFolderMedia = (
+      startTime: Date,
+      endTime: Date,
+    ): BrowseMediaEventViewMedia =>
+      new BrowseMediaEventViewMedia(
+        ViewMediaType.Clip,
+        createRichBrowseMedia({ _metadata: { startDate: startTime, endDate: endTime } }),
+        { folder: createFolder() },
+      );
+
+    const index = findBestMediaTimeIndex(
+      [
+        createFolderMedia(
+          new Date('2024-01-01T10:00:00'),
+          new Date('2024-01-01T11:00:00'),
+        ),
+        createFolderMedia(
+          new Date('2024-01-01T11:00:01'),
+          new Date('2024-01-01T12:00:00'),
+        ),
+      ],
+      new Date('2024-01-01T11:30:00'),
     );
     expect(index).toBe(1);
   });

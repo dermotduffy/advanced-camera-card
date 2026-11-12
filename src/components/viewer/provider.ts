@@ -13,9 +13,12 @@ import type { ReadonlyDeep } from 'type-fest';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
+import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
+import { MediaStartPositionController } from '../../components-lib/media-start-position-controller.js';
+import { ResolvedMediaController } from '../../components-lib/resolved-media-controller.js';
 import {
   getSignedURLErrorText,
   SignedURLController,
@@ -27,8 +30,8 @@ import type { CardWideConfig } from '../../config/schema/types.js';
 import type { ViewerConfig } from '../../config/schema/viewer.js';
 import { canonicalizeHAURL } from '../../ha/canonical-url.js';
 import { isHARelativeURL } from '../../ha/is-ha-relative-url.js';
-import { resolveMedia, type ResolvedMediaCache } from '../../ha/resolved-media.js';
-import type { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
+import type { ResolvedMediaCache } from '../../ha/resolved-media.js';
+import type { HomeAssistant } from '../../ha/types.js';
 
 import '../../patches/ha-hls-player.js';
 
@@ -38,8 +41,7 @@ import type {
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../types.js';
-import { Generation } from '../../utils/concurrency/generation.js';
-import { classifyMimeType } from '../../utils/mime-type.js';
+import { classifyMimeType, type MimeTypeClassification } from '../../utils/mime-type.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewMedia } from '../../view/item.js';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
@@ -75,6 +77,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
+
   // Whether to force this slide to behave as if it is selected and
   // intersecting. Set by the carousel on its currently-selected slide. This is
   // necessary: `render` below draws nothing until the slide has loaded, and a
@@ -87,33 +92,44 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   private _refProvider: Ref<MediaPlayerElement> = createRef();
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
-  private _resolvedMedia: ResolvedMedia | null = null;
-
-  // Drops a slow resolution for media the provider has since moved off.
-  private _resolveGeneration = new Generation();
+  // Lit runs controllers in declaration order: resolve first, since signing and
+  // the start position both read the resolved media.
+  private _resolvedMediaController = new ResolvedMediaController(this, () => ({
+    hass: this.hass,
+    contentID: this._shouldLoad() ? this.media?.getContentID() ?? null : null,
+    cache: this.resolvedMediaCache,
+  }));
 
   private _signedURLController = new SignedURLController(this, () => {
-    if (!this.hass || !this._resolvedMedia) {
+    const resolvedMedia = this._resolvedMediaController.getValue();
+    if (!this.hass || !resolvedMedia) {
       return {};
     }
     // HA-relative URLs need no proxying or signing.
-    if (isHARelativeURL(this._resolvedMedia.url)) {
+    if (isHARelativeURL(resolvedMedia.url)) {
       return {
-        endpoint: { endpoint: canonicalizeHAURL(this.hass, this._resolvedMedia.url) },
+        endpoint: { endpoint: canonicalizeHAURL(this.hass, resolvedMedia.url) },
       };
     }
     const cameraID = this.media?.getCameraID();
     const camera = cameraID ? this.cameraManager?.getStore().getCamera(cameraID) : null;
     return {
       hass: this.hass,
-      endpoint: { endpoint: this._resolvedMedia.url },
+      endpoint: { endpoint: resolvedMedia.url },
       proxyConfig: camera?.getMediaProxyConfig(),
     };
   });
 
+  // Only HLS media is given a start position: the HLS player is the one that
+  // can start loading part way through.
+  private _mediaStartPositionController = new MediaStartPositionController(this, () => ({
+    viewItemManager: this.viewItemManager,
+    view: this.viewManagerEpoch?.manager.getView() ?? undefined,
+    media: this._shouldLoad() && this._classifyMedia().isHLS ? this.media : undefined,
+  }));
+
   constructor() {
     super();
-    this._lazyLoadController.addListener((loaded) => loaded && this._resolveURL());
 
     // Watch for media load failure (including resolving media ID and signing).
     new MediaLoadWatchdogController(this, {
@@ -159,48 +175,12 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     });
   }
 
-  private async _resolveURL(): Promise<void> {
-    const contentID = this.media?.getContentID();
-    if (!contentID || !this.hass || !this._shouldLoad()) {
-      this._resolveGeneration.invalidate();
-      this._resolvedMedia = null;
-      return;
-    }
-
-    const generation = this._resolveGeneration.next();
-
-    // Clear immediately so the SignedURLController doesn't see a stale URL
-    // from the previous media item during the async gap.
-    this._resolvedMedia = null;
-
-    const resolved =
-      this.resolvedMediaCache?.get(contentID) ??
-      (await resolveMedia(this.hass, contentID, this.resolvedMediaCache)) ??
-      null;
-
-    if (!this._resolveGeneration.isCurrent(generation)) {
-      return;
-    }
-
-    this._resolvedMedia = resolved;
-    this.requestUpdate();
-  }
-
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewerConfig') || changedProps.has('forceSelected')) {
       this._lazyLoadController.setConfiguration({
         lazyLoad: this.viewerConfig?.lazy_load,
         forceSelected: this.forceSelected,
       });
-    }
-
-    if (
-      changedProps.has('media') ||
-      changedProps.has('viewerConfig') ||
-      changedProps.has('resolvedMediaCache') ||
-      changedProps.has('hass')
-    ) {
-      void this._resolveURL();
     }
 
     if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
@@ -210,6 +190,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
   private _shouldLoad(): boolean {
     return this._lazyLoadController.isLoaded();
+  }
+
+  private _classifyMedia(): MimeTypeClassification {
+    return classifyMimeType(this._resolvedMediaController.getValue()?.mime_type);
   }
 
   private _getRelevantCameraConfig(): ReadonlyDeep<CameraConfig> | null {
@@ -280,8 +264,13 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       });
     }
 
+    const { isHLS, isVideo } = this._classifyMedia();
+
+    // The HLS player waits for its start position: hls.js starts loading as
+    // soon as the player is created, and without the position it would download
+    // the start of the stream only for the carousel to seek away from it.
     const url = this._signedURLController.getValue();
-    if (!url) {
+    if (!url || this._mediaStartPositionController.isPending()) {
       return renderProgressIndicator({
         cardWideConfig: this.cardWideConfig,
       });
@@ -290,7 +279,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     // Note: crossorigin="anonymous" is required on <video> below in order to
     // allow screenshot of motionEye videos which currently go cross-origin.
     const mediaID = this.media.getID() ?? undefined;
-    const { isHLS, isVideo } = classifyMimeType(this._resolvedMedia?.mime_type);
+    const startPosition = this._mediaStartPositionController.getValue() ?? undefined;
 
     return this._renderContainer(html`
       ${isVideo
@@ -306,6 +295,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
               title="${this.media.getTitle() ?? ''}"
               url=${url}
               .hass=${this.hass}
+              .startPosition=${startPosition}
               .targetID=${mediaID}
               ?controls=${this.viewerConfig.controls.builtin}
             >

@@ -4,6 +4,8 @@
   top: var(--pos-y, 50%);
 
   user-select: none;
+  -webkit-user-select: none;
+
   pointer-events: none;
 
   opacity: 0;

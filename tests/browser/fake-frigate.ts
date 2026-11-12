@@ -1,18 +1,25 @@
 import { fromUnixTime } from 'date-fns';
 import type { MessageBase } from 'home-assistant-js-websocket';
 
-import type { NativeFrigateEventQuery } from '../../src/camera-manager/frigate/requests';
-import type { EventSummary, FrigateEvent } from '../../src/camera-manager/frigate/types';
+import type {
+  NativeFrigateEventQuery,
+  NativeFrigateReviewQuery,
+} from '../../src/camera-manager/frigate/requests';
+import type {
+  EventSummary,
+  FrigateEvent,
+  FrigateReview,
+} from '../../src/camera-manager/frigate/types';
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
 import type { ResolvedMedia } from '../../src/ha/types';
-import { createFrigateEvent } from '../test-utils';
+import { createFrigateEvent, createFrigateReview } from '../test-utils';
 import type { FakeHASS, WSCommandHandler } from './fake-hass';
 import {
   CLIP_FIXTURE_FILENAME,
   createFixtureURL,
   SNAPSHOT_FIXTURE_FILENAME,
 } from './fixtures';
-import { MountedCardFactory, type MountedCard } from './mounted-card';
+import { MountedCardFactory, type MountedCard, type MountOptions } from './mounted-card';
 import {
   CAMERA_ENTITY,
   createCameraHASS,
@@ -52,6 +59,7 @@ export const EVENT_TIME_OLDER = 1754300000;
 export const EVENT_TIME_NEWER = 1754310000;
 
 const EVENT_DURATION_SECONDS = 10;
+const REVIEW_DURATION_SECONDS = 10;
 
 export const createTestFrigateEvent = (
   id: string,
@@ -66,28 +74,51 @@ export const createTestFrigateEvent = (
     ...event,
   });
 
+export const createTestFrigateReview = (
+  id: string,
+  startTime: number,
+  review?: Partial<FrigateReview>,
+): FrigateReview =>
+  createFrigateReview({
+    camera: getTestFrigateCameraName(CAMERA_ENTITY),
+    id,
+    start_time: startTime,
+    end_time: startTime + REVIEW_DURATION_SECONDS,
+
+    // Served by `_serveThumbnail`, which strips the prefix Frigate puts on
+    // every stored path.
+    thumb_path: `/media/frigate/thumbnail/${id}`,
+    ...review,
+  });
+
 export interface CardWithFrigate {
   card: MountedCard;
   frigate: FakeFrigate;
+  hass: FakeHASS;
 }
 
 /**
- * A card whose camera is Frigate's, with the given events already detected.
+ * A card whose camera is Frigate's, with the given events already detected and
+ * the given review items already raised.
  */
 export const mountCardWithFrigate = async (
   events: FrigateEvent[],
   config?: PartialAdvancedCameraCardConfig,
+  reviews?: FrigateReview[],
+  options?: MountOptions,
 ): Promise<CardWithFrigate> => {
   const hass = createCameraHASS([createFrigateCameraDescription()]);
   const frigate = new FakeFrigate(hass);
   frigate.setEvents(events);
+  frigate.setReviews(reviews ?? []);
 
   const card = await MountedCardFactory.createFromSource(
     createStillImageCardConfig(config),
     hass,
+    options,
   );
 
-  return { card, frigate };
+  return { card, frigate, hass };
 };
 
 // An event's media content ID, as `getEventMediaContentID` builds it:
@@ -95,10 +126,10 @@ export const mountCardWithFrigate = async (
 const EVENT_CONTENT_ID =
   /^media-source:\/\/frigate\/(?<clientID>[^/]+)\/event\/(?<mediaType>[^/]+)\/(?<camera>[^/]+)\/(?<eventID>[^/]+)$/;
 
-// An event's thumbnail, as `getEventThumbnailURL` asks for it:
+// An event's or a review's thumbnail, as `getEventThumbnailURL` and
+// `getReviewThumbnailURL` ask for them:
 // /api/frigate/<client>/thumbnail/<id>
-const THUMBNAIL_PATH =
-  /^\/api\/frigate\/(?<clientID>[^/]+)\/thumbnail\/(?<eventID>[^/]+)$/;
+const THUMBNAIL_PATH = /^\/api\/frigate\/(?<clientID>[^/]+)\/thumbnail\/(?<id>[^/]+)$/;
 
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((entry) => typeof entry === 'string');
@@ -106,6 +137,8 @@ const isStringArray = (value: unknown): value is string[] =>
 const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
 
 const isNumber = (value: unknown): value is number => typeof value === 'number';
+
+const isString = (value: unknown): value is string => typeof value === 'string';
 
 // Read a request parameter, refusing a value of the wrong type.
 const readParameter = <T>(
@@ -202,7 +235,6 @@ const readEventQuery = (message: MessageBase): EventQuery => {
   };
 };
 
-// Whether an event is one the request asked for.
 const matchesEventQuery = (event: FrigateEvent, query: EventQuery): boolean =>
   (!query.cameras || query.cameras.includes(event.camera)) &&
   (!query.labels || query.labels.includes(event.label)) &&
@@ -217,6 +249,40 @@ const matchesEventQuery = (event: FrigateEvent, query: EventQuery): boolean =>
   (!query.has_clip || event.has_clip) &&
   (!query.has_snapshot || event.has_snapshot);
 
+type ReviewQuery = Omit<NativeFrigateReviewQuery, 'instance_id'>;
+
+const readReviewQuery = (message: MessageBase): ReviewQuery => {
+  const getList = (name: string): string[] | undefined =>
+    readParameter(message, name, isStringArray, 'a list of strings');
+  const getCount = (name: string): number | undefined =>
+    readParameter(message, name, isNumber, 'a number');
+
+  return {
+    cameras: getList('cameras'),
+    labels: getList('labels'),
+    zones: getList('zones'),
+    severity: readParameter(message, 'severity', isString, 'a string'),
+    after: getCount('after'),
+    before: getCount('before'),
+    limit: getCount('limit'),
+    reviewed: readParameter(message, 'reviewed', isBoolean, 'true or false'),
+  };
+};
+
+const matchesReviewQuery = (review: FrigateReview, query: ReviewQuery): boolean =>
+  (!query.cameras || query.cameras.includes(review.camera)) &&
+  (!query.labels ||
+    query.labels.some((label) => review.data.objects?.includes(label))) &&
+  (!query.zones || query.zones.some((zone) => review.data.zones?.includes(zone))) &&
+  (query.severity === undefined || query.severity === review.severity) &&
+  // A review that began before the period and was still running when it started
+  // counts as falling within it.
+  (query.after === undefined || (review.end_time ?? Infinity) >= query.after) &&
+  (query.before === undefined || review.start_time <= query.before) &&
+  // Frigate uses `reviewed: false` to ask for only the reviews nobody has looked
+  // at yet.
+  (query.reviewed !== false || !review.has_been_reviewed);
+
 /**
  * A Frigate instance behind a `FakeHASS`. Holds the events a test wants a camera
  * to have detected, and answers what the card asks about them.
@@ -225,6 +291,7 @@ const matchesEventQuery = (event: FrigateEvent, query: EventQuery): boolean =>
  */
 export class FakeFrigate {
   private _events: FrigateEvent[] = [];
+  private _reviews: FrigateReview[] = [];
   private _mediaURLs = new Map<string, string>();
   private _thumbnailFailureStatus: number | null = null;
 
@@ -263,9 +330,12 @@ export class FakeFrigate {
       this._answerAsFrigate(['after', 'before', 'camera'], () => []),
     );
 
-    // Fake Frigate has no review items and cannot be given any. The live view
-    // asks for them on startup, so leaving this unanswered would raise a media
-    // query issue on every card.
+    hass.registerCommand(
+      'frigate/event/retain',
+      this._answerAsFrigate(['event_id', 'retain'], (message) =>
+        this._setEventRetained(message),
+      ),
+    );
     hass.registerCommand(
       'frigate/reviews/get',
       this._answerAsFrigate(
@@ -279,7 +349,15 @@ export class FakeFrigate {
           'severity',
           'zones',
         ],
-        () => [],
+        (message) => this._queryReviews(message),
+      ),
+    );
+    hass.registerCommand(
+      'frigate/reviews/viewed',
+      this._answerAsFrigate(
+        ['ids', 'viewed'],
+        (message) => this._setReviewsViewed(message),
+        false,
       ),
     );
     hass.registerCommand(
@@ -303,6 +381,14 @@ export class FakeFrigate {
   /**
    * Set the URL for a media item.
    */
+  /**
+   * The reviews this Frigate instance has. Held newest first (as Frigate
+   * returns them).
+   */
+  public setReviews(reviews: FrigateReview[]): void {
+    this._reviews = [...reviews].sort((a, b) => b.start_time - a.start_time);
+  }
+
   public setMediaURL(eventID: string, mediaType: FrigateMediaType, url: string): void {
     this._mediaURLs.set(this._getMediaKey(eventID, mediaType), url);
   }
@@ -315,12 +401,16 @@ export class FakeFrigate {
   }
 
   // Answer a command addressed to this instance, refusing one meant for
-  // another. Frigate answers with JSON.
+  // another. The integration asks Frigate for most endpoints with
+  // `decode_json=False` and hands the raw JSON string on for the card to parse;
+  // the few it decodes itself arrive as an object, which `encodeJSON: false`
+  // models.
   private _answerAsFrigate(
     parameters: string[],
     handler: (message: MessageBase) => unknown,
+    encodeJSON = true,
   ): WSCommandHandler {
-    return (message: MessageBase): string => {
+    return (message: MessageBase): unknown => {
       const instanceID: unknown = message['instance_id'];
       if (instanceID !== FRIGATE_CLIENT_ID) {
         throw new Error(
@@ -329,7 +419,8 @@ export class FakeFrigate {
       }
       requireKnownParameters(message, ['instance_id', ...parameters]);
 
-      return JSON.stringify(handler(message));
+      const result = handler(message);
+      return encodeJSON ? JSON.stringify(result) : result;
     };
   }
 
@@ -339,6 +430,54 @@ export class FakeFrigate {
 
   private _getEvent(eventID: string): FrigateEvent | null {
     return this._events.find((event) => event.id === eventID) ?? null;
+  }
+
+  private _getReview(reviewID: string): FrigateReview | null {
+    return this._reviews.find((review) => review.id === reviewID) ?? null;
+  }
+
+  private _queryReviews(message: MessageBase): FrigateReview[] {
+    const query = readReviewQuery(message);
+    const matching = this._reviews.filter((review) => matchesReviewQuery(review, query));
+
+    return query.limit === undefined ? matching : matching.slice(0, query.limit);
+  }
+
+  // Mark reviews as reviewed, which Frigate calls 'viewed'. The card sends this
+  // when the user presses a review control.
+  private _setReviewsViewed(message: MessageBase): {
+    success: boolean;
+    message: string;
+  } {
+    const ids = readParameter(message, 'ids', isStringArray, 'a list of strings') ?? [];
+    const viewed = readParameter(message, 'viewed', isBoolean, 'true or false') ?? true;
+
+    for (const id of ids) {
+      const review = this._getReview(id);
+      if (!review) {
+        throw new Error(`FakeFrigate has no such review: ${id}`);
+      }
+      review.has_been_reviewed = viewed;
+    }
+
+    return { success: true, message: '' };
+  }
+
+  // Retain an event indefinitely, which the card calls favoriting.
+  private _setEventRetained(message: MessageBase): {
+    success: boolean;
+    message: string;
+  } {
+    const id = readParameter(message, 'event_id', isString, 'a string') ?? '';
+    const retain = readParameter(message, 'retain', isBoolean, 'true or false') ?? true;
+
+    const event = this._getEvent(id);
+    if (!event) {
+      throw new Error(`FakeFrigate has no such event: ${id}`);
+    }
+    event.retain_indefinitely = retain;
+
+    return { success: true, message: '' };
   }
 
   private _queryEvents(message: MessageBase): FrigateEvent[] {
@@ -396,11 +535,13 @@ export class FakeFrigate {
 
   private async _serveThumbnail(path: string): Promise<Response> {
     const groups = THUMBNAIL_PATH.exec(path)?.groups;
+    const id = groups?.['id'];
 
     if (
       !groups ||
+      !id ||
       groups['clientID'] !== FRIGATE_CLIENT_ID ||
-      !this._getEvent(groups['eventID'])
+      (!this._getEvent(id) && !this._getReview(id))
     ) {
       throw new Error(`FakeFrigate has no thumbnail at: ${path}`);
     }

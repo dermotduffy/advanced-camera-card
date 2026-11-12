@@ -1,5 +1,39 @@
 # Troubleshooting
 
+## Supported Browsers
+
+The card supports these browsers versions or newer:
+
+| Browser                                                                                                                          | Minimum version | Released   |
+| -------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------- |
+| ![Chrome](images/browsers/chrome_16x16.png 'Google Chrome :no-zoom :class=browser-icon') Chrome                                  | `111`           | March 2023 |
+| ![Edge](images/browsers/edge_16x16.png 'Microsoft Edge :no-zoom :class=browser-icon') Edge                                       | `111`           | March 2023 |
+| ![Firefox](images/browsers/firefox_16x16.png 'Mozilla Firefox :no-zoom :class=browser-icon') Firefox                             | `113`           | May 2023   |
+| ![Opera](images/browsers/opera_16x16.png 'Opera :no-zoom :class=browser-icon') Opera                                             | `97`            | March 2023 |
+| ![Safari](images/browsers/safari_16x16.png 'Safari :no-zoom :class=browser-icon') Safari (macOS)                                 | `16.4`          | March 2023 |
+| ![Safari](images/browsers/safari-ios_16x16.png 'Safari on iOS :no-zoom :class=browser-icon') Safari (iOS / iPadOS)               | `16.4`          | March 2023 |
+| ![Samsung Internet](images/browsers/samsung-internet_16x16.png 'Samsung Internet :no-zoom :class=browser-icon') Samsung Internet | `22`            | July 2023  |
+
+Older browsers may work to varying degrees, however no official support is offered.
+
+### Chromecast
+
+Home Assistant casts the card to the Chromecast built-in receiver, which runs
+whatever Chrome version the device firmware ships with. Devices on current
+firmware run a recent Chrome and are fully supported, as per the above table.
+Older devices (e.g. TVs with old non-updated firmware) that run
+as far back as Chrome `92` (July 2021) offer a "Partial Support" status. Partial
+support ensures:
+
+- The card loads, live video plays and the menu works.
+- Features that need newer browsers will _degrade_ rather than _break_ the card.
+
+#### Known Gaps
+
+As of 2026-09-15 the card is believed to work fully on Chrome `92`, with no known gaps.
+
+Gaps are expected to appear and accumulate over time, until the cost of supporting Chromecast receivers on older firmware becomes impractical, at which point support will be withdrawn entirely and revert to the table above.
+
 ## Highlighted Issues
 
 ### Legacy dashboard resource detected
@@ -122,12 +156,20 @@ appears in the status bar. The card retries automatically with a back-off (and
 the notification offers a manual retry button). A live stream additionally
 reconnects on its own once its camera becomes available again.
 
+A retry rebuilds the media from scratch, discarding the prior attempt. Media
+that is merely loading slowly has not failed -- it is still loading -- so
+restarting it would throw away the very attempt that may be about to succeed. A
+camera reported as **Media not loading** is therefore left running for at least
+30 seconds after that message appears before the card rebuilds it, unlike media
+that has _actually_ failed, which is rebuilt as soon as the schedule allows. The
+manual retry button rebuilds immediately regardless.
+
 Reported reasons why media may be unavailable:
 
 | Reason                        | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Camera entity unavailable** | The camera's `camera_entity` reported `unavailable` in Home Assistant, e.g. the camera or its integration (such as Frigate) restarted, or the camera lost power or network. A short grace period is allowed before this is reported, and the card recovers automatically once the entity returns. Set [`always_error_if_entity_unavailable`](./configuration/cameras/README.md?id=cameras) to report it immediately instead. |
-| **Media not loading**         | The media did not finish loading within the expected time: a slow or failed initial load. Applies to live streams, the viewer, and image views.                                                                                                                                                                                                                                                                              |
+| **Media not loading**         | The media did not finish loading within the expected time: a slow or failed initial load. Applies to live streams, the viewer, and image views. Nothing has necessarily failed yet, so the card keeps waiting on the existing load attempt already underway rather than restarting it immediately.                                                                                                                           |
 | **Playback error**            | The live provider reported an error while trying to play the stream.                                                                                                                                                                                                                                                                                                                                                         |
 | **Stream stalled**            | The stream loaded and was playing, but stopped delivering new frames with no error raised (a silent freeze). The card notices the lack of progress and reconnects.                                                                                                                                                                                                                                                           |
 
@@ -171,7 +213,9 @@ releases](https://github.com/blakeblackshear/frigate-hass-integration/releases/t
 ### 2-way audio doesn't work
 
 There are many requirements for 2-way audio to work. See [Using 2-way
-audio](usage/2-way-audio.md) for more information about these. If your
+audio](usage/2-way-audio.md) for more information about these. If it only fails
+away from home, see [`go2rtc` WebRTC fails away from
+home](#go2rtc-webrtc-fails-away-from-home). If your
 microphone still does not work and you believe you meet all the requirements try
 eliminating the card from the picture by going directly to the `go2rtc` UI,
 navigating to `links` for your given stream, then to `webrtc.html` with a
@@ -251,9 +295,11 @@ your Home Assistant log as there may be more information in there.
 
 This is usually a sign that the card is not correctly installed (i.e. the
 browser cannot find the Javascript). In cases where it works in some browsers /
-devices but not in others it may simply be an old browser / webview that does
-not support modern Javascript (this is occasionally seen on old Android
-hardware). In this latter case, you are out of luck.
+devices but not in others, check the browser against [the versions the card
+supports](#supported-browsers): an older browser cannot read the
+card's Javascript at all, so the card never registers itself. This is seen on
+old Android hardware and on iPhones and iPads that Apple no longer updates. In
+this latter case, you are out of luck.
 
 ### `double_tap` does not work in Android
 
@@ -346,6 +392,41 @@ To automatically proxy the connection via the Home Assistant process instead
 [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
 and your connection will be automatically proxied. See
 [proxying](./configuration/cameras/README.md?id=proxy).
+
+### `go2rtc` WebRTC fails away from home
+
+WebRTC sends media directly between your browser and `go2rtc`. On your home
+network that direct path is easy to find. Away from home, particularly on
+mobile data, the networks in between often block it, and only a TURN server
+relaying the media can connect them.
+
+Each side of the connection is configured separately.
+
+**Browser side:** the card uses the STUN/TURN servers configured for Home
+Assistant, for the `go2rtc` and `go2rtc-experimental` live providers and for
+2-way audio through `go2rtc`. To configure them:
+
+- Add your STUN/TURN servers in Home Assistant's
+  [configuration](https://www.home-assistant.io/integrations/homeassistant/#custom-stun-and-turn-servers),
+  then restart Home Assistant.
+- Or, with a Nabu Casa subscription, enable its TURN servers in Home Assistant
+  Cloud's settings.
+
+If Home Assistant does not provide ICE servers (for example, versions before
+`2026.1`), the card uses Home Assistant's public STUN server
+(`stun.home-assistant.io`) as a default.
+
+**`go2rtc` side:** `go2rtc` uses its own [WebRTC
+configuration](https://github.com/AlexxIT/go2rtc#module-webrtc). To configure
+it:
+
+- Add your STUN/TURN servers under `webrtc.ice_servers`.
+- Or, forward its WebRTC port (`8555` by default) and list your public address
+  under `webrtc.candidates`.
+
+If WebRTC cannot connect, the card falls back to other modes such as MSE,
+unless the camera's [`modes`](./configuration/cameras/live-provider.md?id=go2rtc)
+allow only `webrtc`.
 
 ### iOS App not updating after card version change
 

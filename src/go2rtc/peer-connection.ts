@@ -1,14 +1,6 @@
-export type PeerConnectionFactory = (config: RTCConfiguration) => RTCPeerConnection;
-
+// go2rtc sends its ICE candidates without an `sdpMid`, so the card attaches each
+// one to the first media section (`sdpMid: '0'`). Bundling carries every track
+// over that section's transport, so those candidates serve all of them.
 export const GO2RTC_PEER_CONNECTION_CONFIG: RTCConfiguration = {
   bundlePolicy: 'max-bundle',
-  iceServers: [
-    {
-      // Two public STUN servers so connectivity survives one being unreachable.
-      urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'],
-    },
-  ],
 };
-
-export const createBrowserPeerConnection: PeerConnectionFactory = (config) =>
-  new RTCPeerConnection(config);

@@ -15,6 +15,7 @@ import type {
 import type { HomeAssistant } from '../../../ha/types';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import type { TemplateRenderer } from '../../templates';
+import { getTemplateMediaData } from './template-media-data';
 import { REGEXP_GROUP_VALUE_KEY } from './types';
 
 export class MediaMatcher {
@@ -104,10 +105,7 @@ export class MediaMatcher {
     return (
       this._templateRenderer.renderRecursively(hass, matcher.value_template, {
         conditionState,
-        mediaData: {
-          title: media.title,
-          is_folder: media.can_expand,
-        },
+        mediaData: getTemplateMediaData(media),
       }) === true
     );
   }

@@ -1,0 +1,32 @@
+# The oldest release of each browser the card supports. Matching user-facing
+# documentation in `docs/troubleshooting.md`
+
+# Chrome (July 2021). Kept this old only for the Chromecast built-in receiver,
+# which runs Chrome 92 on older firmware; Chrome 111 is the fully supported
+# floor (see `docs/troubleshooting.md`), but Chrome 92 is maintained as a
+# build target to enable the "Partially supported tier" as described in
+# troubleshooting.md .
+chrome >= 92
+
+# Edge (March 2023)
+edge >= 111
+
+# Firefox (May 2023)
+firefox >= 113
+
+# Opera (March 2023)
+opera >= 97
+
+# Safari (March 2023)
+safari >= 16.4
+
+# Safari on iOS and iPadOS (March 2023)
+ios_saf >= 16.4
+
+# Samsung Internet (July 2023), built on Chromium 111
+samsung >= 22
+
+# caniuse tracks only the newest release of the below.
+last 1 and_chr version
+last 1 and_ff version
+last 1 op_mob version

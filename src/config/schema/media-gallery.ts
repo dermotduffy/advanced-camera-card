@@ -2,36 +2,24 @@ import { z } from 'zod';
 
 import { actionsSchema } from './actions/types';
 import {
-  thumbnailControlsBaseDefaults,
+  thumbnailsControlBaseDefaults,
   thumbnailsControlBaseSchema,
 } from './common/controls/thumbnails';
 
-const mediaGalleryThumbnailControlsDefaults = {
-  ...thumbnailControlsBaseDefaults,
-  show_details: false,
-};
-
 export const mediaGalleryConfigDefault = {
   controls: {
-    thumbnails: mediaGalleryThumbnailControlsDefaults,
+    thumbnails: thumbnailsControlBaseDefaults,
     filter: {
       mode: 'right' as const,
     },
   },
 };
 
-const mediaGallerythumbnailsControlSchema = thumbnailsControlBaseSchema.extend({
-  show_details: z.boolean().default(mediaGalleryThumbnailControlsDefaults.show_details),
-});
-export type MediaGalleryThumbnailsConfig = z.infer<
-  typeof mediaGallerythumbnailsControlSchema
->;
-
 export const mediaGalleryConfigSchema = z
   .object({
     controls: z
       .object({
-        thumbnails: mediaGallerythumbnailsControlSchema.default(
+        thumbnails: thumbnailsControlBaseSchema.default(
           mediaGalleryConfigDefault.controls.thumbnails,
         ),
         filter: z

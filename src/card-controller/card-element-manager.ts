@@ -6,7 +6,6 @@ import type { LovelaceCard } from '../ha/types';
 import { isBeingCasted } from '../utils/casting';
 import { isAncestorInEventPath } from '../utils/event-ancestor';
 import type { CardMediaReviewEventTarget } from '../utils/review';
-import type { ViewItem } from '../view/item';
 import type { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 import { InitializationAspect } from './initialization/initialization-manager';
 import type { CardElementAPI } from './types';
@@ -262,15 +261,14 @@ export class CardElementManager {
     );
   }
 
-  private _handleMediaReviewed = (ev: CustomEvent<ViewItem>): void => {
-    // If the selected media item has a change of review status, update the card
-    // (e.g. for the menu).
-    if (
-      this._api.getViewManager().getView()?.queryResults?.getSelectedResult() ===
-      ev.detail
-    ) {
-      this.update();
-    }
+  private _handleMediaReviewed = (): void => {
+    this._api
+      .getEffectsManager()
+      .startEffect('check', {
+        duration: 0.4,
+        fadeIn: false,
+      })
+      .catch(() => {});
   };
 
   protected _editorDiagnosticsHandler = (ev: Event): void => {

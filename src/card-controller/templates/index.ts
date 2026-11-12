@@ -1,9 +1,11 @@
 import type { renderTemplate } from 'ha-nunjucks/dist';
+import { memoize } from 'lodash-es';
 
 import type { ConditionState } from '../../condition-trigger/conditions/types';
 import type { TriggerData } from '../../condition-trigger/triggers/types';
 import type { HomeAssistant } from '../../ha/types';
-import { isRecord } from '../../utils/basic';
+import { errorToConsole, isRecord } from '../../utils/basic';
+import { polyfillObjectHasOwn } from '../../utils/object-has-own';
 import type { TemplateACCNamespace, TemplateMediaData } from './types';
 
 type RenderTemplate = typeof renderTemplate;
@@ -49,6 +51,10 @@ export interface TemplateRenderer {
 export class TemplateManager implements TemplateRenderer {
   private _renderer: RenderTemplate | null = null;
 
+  // One warning per distinct error (as a template in a condition is re-rendered
+  // on every state change which could easily spam logs).
+  private _warn = memoize(errorToConsole, String);
+
   /**
    * Whether any string anywhere in a given piece of data is a template.
    */
@@ -65,6 +71,11 @@ export class TemplateManager implements TemplateRenderer {
     if (this._renderer) {
       return;
     }
+
+    // ha-nunjucks pulls in `@noble/hashes`, which calls `Object.hasOwn` as it is
+    // evaluated, so the polyfill has to be in place before the import below.
+    polyfillObjectHasOwn();
+
     const module = await import('ha-nunjucks/dist');
     this._renderer = module.renderTemplate;
   }
@@ -141,13 +152,20 @@ export class TemplateManager implements TemplateRenderer {
         return data;
       }
 
-      return this._renderer(
-        // ha-nunjucks has a more complete model of the Home Assistant object, but
-        // does not export it as a type.
-        hass as unknown as Parameters<RenderTemplate>[0],
-        data,
-        templateContext,
-      );
+      try {
+        return this._renderer(
+          // ha-nunjucks has a more complete model of the Home Assistant object, but
+          // does not export it as a type.
+          hass as unknown as Parameters<RenderTemplate>[0],
+          data,
+          templateContext,
+        );
+      } catch (error) {
+        // The renderer throws for a template with a syntax error, in which case
+        // the template is just returned unmodified.
+        this._warn(error);
+        return data;
+      }
     } else if (Array.isArray(data)) {
       return data.map((item) =>
         this._renderTemplateRecursively(hass, item, templateContext),

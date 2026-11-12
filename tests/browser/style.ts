@@ -5,6 +5,8 @@
 const HOME_ASSISTANT_THEME = `
   html {
     --ha-font-family-body: Roboto, Noto, sans-serif;
+    --ha-font-size-scale: 1;
+    --ha-font-size-m: calc(14px * var(--ha-font-size-scale));
 
     --primary-text-color: #141414;
     --secondary-text-color: #5e5e5e;
@@ -20,6 +22,10 @@ const HOME_ASSISTANT_THEME = `
     --warning-color: #ffa600;
     --success-color: #43a047;
     --info-color: #039be5;
+
+    --ha-color-fill-danger-loud-resting: #dc3146;
+    --ha-color-fill-warning-loud-resting: #ff9342;
+    --ha-color-fill-neutral-loud-resting: #5e5e5e;
 
     --rgb-primary-color: 0, 154, 199;
     --rgb-primary-text-color: 33, 33, 33;

@@ -1,6 +1,7 @@
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
+import { getBrowserTargets } from './scripts/browser-targets.js';
 import { getBuildDefines } from './scripts/vite/build-defines.js';
 import { buildDate } from './scripts/vite/plugins/build-date.js';
 import { cleanDist } from './scripts/vite/plugins/clean-dist.js';
@@ -69,7 +70,7 @@ export default defineConfig(({ mode }) => {
 
     build: {
       lib: { entry: 'src/card.ts', formats: ['es'] },
-      target: 'es2021',
+      target: getBrowserTargets(),
       outDir: 'dist',
 
       // `cleanDist` removes what an earlier build left instead, once the new

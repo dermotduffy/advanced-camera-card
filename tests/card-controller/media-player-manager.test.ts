@@ -513,6 +513,33 @@ describe('MediaPlayerManager', () => {
         });
       });
 
+      it('should not cast a media source ID as a thumbnail', async () => {
+        const media = new TestViewMedia({
+          title: 'media title',
+          thumbnail: 'media-source://media_source/local/folder/clip.jpg',
+          contentID: 'media-source://contentid',
+          mediaType: ViewMediaType.Clip,
+        });
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+        const manager = new MediaPlayerManager(api);
+
+        await manager.playMedia('media_player.foo', media);
+
+        expect(api.getHASSManager().getHASS()?.callService).toHaveBeenCalledWith(
+          'media_player',
+          'play_media',
+          {
+            entity_id: 'media_player.foo',
+            media_content_id: 'media-source://contentid',
+            media_content_type: 'video',
+            extra: {
+              title: 'media title',
+            },
+          },
+        );
+      });
+
       it('should handle without hass', async () => {
         const api = createCardAPI();
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);

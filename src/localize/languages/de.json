@@ -63,9 +63,9 @@
         "rotation": "Rotation",
         "rotations": {
           "0": "Keine Rotation",
+          "90": "90 Grad im Uhrzeigersinn",
           "180": "180 Grad im Uhrzeigersinn",
-          "270": "270 Grad im Uhrzeigersinn",
-          "90": "90 Grad im Uhrzeigersinn"
+          "270": "270 Grad im Uhrzeigersinn"
         }
       },
       "go2rtc": {
@@ -416,7 +416,6 @@
   },
   "thumbnail": {
     "download": "Medium herunterladen",
-    "tag": "Tag",
-    "title": "Titel"
+    "tag": "Tag"
   }
 }

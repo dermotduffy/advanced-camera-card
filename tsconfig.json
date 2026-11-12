@@ -29,6 +29,7 @@
         // imported by a custom card directly.
         "globalTags": [
           "ha-alert",
+          "ha-assist-chip",
           "ha-button",
           "ha-camera-stream",
           "ha-card",

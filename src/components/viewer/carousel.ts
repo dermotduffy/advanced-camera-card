@@ -12,6 +12,7 @@ import { keyed } from 'lit/directives/keyed.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
+import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
@@ -34,6 +35,7 @@ import type { CarouselSelected } from '../../utils/embla/carousel-controller.js'
 import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewMedia } from '../../view/item.js';
+import { getMediaSeekTarget } from '../../view/media-seek-target.js';
 
 import '../carousel';
 import '../next-prev-control.js';
@@ -84,7 +86,16 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
+
+  @property({ attribute: false })
   public showControls = true;
+
+  // Whether this carousel automatically sets its own height (via
+  // MediaHeightController) to fit the media it shows. Counter-example: A grid
+  // cell is sized by its grid instead.
+  @property({ attribute: false })
+  public autoHeight = true;
 
   @state()
   private _selected: number | null = null;
@@ -106,7 +117,9 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
 
-    this._mediaHeightController.setRoot(this.renderRoot);
+    if (this.autoHeight) {
+      this._mediaHeightController.setRoot(this.renderRoot);
+    }
 
     // Request update in order to reinitialize the media action controller.
     this.requestUpdate();
@@ -436,23 +449,28 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       return;
     }
 
-    const view = this.viewManagerEpoch?.manager.getView();
-    const seek = view?.context?.mediaViewer?.seek ?? selectedMedia.getStartTime();
+    const seek = getMediaSeekTarget(
+      this.viewManagerEpoch?.manager.getView() ?? null,
+      selectedMedia,
+    );
 
     if (!seek) {
       return;
     }
 
-    const seekTimeInMedia = selectedMedia.includesTime(seek);
-    this.toggleAttribute('unseekable', !seekTimeInMedia);
-    if (!seekTimeInMedia && !mediaPlayerController.playback?.isPaused()) {
+    this.toggleAttribute('unseekable', !seek.inMedia);
+    if (!seek.inMedia && !mediaPlayerController.playback?.isPaused()) {
       void mediaPlayerController.playback?.pause();
-    } else if (seekTimeInMedia && mediaPlayerController.playback?.isPaused()) {
+    } else if (seek.inMedia && mediaPlayerController.playback?.isPaused()) {
       void mediaPlayerController.playback?.play();
     }
 
+    if (!seek.inMedia) {
+      return;
+    }
+
     const seekTime =
-      (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek)) ?? null;
+      (await this.viewItemManager?.getMediaSeekTime(selectedMedia, seek.time)) ?? null;
 
     if (seekTime !== null) {
       void mediaPlayerController.seek?.(seekTime);
@@ -482,6 +500,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
           .resolvedMediaCache=${this.resolvedMediaCache}
           .cameraManager=${this.cameraManager}
           .cardWideConfig=${this.cardWideConfig}
+          .viewItemManager=${this.viewItemManager}
           .forceSelected=${isSelected}
         ></advanced-camera-card-viewer-provider>`,
       )}

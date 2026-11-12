@@ -1,6 +1,6 @@
 import type { ReadonlyDeep } from 'type-fest';
 
-import { MediaNotificationController } from '../../../components-lib/media/notification-controller';
+import { MediaNotificationController } from '../../../components-lib/notification/media-controller';
 import type { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { CardActionsAPI } from '../../types';
@@ -17,8 +17,8 @@ export class InfoAction extends AdvancedCameraCardAction<
       return;
     }
 
-    const notificationController = new MediaNotificationController();
-    notificationController.calculate(api.getCameraManager(), item);
+    const notificationController = new MediaNotificationController(item);
+    notificationController.calculate({ cameraManager: api.getCameraManager() });
 
     api.getNotificationManager().setNotification(
       notificationController.getNotification({

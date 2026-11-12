@@ -1,5 +1,5 @@
 import { add } from 'date-fns';
-import { chunk } from 'lodash-es';
+import { chunk, cloneDeep } from 'lodash-es';
 
 import { allPromises } from '../../utils/basic';
 import type { HomeAssistant } from '../types';
@@ -17,6 +17,8 @@ type RichMetadataGenerator<M> = (
   parent?: RichBrowseMedia<M>,
 ) => M | null;
 
+type ChildrenMetadataUpdater<M> = (children: RichBrowseMedia<M>[]) => void;
+
 export type BrowseMediaTarget<M = undefined> = string | RichBrowseMedia<M>;
 type RichBrowseMediaPredicate<M> = (media: RichBrowseMedia<M>) => boolean;
 
@@ -27,9 +29,13 @@ export interface BrowseMediaStep<M = undefined> {
   // How many children to process concurrently. Default is infinite.
   concurrency?: number;
 
-  // All children of the target have the metadata generator applied to them
-  // first.
+  // Creates the metadata for each child of the target, before matching.
   metadataGenerator?: RichMetadataGenerator<M>;
+
+  // Called with all the children of the target once each has been given its
+  // metadata, and before matching. It may modify the metadata of those
+  // children, for metadata that requires comparing them to one another.
+  childrenMetadataUpdater?: ChildrenMetadataUpdater<M>;
 
   // If those children pass this matcher, then they will be included in the
   // output.
@@ -85,6 +91,7 @@ export class BrowseMediaWalker {
           await this._browseMedia(hass, target, {
             cache: options?.cache,
             metadataGenerator: step.metadataGenerator,
+            childrenMetadataUpdater: step.childrenMetadataUpdater,
           }),
       );
 
@@ -118,23 +125,37 @@ export class BrowseMediaWalker {
     options?: {
       cache?: BrowseMediaCache<M>;
       metadataGenerator?: RichMetadataGenerator<M>;
+      childrenMetadataUpdater?: ChildrenMetadataUpdater<M>;
     },
   ): Promise<RichBrowseMedia<M>> {
     const mediaContentID = typeof target === 'object' ? target.media_content_id : target;
-    const cachedResult = options?.cache ? options.cache.get(mediaContentID) : null;
-    if (cachedResult) {
-      return cachedResult;
-    }
+    const cachedResponse = options?.cache ? options.cache.get(mediaContentID) : null;
 
     const request = {
       type: 'media_source/browse_media',
       media_content_id: mediaContentID,
     };
-    const browseMedia = await homeAssistantWSRequest<RichBrowseMedia<M>>(
-      hass,
-      browseMediaSchema,
-      request,
-    );
+    const response =
+      cachedResponse ??
+      (await homeAssistantWSRequest<RichBrowseMedia<M>>(
+        hass,
+        browseMediaSchema,
+        request,
+      ));
+
+    if (!cachedResponse && options?.cache) {
+      options.cache.set(
+        mediaContentID,
+        response,
+        add(new Date(), { seconds: BROWSE_MEDIA_CACHE_SECONDS }),
+      );
+    }
+
+    // The cache holds only what Home Assistant returned, so that a walk with
+    // different parsers to the one that populated it generates its own
+    // metadata. That metadata is written to a clone to keep it out of the
+    // cache.
+    const browseMedia = cloneDeep(response);
 
     if (options?.metadataGenerator) {
       for (const child of browseMedia.children ?? []) {
@@ -146,13 +167,8 @@ export class BrowseMediaWalker {
       }
     }
 
-    if (options?.cache) {
-      options.cache.set(
-        mediaContentID,
-        browseMedia,
-        add(new Date(), { seconds: BROWSE_MEDIA_CACHE_SECONDS }),
-      );
-    }
+    options?.childrenMetadataUpdater?.(browseMedia.children ?? []);
+
     return browseMedia;
   }
 }

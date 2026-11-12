@@ -12,7 +12,10 @@ export const iconSchema = z.object({
 });
 export type Icon = z.infer<typeof iconSchema>;
 
-// Extended internally to include a fallback icon that is not user-configurable.
+// Extended internally to include values that are not user-configurable.
 export interface InternalIcon extends Icon {
   fallback?: string;
+
+  // The color to render the icon in.
+  color?: string;
 }

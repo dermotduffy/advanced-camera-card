@@ -1,12 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 // ====================================================================
 // ** Keep modifications to this file to a minimum **
 //
-// Type checking is disabled since this is a modified copy-and-paste of
-// underlying render() function, but the rest of the class source it not
-// available as compilation time.
+// This is a modified copy-and-paste of the underlying render() function.
+// The base class is only registered at runtime, so the members this file
+// uses from it are declared in ./types.ts.
 // ====================================================================
 
 import {
@@ -17,7 +14,7 @@ import {
   type PropertyValues,
   type TemplateResult,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
@@ -42,15 +39,16 @@ import {
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../utils/media-info.js';
-import type { ConstructableLitElement } from './types.js';
+import type {
+  AdvancedCameraCardHaWebRtcPlayerElement,
+  ConstructableHaWebRtcPlayer,
+} from './types.js';
 
 void customElements.whenDefined('ha-web-rtc-player').then(() => {
   const HaWebRtcPlayer = customElements.get(
     'ha-web-rtc-player',
-  ) as ConstructableLitElement;
+  ) as ConstructableHaWebRtcPlayer;
 
-  @customElement('advanced-camera-card-ha-web-rtc-player')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class AdvancedCameraCardHaWebRtcPlayer extends HaWebRtcPlayer implements MediaPlayer {
     @property({ attribute: false })
     public targetID?: string;
@@ -76,7 +74,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
       return this._mediaPlayerController;
     }
 
-    private async _startWebRtc(): Promise<void> {
+    protected async _startWebRtc(): Promise<void> {
       // There is a race condition in the underlying HA frontend code between
       // the element connection and the async start of the WebRTC session. If
       // the element is rapidly connected and disconnected, the RTC connection
@@ -94,7 +92,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
       }
     }
 
-    private _addTrack = async (event: RTCTrackEvent) => {
+    protected _addTrack = async (event: RTCTrackEvent) => {
       if (!this._remoteStream) {
         return;
       }
@@ -143,7 +141,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
               );
             }
           }}
-          @loadeddata=${(ev) => this._loadedDataHandler(ev)}
+          @loadeddata=${(ev: Event) => this._loadedDataHandler(ev)}
           @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
           @play=${() => dispatchMediaPlayEvent(this)}
           @pause=${() => dispatchMediaPauseEvent(this)}
@@ -166,12 +164,12 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
       // player can fail more than once and every failure must be reported.
       const errored = !!this._error;
       if (errored && !this._lastErrored) {
-        dispatchLiveErrorEvent(this, { detail: this._error });
+        dispatchLiveErrorEvent(this, { description: this._error });
       }
       this._lastErrored = errored;
     }
 
-    private _loadedDataHandler(ev: Event) {
+    private _loadedDataHandler(ev: Event): void {
       super._loadedData();
       const info = createMediaLoadedInfo(ev, {
         mediaPlayerController: this._mediaPlayerController,
@@ -189,7 +187,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
       // capabilities reflect the current state.
       this._audioTracksMuteStateCleanup?.();
       this._audioTracksMuteStateCleanup = addAudioTracksMuteStateListener(
-        this._peerConnection,
+        this._peerConnection ?? null,
         () => {
           const info = createMediaLoadedInfo(this._videoEl, {
             mediaPlayerController: this._mediaPlayerController,
@@ -206,7 +204,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
       );
     }
 
-    private _cleanUp(): void {
+    protected _cleanUp(): void {
       super._cleanUp();
       this._audioTracksMuteStateCleanup?.();
       this._audioTracksMuteStateCleanup = null;
@@ -229,10 +227,15 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
       ];
     }
   }
+
+  customElements.define(
+    'advanced-camera-card-ha-web-rtc-player',
+    AdvancedCameraCardHaWebRtcPlayer,
+  );
 });
 
 declare global {
   interface HTMLElementTagNameMap {
-    'advanced-camera-card-ha-web-rtc-player': AdvancedCameraCardHaWebRtcPlayer;
+    'advanced-camera-card-ha-web-rtc-player': AdvancedCameraCardHaWebRtcPlayerElement;
   }
 }

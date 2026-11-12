@@ -21,6 +21,7 @@ import menuStyle from '../scss/menu.scss?inline';
 import type { Interaction } from '../types.js';
 import { hasAction } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
+import { getStyleColor, getStyleWithStateIconColor } from '../utils/style.js';
 import type { SubmenuInteraction } from './submenu/types.js';
 
 import './icon.js';
@@ -101,7 +102,10 @@ export class AdvancedCameraCardMenu extends LitElement {
         ? getEntityTitle(this.hass, button.entity)
         : button.title;
 
+    const style = button.style ?? {};
+
     return html` <ha-icon-button
+      style="${styleMap(getStyleWithStateIconColor(style))}"
       .actionHandler=${actionHandler({
         hasHold: hasAction(button.hold_action),
         hasDoubleClick: hasAction(button.double_tap_action),
@@ -113,12 +117,12 @@ export class AdvancedCameraCardMenu extends LitElement {
     >
       <advanced-camera-card-icon
         ?allow-override-non-active-styles=${true}
-        style="${styleMap(button.style || {})}"
         .hass=${this.hass}
         .icon=${{
           icon: button.icon,
           entity: button.entity,
           stateColor: button.state_color,
+          color: getStyleColor(style) ?? undefined,
           fallback: 'mdi:gesture-tap-button',
         }}
       ></advanced-camera-card-icon>

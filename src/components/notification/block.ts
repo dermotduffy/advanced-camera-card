@@ -6,6 +6,7 @@ import {
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import { handleControlAction } from '../../components-lib/notification/action.js';
 import {
@@ -71,7 +72,12 @@ export class AdvancedCameraCardNotificationBlock extends LitElement {
           ? html`<div class="heading-row">
               ${heading ? renderDetail(heading, 'heading') : ''}
               ${spinnerInHeadingRow || controls.length
-                ? html`<div class="controls">
+                ? html`<div
+                    class=${classMap({
+                      controls: true,
+                      'spinner-only': !controls.length,
+                    })}
+                  >
                     ${spinnerInHeadingRow ? spinner : ''}
                     ${controls.map((control) =>
                       renderControl(control, (ev, c) =>

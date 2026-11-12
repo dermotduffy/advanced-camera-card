@@ -41,7 +41,7 @@ Configuration is similar to a stock [Picture Elements Icon](https://www.home-ass
 | `icon`                                                                   |            | An required icon to display, e.g. `mdi:car`. See also [custom icons](../../../usage/custom-icons.md).                                                                                                                                                                                                                        |
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
-| `style`                                                                  |            | Position and style the element using CSS.                                                                                                                                                                                                                                                                                    |
+| `style`                                                                  |            | CSS to style the menu button with, e.g. `color: green`. See [button styling](../../menu.md?id=button-styling).                                                                                                                                                                                                               |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |            | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                                                                            |
 | `title`                                                                  |            | An optional title to display.                                                                                                                                                                                                                                                                                                |
 
@@ -65,7 +65,7 @@ elements:
 | `items`                                                                  |            | A list of menu items, as described [below](#submenu-items).                                                                                                                                                                                                                                                                  |
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
-| `style`                                                                  |            | Position and style the element using CSS.                                                                                                                                                                                                                                                                                    |
+| `style`                                                                  |            | CSS to style the menu button with, e.g. `color: green`. See [button styling](../../menu.md?id=button-styling).                                                                                                                                                                                                               |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |            | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                                                                            |
 | `title`                                                                  |            | An optional title to display.                                                                                                                                                                                                                                                                                                |
 
@@ -77,8 +77,8 @@ elements:
 | `entity`                                                                 |         | An optional Home Assistant entity from which title, icon and style can be automatically computed.          |
 | `icon`                                                                   |         | An optional item icon to display, e.g. `mdi:car`. See also [custom icons](../../../usage/custom-icons.md). |
 | `selected`                                                               | `false` | Whether or not to show this item as selected.                                                              |
-| `state_color`                                                            | `true`  | Whether or not the title and icon should be stylized based on state.                                       |
-| `style`                                                                  |         | Position and style the element using CSS.                                                                  |
+| `state_color`                                                            | `true`  | Whether the item icon is colored by the state of `entity`. A `color` in `style` takes precedence.          |
+| `style`                                                                  |         | CSS to style the contents of the submenu item (its title, subtitle and icon) with.                         |
 | `subtitle`                                                               |         | Optional additional text to display.                                                                       |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |         | The [actions](../../actions/README.md) to take when this item is interacted with.                          |
 | `title`                                                                  |         | An optional title to display.                                                                              |
@@ -103,7 +103,7 @@ elements:
 | `options`                                                                |            | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](./README.md?id=submenu-items) above.                                           |
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
-| `style`                                                                  |            | Position and style the element using CSS.                                                                                                                                                                                                                                                                                    |
+| `style`                                                                  |            | CSS to style the menu button with, e.g. `color: green`. See [button styling](../../menu.md?id=button-styling).                                                                                                                                                                                                               |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |            | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                                                                            |
 | `title`                                                                  |            | An optional title to display.                                                                                                                                                                                                                                                                                                |
 
@@ -131,8 +131,8 @@ Configuration is similar to a stock [Picture Elements State Icon](https://www.ho
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |            | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                                                                            |
-| `state_color`                                                            | `true`     | Set to true to have icons colored when entity is active.                                                                                                                                                                                                                                                                     |
-| `style`                                                                  |            | Position and style the element using CSS.                                                                                                                                                                                                                                                                                    |
+| `state_color`                                                            | `true`     | Whether the icon is colored by the state of `entity`. A `color` in `style` takes precedence.                                                                                                                                                                                                                                 |
+| `style`                                                                  |            | CSS to style the menu button with, e.g. `color: green`. See [button styling](../../menu.md?id=button-styling).                                                                                                                                                                                                               |
 | `title`                                                                  |            | An optional title to display.                                                                                                                                                                                                                                                                                                |
 
 ## `status-bar-icon`
@@ -272,7 +272,6 @@ elements:
     entity: input_select.kitchen_scene
     icon: mdi:lamps
     options:
-    items:
       scene.kitchen_cooking_scene:
         enabled: true
         icon: mdi:chef-hat
@@ -307,7 +306,8 @@ elements:
       - condition: expand
         expand: true
       - condition: camera
-        cameras: camera.front_door
+        cameras:
+          - camera.front_door
       - condition: media_loaded
         media_loaded: true
       - condition: display_mode
@@ -322,8 +322,8 @@ elements:
         connected: true
       - condition: state
         entity: light.office_main_lights
-        state: on
-        state_not: off
+        state: 'on'
+        state_not: 'off'
       - condition: numeric_state
         entity: sensor.light_level
         above: 20

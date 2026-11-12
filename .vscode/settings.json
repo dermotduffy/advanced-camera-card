@@ -1,0 +1,7 @@
+{
+  // Without this the editor guesses Markdown for `.browserslistrc` and formats
+  // each `#` comment as a heading.
+  "files.associations": {
+    ".browserslistrc": "properties"
+  }
+}

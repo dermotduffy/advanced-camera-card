@@ -1,7 +1,6 @@
 import { add, differenceInSeconds, sub } from 'date-fns';
 import type { LitElement } from 'lit';
 import { isEqual, throttle } from 'lodash-es';
-import type { ReadonlyDeep } from 'type-fest';
 import type { ViewContext } from 'view';
 import {
   Timeline,
@@ -20,9 +19,9 @@ import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/ran
 import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
+import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
-import type { CameraConfig } from '../../config/schema/cameras';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
 import type { ThumbnailsControlBaseConfig } from '../../config/schema/common/controls/thumbnails';
 import type {
@@ -35,32 +34,22 @@ import { stopEventFromActivatingCardWideActions } from '../../utils/action';
 import { formatDateAndTime, isHoverableDevice, isTruthy } from '../../utils/basic';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
-import type { ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
-import { mergeViewContext } from '../../view/view';
-import { TimelineDataSource, type AdvancedCameraCardTimelineItem } from './source';
+import { resolveThumbnailStyle } from '../thumbnail/resolve-style';
+import {
+  canMediaBeShownAsTimelineItem,
+  TimelineDataSource,
+  type AdvancedCameraCardTimelineItem,
+} from './source';
 import type {
   ExtendedTimeline,
+  ThumbnailDataRequestEvent,
   TimelineItemClickAction,
   TimelineRangeChange,
 } from './types';
-
-// An event used to fetch data required for thumbnail rendering. See special
-// note below on why this is necessary.
-interface ThumbnailDataRequest {
-  item: IdType;
-  hass?: HomeAssistant;
-  cameraManager?: CameraManager;
-  cameraConfig?: ReadonlyDeep<CameraConfig>;
-  media?: ViewMedia;
-  viewManagerEpoch?: ViewManagerEpoch;
-  viewItemManager?: ViewItemManager;
-}
-
-class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}
 
 interface TimelineControllerOptions {
   hass?: HomeAssistant;
@@ -233,6 +222,7 @@ export class TimelineController {
     request.detail.viewItemManager = this._viewItemManager ?? undefined;
     request.detail.media = media;
     request.detail.viewManagerEpoch = this._viewManagerEpoch ?? undefined;
+    request.detail.size = this._thumbnailConfig?.size;
   };
 
   public getEffectivePanMode(): TimelinePanMode {
@@ -328,26 +318,7 @@ export class TimelineController {
       return;
     }
 
-    const view = this._viewManagerEpoch?.manager.getView();
-    const panMode = this.getEffectivePanMode();
-    const targetBarOn =
-      this.shouldSupportSeeking() &&
-      (panMode === 'seek' ||
-        ((panMode === 'seek-in-camera' || panMode === 'seek-in-media') &&
-          this._timeline.getSelection().some((id) => {
-            const item = this._source?.dataset?.get(id);
-            return (
-              panMode !== 'seek-in-camera' ||
-                item?.media?.getCameraID() === view?.camera,
-              item &&
-                item.start &&
-                item.end &&
-                targetTime.getTime() >= item.start &&
-                targetTime.getTime() <= item.end
-            );
-          })));
-
-    if (targetBarOn) {
+    if (this.shouldSupportSeeking() && this.getEffectivePanMode() !== 'pan') {
       if (!this._targetBarVisible) {
         this._timeline?.addCustomTime(targetTime, TIMELINE_TARGET_BAR_ID);
         this._targetBarVisible = true;
@@ -574,13 +545,18 @@ export class TimelineController {
         .resetSelectedResult()
         .selectResultIfFound((media) => media.getID() === id, criteria);
       const selectedItem = newResults?.getSelectedResult();
-      const context: ViewContext = mergeViewContext(this._getTimelineContext(), {
-        ...(ViewItemClassifier.isEvent(selectedItem) &&
-          // Only attempt to seek if the event has a real end time, otherwise
-          // the viewer cannot actually seek there and shows the unseekable
-          // message.
-          selectedItem.getEndTime() && { mediaViewer: { seek: properties.time } }),
-      });
+
+      // Only attempt to seek if the media has a real end time, otherwise the
+      // viewer cannot actually seek there and would show the unseekable
+      // message.
+      const shouldSeek =
+        canMediaBeShownAsTimelineItem(selectedItem) && !!selectedItem.getEndTime();
+      const modifiers = [
+        new MergeContextViewModifier(this._getTimelineContext()),
+        shouldSeek
+          ? new MergeContextViewModifier({ mediaViewer: { seek: properties.time } })
+          : new RemoveContextPropertyViewModifier('mediaViewer', 'seek'),
+      ];
 
       if (!newResults || !newResults.hasSelectedResult()) {
         // This can happen in a few situations:
@@ -601,7 +577,7 @@ export class TimelineController {
               query: item.query,
               queryResults,
             },
-            modifiers: [new MergeContextViewModifier(context)],
+            modifiers,
           });
         }
       } else {
@@ -610,7 +586,7 @@ export class TimelineController {
             queryResults: newResults,
             view: this._itemClickAction === 'play' ? 'media' : view.view,
           },
-          modifiers: [new MergeContextViewModifier(context)],
+          modifiers,
         });
       }
 
@@ -876,7 +852,7 @@ export class TimelineController {
         ...(view.isGrid() && { allCameras: true }),
       }) ?? []
     )
-      .filter((media) => ViewItemClassifier.isEvent(media))
+      .filter((media) => canMediaBeShownAsTimelineItem(media))
       .map((media) => media.getID())
       .filter(isTruthy);
   }
@@ -965,6 +941,32 @@ export class TimelineController {
     };
   }
 
+  private _canCluster(first: TimelineItem, second: TimelineItem): boolean {
+    const selectedIDs = this._getAllSelectedMediaIDsFromView();
+    const firstMedia = (<AdvancedCameraCardTimelineItem>first).media;
+    const secondMedia = (<AdvancedCameraCardTimelineItem>second).media;
+
+    // Never include the currently selected item in a cluster.
+    if (
+      first.type === 'background' ||
+      first.type !== second.type ||
+      selectedIDs.includes(first.id) ||
+      selectedIDs.includes(second.id) ||
+      !firstMedia ||
+      !secondMedia
+    ) {
+      return false;
+    }
+
+    // Events cluster with events and reviews with reviews.
+    return (
+      (ViewItemClassifier.isEvent(firstMedia) &&
+        ViewItemClassifier.isEvent(secondMedia)) ||
+      (ViewItemClassifier.isReview(firstMedia) &&
+        ViewItemClassifier.isReview(secondMedia))
+    );
+  }
+
   private _getOptions(): TimelineOptions | null {
     if (!this._timelineConfig) {
       return null;
@@ -987,29 +989,13 @@ export class TimelineController {
             // created, also does not appear to work as expected.
             maxItems: this._timelineConfig.clustering_threshold,
 
-            clusterCriteria: (first: TimelineItem, second: TimelineItem): boolean => {
-              const selectedIDs = this._getAllSelectedMediaIDsFromView();
-              const firstMedia = (<AdvancedCameraCardTimelineItem>first).media;
-              const secondMedia = (<AdvancedCameraCardTimelineItem>second).media;
-
-              // Never include the currently selected item in a cluster, and
-              // never group different object types together (e.g. person and
-              // car).
-              return (
-                first.type !== 'background' &&
-                first.type === second.type &&
-                !selectedIDs.includes(first.id) &&
-                !selectedIDs.includes(second.id) &&
-                !!firstMedia &&
-                !!secondMedia &&
-                ViewItemClassifier.isEvent(firstMedia) &&
-                ViewItemClassifier.isEvent(secondMedia) &&
-                firstMedia.isGroupableWith(secondMedia)
-              );
-            },
+            clusterCriteria: this._canCluster.bind(this),
           }
         : // Timeline type information is incorrect requiring this 'as'.
           (false as unknown as TimelineOptionsCluster),
+
+      dataAttributes: ['severity'],
+
       minHeight: '100%',
       maxHeight: '100%',
       zoomMax: 1 * 24 * 60 * 60 * 1000,
@@ -1036,7 +1022,7 @@ export class TimelineController {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'advanced-camera-card-timeline-thumbnail': ['details', 'item'],
+            'advanced-camera-card-timeline-thumbnail': ['thumbnail-style', 'item'],
             div: ['title'],
             span: ['style'],
           },
@@ -1057,13 +1043,17 @@ export class TimelineController {
       return '';
     }
 
+    const thumbnailStyle = this._thumbnailConfig
+      ? resolveThumbnailStyle(this._thumbnailConfig, { placement: 'popup' })
+      : null;
+
     // Cannot use Lit data-bindings as visjs requires a string for tooltips.
     // Note that changes to attributes here must be mirrored in the xss
     // whitelist in `_getOptions()` .
     return `
         <advanced-camera-card-timeline-thumbnail
           item='${item.id}'
-          ${this._thumbnailConfig?.show_details ? 'details' : ''}
+          ${thumbnailStyle ? `thumbnail-style='${thumbnailStyle}'` : ''}
         >
         </advanced-camera-card-timeline-thumbnail>`;
   }

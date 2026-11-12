@@ -1,0 +1,287 @@
+@use 'thumbnail-frosted.scss' as *;
+@use 'thumbnail-in-progress.scss' as *;
+
+:host {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  color: var(--advanced-camera-card-thumbnail-details-overlay-color);
+
+  // Everything below is sized in `em`, so one token scales the whole overlay.
+  font-size: var(--advanced-camera-card-thumbnail-text-size);
+
+  // Avoid HA overriding line-height.
+  line-height: normal;
+}
+
+.details {
+  @include frosted;
+
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+
+  box-sizing: border-box;
+  overflow: hidden;
+
+  border-top: var(--advanced-camera-card-thumbnail-details-overlay-border-top);
+
+  // The details are painted over the thumbnail rather than inside it, so
+  // nothing rounds their bottom corners to match it.
+  border-end-start-radius: var(--advanced-camera-card-border-radius-final);
+  border-end-end-radius: var(--advanced-camera-card-border-radius-final);
+}
+
+// The label sits in the top leading corner of the thumbnail when the details
+// have no room for it.
+.corner-label {
+  @include frosted;
+
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  max-width: 100%;
+
+  // On small thumbnails, the control row shares space with a label. Fade it to
+  // 25% if hovered.
+  opacity: calc(1 - 0.75 * var(--advanced-camera-card-thumbnail-hovered, 0));
+  transition: opacity 0.22s ease;
+
+  box-sizing: border-box;
+  height: 16px;
+  padding: 0 6px;
+  line-height: 16px;
+
+  font-size: 0.64em;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+
+  border-start-start-radius: var(--advanced-camera-card-border-radius-final);
+}
+
+.headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.43em;
+  min-width: 0;
+}
+
+.label {
+  font-weight: 500;
+}
+
+:host([review='unreviewed']) .label {
+  font-weight: 700;
+}
+:host([review='reviewed']) .label {
+  font-weight: 400;
+}
+
+.in-progress {
+  @include in-progress;
+
+  flex: none;
+  margin-inline-end: auto;
+}
+
+// The compact and standard tiers fit the media's label and the time on one
+// line, leaving no room for the "REC" text. Only the dot is drawn.
+:host([one-line]) .in-progress {
+  padding: 0;
+  background: none;
+  color: var(--advanced-camera-card-thumbnail-in-progress-background);
+
+  .dot {
+    width: 1em;
+    height: 1em;
+  }
+  .label {
+    display: none;
+  }
+}
+
+.time {
+  flex: none;
+  font-family: var(--ha-font-family-code, ui-monospace, monospace);
+}
+
+.detail {
+  opacity: 0.7;
+}
+
+.corner-label,
+.label,
+.detail,
+.time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  // The overlay is `pointer-events: none` so that clicks reach the thumbnail.
+  // Re-enable pointer-events so the browser shows the title tooltip on hover.
+  pointer-events: auto;
+}
+
+/*****************************************************************************
+ * Tiers. A bigger thumbnail shows more details, in bigger text, with more space
+ * around it.
+ *****************************************************************************/
+
+:host([tier='compact']) {
+  .details {
+    height: 19px;
+    padding: 0 6px;
+  }
+  .headline {
+    height: 100%;
+  }
+  .label {
+    font-size: 0.79em;
+  }
+  .time {
+    font-size: 0.75em;
+
+    // Absorbs the space before the time, moving it to the trailing edge.
+    // Without this `space-between` leaves it leading, as it is the only child.
+    margin-inline-start: auto;
+  }
+}
+
+:host([tier='standard']) {
+  .details {
+    height: 26px;
+    padding: 0 8px;
+  }
+  .headline {
+    height: 100%;
+  }
+  .label {
+    font-size: 0.86em;
+  }
+  .time,
+  .detail {
+    font-size: 0.79em;
+  }
+}
+
+:host([tier='comfortable']) {
+  .details {
+    padding: 8px 11px 9px;
+  }
+  .label {
+    font-size: 1em;
+  }
+  .time {
+    font-size: 0.93em;
+  }
+  .detail {
+    font-size: 0.82em;
+    margin-top: 2px;
+  }
+}
+
+// The largest thumbnail gives the time a column of its own.
+:host([tier='poster']) {
+  .details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    align-items: flex-end;
+    padding: 14px 16px 15px;
+  }
+  .headline {
+    display: contents;
+  }
+  .in-progress {
+    grid-column: 1;
+    align-self: center;
+  }
+  .label,
+  .detail {
+    grid-column: 1;
+  }
+  .time {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: flex-end;
+    font-size: 1.71em;
+    letter-spacing: -0.03em;
+    line-height: 1;
+
+    .seconds {
+      font-size: 0.63em;
+      opacity: 0.66;
+    }
+  }
+  .label {
+    font-size: 1.14em;
+  }
+  .detail {
+    font-size: 0.86em;
+    margin-top: 4px;
+  }
+}
+
+/*****************************************************************************
+ * `hover`: details are hidden until the thumbnail is hovered. The control row
+ * appears on that same hover, so the rules below leave it space.
+ *****************************************************************************/
+:host([hover]) {
+  .details {
+    // `thumbnail.scss` sets this to 1 while the thumbnail is hovered or
+    // focused.
+    opacity: var(--advanced-camera-card-thumbnail-hovered, 0);
+    transform: translateY(
+      calc(100% * (1 - var(--advanced-camera-card-thumbnail-hovered, 0)))
+    );
+
+    transition:
+      transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.16s ease;
+
+    // The control row occupies the top 32px, so the details stop 4px short.
+    max-height: calc(100% - 36px);
+  }
+
+  // Every detail after the first is dimmer than the first.
+  .detail + .detail {
+    margin-top: 0;
+    opacity: 0.55;
+  }
+}
+
+:host([hover][tier='compact']),
+:host([hover][tier='standard']) {
+  .details {
+    height: auto;
+  }
+}
+
+:host([hover][tier='compact']) {
+  .details {
+    padding: 4px 6px;
+  }
+  .label {
+    font-size: 0.79em;
+  }
+}
+
+:host([hover][tier='standard']) .details {
+  padding: 6px 8px 7px;
+}
+
+:host([hover][tier='comfortable']) .details {
+  padding: 10px 12px 11px;
+}
+
+// Fade without sliding, for a user who has asked for less motion.
+@media (prefers-reduced-motion: reduce) {
+  :host([hover]) .details {
+    transform: none;
+    transition: opacity 0.16s ease;
+  }
+}

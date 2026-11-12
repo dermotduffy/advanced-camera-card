@@ -1,3 +1,6 @@
+import { add } from 'date-fns';
+
+import { ExpiringEqualityCache } from '../cache/expiring-cache';
 import type { EnabledProxyConfig } from '../config/schema/common/proxy';
 import { homeAssistantSignAndFetch } from '../ha/fetch';
 import type { HomeAssistant } from '../ha/types';
@@ -5,6 +8,18 @@ import { createProxiedEndpointIfNecessary } from '../ha/web-proxy';
 import type { Endpoint } from '../types';
 import { errorToConsole } from '../utils/basic';
 import { go2RTCStreamInfoSchema, type Go2RTCStreamInfo } from './types';
+
+// Cache 2-way capabilities: these only changes when go2rtc configuration or
+// camera hardware changes.
+const TWO_WAY_AUDIO_CACHE_SECONDS = 5 * 60;
+
+// Page-scoped because Home Assistant builds a new card on dashboard navigation,
+// and every fetch makes go2rtc connect to the camera.
+// See: https://github.com/dermotduffy/advanced-camera-card/issues/2299
+const twoWayAudioSupportCache = new ExpiringEqualityCache<
+  string,
+  Promise<boolean | null>
+>();
 
 const streamSupports2WayAudio = (streamInfo: Go2RTCStreamInfo | null): boolean => {
   if (!streamInfo?.producers) {
@@ -20,28 +35,12 @@ const streamSupports2WayAudio = (streamInfo: Go2RTCStreamInfo | null): boolean =
   );
 };
 
-/**
- * Fetch go2rtc metadata and determine if the stream supports 2-way audio.
- * Handles proxy transformation if proxy config requires it.
- *
- * Note: Caller is responsible for checking if live_provider is 'go2rtc' before calling.
- *
- * @param hass Home Assistant instance.
- * @param go2rtcMetadataEndpoint The go2rtc metadata endpoint.
- * @param proxyConfig The resolved proxy configuration for live streams.
- * @returns True or false indicating support available or not respectively, or
- * `null` when the answer is unknown/unavailable.
- */
-export const supports2WayAudio = async (
+const fetch2WayAudioSupport = async (
   hass: HomeAssistant,
   metadataFetchTimeoutSeconds: number,
-  go2rtcMetadataEndpoint?: Endpoint | null,
+  go2rtcMetadataEndpoint: Endpoint,
   proxyConfig?: EnabledProxyConfig,
 ): Promise<boolean | null> => {
-  if (!go2rtcMetadataEndpoint) {
-    return false;
-  }
-
   const endpoint = await createProxiedEndpointIfNecessary(
     hass,
     go2rtcMetadataEndpoint,
@@ -49,7 +48,7 @@ export const supports2WayAudio = async (
     { openLimit: 1 },
   );
   if (!endpoint) {
-    return false;
+    return null;
   }
 
   try {
@@ -60,8 +59,46 @@ export const supports2WayAudio = async (
     );
   } catch (e) {
     errorToConsole(e);
-
-    // The metadata could not be read, so an unknown state is returned.
     return null;
   }
+};
+
+// Caller must verify the live provider is go2rtc before calling. Resolves to
+// `null` when the answer is unknown.
+export const supports2WayAudio = async (
+  hass: HomeAssistant,
+  metadataFetchTimeoutSeconds: number,
+  go2rtcMetadataEndpoint?: Endpoint | null,
+  proxyConfig?: EnabledProxyConfig,
+): Promise<boolean | null> => {
+  if (!go2rtcMetadataEndpoint) {
+    return false;
+  }
+
+  const key = go2rtcMetadataEndpoint.endpoint;
+  const cachedPromise = twoWayAudioSupportCache.get(key);
+  if (cachedPromise) {
+    return await cachedPromise;
+  }
+
+  const request = fetch2WayAudioSupport(
+    hass,
+    metadataFetchTimeoutSeconds,
+    go2rtcMetadataEndpoint,
+    proxyConfig,
+  );
+  twoWayAudioSupportCache.set(
+    key,
+    request,
+    add(new Date(), { seconds: TWO_WAY_AUDIO_CACHE_SECONDS }),
+  );
+
+  const isSupported = await request;
+
+  // Inconclusive results are evicted so the next caller retries.
+  if (isSupported === null) {
+    twoWayAudioSupportCache.delete(key);
+  }
+
+  return isSupported;
 };

@@ -10,7 +10,8 @@ export class RemoveContextViewModifier implements ViewModifier {
     this._keys = keys;
   }
 
-  public modify(view: View): void {
+  public modify(view: View): boolean {
     this._keys.forEach((key) => view.removeContext(key));
+    return true;
   }
 }

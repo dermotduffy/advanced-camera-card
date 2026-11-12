@@ -8,6 +8,8 @@
   color: hsl(var(--hue, 340), var(--saturation, 80%), var(--lightness, 55%));
 
   user-select: none;
+  -webkit-user-select: none;
+
   pointer-events: none;
 
   will-change: transform;

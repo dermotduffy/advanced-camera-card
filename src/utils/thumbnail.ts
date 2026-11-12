@@ -1,7 +1,11 @@
 import { Task } from '@lit/task';
 import type { ReactiveControllerHost } from 'lit';
 
+import { isMediaSourceID } from '../ha/media-source';
+import { resolveMedia } from '../ha/resolved-media';
 import type { HomeAssistant } from '../ha/types';
+import { AdvancedCameraCardError } from '../types';
+import { classifyMimeType, resolveImageMimeType } from './mime-type';
 
 // See: https://github.com/sindresorhus/is-absolute-url
 // Scheme: https://tools.ietf.org/html/rfc3986#section-3.1
@@ -9,15 +13,41 @@ import type { HomeAssistant } from '../ha/types';
 const ABSOLUTE_URL_REGEX = /^[a-zA-Z][a-zA-Z\d+\-.]*?:/;
 
 /**
- * Fetch a thumbnail URL and return a data URL.
+ * The URL of an image a media source ID refers to. May throw.
+ */
+const resolveImageURL = async (
+  hass: HomeAssistant,
+  thumbnail: string,
+): Promise<string> => {
+  const resolved = await resolveMedia(hass, thumbnail);
+  if (!resolved) {
+    throw new AdvancedCameraCardError(`Could not resolve thumbnail: ${thumbnail}`);
+  }
+
+  if (!classifyMimeType(resolved.mime_type).isImage) {
+    throw new AdvancedCameraCardError(
+      `Thumbnail is not an image: ${thumbnail} (${resolved.mime_type})`,
+    );
+  }
+
+  return resolved.url;
+};
+
+/**
+ * Fetch a thumbnail and return a data URL.
  * @param hass Home Assistant object.
- * @param thumbnailURL The thumbnail URL.
+ * @param thumbnail A thumbnail URL, or the Home Assistant media source ID of an
+ * image.
  * @returns A base64 encoded data URL for the thumbnail.
  */
 const fetchThumbnail = async (
   hass: HomeAssistant,
-  thumbnailURL: string,
+  thumbnail: string,
 ): Promise<string | null> => {
+  const thumbnailURL = isMediaSourceID(thumbnail)
+    ? await resolveImageURL(hass, thumbnail)
+    : thumbnail;
+
   if (thumbnailURL.startsWith('data:') || thumbnailURL.match(ABSOLUTE_URL_REGEX)) {
     return thumbnailURL;
   }
@@ -30,6 +60,15 @@ const fetchThumbnail = async (
     throw new Error(response.statusText);
   }
   const blob = await response.blob();
+  const type = resolveImageMimeType(blob.type, thumbnailURL);
+
+  // Ensure the data returned is actually an image, and not a redirect/error.
+  if (type && !classifyMimeType(type).isImage) {
+    throw new AdvancedCameraCardError(
+      `Thumbnail is not an image: ${thumbnail} (${blob.type})`,
+    );
+  }
+
   return new Promise<string | null>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {

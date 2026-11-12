@@ -88,6 +88,12 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   @property({ attribute: false })
   public viewFilterCameraID?: string;
 
+  // Whether this carousel automatically sets its own height (via
+  // MediaHeightController) to fit the media it shows. Counter-example: A grid
+  // cell is sized by its grid instead.
+  @property({ attribute: false })
+  public autoHeight = true;
+
   private _refCarousel: Ref<HTMLElement> = createRef();
 
   private _mediaActionsController = new MediaActionsController();
@@ -103,7 +109,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
 
-    this._mediaHeightController.setRoot(this.renderRoot);
+    if (this.autoHeight) {
+      this._mediaHeightController.setRoot(this.renderRoot);
+    }
 
     // Request update in order to reinitialize the media action controller.
     this.requestUpdate();

@@ -14,9 +14,12 @@ import type { LazyUnloadCondition } from '../../src/config/schema/common/media-a
 import {
   callIntersectionHandler,
   callVisibilityHandler,
+  changeDocumentVisibility,
+  createDocumentVisibility,
   createLitElement,
   getMockIntersectionObserver,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../test-utils';
 
 // @vitest-environment jsdom
@@ -31,12 +34,7 @@ describe('LazyLoadController', () => {
 
   beforeEach(() => {
     vi.spyOn(global.document, 'addEventListener');
-    vi.spyOn(global.document, 'removeEventListener');
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   afterEach(() => {
@@ -68,44 +66,33 @@ describe('LazyLoadController', () => {
     expect(host.removeController).toHaveBeenCalledWith(controller);
   });
 
-  it('should remove handlers and listeners on destroy', () => {
-    const controller = new LazyLoadController(createLitElement());
+  it('should remove handlers on destroy', () => {
+    const documentVisibility = createDocumentVisibility();
+    const unsubscribe = vi.fn();
+    documentVisibility.subscribe.mockReturnValue(unsubscribe);
+    const controller = new LazyLoadController(createLitElement(), documentVisibility);
     controller.setConfiguration({
       lazyLoad: true,
       lazyUnloadConditions: ['unselected', 'hidden'],
     });
     controller.hostConnected();
 
-    const listener = vi.fn();
-    controller.addListener(listener);
-
     controller.destroy();
 
     expect(getMockIntersectionObserver()?.disconnect).toHaveBeenCalled();
-    expect(global.document.removeEventListener).toHaveBeenCalledWith(
-      'visibilitychange',
-      expect.anything(),
-    );
+    expect(unsubscribe).toHaveBeenCalled();
     expect(controller.isLoaded()).toBe(false);
-
-    callVisibilityHandler(true);
-    callIntersectionHandler(true);
-    expect(listener).not.toHaveBeenCalled();
   });
 
   describe('should set configuration', () => {
     it('should set loaded if lazy loading set to false', () => {
-      const listener = vi.fn();
       const controller = new LazyLoadController(createLitElement());
-      controller.addListener(listener);
 
       expect(controller.isLoaded()).toBe(false);
-      expect(listener).not.toHaveBeenCalled();
 
       controller.setConfiguration({ lazyLoad: false });
 
       expect(controller.isLoaded()).toBe(true);
-      expect(listener).toHaveBeenCalled();
     });
 
     it('should re-evaluate unload when conditions change while loaded', () => {
@@ -193,7 +180,10 @@ describe('LazyLoadController', () => {
 
   describe('should lazy unload', () => {
     it('should unload on DOM disconnection', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const documentVisibility = createDocumentVisibility();
+      const unsubscribe = vi.fn();
+      documentVisibility.subscribe.mockReturnValue(unsubscribe);
+      const controller = new LazyLoadController(createLitElement(), documentVisibility);
 
       // No lazy loading.
       controller.setConfiguration({ lazyLoad: false });
@@ -207,10 +197,7 @@ describe('LazyLoadController', () => {
 
       // Should also stop observing.
       expect(getMockIntersectionObserver()?.disconnect).toHaveBeenCalled();
-      expect(global.document.removeEventListener).toHaveBeenCalledWith(
-        'visibilitychange',
-        expect.anything(),
-      );
+      expect(unsubscribe).toHaveBeenCalled();
     });
 
     describe('should lazy unload when not visible', () => {
@@ -237,6 +224,26 @@ describe('LazyLoadController', () => {
           expect(controller.isLoaded()).toBe(shouldBeLoaded);
         },
       );
+
+      it('should respect the document visibility source over the raw document state', async () => {
+        setVisibilityState('hidden');
+        const documentVisibility = createDocumentVisibility(true);
+        const controller = new LazyLoadController(
+          createLitElement(),
+          documentVisibility,
+        );
+        controller.setConfiguration({
+          lazyLoad: true,
+          lazyUnloadConditions: ['hidden'],
+        });
+        controller.hostConnected();
+
+        callIntersectionHandler(true);
+        expect(controller.isLoaded()).toBe(true);
+
+        await changeDocumentVisibility(documentVisibility, false);
+        expect(controller.isLoaded()).toBe(false);
+      });
     });
 
     describe('should lazy unload when not intersecting', () => {
@@ -280,11 +287,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should not load while document is already hidden on connect', () => {
-      Object.defineProperty(document, 'visibilityState', {
-        value: 'hidden',
-        writable: true,
-        configurable: true,
-      });
+      setVisibilityState('hidden');
 
       const controller = new LazyLoadController(createLitElement());
       controller.setConfiguration({
@@ -368,34 +371,29 @@ describe('LazyLoadController', () => {
     });
   });
 
-  it('should call listeners', () => {
-    const listener = vi.fn();
-    const controller = new LazyLoadController(createLitElement());
+  it('should request a host update whenever loadedness changes', () => {
+    const host = createLitElement();
+    const controller = new LazyLoadController(host);
     controller.setConfiguration({
       lazyLoad: true,
       lazyUnloadConditions: ['unselected', 'hidden'],
     });
     controller.hostConnected();
-    controller.addListener(listener);
+    vi.mocked(host.requestUpdate).mockClear();
 
     expect(controller.isLoaded()).toBe(false);
 
     callIntersectionHandler(true);
     callVisibilityHandler(true);
-    expect(listener).toHaveBeenLastCalledWith(true);
-    expect(listener).toHaveBeenCalledTimes(1);
+    expect(controller.isLoaded()).toBe(true);
+    expect(host.requestUpdate).toHaveBeenCalledTimes(1);
 
     callIntersectionHandler(false);
-    expect(listener).toHaveBeenLastCalledWith(false);
-    expect(listener).toHaveBeenCalledTimes(2);
+    expect(controller.isLoaded()).toBe(false);
+    expect(host.requestUpdate).toHaveBeenCalledTimes(2);
 
     callIntersectionHandler(true);
-    expect(listener).toHaveBeenLastCalledWith(true);
-    expect(listener).toHaveBeenCalledTimes(3);
-
-    controller.removeListener(listener);
-
-    callIntersectionHandler(false);
-    expect(listener).toHaveBeenCalledTimes(3);
+    expect(controller.isLoaded()).toBe(true);
+    expect(host.requestUpdate).toHaveBeenCalledTimes(3);
   });
 });

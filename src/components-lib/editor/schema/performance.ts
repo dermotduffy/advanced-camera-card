@@ -43,6 +43,7 @@ export const getPerformanceSectionForms = (): EditorForm[] => [
         icon: 'mdi:palette-swatch-variant',
         schema: [
           createGrid([
+            { name: 'backdrop_filter', selector: { boolean: {} } },
             { name: 'border_radius', selector: { boolean: {} } },
             { name: 'box_shadow', selector: { boolean: {} } },
           ]),

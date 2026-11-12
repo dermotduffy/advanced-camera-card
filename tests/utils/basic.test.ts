@@ -9,7 +9,6 @@ import {
   arrayMove,
   aspectRatioToStyle,
   contentsChanged,
-  dayToDate,
   desparsifyArrays,
   errorToConsole,
   forceReflow,
@@ -19,12 +18,15 @@ import {
   getChildrenFromElement,
   getDurationString,
   getErrorDescription,
+  getUnanimousValue,
   ignoreFunctionIdentity,
   isHoverableDevice,
   isHTMLElement,
+  isPointInBox,
   isSuperset,
   isTruthy,
   isValidDate,
+  isValidDay,
   prettifyTitle,
   recursivelyMergeObjectsConcatenatingArraysUniquely,
   recursivelyMergeObjectsNotArrays,
@@ -96,6 +98,25 @@ describe('setify', () => {
   });
 });
 
+describe('getUnanimousValue', () => {
+  it('should return null without values', () => {
+    expect(getUnanimousValue([])).toBeNull();
+  });
+  it('should return the agreed value', () => {
+    expect(getUnanimousValue([true, true])).toBe(true);
+  });
+  it('should return null when the agreed value is absent', () => {
+    expect(getUnanimousValue([undefined, undefined])).toBeNull();
+  });
+  it('should return null when values differ', () => {
+    expect(getUnanimousValue([true, false])).toBeNull();
+  });
+  it('should compare by content rather than reference', () => {
+    expect(getUnanimousValue([new Set(['a']), new Set(['a'])])).toEqual(new Set(['a']));
+    expect(getUnanimousValue([new Set(['a']), new Set(['b'])])).toBeNull();
+  });
+});
+
 describe('contentsChanged', () => {
   it('should have changed contents', () => {
     expect(contentsChanged([1, 2], [2, 1])).toBeTruthy();
@@ -157,6 +178,22 @@ describe('errorToConsole', () => {
     spy.mockClear();
     errorToConsole(null);
     expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+describe('isPointInBox', () => {
+  const box = { left: 10, right: 110, top: 20, bottom: 70 };
+
+  it.each([
+    ['inside', 50, 40, true],
+    ['on the leading edge', 10, 40, true],
+    ['on the trailing edge', 110, 70, true],
+    ['left of the box', 9, 40, false],
+    ['right of the box', 111, 40, false],
+    ['above the box', 50, 19, false],
+    ['below the box', 50, 71, false],
+  ])('should say a point %s is %s', (_name, x, y, expected) => {
+    expect(isPointInBox({ x, y }, box)).toBe(expected);
   });
 });
 
@@ -250,12 +287,6 @@ describe('allPromises', () => {
   });
 });
 
-describe('dayToDate', () => {
-  it('should return correct date', () => {
-    expect(dayToDate('2023-04-14')).toEqual(new Date(2023, 3, 14));
-  });
-});
-
 describe('isSuperset', () => {
   it('should return is a superset', () => {
     expect(isSuperset(new Set([1, 2, 3, 4]), new Set([2, 3]))).toBeTruthy();
@@ -271,6 +302,20 @@ describe('isValidDate', () => {
   });
   it('should be invalid date', () => {
     expect(isValidDate(new Date('moo'))).toBeFalsy();
+  });
+});
+
+describe('isValidDay', () => {
+  it('should accept a day that exists', () => {
+    expect(isValidDay('2023-05-06')).toBeTruthy();
+  });
+
+  it('should reject a day past the end of its month', () => {
+    expect(isValidDay('2023-02-31')).toBeFalsy();
+  });
+
+  it('should reject a month that does not exist', () => {
+    expect(isValidDay('2023-13-01')).toBeFalsy();
   });
 });
 

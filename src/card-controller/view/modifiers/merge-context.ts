@@ -10,7 +10,8 @@ export class MergeContextViewModifier implements ViewModifier {
     this._context = context;
   }
 
-  public modify(view: View): void {
+  public modify(view: View): boolean {
     view.mergeInContext(this._context);
+    return true;
   }
 }

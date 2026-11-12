@@ -90,6 +90,14 @@ export class VideoRTC extends HTMLElement {
     };
 
     /**
+     * [config] For Advanced Camera Card: returns the ICE servers for a new peer
+     * connection, replacing those in `pcConfig`. Called for every peer
+     * connection, so each reconnect gets a fresh list.
+     * @type {(() => Promise<RTCIceServer[]>) | null}
+     */
+    this.getICEServers = null;
+
+    /**
      * [info] WebSocket connection state. Values: CONNECTING, OPEN, CLOSED
      * @type {number}
      */
@@ -575,8 +583,12 @@ export class VideoRTC extends HTMLElement {
     if (this.pc) {
       this.pc.close();
       this.pc = null;
-      this.pcState = WebSocket.CLOSED;
     }
+
+    // For Advanced Camera Card: the state is reset even without a peer
+    // connection, since `onwebrtc()` marks it connecting while it waits for
+    // the ICE servers.
+    this.pcState = WebSocket.CLOSED;
 
     // reconnect no more than once every X seconds
     const delay = Math.max(this.RECONNECT_TIMEOUT - (Date.now() - this.connectTS), 0);
@@ -638,9 +650,13 @@ export class VideoRTC extends HTMLElement {
           try {
             const data = buf.slice(0, bufLen);
             sb.appendBuffer(data);
-            bufLen = 0;
           } catch (e) {
             // console.debug(e);
+          } finally {
+            // For Advanced Camera Card: the staged bytes are dropped even when
+            // the append throws, since once the MediaSource has failed every
+            // append throws and nothing else would clear them.
+            bufLen = 0;
           }
         }
 
@@ -677,6 +693,13 @@ export class VideoRTC extends HTMLElement {
       this.ondata = (data) => {
         if (sb.updating || bufLen > 0) {
           const b = new Uint8Array(data);
+          // For Advanced Camera Card: data that would overflow the staging
+          // buffer is dropped along with the staged bytes, rather than throwing
+          // a `RangeError`.
+          if (bufLen + b.byteLength > buf.byteLength) {
+            bufLen = 0;
+            return;
+          }
           buf.set(b, bufLen);
           bufLen += b.byteLength;
           // console.debug("VideoRTC.buffer", b.byteLength, bufLen);
@@ -692,7 +715,32 @@ export class VideoRTC extends HTMLElement {
   }
 
   onwebrtc() {
-    const pc = new RTCPeerConnection(this.pcConfig);
+    // For Advanced Camera Card: the peer connection is created only once the
+    // ICE servers arrive, so `onwebrtc()` hands off to the asynchronous
+    // `startWebRTC()` and stays synchronous for `onopen()`. When no peer
+    // connection can be created (e.g. a malformed ICE server), the other modes
+    // keep running.
+    const ws = this.ws;
+    this.pcState = WebSocket.CONNECTING;
+    this.startWebRTC(ws).catch((er) => {
+      console.warn(er);
+      if (this.ws === ws) this.pcState = WebSocket.CLOSED;
+    });
+  }
+
+  /**
+   * @param ws {WebSocket} the socket this peer connection negotiates over.
+   */
+  async startWebRTC(ws) {
+    const pcConfig = this.getICEServers
+      ? { ...this.pcConfig, iceServers: await this.getICEServers() }
+      : this.pcConfig;
+
+    // For Advanced Camera Card: the socket may have been replaced, or the
+    // stream torn down, while the ICE servers were requested.
+    if (this.ws !== ws || this.pcState === WebSocket.CLOSED || this.pc) return;
+
+    const pc = new RTCPeerConnection(pcConfig);
 
     pc.addEventListener('icecandidate', (ev) => {
       if (
@@ -714,7 +762,7 @@ export class VideoRTC extends HTMLElement {
           .map((tr) => tr.receiver.track);
         /** @type {HTMLVideoElement} */
         const video2 = document.createElement('video');
-        video2.addEventListener('loadeddata', () => this.onpcvideo(video2), {
+        video2.addEventListener('loadeddata', () => this.onpcvideo(video2, pc), {
           once: true,
         });
         video2.srcObject = new MediaStream(tracks);
@@ -814,9 +862,13 @@ export class VideoRTC extends HTMLElement {
 
   /**
    * @param video2 {HTMLVideoElement}
+   * @param pc {RTCPeerConnection} The peer connection the video came from.
    */
-  onpcvideo(video2) {
-    if (this.pc) {
+  onpcvideo(video2, pc) {
+    // The first frame of video arrives asynchronously, so the peer connection
+    // that produced it may already have been closed and replaced (e.g. by a
+    // reconnect).
+    if (this.pc === pc) {
       // Video+Audio > Video, H265 > H264, Video > Audio, WebRTC > MSE
       let rtcPriority = 0,
         msePriority = 0;
@@ -825,7 +877,7 @@ export class VideoRTC extends HTMLElement {
       const stream = video2.srcObject;
       if (stream.getVideoTracks().length > 0) {
         // not the best, but a pretty simple way to check a codec
-        const isH265Supported = this.pc.remoteDescription.sdp.includes('H265/90000');
+        const isH265Supported = pc.remoteDescription.sdp.includes('H265/90000');
         rtcPriority += isH265Supported ? 0x240 : 0x220;
       }
       if (stream.getAudioTracks().length > 0) rtcPriority += 0x102;
@@ -847,10 +899,8 @@ export class VideoRTC extends HTMLElement {
         }
       } else {
         this.pcState = WebSocket.CLOSED;
-        if (this.pc) {
-          this.pc.close();
-          this.pc = null;
-        }
+        pc.close();
+        this.pc = null;
       }
     }
 
@@ -937,7 +987,10 @@ export class VideoRTC extends HTMLElement {
       video2.src = 'data:video/mp4;base64,' + VideoRTC.btoa(data);
     };
 
-    this.send({ type: 'mp4', value: this.codecs(this.video.canPlayType) });
+    this.send({
+      type: 'mp4',
+      value: this.codecs((type) => this.video.canPlayType(type)),
+    });
   }
 
   static btoa(buffer) {

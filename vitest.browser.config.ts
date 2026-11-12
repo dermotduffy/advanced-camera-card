@@ -23,6 +23,9 @@ export default defineConfig({
   publicDir: 'tests/browser/public',
 
   resolve: {
+    // See similar field in vite.config.ts for additional information.
+    mainFields: ['browser', 'module'],
+
     // Several dependencies declare their own Lit. Two copies in one page do not
     // recognize each other's directives and template results, which surfaces as
     // "Multiple versions of Lit loaded" followed by render-time type errors.

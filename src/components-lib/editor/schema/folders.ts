@@ -31,6 +31,21 @@ export const getFolderSchema = (): HAFormSchema[] => [
       selector: { icon: {} },
     },
   ]),
+  createGrid([
+    {
+      name: 'navigation',
+      selector: createSelectSelector([
+        {
+          value: 'restricted',
+          label: localize('config.folders.navigations.restricted'),
+        },
+        {
+          value: 'unrestricted',
+          label: localize('config.folders.navigations.unrestricted'),
+        },
+      ]),
+    },
+  ]),
   {
     name: 'ha',
     type: 'expandable',

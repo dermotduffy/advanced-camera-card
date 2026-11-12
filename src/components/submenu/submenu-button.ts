@@ -43,7 +43,6 @@ export class AdvancedCameraCardSubmenuButton extends LitElement {
       <ha-icon-button style="${style}" .label=${this.submenu.title || ''}>
         <advanced-camera-card-icon
           ?allow-override-non-active-styles=${true}
-          style="${style}"
           title=${this.submenu.title || ''}
           .hass=${this.hass}
           .icon=${{ icon: this.submenu.icon }}

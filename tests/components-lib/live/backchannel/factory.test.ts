@@ -10,6 +10,7 @@ import type {
 } from '../../../../src/camera-manager/frigate/watcher';
 import { createBackchannel } from '../../../../src/components-lib/live/backchannel/factory';
 import { Go2RTCBackchannel } from '../../../../src/components-lib/live/backchannel/go2rtc';
+import { HABackchannel } from '../../../../src/components-lib/live/backchannel/ha';
 import type { EntityRegistryManager } from '../../../../src/ha/registry/entity/types';
 import type { HomeAssistant } from '../../../../src/ha/types';
 import { createCameraConfig } from '../../../config/test-utils';
@@ -46,11 +47,36 @@ describe('createBackchannel', () => {
     );
   });
 
-  it('should not create a backchannel for a non-go2rtc camera', () => {
+  it('should create a backchannel for an ha camera', () => {
     const camera = new Camera(
       createCameraConfig({
         camera_entity: 'camera.office',
         live_provider: 'ha',
+      }),
+      mock<CameraManagerEngine>(),
+      { hassManager: createHASSManager() },
+    );
+
+    expect(createBackchannel(mock<HomeAssistant>(), camera)).toBeInstanceOf(
+      HABackchannel,
+    );
+  });
+
+  it('should not create a backchannel for an ha camera without an entity', () => {
+    const camera = new Camera(
+      createCameraConfig({ live_provider: 'ha' }),
+      mock<CameraManagerEngine>(),
+      { hassManager: createHASSManager() },
+    );
+
+    expect(createBackchannel(mock<HomeAssistant>(), camera)).toBeNull();
+  });
+
+  it('should not create a backchannel for other live providers', () => {
+    const camera = new Camera(
+      createCameraConfig({
+        camera_entity: 'camera.office',
+        live_provider: 'jsmpeg',
       }),
       mock<CameraManagerEngine>(),
       { hassManager: createHASSManager() },

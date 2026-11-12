@@ -1,7 +1,13 @@
 import type parser from 'any-date-parser';
-import { parse } from 'date-fns';
+import { addDays, parse, startOfDay } from 'date-fns';
+import { omit } from 'lodash-es';
 
-import type { Parser } from '../../../config/schema/folders';
+import type {
+  DateParser,
+  EndDateParser,
+  Parser,
+  StartDateParser,
+} from '../../../config/schema/folders';
 import type {
   BrowseMedia,
   BrowseMediaMetadata,
@@ -10,6 +16,11 @@ import type {
 import { isValidDate } from '../../../utils/basic';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import { REGEXP_GROUP_VALUE_KEY } from './types';
+
+type DateValueParser = DateParser | EndDateParser | StartDateParser;
+
+const isDateValueParser = (parser: Parser): parser is DateValueParser =>
+  parser.type === 'date' || parser.type === 'enddate' || parser.type === 'startdate';
 
 export class MetadataGenerator {
   private _anyDateParser: typeof parser | null = null;
@@ -21,11 +32,7 @@ export class MetadataGenerator {
 
     // Dynamically import the any-date-parser only if we have a parser that
     // requires it, in order to save on bundle size.
-    if (
-      parsers?.some(
-        (parser) => ['date', 'startdate'].includes(parser.type) && !parser.format,
-      )
-    ) {
+    if (parsers?.some((parser) => isDateValueParser(parser) && !parser.format)) {
       this._anyDateParser = (await import('any-date-parser')).default;
     }
   }
@@ -35,12 +42,13 @@ export class MetadataGenerator {
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
     parsers?: Parser[],
   ): BrowseMediaMetadata | null {
-    // Always propagate metadata from parent to children.
-    const metadata: BrowseMediaMetadata = {
-      ...parent?._metadata,
-    };
+    const metadata = this._getInheritedMetadata(parent?._metadata);
 
     for (const parser of parsers ?? []) {
+      if (!isDateValueParser(parser)) {
+        continue;
+      }
+
       const valueToParse = parser.regexp
         ? regexpExtract(parser.regexp, media.title, {
             groupName: REGEXP_GROUP_VALUE_KEY,
@@ -49,20 +57,48 @@ export class MetadataGenerator {
       if (!valueToParse) {
         continue;
       }
-      if (parser.type === 'startdate' || parser.type === 'date') {
-        metadata.startDate =
-          this._parseDate(
-            parser,
-            valueToParse,
-            metadata.startDate ?? parent?._metadata?.startDate,
-          ) ?? undefined;
+
+      const startDate = metadata.startDate ?? parent?._metadata?.startDate;
+      if (parser.type === 'enddate') {
+        // An end date takes only its day from the start date, so parts the
+        // title omits (e.g. seconds) are zero rather than the start's.
+        metadata.endDate = this._parseDate(
+          parser,
+          valueToParse,
+          startDate ? startOfDay(startDate) : undefined,
+        );
+      } else {
+        metadata.startDate = this._parseDate(parser, valueToParse, startDate);
       }
+    }
+
+    // An end time before the start time (e.g. `22:18:51 - 00:00:00`) crosses
+    // midnight.
+    if (
+      metadata.startDate &&
+      metadata.endDate &&
+      metadata.endDate < metadata.startDate
+    ) {
+      metadata.endDate = addDays(metadata.endDate, 1);
     }
 
     return Object.keys(metadata).length > 0 ? metadata : null;
   }
 
-  private _parseDate(parser: Parser, src: string, base?: Date): Date | undefined {
+  private _getInheritedMetadata(
+    parentMetadata?: BrowseMediaMetadata,
+  ): BrowseMediaMetadata {
+    // Thumbnail and end date are not passed down: a picture of a folder is not
+    // a picture of each file within it, and a file within a folder does not end
+    // when the folder ends.
+    return omit(parentMetadata, ['endDate', 'thumbnailOverride']);
+  }
+
+  private _parseDate(
+    parser: DateValueParser,
+    src: string,
+    base?: Date,
+  ): Date | undefined {
     if (parser.format) {
       return this._parseFormattedDate(parser.format, src, base);
     }

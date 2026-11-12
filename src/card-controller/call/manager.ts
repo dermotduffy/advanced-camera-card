@@ -1,7 +1,9 @@
 import { createBackchannel } from '../../components-lib/live/backchannel/factory';
 import {
+  BackchannelAbandonedError,
   BackchannelError,
   type Backchannel,
+  type BackchannelFailureReason,
 } from '../../components-lib/live/backchannel/types';
 import { createNotificationFromText } from '../../components-lib/notification/factory';
 import type { ConditionStateChange } from '../../condition-trigger/conditions/types';
@@ -14,6 +16,13 @@ import type { CardCallAPI } from '../types';
 import { SubstreamViewModifier } from '../view/modifiers/substream';
 import { Ringtone } from './ringtone';
 import type { CallSession } from './types';
+
+const BACKCHANNEL_FAILURE_MESSAGE_KEYS: Record<BackchannelFailureReason, string> = {
+  disconnected: 'error.call_connection_lost',
+  failed: 'error.call_camera_unreachable',
+  no_microphone: 'error.call_microphone_failed',
+  no_two_way_audio: 'error.call_no_two_way_audio',
+};
 
 export class CallManager {
   private _api: CardCallAPI;
@@ -327,30 +336,27 @@ export class CallManager {
     this._backchannel = null;
   }
 
+  // Ends a call whose backchannel was lost, so the user is not left with call
+  // controls when they can no longer be heard. A backchannel only exists once a
+  // call is answered, so the loss is reported even for an inbound call.
   private _reportBackchannelLoss(call: CallSession, error: BackchannelError): void {
     if (this._call !== call) {
       return;
     }
-    this._notifyBackchannelError(error, call.inbound);
+    this._notifyBackchannelError(error, false);
+    this._end(false);
   }
 
   private _notifyBackchannelError(error: unknown, inbound: boolean): void {
-    const reason = error instanceof BackchannelError ? error.reason : 'failed';
-
     // Abandonment means this manager closed the backchannel itself, because the
     // call ended or was replaced. Nothing failed, so there is nothing to report.
-    if (reason === 'abandoned') {
+    if (error instanceof BackchannelAbandonedError) {
       return;
     }
 
-    const messageKey =
-      reason === 'no_two_way_audio'
-        ? 'error.call_no_two_way_audio'
-        : reason === 'no_microphone'
-          ? 'error.call_microphone_failed'
-          : 'error.call_camera_unreachable';
+    const reason = error instanceof BackchannelError ? error.reason : 'failed';
 
-    this._notifyError(messageKey, {
+    this._notifyError(BACKCHANNEL_FAILURE_MESSAGE_KEYS[reason], {
       inbound,
       ...(error instanceof BackchannelError &&
         error.description && { context: error.description }),

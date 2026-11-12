@@ -27,6 +27,7 @@ import {
 } from '../../../src/camera-manager/frigate/requests';
 import type {
   FrigateEventQueryResults,
+  FrigateRecording,
   FrigateRecordingQueryResults,
   FrigateReviewQueryResults,
 } from '../../../src/camera-manager/frigate/types';
@@ -40,6 +41,8 @@ import {
   Engine,
   QueryResultsType,
   QueryType,
+  type EventQuery,
+  type ReviewQuery,
 } from '../../../src/camera-manager/types';
 import type { CameraConfig } from '../../../src/config/schema/cameras';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
@@ -666,6 +669,116 @@ describe('FrigateCameraManagerEngine', () => {
       expect(retainEvent).toHaveBeenCalledWith(hass, 'frigate', 'event-id', false);
     });
 
+    it('should favorite every copy of the event', async () => {
+      // A gallery showing both clips and snapshots runs two queries. Each
+      // parses its own copy of the event, so there are two resulting
+      // FrigateEvent objects that share an id.
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const hass = createHASS();
+      const config = createFrigateCameraConfig();
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+
+      vi.mocked(getEvents).mockImplementation(async () => [
+        createFrigateEvent({ camera: 'camera-1', id: 'event-id' }),
+        createFrigateEvent({ camera: 'camera-1', id: 'other-event-id' }),
+      ]);
+      vi.mocked(retainEvent).mockResolvedValue();
+
+      const buildQuery = (extra: Partial<EventQuery>): EventQuery => ({
+        type: QueryType.Event,
+        source: QuerySource.Camera,
+        cameraIDs: new Set(['camera-1']),
+        ...extra,
+      });
+      const generate = async (query: EventQuery): Promise<ViewMedia[]> => {
+        const results = await engine.getEvents(hass, store, query);
+        assert(results);
+        return engine.generateMediaFromEvents(
+          hass,
+          store,
+          query,
+          [...results.values()][0],
+        ) as ViewMedia[];
+      };
+
+      const clips = await generate(buildQuery({ hasClip: true }));
+      const snapshots = await generate(buildQuery({ hasSnapshot: true }));
+
+      const clip = clips[0];
+      const snapshot = snapshots[0];
+      assert(clip && snapshot);
+      expect(clip.isFavorite()).toBe(false);
+      expect(snapshot.isFavorite()).toBe(false);
+
+      await engine.favoriteMedia(hass, await createFrigateCamera(), clip, true);
+
+      expect(retainEvent).toHaveBeenCalledWith(hass, 'frigate', 'event-id', true);
+      expect(clip.isFavorite()).toBe(true);
+      expect(snapshot.isFavorite()).toBe(true);
+
+      // A different event in the same results is left alone.
+      expect(clips[1]?.isFavorite()).toBe(false);
+    });
+
+    it('should favorite uncached media', async () => {
+      const clip = createClipMedia();
+      vi.mocked(retainEvent).mockResolvedValue();
+
+      await createEngine().favoriteMedia(
+        createHASS(),
+        await createFrigateCamera(),
+        clip,
+        false,
+      );
+
+      expect(clip.isFavorite()).toBe(false);
+    });
+
+    it('should not favorite the same id on another instance', async () => {
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const hass = createHASS();
+      const config = createFrigateCameraConfig();
+      const otherConfig = createFrigateCameraConfig({
+        frigate: { camera_name: 'camera-2', client_id: 'other-instance' },
+      });
+      const store = createFrigateStore([
+        { cameraID: 'camera-1', config },
+        { cameraID: 'camera-2', config: otherConfig },
+      ]);
+
+      vi.mocked(getEvents).mockImplementation(async () => [
+        createFrigateEvent({ camera: 'camera-1', id: 'event-id' }),
+      ]);
+      vi.mocked(retainEvent).mockResolvedValue();
+
+      const generate = async (cameraID: string): Promise<ViewMedia[]> => {
+        const query: EventQuery = {
+          type: QueryType.Event,
+          source: QuerySource.Camera,
+          cameraIDs: new Set([cameraID]),
+        };
+        const results = await engine.getEvents(hass, store, query);
+        assert(results);
+        return engine.generateMediaFromEvents(
+          hass,
+          store,
+          query,
+          [...results.values()][0],
+        ) as ViewMedia[];
+      };
+
+      const media = (await generate('camera-1'))[0];
+      const otherMedia = (await generate('camera-2'))[0];
+      assert(media && otherMedia);
+
+      await engine.favoriteMedia(hass, await createFrigateCamera(), media, true);
+
+      expect(media.isFavorite()).toBe(true);
+      expect(otherMedia.isFavorite()).toBe(false);
+    });
+
     it('should do nothing for non-frigate event media', async () => {
       const media = new ViewMedia(ViewMediaType.Clip, { cameraID: 'camera-1' });
 
@@ -688,6 +801,7 @@ describe('FrigateCameraManagerEngine', () => {
         createFrigateReview(),
         'content-id',
         'thumb',
+        new Date(),
       );
       vi.mocked(setReviewsReviewed).mockResolvedValue();
 
@@ -699,6 +813,143 @@ describe('FrigateCameraManagerEngine', () => {
         ['review_id'],
         true,
       );
+      expect(media.isReviewed()).toBe(true);
+    });
+
+    it('should not mark a review when the request fails', async () => {
+      const media = new FrigateReviewViewMedia(
+        'camera-1',
+        createFrigateReview(),
+        'content-id',
+        'thumb',
+        new Date(),
+      );
+      vi.mocked(setReviewsReviewed).mockRejectedValue(new Error('fail'));
+
+      await expect(
+        createEngine().reviewMedia(
+          createHASS(),
+          await createFrigateCamera(),
+          media,
+          true,
+        ),
+      ).rejects.toThrow();
+
+      expect(media.isReviewed()).toBe(false);
+    });
+
+    it('should mark every copy of the review', async () => {
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const hass = createHASS();
+      const config = createFrigateCameraConfig();
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+
+      // Each fetch parses its own copy, so the two results below do not share
+      // a review object.
+      vi.mocked(getReviews).mockImplementation(async () => [
+        createFrigateReview({ camera: 'camera-1', id: 'review_id' }),
+      ]);
+      vi.mocked(setReviewsReviewed).mockResolvedValue();
+
+      const generate = async (query: ReviewQuery): Promise<ViewMedia[]> => {
+        const results = await engine.getReviews(hass, store, query);
+        assert(results);
+        return engine.generateMediaFromReviews(
+          hass,
+          store,
+          query,
+          [...results.values()][0],
+        ) as ViewMedia[];
+      };
+
+      const first = (
+        await generate({
+          type: QueryType.Review,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+        })
+      )[0];
+      const second = (
+        await generate({
+          type: QueryType.Review,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+          severity: new Set(['high' as const]),
+        })
+      )[0];
+      assert(first && second);
+      expect(first.isReviewed()).toBe(false);
+      expect(second.isReviewed()).toBe(false);
+
+      await engine.reviewMedia(hass, await createFrigateCamera(), first, true);
+
+      expect(first.isReviewed()).toBe(true);
+      expect(second.isReviewed()).toBe(true);
+    });
+
+    it('should not mark the same id on another instance', async () => {
+      const requestCache = new CameraManagerRequestCache();
+      const engine = createEngine({ requestCache });
+      const hass = createHASS();
+      const config = createFrigateCameraConfig();
+      const otherConfig = createFrigateCameraConfig({
+        frigate: { camera_name: 'camera-2', client_id: 'other-instance' },
+      });
+      const store = createFrigateStore([
+        { cameraID: 'camera-1', config },
+        { cameraID: 'camera-2', config: otherConfig },
+      ]);
+
+      vi.mocked(getReviews).mockImplementation(async () => [
+        createFrigateReview({ camera: 'camera-1', id: 'review_id' }),
+      ]);
+      vi.mocked(setReviewsReviewed).mockResolvedValue();
+
+      const generate = async (cameraID: string): Promise<ViewMedia[]> => {
+        const query: ReviewQuery = {
+          type: QueryType.Review,
+          source: QuerySource.Camera,
+          cameraIDs: new Set([cameraID]),
+        };
+        const results = await engine.getReviews(hass, store, query);
+        assert(results);
+        return engine.generateMediaFromReviews(
+          hass,
+          store,
+          query,
+          [...results.values()][0],
+        ) as ViewMedia[];
+      };
+
+      const media = (await generate('camera-1'))[0];
+      const otherMedia = (await generate('camera-2'))[0];
+      assert(media && otherMedia);
+
+      await engine.reviewMedia(hass, await createFrigateCamera(), media, true);
+
+      expect(media.isReviewed()).toBe(true);
+      expect(otherMedia.isReviewed()).toBe(false);
+    });
+
+    it('should mark uncached media as reviewed', async () => {
+      const review = new FrigateReviewViewMedia(
+        'camera-1',
+        createFrigateReview(),
+        'content-id',
+        'thumb',
+        new Date(),
+      );
+      vi.mocked(setReviewsReviewed).mockResolvedValue();
+
+      await createEngine().reviewMedia(
+        createHASS(),
+        await createFrigateCamera(),
+        review,
+        true,
+      );
+
+      expect(review.isReviewed()).toBe(true);
     });
 
     it('should do nothing for non-frigate review media', async () => {
@@ -930,6 +1181,50 @@ describe('FrigateCameraManagerEngine', () => {
       expect(getEvents).toHaveBeenCalledTimes(2);
     });
 
+    it('should serve each instance its own cached events', async () => {
+      const engine = createEngine();
+      const config1 = createCameraConfig({
+        frigate: { camera_name: 'cam1', client_id: 'instance-1' },
+      });
+      const config2 = createCameraConfig({
+        frigate: { camera_name: 'cam2', client_id: 'instance-2' },
+      });
+      const store = createFrigateStore([
+        { cameraID: 'camera-1', config: config1 },
+        { cameraID: 'camera-2', config: config2 },
+      ]);
+      const query = {
+        type: QueryType.Event as const,
+        source: QuerySource.Camera as const,
+        cameraIDs: new Set(['camera-1', 'camera-2']),
+      };
+
+      vi.mocked(getEvents).mockImplementation(async (_hass, nativeQuery) => {
+        assert(nativeQuery);
+        return [createFrigateEvent({ id: `${nativeQuery.instance_id}-event` })];
+      });
+
+      await engine.getEvents(createHASS(), store, query);
+      const cached = await engine.getEvents(createHASS(), store, query);
+
+      // One call per instance on the first query, none on the second.
+      expect(getEvents).toHaveBeenCalledTimes(2);
+
+      assert(cached);
+      expect([...cached.values()]).toEqual([
+        expect.objectContaining({
+          instanceID: 'instance-1',
+          cached: true,
+          events: [createFrigateEvent({ id: 'instance-1-event' })],
+        }),
+        expect.objectContaining({
+          instanceID: 'instance-2',
+          cached: true,
+          events: [createFrigateEvent({ id: 'instance-2-event' })],
+        }),
+      ]);
+    });
+
     it('should not query a camera without a Frigate camera name', async () => {
       const hass = createHASS();
       const config = createCameraConfig({
@@ -1124,6 +1419,49 @@ describe('FrigateCameraManagerEngine', () => {
       expect(getReviews).toHaveBeenCalledTimes(1);
     });
 
+    it('should serve each instance its own cached reviews', async () => {
+      const engine = createEngine();
+      const config1 = createCameraConfig({
+        frigate: { camera_name: 'cam1', client_id: 'instance-1' },
+      });
+      const config2 = createCameraConfig({
+        frigate: { camera_name: 'cam2', client_id: 'instance-2' },
+      });
+      const store = createFrigateStore([
+        { cameraID: 'camera-1', config: config1 },
+        { cameraID: 'camera-2', config: config2 },
+      ]);
+      const query = {
+        type: QueryType.Review as const,
+        source: QuerySource.Camera as const,
+        cameraIDs: new Set(['camera-1', 'camera-2']),
+      };
+
+      vi.mocked(getReviews).mockImplementation(async (_hass, nativeQuery) => [
+        createFrigateReview({ id: `${nativeQuery.instance_id}-review` }),
+      ]);
+
+      await engine.getReviews(createHASS(), store, query);
+      const cached = await engine.getReviews(createHASS(), store, query);
+
+      // One call per instance on the first query, none on the second.
+      expect(getReviews).toHaveBeenCalledTimes(2);
+
+      assert(cached);
+      expect([...cached.values()]).toEqual([
+        expect.objectContaining({
+          instanceID: 'instance-1',
+          cached: true,
+          reviews: [createFrigateReview({ id: 'instance-1-review' })],
+        }),
+        expect.objectContaining({
+          instanceID: 'instance-2',
+          cached: true,
+          reviews: [createFrigateReview({ id: 'instance-2-review' })],
+        }),
+      ]);
+    });
+
     it('should pass query parameters to review request', async () => {
       const hass = createHASS();
       const config = createCameraConfig({
@@ -1233,7 +1571,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
-          day: new Date('2026-03-14'),
+          day: '2026-03-14',
           events: 5,
           hours: [{ hour: 20, duration: 3600, events: 5 }],
         },
@@ -1253,18 +1591,71 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.recordings[0].events).toBe(5);
     });
 
+    it('should resolve recording hours in the Home Assistant timezone', async () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+
+      const getFirstRecording = async (timeZone: string): Promise<FrigateRecording> => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
+
+        vi.mocked(getRecordingsSummary).mockResolvedValue([
+          {
+            day: '2026-03-14',
+            events: 5,
+            hours: [{ hour: 20, duration: 3600, events: 5 }],
+          },
+        ]);
+
+        const result = await createEngine().getRecordings(hass, store, {
+          type: QueryType.Recording,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+        });
+
+        assert(result);
+        const queryResult = [...result.values()][0];
+        assert(
+          FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(queryResult),
+        );
+        return queryResult.recordings[0];
+      };
+
+      // The same summary hour resolves to a different instant per timezone.
+      expect(await getFirstRecording('America/Chicago')).toEqual(
+        expect.objectContaining({
+          startTime: new Date('2026-03-15T01:00:00.000Z'),
+          endTime: new Date('2026-03-15T01:59:59.999Z'),
+        }),
+      );
+      expect(await getFirstRecording('America/New_York')).toEqual(
+        expect.objectContaining({
+          startTime: new Date('2026-03-15T00:00:00.000Z'),
+          endTime: new Date('2026-03-15T00:59:59.999Z'),
+        }),
+      );
+
+      // Frigate buckets its summary with a separate minute offset, so hours in
+      // a timezone offset by 30 minutes start on the half hour.
+      expect(await getFirstRecording('Asia/Kolkata')).toEqual(
+        expect.objectContaining({
+          startTime: new Date('2026-03-14T14:30:00.000Z'),
+          endTime: new Date('2026-03-14T15:29:59.999Z'),
+        }),
+      );
+    });
+
     it('should filter recordings by date range', async () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
       });
       const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
-      // Use a fixed local-timezone day to avoid UTC/local mismatch.
-      const day = new Date(2026, 2, 14, 0, 0, 0);
-
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
-          day: day,
+          day: '2026-03-14',
           events: 10,
           hours: [
             { hour: 10, duration: 3600, events: 3 },
@@ -1291,6 +1682,38 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.recordings[0].events).toBe(4);
     });
 
+    it('should include recordings that only overlap the query range', async () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+      const hass = createHASS();
+      hass.config.time_zone = 'Asia/Kolkata';
+
+      vi.mocked(getRecordingsSummary).mockResolvedValue([
+        {
+          day: '2026-03-14',
+          events: 5,
+          hours: [{ hour: 20, duration: 3600, events: 5 }],
+        },
+      ]);
+
+      // The recording spans 14:30 to 15:30, so a query for the whole 14:00 hour
+      // contains neither its start nor its end.
+      const result = await createEngine().getRecordings(hass, store, {
+        type: QueryType.Recording,
+        source: QuerySource.Camera,
+        cameraIDs: new Set(['camera-1']),
+        start: new Date('2026-03-14T14:00:00.000Z'),
+        end: new Date('2026-03-14T14:59:59.999Z'),
+      });
+
+      assert(result);
+      const queryResult = [...result.values()][0];
+      assert(FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(queryResult));
+      expect(queryResult.recordings).toHaveLength(1);
+    });
+
     it('should limit recordings', async () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'camera-1', client_id: 'client-1' },
@@ -1299,7 +1722,7 @@ describe('FrigateCameraManagerEngine', () => {
 
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
-          day: new Date('2026-03-14'),
+          day: '2026-03-14',
           events: 6,
           hours: [
             { hour: 10, duration: 3600, events: 2 },
@@ -1981,6 +2404,50 @@ describe('FrigateCameraManagerEngine', () => {
       expect(result[0]).toBeInstanceOf(FrigateRecordingViewMedia);
     });
 
+    it('should generate recording content IDs in the Home Assistant timezone', () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+        camera_entity: 'camera.office',
+      });
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+      const recording = createFrigateRecording({
+        cameraID: 'camera-1',
+        startTime: new Date('2026-08-30T19:19:00Z'),
+      });
+
+      const getContentID = (timeZone: string): string | null => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
+
+        const result = createEngine().generateMediaFromRecordings(
+          hass,
+          store,
+          {
+            type: QueryType.Recording,
+            source: QuerySource.Camera,
+            cameraIDs: new Set(['camera-1']),
+          },
+          {
+            type: QueryResultsType.Recording,
+            engine: Engine.Frigate,
+            instanceID: 'client-1',
+            recordings: [recording],
+          } as FrigateRecordingQueryResults,
+        );
+
+        assert(result);
+        return result[0].getContentID();
+      };
+
+      // 19:19 UTC is 14:19 in Chicago and 15:19 in New York.
+      expect(getContentID('America/Chicago')).toBe(
+        'media-source://frigate/client-1/recordings/camera-1/2026-08-30/14',
+      );
+      expect(getContentID('America/New_York')).toBe(
+        'media-source://frigate/client-1/recordings/camera-1/2026-08-30/15',
+      );
+    });
+
     it('should skip birdseye camera recordings', () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },
@@ -2055,6 +2522,49 @@ describe('FrigateCameraManagerEngine', () => {
       assert(result);
       expect(result).toHaveLength(1);
       expect(result[0]).toBeInstanceOf(FrigateReviewViewMedia);
+    });
+
+    it('should generate review content IDs in the Home Assistant timezone', () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+      const review = createFrigateReview({
+        camera: 'camera-1',
+        start_time: new Date('2026-08-30T19:19:00Z').getTime() / 1000,
+      });
+
+      const getContentID = (timeZone: string): string | null => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
+
+        const result = createEngine().generateMediaFromReviews(
+          hass,
+          store,
+          {
+            type: QueryType.Review,
+            source: QuerySource.Camera,
+            cameraIDs: new Set(['camera-1']),
+          },
+          {
+            type: QueryResultsType.Review,
+            engine: Engine.Frigate,
+            instanceID: 'client-1',
+            reviews: [review],
+          } as FrigateReviewQueryResults,
+        );
+
+        assert(result);
+        return result[0].getContentID();
+      };
+
+      // 19:19 UTC is 14:19 in Chicago and 15:19 in New York.
+      expect(getContentID('America/Chicago')).toBe(
+        'media-source://frigate/client-1/recordings/camera-1/2026-08-30/14',
+      );
+      expect(getContentID('America/New_York')).toBe(
+        'media-source://frigate/client-1/recordings/camera-1/2026-08-30/15',
+      );
     });
 
     it('should skip reviews for birdseye cameras', () => {
@@ -2155,8 +2665,8 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
-      const startTime = new Date('2026-03-14T20:15:00Z');
-      const endTime = new Date('2026-03-14T20:45:00Z');
+      const startTime = new Date('2026-03-14T20:15:00');
+      const endTime = new Date('2026-03-14T20:45:00');
       const media = new TestViewMedia({
         mediaType: ViewMediaType.Review,
         cameraID: 'camera-1',
@@ -2166,8 +2676,8 @@ describe('FrigateCameraManagerEngine', () => {
 
       const segments = [
         {
-          start_time: new Date('2026-03-14T20:00:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T21:00:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:00:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T21:00:00').getTime() / 1000,
           id: 'segment-1',
         },
       ];
@@ -2183,6 +2693,82 @@ describe('FrigateCameraManagerEngine', () => {
 
       // 15 minutes into the hour-long recording.
       expect(seekTime).toBe(15 * 60);
+    });
+
+    it('should use Home Assistant timezone hour boundaries for review media', async () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+
+      const startTime = new Date('2026-03-14T18:43:00Z');
+      const media = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        cameraID: 'camera-1',
+        startTime,
+        endTime: new Date('2026-03-14T18:45:00Z'),
+      });
+
+      // The segment spans both candidate hour starts, so the seek offset is
+      // decided by which hour boundary the engine picks.
+      vi.mocked(getRecordingSegments).mockResolvedValue([
+        {
+          start_time: new Date('2026-03-14T18:00:00Z').getTime() / 1000,
+          end_time: new Date('2026-03-14T19:30:00Z').getTime() / 1000,
+          id: 'segment-1',
+        },
+      ]);
+
+      const getSeekTime = async (timeZone: string): Promise<number | null> => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
+        return await createEngine().getMediaSeekTime(hass, store, media, startTime);
+      };
+
+      // 18:43 UTC is 00:13 in Kolkata (UTC+5:30), so the hour starts at 18:30
+      // UTC and the target is 13 minutes into it.
+      expect(await getSeekTime('Asia/Kolkata')).toBe(13 * 60);
+
+      // In UTC the same hour starts at 18:00, putting the target 43 minutes in.
+      expect(await getSeekTime('UTC')).toBe(43 * 60);
+    });
+
+    it('should get seek time for padded Frigate review media', async () => {
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+
+      const startTime = new Date('2026-03-14T20:15:00');
+      const media = new FrigateReviewViewMedia(
+        'camera-1',
+        createFrigateReview({
+          camera: 'camera-1',
+          start_time: startTime.getTime() / 1000,
+          end_time: new Date('2026-03-14T20:45:00').getTime() / 1000,
+        }),
+        'content-id',
+        'thumbnail',
+        new Date('2026-03-14T20:14:55'),
+      );
+
+      vi.mocked(getRecordingSegments).mockResolvedValue([
+        {
+          start_time: new Date('2026-03-14T20:00:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T21:00:00').getTime() / 1000,
+          id: 'segment-1',
+        },
+      ]);
+
+      const seekTime = await createEngine().getMediaSeekTime(
+        createHASS(),
+        store,
+        media,
+        media.getPlaybackStartTime(),
+      );
+
+      // Five seconds of context before the review starts at 15 minutes.
+      expect(seekTime).toBe(15 * 60 - 5);
     });
 
     it('should get zero seek time for clip media when seeking to start', async () => {
@@ -2378,8 +2964,8 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
-      const startTime = new Date('2026-03-14T20:00:00Z');
-      const endTime = new Date('2026-03-14T20:30:00Z');
+      const startTime = new Date('2026-03-14T20:00:00');
+      const endTime = new Date('2026-03-14T20:30:00');
       const media = new TestViewMedia({
         mediaType: ViewMediaType.Recording,
         cameraID: 'camera-1',
@@ -2390,13 +2976,13 @@ describe('FrigateCameraManagerEngine', () => {
       // Two 10-minute segments with a gap.
       const segments = [
         {
-          start_time: new Date('2026-03-14T20:00:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T20:10:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:00:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T20:10:00').getTime() / 1000,
           id: 'seg-1',
         },
         {
-          start_time: new Date('2026-03-14T20:20:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T20:30:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:20:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T20:30:00').getTime() / 1000,
           id: 'seg-2',
         },
       ];
@@ -2407,7 +2993,7 @@ describe('FrigateCameraManagerEngine', () => {
         createHASS(),
         store,
         media,
-        new Date('2026-03-14T20:25:00Z'),
+        new Date('2026-03-14T20:25:00'),
       );
 
       // 10 min from first segment + 5 min from second segment = 15 min.
@@ -2420,8 +3006,8 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
-      const startTime = new Date('2026-03-14T20:15:00Z');
-      const endTime = new Date('2026-03-14T20:45:00Z');
+      const startTime = new Date('2026-03-14T20:15:00');
+      const endTime = new Date('2026-03-14T20:45:00');
       const media = new TestViewMedia({
         mediaType: ViewMediaType.Recording,
         cameraID: 'camera-1',
@@ -2431,8 +3017,8 @@ describe('FrigateCameraManagerEngine', () => {
 
       const segments = [
         {
-          start_time: new Date('2026-03-14T20:00:00Z').getTime() / 1000,
-          end_time: new Date('2026-03-14T21:00:00Z').getTime() / 1000,
+          start_time: new Date('2026-03-14T20:00:00').getTime() / 1000,
+          end_time: new Date('2026-03-14T21:00:00').getTime() / 1000,
           id: 'segment-1',
         },
       ];
@@ -2444,7 +3030,7 @@ describe('FrigateCameraManagerEngine', () => {
         createHASS(),
         store,
         media,
-        new Date('2026-03-14T20:30:00Z'),
+        new Date('2026-03-14T20:30:00'),
       );
 
       // 30 minutes from start of hour.
@@ -2622,25 +3208,34 @@ describe('FrigateCameraManagerEngine', () => {
       });
       const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
 
-      vi.mocked(getEventSummary).mockResolvedValue([]);
-      vi.mocked(getRecordingsSummary).mockResolvedValue([
-        {
-          day: new Date('2026-03-14'),
-          events: 3,
-          hours: [{ hour: 10, duration: 3600, events: 3 }],
-        },
-      ]);
+      const getDays = async (timeZone: string, hour: number): Promise<Set<string>> => {
+        const hass = createHASS();
+        hass.config.time_zone = timeZone;
 
-      const result = await createEngine().getMediaMetadata(createHASS(), store, {
-        type: QueryType.MediaMetadata,
-        cameraIDs: new Set(['camera-1']),
-      });
+        vi.mocked(getEventSummary).mockResolvedValue([]);
+        vi.mocked(getRecordingsSummary).mockResolvedValue([
+          {
+            day: '2026-03-01',
+            events: 3,
+            hours: [{ hour, duration: 3600, events: 3 }],
+          },
+        ]);
 
-      assert(result);
-      const queryResult = [...result.values()][0];
-      expect(queryResult.metadata.days).toBeDefined();
-      assert(queryResult.metadata.days);
-      expect(queryResult.metadata.days.size).toBeGreaterThan(0);
+        const result = await createEngine().getMediaMetadata(hass, store, {
+          type: QueryType.MediaMetadata,
+          cameraIDs: new Set(['camera-1']),
+        });
+
+        assert(result);
+        const days = [...result.values()][0].metadata.days;
+        assert(days);
+        return days;
+      };
+
+      // Hour 0 in Kolkata and hour 23 in Los Angeles both land on a different
+      // UTC day, in opposite directions.
+      expect(await getDays('Asia/Kolkata', 0)).toEqual(new Set(['2026-03-01']));
+      expect(await getDays('America/Los_Angeles', 23)).toEqual(new Set(['2026-03-01']));
     });
 
     it('should skip events from non-configured cameras', async () => {
@@ -2941,7 +3536,7 @@ describe('FrigateCameraManagerEngine', () => {
       ]);
       vi.mocked(getRecordingsSummary).mockResolvedValue([
         {
-          day: new Date(2026, 2, 14, 0, 0, 0),
+          day: '2026-03-14',
           events: 1,
           hours: [{ hour: 20, duration: 3600, events: 1 }],
         },
@@ -2965,6 +3560,53 @@ describe('FrigateCameraManagerEngine', () => {
       // internally by _garbageCollectSegments. Verifying it was called
       // confirms the throttled GC callback fired.
       expect(getRecordingsSummary).toHaveBeenCalled();
+    });
+
+    it('should keep segments belonging to a Home Assistant hour', async () => {
+      vi.useFakeTimers();
+
+      const cache = new RecordingSegmentsCache();
+      const engine = createEngine({ cache });
+      const hass = createHASS();
+      hass.config.time_zone = 'Asia/Kolkata';
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createFrigateStore([{ cameraID: 'camera-1', config }]);
+
+      // Kolkata hour 20 runs 14:30 to 15:30, so it spans two browser hours.
+      const start = new Date('2026-03-14T14:30:00Z');
+      const end = new Date('2026-03-14T16:30:00Z');
+      const kept = {
+        start_time: new Date('2026-03-14T15:05:00Z').getTime() / 1000,
+        end_time: new Date('2026-03-14T15:10:00Z').getTime() / 1000,
+        id: 'kept',
+      };
+      const expired = {
+        start_time: new Date('2026-03-14T16:00:00Z').getTime() / 1000,
+        end_time: new Date('2026-03-14T16:05:00Z').getTime() / 1000,
+        id: 'expired',
+      };
+
+      cache.add('camera-1', { start, end }, [kept, expired]);
+      vi.mocked(getRecordingSegments).mockResolvedValue([kept, expired]);
+      vi.mocked(getRecordingsSummary).mockResolvedValue([
+        {
+          day: '2026-03-14',
+          events: 1,
+          hours: [{ hour: 20, duration: 3600, events: 1 }],
+        },
+      ]);
+
+      await engine.getRecordingSegments(hass, store, {
+        type: QueryType.RecordingSegments,
+        cameraIDs: new Set(['camera-1']),
+        start,
+        end,
+      });
+      await vi.advanceTimersByTimeAsync(60 * 60 * 1000 + 1);
+
+      expect(cache.get('camera-1', { start, end })).toEqual([kept]);
     });
 
     it('should return early when getRecordings returns null', async () => {

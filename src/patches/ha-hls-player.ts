@@ -1,12 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 // ====================================================================
 // ** Keep modifications to this file to a minimum **
 //
-// Type checking is disabled since this is a modified copy-and-paste of
-// underlying render() function, but the rest of the class source is not
-// available as compilation time.
+// This is a modified copy-and-paste of the underlying render() function.
+// The base class is only registered at runtime, so the members this file
+// uses from it are declared in ./types.ts.
 // ====================================================================
 
 import {
@@ -17,7 +14,7 @@ import {
   type PropertyValues,
   type TemplateResult,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { property } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
@@ -33,31 +30,39 @@ import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../utils/controls.js';
+import { withHLSStartPosition, type HlsConstructor } from '../utils/hls.js';
 import {
   createMediaLoadedInfo,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../utils/media-info.js';
-import type { ConstructableLitElement } from './types.js';
+import type {
+  AdvancedCameraCardHaHlsPlayerElement,
+  ConstructableHaHlsPlayer,
+} from './types.js';
 
 void customElements.whenDefined('ha-hls-player').then(() => {
-  const HaHlsPlayer = customElements.get('ha-hls-player') as ConstructableLitElement;
+  const HaHlsPlayer = customElements.get('ha-hls-player') as ConstructableHaHlsPlayer;
 
-  @customElement('advanced-camera-card-ha-hls-player')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class AdvancedCameraCardHaHlsPlayer extends HaHlsPlayer implements MediaPlayer {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
     @query('#video')
-    protected _video: HTMLVideoElement;
+    protected _video?: HTMLVideoElement;
+
+    // Where playback starts, in seconds from the start of the stream. Without
+    // it hls.js loads the start of the stream, only for the carousel to seek
+    // away once it has loaded.
+    @property({ attribute: false })
+    public startPosition?: number;
 
     @property({ attribute: false })
     public targetID?: string;
 
     private _mediaPlayerController = new VideoMediaPlayerController(
       this,
-      () => this._video,
+      () => this._video ?? null,
       () => this.controls,
     );
 
@@ -99,14 +104,14 @@ void customElements.whenDefined('ha-hls-player').then(() => {
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
           @loadedmetadata=${() => {
-            if (this.controls) {
+            if (this.controls && this._video) {
               hideMediaControlsTemporarily(
                 this._video,
                 MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
               );
             }
           }}
-          @loadeddata=${(ev) => this._loadedDataHandler(ev)}
+          @loadeddata=${(ev: Event) => this._loadedDataHandler(ev)}
           @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
           @play=${() => dispatchMediaPlayEvent(this)}
           @pause=${() => dispatchMediaPauseEvent(this)}
@@ -136,13 +141,33 @@ void customElements.whenDefined('ha-hls-player').then(() => {
       this._lastErrored = errored;
     }
 
-    private _loadedDataHandler(ev: Event) {
+    // Native HLS (Safari) and ExoPlayer do not use hls.js, so they still start
+    // at the beginning and are seeked by the carousel.
+    protected _renderHLSPolyfill(
+      videoEl: HTMLVideoElement,
+      Hls: HlsConstructor,
+      url: string,
+    ): Promise<void> {
+      return super._renderHLSPolyfill(
+        videoEl,
+        withHLSStartPosition(Hls, this.startPosition),
+        url,
+      );
+    }
+
+    private _loadedDataHandler(ev: Event): void {
       super._loadedData();
+
+      const video = this._video;
+      if (!video) {
+        return;
+      }
+
       const info = createMediaLoadedInfo(ev, {
         mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
-          hasAudio: mayHaveAudio(this._video),
+          hasAudio: mayHaveAudio(video),
         },
         technology: ['hls'],
       });
@@ -168,10 +193,15 @@ void customElements.whenDefined('ha-hls-player').then(() => {
       ];
     }
   }
+
+  customElements.define(
+    'advanced-camera-card-ha-hls-player',
+    AdvancedCameraCardHaHlsPlayer,
+  );
 });
 
 declare global {
   interface HTMLElementTagNameMap {
-    'advanced-camera-card-ha-hls-player': AdvancedCameraCardHaHlsPlayer;
+    'advanced-camera-card-ha-hls-player': AdvancedCameraCardHaHlsPlayerElement;
   }
 }

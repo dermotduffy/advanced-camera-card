@@ -4,10 +4,7 @@ import { mock } from 'vitest-mock-extended';
 import type { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import type { FolderQuery } from '../../../src/card-controller/folders/types';
-import type {
-  FolderConfig,
-  FolderConfigWithoutID,
-} from '../../../src/config/schema/folders';
+import type { FolderConfigWithoutID } from '../../../src/config/schema/folders';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
 import type { Endpoint } from '../../../src/types';
@@ -51,6 +48,7 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(createCardAPI());
       const folder: FolderConfigWithoutID = {
         type: 'ha' as const,
+        navigation: 'restricted' as const,
         title: 'Title',
         ha: {
           path: [{ id: 'media-source://' }],
@@ -168,26 +166,6 @@ describe('FoldersManager', () => {
     });
   });
 
-  describe('generateChildFolderQuery', () => {
-    it('should generate child folder query', () => {
-      const folder: FolderConfig = createFolder();
-      const query: FolderQuery = {
-        source: QuerySource.Folder,
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-      const viewFolder = new ViewFolder(folder, []);
-
-      const executor = mock<FoldersExecutor>();
-      vi.mocked(executor.generateChildFolderQuery).mockReturnValue(query);
-
-      const manager = new FoldersManager(createCardAPI(), executor);
-
-      expect(manager.generateChildFolderQuery(query, viewFolder)).toEqual(query);
-      expect(executor.generateChildFolderQuery).toHaveBeenCalledWith(query, viewFolder);
-    });
-  });
-
   describe('should expand folder', () => {
     it('should expand folder with hass', async () => {
       const hass = createHASS();
@@ -206,7 +184,7 @@ describe('FoldersManager', () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
         folder,
-        path: [{ ha: { id: 'media-source://' } }],
+        path: [{}],
       };
 
       expect(await manager.expandFolder(query, conditionState, engineOptions)).toEqual([
@@ -231,7 +209,7 @@ describe('FoldersManager', () => {
         await manager.expandFolder({
           source: QuerySource.Folder,
           folder,
-          path: [{ ha: { id: 'media-source://' } }],
+          path: [{}],
         }),
       ).toBeNull();
 
@@ -250,7 +228,7 @@ describe('FoldersManager', () => {
       const query: FolderQuery = {
         source: QuerySource.Folder,
         folder,
-        path: [{ ha: { id: 'media-source://' } }],
+        path: [{}],
         favorite: true,
       };
 
@@ -274,6 +252,41 @@ describe('FoldersManager', () => {
 
       expect(manager.getItemCapabilities(item)).toEqual(capabilities);
       expect(executor.getItemCapabilities).toHaveBeenCalledWith(item);
+    });
+  });
+
+  describe('should get navigation queries', () => {
+    it('should get an up query', () => {
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: createFolder(),
+        path: [{}, {}],
+      };
+      const upQuery: FolderQuery = { ...query, path: [{}] };
+      const executor = mock<FoldersExecutor>();
+      executor.getUpQuery.mockReturnValue(upQuery);
+
+      const manager = new FoldersManager(createCardAPI(), executor);
+
+      expect(manager.getUpQuery(query)).toBe(upQuery);
+      expect(executor.getUpQuery).toHaveBeenCalledWith(query);
+    });
+
+    it('should get a down query', () => {
+      const folder = createFolder();
+      const item = new ViewFolder(folder, []);
+      const downQuery: FolderQuery = {
+        source: QuerySource.Folder,
+        folder,
+        path: [{ folder: item }, {}],
+      };
+      const executor = mock<FoldersExecutor>();
+      executor.getDownQuery.mockReturnValue(downQuery);
+
+      const manager = new FoldersManager(createCardAPI(), executor);
+
+      expect(manager.getDownQuery(item)).toBe(downQuery);
+      expect(executor.getDownQuery).toHaveBeenCalledWith(item);
     });
   });
 
@@ -311,6 +324,17 @@ describe('FoldersManager', () => {
       await manager.favorite(item, true);
       expect(executor.favorite).toHaveBeenCalledWith(hass, item, true);
     });
+  });
+
+  it('should get media seek time', () => {
+    const executor = mock<FoldersExecutor>();
+    executor.getMediaSeekTime.mockReturnValue(30);
+    const item = new TestViewMedia();
+    const target = new Date();
+
+    const manager = new FoldersManager(createCardAPI(), executor);
+    expect(manager.getMediaSeekTime(item, target)).toBe(30);
+    expect(executor.getMediaSeekTime).toHaveBeenCalledWith(item, target);
   });
 
   describe('areResultsFresh', () => {

@@ -444,6 +444,121 @@ describe('VideoMediaPlayerController', () => {
       expect(callback).toHaveBeenCalledWith(false);
     });
 
+    it('should not report a stall while a replacement video keeps delivering frames', () => {
+      const original = createVideo();
+      const replacement = createVideo();
+      let current = original;
+
+      const controller = new VideoMediaPlayerController(
+        createLitElement(),
+        () => current.video,
+      );
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      original.deliverFrame();
+
+      current = replacement;
+      controller.hostUpdated();
+
+      // Twice the stall window, with the replacement delivering frames
+      // throughout.
+      for (let i = 0; i < 2 * FRAME_STALL_SECONDS; i++) {
+        replacement.deliverFrame();
+        vi.advanceTimersByTime(1000);
+      }
+
+      expect(callback).toHaveBeenCalledExactlyOnceWith(true);
+    });
+
+    it('should not give a replacement longer than the stall window', () => {
+      const original = createVideo();
+      const replacement = createVideo();
+      let current = original;
+
+      const controller = new VideoMediaPlayerController(
+        createLitElement(),
+        () => current.video,
+      );
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      original.deliverFrame();
+
+      current = replacement;
+      controller.hostUpdated();
+
+      vi.advanceTimersByTime(STALL_MS);
+
+      expect(callback).toHaveBeenNthCalledWith(1, true);
+      expect(callback).toHaveBeenNthCalledWith(2, false);
+    });
+
+    it('should keep watching the same video when a render changes nothing', () => {
+      const { video, deliverFrame, cancel } = createVideo();
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      deliverFrame();
+      controller.hostUpdated();
+
+      expect(cancel).not.toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledExactlyOnceWith(true);
+    });
+
+    it('should keep watching the old video when a render offers no replacement', () => {
+      const { video, cancel } = createVideo();
+      let current: HTMLVideoElement | null = video;
+      const controller = new VideoMediaPlayerController(
+        createLitElement(),
+        () => current,
+      );
+
+      controller.subscribeLiveness(vi.fn());
+      current = null;
+      controller.hostUpdated();
+
+      expect(cancel).not.toHaveBeenCalled();
+    });
+
+    it('should ignore a render before anything is being watched', () => {
+      const { video, cancel } = createVideo();
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+
+      controller.hostUpdated();
+
+      expect(vi.mocked(video.requestVideoFrameCallback)).not.toHaveBeenCalled();
+      expect(cancel).not.toHaveBeenCalled();
+    });
+
+    it('should stop watching the replaced video, not its replacement', () => {
+      // A handle is only valid on the video it came from, so it is cancelled
+      // there rather than on whatever the player is showing now.
+      const original = createVideo();
+      const replacement = createVideo();
+      let current = original;
+
+      const controller = new VideoMediaPlayerController(
+        createLitElement(),
+        () => current.video,
+      );
+
+      const unsubscribe = controller.subscribeLiveness(vi.fn());
+      current = replacement;
+      unsubscribe();
+
+      expect(original.cancel).toHaveBeenCalled();
+      expect(replacement.cancel).not.toHaveBeenCalled();
+    });
+
+    it('should register itself with its host', () => {
+      const host = createLitElement();
+      new VideoMediaPlayerController(host, () => null);
+
+      expect(host.addController).toHaveBeenCalled();
+    });
+
     it('should report no stall when requestVideoFrameCallback is unavailable', () => {
       const { video } = createVideo({ rvfc: false });
       expect('requestVideoFrameCallback' in video).toBe(false);
@@ -514,7 +629,7 @@ describe('VideoMediaPlayerController', () => {
       expect(callback).not.toHaveBeenCalledWith(false);
     });
 
-    it('should cancel nothing on unsubscribe when the video is already gone', () => {
+    it('should stop watching the old video once the player has dropped it', () => {
       const { video, cancel } = createVideo();
       let currentVideo: HTMLVideoElement | null = video;
       const controller = new VideoMediaPlayerController(
@@ -526,7 +641,7 @@ describe('VideoMediaPlayerController', () => {
       currentVideo = null;
       unsubscribe();
 
-      expect(cancel).not.toHaveBeenCalled();
+      expect(cancel).toHaveBeenCalled();
     });
   });
 });

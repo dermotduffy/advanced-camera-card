@@ -170,6 +170,21 @@ describe('EffectsManager', () => {
       expect(container.children.length).toBe(1);
     });
 
+    it('should survive a container remove-and-reset while deferred', async () => {
+      manager.removeContainer();
+
+      await manager.startEffect('check', { fadeIn: false, duration: 0.4 });
+      expect(container.children.length).toBe(0);
+
+      manager.removeContainer();
+
+      const newContainer = document.createElement('div');
+      manager.setContainer(newContainer);
+      await flushPromises();
+
+      expect(newContainer.children.length).toBe(1);
+    });
+
     it('should not start effect if already active', async () => {
       await manager.startEffect('snow');
       await manager.startEffect('snow');

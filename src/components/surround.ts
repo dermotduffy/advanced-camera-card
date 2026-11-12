@@ -56,6 +56,9 @@ export class AdvancedCameraCardSurround extends LitElement {
   @property({ attribute: false })
   public locked?: boolean;
 
+  @property({ attribute: false })
+  public drawerPinned?: boolean;
+
   /**
    * Determine if a drawer is being used.
    */
@@ -93,6 +96,7 @@ export class AdvancedCameraCardSurround extends LitElement {
 
     return html` <advanced-camera-card-surround-basic
       .locked=${this.locked}
+      .drawerPinned=${this.drawerPinned}
       @advanced-camera-card:thumbnails-carousel:media-select=${(ev: CustomEvent) =>
         changeDrawer(ev, 'close')}
     >

@@ -31,8 +31,13 @@ import type { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
 import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss?inline';
-import type { MediaPlayer, MediaPlayerController } from '../types.js';
+import type {
+  MediaPlayer,
+  MediaPlayerController,
+  UnsubscribeCallback,
+} from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
+import { sharedDocumentVisibility } from '../utils/document-visibility.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import {
   createMediaLoadedInfo,
@@ -169,7 +174,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
     },
   );
 
-  private _boundVisibilityHandler = this._visibilityHandler.bind(this);
+  private _unsubscribeDocumentVisibility: UnsubscribeCallback | null = null;
 
   // A poll-refreshed snapshot: the cached-value timer is the pausable update
   // loop, and its cached URL is the screenshot.
@@ -211,7 +216,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
    * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.isConnected || !this.hass || document.visibilityState !== 'visible') {
+    if (!this.isConnected || !this.hass || !sharedDocumentVisibility.isVisible()) {
       return false;
     }
 
@@ -315,7 +320,9 @@ export class AdvancedCameraCardImageUpdatingPlayer
    */
   connectedCallback(): void {
     super.connectedCallback();
-    document.addEventListener('visibilitychange', this._boundVisibilityHandler);
+    this._unsubscribeDocumentVisibility = sharedDocumentVisibility.subscribe((visible) =>
+      this._visibilityHandler(visible),
+    );
     this._cachedValueController?.startTimer();
   }
 
@@ -325,7 +332,8 @@ export class AdvancedCameraCardImageUpdatingPlayer
   disconnectedCallback(): void {
     this._cachedValueController?.stopTimer();
     this._imageLoadError = false;
-    document.removeEventListener('visibilitychange', this._boundVisibilityHandler);
+    this._unsubscribeDocumentVisibility?.();
+    this._unsubscribeDocumentVisibility = null;
     super.disconnectedCallback();
   }
 
@@ -342,11 +350,11 @@ export class AdvancedCameraCardImageUpdatingPlayer
   /**
    * Handle document visibility changes.
    */
-  private _visibilityHandler(): void {
+  private _visibilityHandler(visible: boolean): void {
     if (!this._refImage.value) {
       return;
     }
-    if (document.visibilityState === 'hidden') {
+    if (!visible) {
       // Set the image to default when the document is hidden. This is to avoid
       // some browsers (e.g. Firefox) eagerly re-loading the old image when the
       // document regains visibility -- for some images (e.g. camera mode) the
@@ -537,7 +545,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 this._imageLoadError = true;
               }
 
-              this._dispatchError('not_loading');
+              this._dispatchError('server_error');
             }}
           />
         `

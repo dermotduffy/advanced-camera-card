@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import type { Severity } from '../../severity';
-import { dayToDate } from '../../utils/basic';
+import { isValidDay } from '../../utils/basic';
 import type {
   Engine,
   EventQueryResults,
@@ -9,10 +9,6 @@ import type {
   RecordingSegmentsQueryResults,
   ReviewQueryResults,
 } from '../types';
-
-const dayStringToDate = (arg: unknown): Date | unknown => {
-  return typeof arg === 'string' ? dayToDate(arg) : arg;
-};
 
 export const eventSchema = z.object({
   camera: z.string(),
@@ -38,6 +34,12 @@ export const frigateEventsSchema = eventSchema.array();
 
 export type FrigateEvent = z.infer<typeof eventSchema>;
 
+// Days are expressed in the same timezone of the request.
+const daySchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine(isValidDay);
+
 const recordingSummaryHourSchema = z.object({
   hour: z.preprocess((arg) => Number(arg), z.number().min(0).max(23)),
   duration: z.number().min(0),
@@ -46,7 +48,7 @@ const recordingSummaryHourSchema = z.object({
 
 export const recordingSummarySchema = z
   .object({
-    day: z.preprocess(dayStringToDate, z.date()),
+    day: daySchema,
     events: z.number(),
     hours: recordingSummaryHourSchema.array(),
   })
@@ -82,8 +84,7 @@ export interface FrigateRecording {
 export const eventSummarySchema = z
   .object({
     camera: z.string(),
-    // Days in RFC3339 format.
-    day: z.string(),
+    day: daySchema,
     label: z.string(),
     sub_label: z.string().nullable(),
     zones: z.string().array(),

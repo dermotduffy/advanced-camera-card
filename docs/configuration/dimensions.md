@@ -43,6 +43,6 @@ dimensions:
 ```yaml
 dimensions:
   aspect_ratio_mode: dynamic
-  aspect_ratio: 16:9
+  aspect_ratio: '16:9'
   height: auto
 ```

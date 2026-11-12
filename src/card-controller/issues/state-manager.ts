@@ -141,7 +141,7 @@ export class IssueStateManager implements IssueReadOnlyState {
       if (!force && !this._canRetryNow(issue)) {
         continue;
       }
-      if (issue.retry?.()) {
+      if (issue.retry?.(force)) {
         return;
       }
     }
