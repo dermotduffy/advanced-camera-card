@@ -2,6 +2,7 @@ import { http, HttpResponse, ws } from 'msw';
 import { setupWorker } from 'msw/browser';
 import { afterAll, beforeAll } from 'vitest';
 
+import type { Go2RTCMode } from '../../src/config/schema/cameras';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 
 const FAKE_GO2RTC_URL = 'http://localhost:1984';
@@ -13,8 +14,9 @@ const FAKE_GO2RTC_URL = 'http://localhost:1984';
  */
 export const createFakeGo2RTCCameraConfig = (
   stream: string,
+  modes: Go2RTCMode[] = ['mjpeg'],
 ): RawAdvancedCameraCardConfig => ({
-  go2rtc: { url: FAKE_GO2RTC_URL, stream, modes: ['mjpeg'] },
+  go2rtc: { url: FAKE_GO2RTC_URL, stream, modes },
   proxy: { live: false },
 });
 

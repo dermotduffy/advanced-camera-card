@@ -1,5 +1,5 @@
 import type { Go2RTCMode } from '../../../../../config/schema/cameras';
-import type { PeerConnectionFactory } from '../../../../../go2rtc/peer-connection';
+import type { PeerConnectionFactory } from '../../../../../utils/peer-connection';
 import type { MediaSourceFactory } from '../adapters/media-source';
 import type {
   ImageStreamTarget,
@@ -92,10 +92,12 @@ export interface CreateWebRTCSourceOptions {
 
 export type WebRTCSourceFactory = (
   context: StreamSourceContext<VideoStreamTarget>,
+  getICEServers: () => Promise<RTCIceServer[]>,
   options?: CreateWebRTCSourceOptions,
 ) => WebRTCStreamSource;
 
 export const createWebRTCSource: WebRTCSourceFactory = (
   context: StreamSourceContext<VideoStreamTarget>,
+  getICEServers: () => Promise<RTCIceServer[]>,
   options?: CreateWebRTCSourceOptions,
-): WebRTCStreamSource => new WebRTCStreamSource(context, options);
+): WebRTCStreamSource => new WebRTCStreamSource(context, getICEServers, options);

@@ -19,6 +19,7 @@ import {
   flushPromises,
   IntersectionObserverMock,
   MutationObserverMock,
+  setVisibilityState,
 } from '../test-utils';
 import { createTestSlideNodes } from '../utils/embla/test-utils';
 
@@ -81,11 +82,7 @@ describe('MediaActionsController', () => {
     // Reset document.visibilityState so each test starts with the tab visible
     // and is not affected by leftover state from a prior
     // `callVisibilityHandler(false)`.
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   describe('should set root', () => {

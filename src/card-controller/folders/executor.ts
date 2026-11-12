@@ -6,7 +6,7 @@ import {
 } from '../../config/schema/folders';
 import type { HomeAssistant } from '../../ha/types';
 import type { Endpoint } from '../../types';
-import type { ViewFolder, ViewItem } from '../../view/item';
+import type { ViewFolder, ViewItem, ViewMedia } from '../../view/item';
 import type { ViewItemCapabilities } from '../../view/types';
 import type { TemplateRenderer } from '../templates';
 import { sortItems } from '../view/sort';
@@ -80,6 +80,13 @@ export class FoldersExecutor {
       hass,
       item,
       favorite,
+    );
+  }
+
+  public getMediaSeekTime(media: ViewMedia, target: Date): number | null {
+    return (
+      this._getFolderEngine(media.getFolder()?.type)?.getMediaSeekTime(media, target) ??
+      null
     );
   }
 

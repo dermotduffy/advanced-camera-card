@@ -8,7 +8,7 @@ The `live_provider` parameter determines what provides the live stream for a cam
 | ---------------------------------- | ------- | ---------- | ------------ | ------------------------------ | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `go2rtc`                           | Best    | High       | Better       | Builtin                        | :white_check_mark:                        | Uses [go2rtc](https://github.com/AlexxIT/go2rtc) to stream live feeds and supports 2-way audio.                                                                                                                                                            |
 | `go2rtc-experimental`              | Best    | High       | Better       | Builtin                        | :white_check_mark:                        | **Experimental** re-implementation of the `go2rtc` provider client (MSE/WebRTC/MP4/MJPEG) that is expected to eventually replace the `go2rtc` live provider. Uses the same configuration as `go2rtc`. See [`go2rtc (experimental)`](#go2rtc-experimental). |
-| `ha` (Native WebRTC)               | Best    | High       | Better       | Builtin                        | :heavy_multiplication_x:                  | Use the built-in Home Assistant camera streams -- will offer a very low-latency feed direct to your browser.                                                                                                                                               |
+| `ha` (Native WebRTC)               | Best    | High       | Better       | Builtin                        | :heavy_multiplication_x:                  | Use the built-in Home Assistant camera streams -- will offer a very low-latency feed direct to your browser. Supports [2-way audio](../../usage/2-way-audio.md) on Home Assistant `2026.11` and later.                                                     |
 | `ha` (HLS)                         | Poor    | High       | Better       | Builtin                        | :heavy_multiplication_x:                  | Use the built-in Home Assistant camera streams -- HLS fallback when a WebRTC connection cannot be established.                                                                                                                                             |
 | `ha` (when configured with LL-HLS) | Better  | High       | Better       | Builtin                        | :heavy_multiplication_x:                  | Use the built-in Home Assistant camera streams -- can be configured to use an [LL-HLS](https://www.home-assistant.io/integrations/stream/#ll-hls) feed for lower latency.                                                                                  |
 | `image`                            | Poor    | Poor       | Best         | Builtin                        | :heavy_multiplication_x:                  | Use refreshing snapshots of the built-in Home Assistant camera streams.                                                                                                                                                                                    |
@@ -36,6 +36,11 @@ cameras:
 
 > [!NOTE]
 > If `url` is manually set and `proxy.live` is set to `auto` on the camera (the default), the video stream will automatically be proxied via the Home Assistant process if the [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration) is detected. See [proxying](./README.md?id=proxy).
+
+> [!NOTE]
+> For WebRTC, the card uses the STUN/TURN servers configured for Home Assistant.
+> See [`go2rtc` WebRTC fails away from
+> home](../../troubleshooting.md?id=go2rtc-webrtc-fails-away-from-home).
 
 > [!TIP]
 > If you are certain your camera hardware supports 2-way audio but the

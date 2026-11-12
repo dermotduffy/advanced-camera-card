@@ -10,17 +10,22 @@ challenging.
 ### Environmental requirements
 
 - Must have a camera that supports audio out (otherwise what's the point!)
-- Camera must be supported by `go2rtc` for 2-way audio (see [supported cameras](https://github.com/AlexxIT/go2rtc#two-way-audio)).
 - Must be accessing your Home Assistant instance over `https`. The browser will enforce this.
-- Must be running at least [Frigate integration `v5.12.0`](https://github.com/blakeblackshear/frigate-hass-integration/releases/tag/v5.12.0).
 
-### Card requirements
+Outbound audio always travels on its own WebRTC connection, regardless of what
+mode is carrying the video, so the browser must be able to reach the camera's
+WebRTC server even when the video plays over HLS. 2-way audio is available with
+the following live providers.
 
-- Only Frigate cameras are supported.
-- Only the `go2rtc` and `go2rtc-experimental` live providers are supported.
-- The browser must be able to reach `go2rtc` over WebRTC. Outbound audio always
-  travels on its own WebRTC connection, regardless of what mode is carrying the
-  video.
+### With the `go2rtc` live providers
+
+- Camera must be supported by `go2rtc` for 2-way audio (see [supported cameras](https://github.com/AlexxIT/go2rtc#two-way-audio)).
+- The camera's `go2rtc` stream must be known to the card, either:
+  - From Frigate: must be running at least [Frigate integration `v5.12.0`](https://github.com/blakeblackshear/frigate-hass-integration/releases/tag/v5.12.0).
+  - Or set explicitly with `cameras[].go2rtc.url` and `cameras[].go2rtc.stream`.
+- The browser must be able to reach `go2rtc` over WebRTC. Away from home this
+  may need a TURN server, see [`go2rtc` WebRTC fails away from
+  home](../troubleshooting.md?id=go2rtc-webrtc-fails-away-from-home).
 
 If your setup supports 2-way audio but detection is intermittent on load:
 
@@ -35,6 +40,28 @@ Detection requires `go2rtc` to connect to the camera, so a successful result is
 cached by the card for 5 minutes rather than detected again every time the card
 loads. Reload your browser after changing the `go2rtc` configuration to have the
 card detect changes immediately.
+
+### With the `ha` live provider
+
+The card uses Home Assistant's own two-way audio support (Home Assistant
+`2026.11` and later), through its camera WebRTC API. Home Assistant reports a
+camera as able to talk, and the card offers the call button, when all of these
+hold:
+
+- The _Two-way audio_ preview is enabled under _Settings_ → _System_ → _Labs_.
+- The camera's integration declares two-way audio for it (at the time of
+  writing, for example, Reolink cameras over RTSP, Matter cameras and Ring
+  cameras).
+- The camera offers WebRTC, natively or through a WebRTC provider such as
+  `go2rtc`. The video itself may still play over HLS.
+
+This applies to every camera that uses the `ha` live provider, including the
+default `auto` provider for a camera with a `camera_entity`. Unlike Home
+Assistant's own talk button, which reconnects its video to add the microphone,
+the card carries the microphone on a connection of its own, opened only for the
+duration of a call. This improves compatibility with devices that only support
+a single audio backchannel. The card reads the camera's capability when it
+loads: reload the dashboard after changing the Labs preview.
 
 ## Example configuration
 

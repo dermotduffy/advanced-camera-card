@@ -5,6 +5,7 @@ import {
   isGo2RTCLiveProvider,
 } from '../../../utils/live-provider';
 import { Go2RTCBackchannel } from './go2rtc';
+import { HABackchannel } from './ha';
 import type { Backchannel, BackchannelErrorCallback } from './types';
 
 export const createBackchannel = (
@@ -12,7 +13,14 @@ export const createBackchannel = (
   camera: Camera,
   errorCallback?: BackchannelErrorCallback,
 ): Backchannel | null => {
-  if (!isGo2RTCLiveProvider(getResolvedLiveProvider(camera.getConfig()))) {
+  const config = camera.getConfig();
+  const provider = getResolvedLiveProvider(config);
+  if (provider === 'ha') {
+    return config.camera_entity
+      ? new HABackchannel(hass, config.camera_entity, { errorCallback })
+      : null;
+  }
+  if (!isGo2RTCLiveProvider(provider)) {
     return null;
   }
 

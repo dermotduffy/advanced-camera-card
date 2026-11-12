@@ -27,6 +27,20 @@ const config = {
   // proposal; without this it throws on decorated classes and silently skips sorting
   // those files.
   importOrderParserPlugins: ['typescript', 'decorators-legacy'],
+
+  overrides: [
+    // Sort localization keys.
+    {
+      files: 'src/localize/languages/*.json',
+      options: {
+        plugins: ['@ianvs/prettier-plugin-sort-imports', 'prettier-plugin-sort-json'],
+        jsonRecursiveSort: true,
+
+        // Keys made only of digits sort by numeric value.
+        jsonSortOrder: JSON.stringify({ '/^\\d+$/': 'numeric', '/.*/': 'lexical' }),
+      },
+    },
+  ],
 };
 
 export default config;

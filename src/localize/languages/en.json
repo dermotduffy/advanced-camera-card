@@ -289,14 +289,6 @@
           }
         },
         "thumbnails": {
-          "style": "Style",
-          "styles": {
-            "auto": "Automatic",
-            "hover": "Thumbnail with details on hover",
-            "plain": "Thumbnail without details",
-            "overlay": "Thumbnail with details overlay",
-            "panel": "Thumbnail with details panel"
-          },
           "editor_label": "Thumbnails",
           "mode": "Mode",
           "modes": {
@@ -311,7 +303,15 @@
           "show_info_control": "Show info control",
           "show_review_control": "Show review control",
           "show_timeline_control": "Show timeline control",
-          "size": "Size in pixels"
+          "size": "Size in pixels",
+          "style": "Style",
+          "styles": {
+            "auto": "Automatic",
+            "hover": "Thumbnail with details on hover",
+            "overlay": "Thumbnail with details overlay",
+            "panel": "Thumbnail with details panel",
+            "plain": "Thumbnail without details"
+          }
         },
         "timeline": {
           "editor_label": "Mini Timeline",
@@ -780,9 +780,8 @@
   },
   "editor": {
     "add_new_camera": "Add camera",
-    "back": "Back",
-    "edit": "Edit",
     "add_new_folder": "Add folder",
+    "back": "Back",
     "camera": "Camera",
     "cameras": "Cameras",
     "cameras_secondary": "What cameras to render on this card",
@@ -790,6 +789,7 @@
     "dimensions": "Dimensions",
     "dimensions_secondary": "Card dimensions & shape options",
     "docs": "Documentation",
+    "edit": "Edit",
     "folders": "Folders",
     "folders_secondary": "What folders to render on this card",
     "image": "Image",
@@ -836,6 +836,7 @@
     "awaiting_live": "Waiting for live stream to load",
     "awaiting_media": "Waiting for media to load",
     "call_camera_unreachable": "The camera could not be reached for two-way audio.",
+    "call_connection_lost": "The connection to Home Assistant was lost.",
     "call_invalid_target": "The requested camera or stream is not available to call.",
     "call_microphone_failed": "Your microphone could not be connected.",
     "call_microphone_forbidden": "Microphone access has been denied for this page. Update your browser permissions and try again.",
@@ -876,6 +877,7 @@
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
+    "timeout_response": "Timed out waiting for response from Home Assistant for request",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
