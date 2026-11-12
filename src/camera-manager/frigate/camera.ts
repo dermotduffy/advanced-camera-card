@@ -360,24 +360,25 @@ export class FrigateCamera extends Camera {
     if (!this._config.frigate.url) {
       return null;
     }
-    if (!this._config.frigate.camera_name) {
+    const cameraName = this._getCameraName();
+    if (!cameraName) {
       return { endpoint: this._config.frigate.url };
     }
 
-    const cameraURL = `${this._config.frigate.url}/#${this._config.frigate.camera_name}`;
+    const cameraURL = `${this._config.frigate.url}/#${cameraName}`;
 
     if (context?.view === 'live') {
       return { endpoint: cameraURL };
     }
 
-    const eventsURL = `${this._config.frigate.url}/explore?cameras=${this._config.frigate.camera_name}`;
-    const recordingsURL = `${this._config.frigate.url}/review?cameras=${this._config.frigate.camera_name}`;
+    const eventsURL = `${this._config.frigate.url}/explore?cameras=${cameraName}`;
+    const recordingsURL = `${this._config.frigate.url}/review?cameras=${cameraName}`;
 
     // Frigate takes the time as `<camera>_<seconds>` and only reads it from
     // 0.18. The camera is named as well so earlier versions still filter to it.
     const getTimestampURL = (startTime: Date | null): string =>
       startTime
-        ? `${recordingsURL}&timestamp=${this._config.frigate.camera_name}_${getUnixTime(startTime)}`
+        ? `${recordingsURL}&timestamp=${cameraName}_${getUnixTime(startTime)}`
         : recordingsURL;
 
     // If media is available, use it for a more precise URL.

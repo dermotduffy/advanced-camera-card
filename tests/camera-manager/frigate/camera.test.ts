@@ -731,6 +731,34 @@ describe('FrigateCamera', () => {
         });
       });
 
+      it('should use the camera name detected from the camera entity', async () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            camera_entity: 'camera.front_door',
+            frigate: { url: 'http://frigate' },
+          }),
+          mock<CameraManagerEngine>(),
+          createDependencies({
+            entityRegistryManager: new EntityRegistryManagerMock([
+              createRegistryEntity({
+                entity_id: 'camera.front_door',
+                unique_id: '8c4e19d258359e82bc0cf9d47b021c46:camera:fnt_dr',
+                platform: 'frigate',
+              }),
+            ]),
+          }),
+        );
+
+        await camera.initialize();
+
+        expect(camera.getEndpoints({ view: 'live' })?.ui).toEqual({
+          endpoint: 'http://frigate/#fnt_dr',
+        });
+        expect(camera.getEndpoints({ view: 'clips' })?.ui).toEqual({
+          endpoint: 'http://frigate/explore?cameras=fnt_dr',
+        });
+      });
+
       it('should return events URL for clip media', () => {
         const camera = new FrigateCamera(
           createCameraConfig({
