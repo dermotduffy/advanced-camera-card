@@ -333,9 +333,69 @@ describe('MSEStreamSource', () => {
       setupResult.video.currentTime = 19;
       sourceBuffer.fireUpdateEnd();
 
-      // Retains the last 15s (end 20 -> retainedStart 5).
+      // Retains the last 15s (end 20 -> retainedStart 5). A live source starts
+      // with a NaN duration; WebKit will not remove until that is set.
+      expect(setupResult.instance.duration).toBe(Number.POSITIVE_INFINITY);
       expect(sourceBuffer.remove).toHaveBeenCalledWith(0, 5);
       expect(setupResult.instance.setLiveSeekableRange).toHaveBeenCalledWith(5, 20);
+    });
+
+    it('should keep a duration that already covers the buffer', () => {
+      const setupResult = setup();
+      negotiate(setupResult);
+      const sourceBuffer = setupResult.instance.sourceBuffer;
+      setupResult.instance.duration = 100;
+      sourceBuffer.buffered = createTimeRanges([[0, 20]]);
+      setupResult.video.currentTime = 19;
+      sourceBuffer.fireUpdateEnd();
+
+      expect(setupResult.instance.duration).toBe(100);
+      expect(sourceBuffer.remove).toHaveBeenCalledWith(0, 5);
+    });
+
+    it('should use a finite duration when infinity is rejected', () => {
+      const setupResult = setup();
+      negotiate(setupResult);
+      let stored = Number.NaN;
+      Object.defineProperty(setupResult.instance, 'duration', {
+        configurable: true,
+        get: () => stored,
+        set: (value: number) => {
+          if (!Number.isFinite(value)) {
+            throw new TypeError('Infinity rejected');
+          }
+          stored = value;
+        },
+      });
+      const sourceBuffer = setupResult.instance.sourceBuffer;
+      sourceBuffer.buffered = createTimeRanges([[0, 20]]);
+      setupResult.video.currentTime = 19;
+      sourceBuffer.fireUpdateEnd();
+
+      // end 20 + the 15s retained window.
+      expect(stored).toBe(35);
+      expect(sourceBuffer.remove).toHaveBeenCalledWith(0, 5);
+      expect(setupResult.instance.setLiveSeekableRange).toHaveBeenCalledWith(5, 20);
+    });
+
+    it('should swallow a remove failure and still track the live edge', () => {
+      const setupResult = setup();
+      negotiate(setupResult);
+      const sourceBuffer = setupResult.instance.sourceBuffer;
+      sourceBuffer.buffered = createTimeRanges([[0, 20]]);
+      sourceBuffer.remove.mockImplementation(() => {
+        throw new TypeError('Type error');
+      });
+
+      // Establish a healthy 1s lag, then fall behind. The throw must not escape
+      // updateend (that is what Home Assistant logs) or skip catch-up.
+      setupResult.video.currentTime = 19;
+      expect(() => sourceBuffer.fireUpdateEnd()).not.toThrow();
+      expect(setupResult.instance.setLiveSeekableRange).not.toHaveBeenCalled();
+
+      setupResult.video.currentTime = 15;
+      expect(() => sourceBuffer.fireUpdateEnd()).not.toThrow();
+      expect(setupResult.video.playbackRate).toBeGreaterThan(1);
     });
 
     it('should not trim when all media is within the retained window', () => {
