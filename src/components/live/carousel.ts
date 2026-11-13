@@ -86,6 +86,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public call?: CallSession;
 
   @property({ attribute: false })
+  public callConnecting?: boolean;
+
+  @property({ attribute: false })
   public locked?: boolean;
 
   @property({ attribute: false })
@@ -464,6 +467,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       <advanced-camera-card-call-controls
         .active=${isCallControlsActive}
         .answered=${this.call?.answered ?? true}
+        .connecting=${!!this.callConnecting}
         .microphoneState=${this.microphoneState}
         .muted=${callMediaPlayerController?.isMuted()}
         .buttonSize=${this.liveConfig.controls.call.button_size}

@@ -18,6 +18,7 @@ declare module 'vitest/browser' {
 
 const mount = async (options?: {
   answered?: boolean;
+  connecting?: boolean;
   buttonsConfig?: CallButtonsConfig;
   animationOverride?: string;
 }): Promise<AdvancedCameraCardCallControls> => {
@@ -26,6 +27,7 @@ const mount = async (options?: {
   const controls = document.createElement('advanced-camera-card-call-controls');
   controls.active = true;
   controls.answered = options?.answered ?? true;
+  controls.connecting = options?.connecting ?? false;
   controls.buttonsConfig = options?.buttonsConfig;
   if (options?.animationOverride) {
     controls.style.setProperty(
@@ -105,6 +107,18 @@ describe('AdvancedCameraCardCallControls', () => {
     expect(getComputedStyle(answer).animationName).not.toBe('in-progress-rotate');
     expect(reject.classList.contains('in-progress')).toBe(false);
     expect(getComputedStyle(reject, '::after').animationName).toBe('none');
+  });
+
+  it('should draw a ring around the answer button while the call connects', async () => {
+    const controls = await mount({ answered: false, connecting: true });
+
+    const [reject, answer] = deepQueryAll<HTMLElement>(controls, 'ha-icon-button');
+
+    expect(answer.classList.contains('in-progress')).toBe(true);
+    expect(answer.getAttribute('aria-busy')).toBe('true');
+    expect(getComputedStyle(answer, '::after').animationName).toBe('in-progress-rotate');
+    expect(reject.classList.contains('in-progress')).toBe(false);
+    expect(reject.hasAttribute('aria-busy')).toBe(false);
   });
 
   it('should keep the ring still when the animation is overridden', async () => {
