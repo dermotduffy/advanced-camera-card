@@ -58,6 +58,7 @@ live:
 | Option                       | Default | Description                                                                                                                                                                                                                                                                                                                                                                                         |
 | ---------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `button_size`                | `40`    | The size of the call control buttons in pixels. Must be &gt;= `20`.                                                                                                                                                                                                                                                                                                                                 |
+| `buttons`                    |         | The icon and style of each call control button. See [`buttons`](#buttons).                                                                                                                                                                                                                                                                                                                          |
 | `enabled`                    | `true`  | Whether the on-screen call controls are shown during a call. Set to `false` to hide them and drive calls from the [`menu`](./menu.md) instead. When hiding the controls, be sure to also remove `call` from `menu.auto_hide` so the menu stays visible allowing the call to be controlled. See [Driving calls from the menu](../examples.md?id=driving-calls-from-the-menu) for a complete example. |
 | `lock`                       | `true`  | Whether to lock the rest of the card controls/actions while a call is in progress. Prevents an accidental tap, swipe or action mid-call. Set to `false` to allow interactions regardless of call state.                                                                                                                                                                                             |
 | `ringtone`                   |         | The audible chime played while an inbound call (e.g. one started by [`view.triggers.actions.trigger: call`](./view.md?id=trigger-action-configuration)) is ringing. Stops as soon as the call is answered or ended. Manual calls never ring. See [`ringtone`](#ringtone).                                                                                                                           |
@@ -68,6 +69,40 @@ live:
 > happens no sound is produced and no error is shown. The underlying behavior is
 > documented in [MDN's Autoplay
 > guide](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay).
+
+#### `buttons`
+
+The icon and style of each call control button. As with [menu buttons](./menu.md), a configured `icon` replaces the button's own, and a configured `style` is merged over its own (a `color` also colors the icon). Use [`overrides`](./overrides.md) to change them under [conditions](./conditions-triggers.md).
+
+```yaml
+live:
+  controls:
+    call:
+      buttons:
+        answer:
+          icon: mdi:phone-in-talk
+        end:
+          style:
+            color: orange
+```
+
+The microphone and mute buttons show whether they are muted through their icon (and the microphone also through its color). A configured `icon` or `color` hides that, unless an override sets it for one state only (e.g. with the [`microphone` condition](./conditions-triggers.md)).
+
+| Button       | Shown            |
+| ------------ | ---------------- |
+| `answer`     | before answering |
+| `reject`     | before answering |
+| `end`        | after answering  |
+| `microphone` | after answering  |
+| `mute`       | after answering  |
+
+Each takes:
+
+| Option        | Default | Description                                                                                                                                                                           |
+| ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `icon`        |         | An icon in place of the button's own (e.g. `mdi:phone-in-talk`).                                                                                                                      |
+| `in_progress` | `false` | Whether an "in progress ring" is shown around the button (e.g. while something it depends on is loading/waiting). See [example](../examples.md?id=show-a-call-button-as-in-progress). |
+| `style`       |         | CSS properties for the button (e.g. `color: green`).                                                                                                                                  |
 
 #### `ringtone`
 
@@ -287,6 +322,13 @@ live:
     builtin: true
     call:
       button_size: 40
+      buttons:
+        answer:
+          icon: mdi:phone
+          in_progress: false
+          style:
+            # Optionally override the default style.
+            color: green
       lock: true
       ringtone:
         type: chime

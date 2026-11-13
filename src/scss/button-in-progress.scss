@@ -1,0 +1,32 @@
+// A ring around an in-progress button, in the button's color. It is always a
+// circle, regardless of the button's border radius, as only a circle can rotate
+// without sweeping outside the button.
+ha-icon-button.in-progress {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ha-icon-button.in-progress::after {
+    animation: var(
+      --advanced-camera-card-in-progress-animation-override,
+      in-progress-rotate 1s linear infinite
+    );
+  }
+}
+
+@keyframes in-progress-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

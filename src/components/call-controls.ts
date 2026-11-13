@@ -1,6 +1,7 @@
 import {
   html,
   LitElement,
+  nothing,
   unsafeCSS,
   type CSSResultGroup,
   type PropertyValues,
@@ -8,10 +9,12 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import type { MicrophoneState } from '../card-controller/types.js';
 import type { ActionConfig } from '../config/schema/actions/types.js';
+import type { CallButtonsConfig } from '../config/schema/live.js';
 import { localize } from '../localize/localize.js';
 import callControlsStyle from '../scss/call-controls.scss?inline';
 import {
@@ -22,6 +25,7 @@ import {
 } from '../utils/action.js';
 import { hasPopOutAnimationEnded } from '../utils/animation.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
+import { getStyleWithStateIconColor } from '../utils/style.js';
 
 import './icon.js';
 
@@ -29,10 +33,10 @@ import './icon.js';
  * The on-screen overlay shown during a two-way audio call: a centered pill
  * whose contents depend on call state. Pre-answer (inbound ringing) shows
  * reject + answer; post-answer (or outbound) shows end-call + microphone
- * toggle + audio-out toggle.
+ * toggle + mute toggle.
  *
  * This is a purely presentational control showing state and emitting intents.
- * Button taps dispatch actions; the audio-out button fires an
+ * Button taps dispatch actions; the mute button fires an
  * `advanced-camera-card:call:mute-toggle` event for the host to act on.
  */
 @customElement('advanced-camera-card-call-controls')
@@ -43,7 +47,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
   public active = false;
 
   // Whether that call has been answered. Selects between the pre-answer (reject
-  // + answer) and post-answer (end + mic + audio) button sets.
+  // + answer) and post-answer (end + mic + mute) button sets.
   @property({ attribute: false })
   public answered = true;
 
@@ -56,6 +60,9 @@ export class AdvancedCameraCardCallControls extends LitElement {
   // The size, in pixels, of the control buttons.
   @property({ attribute: false })
   public buttonSize?: number;
+
+  @property({ attribute: false })
+  public buttonsConfig?: CallButtonsConfig;
 
   // True while the exit animation plays after `active` turns false.
   @state()
@@ -123,6 +130,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
     return html`
       <div class="buttons">
         ${this._renderButton(
+          'reject',
           'mdi:phone-hangup',
           localize('config.live.controls.call.reject'),
           {
@@ -130,10 +138,15 @@ export class AdvancedCameraCardCallControls extends LitElement {
             action: createCallEndAction(),
           },
         )}
-        ${this._renderButton('mdi:phone', localize('config.live.controls.call.answer'), {
-          emphasis: 'positive',
-          action: createCallAnswerAction(),
-        })}
+        ${this._renderButton(
+          'answer',
+          'mdi:phone',
+          localize('config.live.controls.call.answer'),
+          {
+            emphasis: 'positive',
+            action: createCallAnswerAction(),
+          },
+        )}
       </div>
     `;
   }
@@ -146,6 +159,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
     return html`
       <div class="buttons">
         ${this._renderButton(
+          'end',
           'mdi:phone-hangup',
           localize('config.live.controls.call.end'),
           {
@@ -154,6 +168,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
           },
         )}
         ${this._renderButton(
+          'microphone',
           microphoneMuted ? 'mdi:microphone-off' : 'mdi:microphone',
           microphoneMuted
             ? localize('config.live.controls.call.unmute_microphone')
@@ -166,6 +181,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
           },
         )}
         ${this._renderButton(
+          'mute',
           audioMuted ? 'mdi:volume-off' : 'mdi:volume-high',
           audioMuted
             ? localize('config.live.controls.call.unmute_audio')
@@ -194,6 +210,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
   };
 
   private _renderButton(
+    name: keyof CallButtonsConfig,
     icon: string,
     label: string,
     options?: {
@@ -203,12 +220,21 @@ export class AdvancedCameraCardCallControls extends LitElement {
       handler?: () => void;
     },
   ): TemplateResult {
+    // As for a menu button: a configured icon replaces the button's own, a
+    // configured style is merged over it (and colors the icon too).
+    const config = this.buttonsConfig?.[name];
+    const inProgress = !!config?.in_progress;
     return html`
       <ha-icon-button
         .label=${label}
         title=${label}
         ?disabled=${!!options?.disabled}
-        class=${options?.emphasis ?? ''}
+        aria-busy=${inProgress ? 'true' : nothing}
+        class=${classMap({
+          ...(options?.emphasis && { [options.emphasis]: true }),
+          'in-progress': inProgress,
+        })}
+        style=${styleMap(getStyleWithStateIconColor(config?.style))}
         @click=${() => {
           if (options?.handler) {
             options.handler();
@@ -217,7 +243,9 @@ export class AdvancedCameraCardCallControls extends LitElement {
           }
         }}
       >
-        <advanced-camera-card-icon .icon=${{ icon }}></advanced-camera-card-icon>
+        <advanced-camera-card-icon
+          .icon=${{ icon: config?.icon ?? icon }}
+        ></advanced-camera-card-icon>
       </ha-icon-button>
     `;
   }

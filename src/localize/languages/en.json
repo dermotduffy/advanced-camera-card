@@ -474,6 +474,14 @@
         "call": {
           "answer": "Answer call",
           "button_size": "Call control button size",
+          "buttons": {
+            "answer": "Answer call button",
+            "editor_label": "Buttons",
+            "end": "End call button",
+            "microphone": "Microphone mute button",
+            "mute": "Mute / Unmute button",
+            "reject": "Reject call button"
+          },
           "editor_label": "Two-way audio call",
           "enabled": "Show on-screen call controls",
           "end": "End 2-way audio call",

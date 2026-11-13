@@ -319,6 +319,48 @@ describe('StyleManager', () => {
         element.style.getPropertyValue('--advanced-camera-card-border-radius-override'),
       ).toEqual('0px');
     });
+
+    it('should stop in-progress animations when animated progress is disabled', () => {
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      vi.mocked(api.getConfigManager().getCardWideConfig).mockReturnValue(
+        createConfig({
+          performance: {
+            features: {
+              animated_progress_indicator: false,
+            },
+          },
+        }),
+      );
+      const manager = new StyleManager(api);
+
+      manager.updateFromConfig();
+
+      expect(
+        element.style.getPropertyValue(
+          '--advanced-camera-card-in-progress-animation-override',
+        ),
+      ).toEqual('none');
+    });
+
+    it('should not stop in-progress animations by default', () => {
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      vi.mocked(api.getConfigManager().getCardWideConfig).mockReturnValue(
+        createConfig(),
+      );
+      const manager = new StyleManager(api);
+
+      manager.updateFromConfig();
+
+      expect(
+        element.style.getPropertyValue(
+          '--advanced-camera-card-in-progress-animation-override',
+        ),
+      ).toBeFalsy();
+    });
   });
 
   describe('getAspectRatioStyle', () => {

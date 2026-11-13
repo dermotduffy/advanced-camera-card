@@ -1,11 +1,13 @@
 import {
   html,
   LitElement,
+  nothing,
   unsafeCSS,
   type CSSResultGroup,
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
@@ -105,6 +107,8 @@ export class AdvancedCameraCardMenu extends LitElement {
     const style = button.style ?? {};
 
     return html` <ha-icon-button
+      class=${classMap({ 'in-progress': !!button.in_progress })}
+      aria-busy=${button.in_progress ? 'true' : nothing}
       style="${styleMap(getStyleWithStateIconColor(style))}"
       .actionHandler=${actionHandler({
         hasHold: hasAction(button.hold_action),
