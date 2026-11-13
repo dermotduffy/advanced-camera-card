@@ -14,7 +14,7 @@ const MENU_STYLES = [
 ] as const;
 const MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
 const MENU_ALIGNMENTS = MENU_POSITIONS;
-const MENU_UNAVAILABLE_MEDIA_BUTTONS = ['hidden', 'inert'] as const;
+const MENU_BUTTON_UNAVAILABLE_MODES = ['hidden', 'inert'] as const;
 
 const baseButtonDefault = {
   alignment: 'matching' as const,
@@ -74,17 +74,18 @@ export const menuConfigDefault = {
   },
   position: 'top' as const,
   style: 'hidden' as const,
-  unavailable_media_buttons: 'hidden' as const,
 };
 
 const visibleButtonSchema = menuBaseSchema.extend({
   enabled: menuBaseSchema.shape.enabled.default(visibleButtonDefault.enabled),
   priority: menuBaseSchema.shape.priority.default(visibleButtonDefault.priority),
+  unavailable: z.enum(MENU_BUTTON_UNAVAILABLE_MODES).optional(),
 });
 
 const hiddenButtonSchema = menuBaseSchema.extend({
   enabled: menuBaseSchema.shape.enabled.default(hiddenButtonDefault.enabled),
   priority: menuBaseSchema.shape.priority.default(hiddenButtonDefault.priority),
+  unavailable: z.enum(MENU_BUTTON_UNAVAILABLE_MODES).optional(),
 });
 
 export const menuConfigSchema = z
@@ -136,12 +137,6 @@ export const menuConfigSchema = z
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
-    // The media buttons (pip, play, mute, screenshot) while unavailable (the
-    // media is loading, or for mute, it has no audio): `hidden` leaves them
-    // out; `inert` shows an enabled one inert in its place.
-    unavailable_media_buttons: z
-      .enum(MENU_UNAVAILABLE_MEDIA_BUTTONS)
-      .default(menuConfigDefault.unavailable_media_buttons),
   })
   .default(menuConfigDefault);
 export type MenuConfig = z.infer<typeof menuConfigSchema>;

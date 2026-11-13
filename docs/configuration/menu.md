@@ -7,15 +7,14 @@ menu:
   # [...]
 ```
 
-| Option                      | Default           | Description                                                                                                                                                                                                                                                                                                                                                                                          |
-| --------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alignment`                 | `left`            | Whether to align the menu buttons to the `left`, `right`, `top` or `bottom` of the menu. Some selections may have no effect depending on the value of `position` (e.g. it doesn't make sense to `left` align icons on a menu with `position` to the `left`).                                                                                                                                         |
-| `auto_hide`                 | `[call, casting]` | The conditions under which the menu auto-hides. A list of zero or more of `call` (a [two-way audio](../usage/2-way-audio.md) call is active) and `casting` (the card is being cast, e.g. to a Chromecast). Set to `[]` to disable.                                                                                                                                                                   |
-| `button_size`               | `40`              | The size of the menu buttons in pixels. Must be &gt;= `20`.                                                                                                                                                                                                                                                                                                                                          |
-| `buttons`                   |                   | Whether to show or hide built-in buttons. See [`buttons`](#buttons).                                                                                                                                                                                                                                                                                                                                 |
-| `position`                  | `top`             | Whether to show the menu on the `left`, `right`, `top` or `bottom` side of the card. Note that for the `outside` style only the `top` and `bottom` positions have an effect.                                                                                                                                                                                                                         |
-| `style`                     | `hidden`          | The menu style to show by default, one of `none`, `hidden`, `hover`, `hover-card`, `overlay`, or `outside`. See [`style`](#style).                                                                                                                                                                                                                                                                   |
-| `unavailable_media_buttons` | `hidden`          | What to do with the enabled `pip`, `play`, `mute` and `screenshot` buttons while they are unavailable (the media is loading, or for `mute`, it has no audio): `hidden` leaves them out, `inert` shows them grayed out in their place, so the menu does not shift while the media loads. They show their resting icon while unavailable. Other buttons are left out when they don't apply, as before. |
+| Option        | Default           | Description                                                                                                                                                                                                                                                  |
+| ------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `alignment`   | `left`            | Whether to align the menu buttons to the `left`, `right`, `top` or `bottom` of the menu. Some selections may have no effect depending on the value of `position` (e.g. it doesn't make sense to `left` align icons on a menu with `position` to the `left`). |
+| `auto_hide`   | `[call, casting]` | The conditions under which the menu auto-hides. A list of zero or more of `call` (a [two-way audio](../usage/2-way-audio.md) call is active) and `casting` (the card is being cast, e.g. to a Chromecast). Set to `[]` to disable.                           |
+| `button_size` | `40`              | The size of the menu buttons in pixels. Must be &gt;= `20`.                                                                                                                                                                                                  |
+| `buttons`     |                   | Whether to show or hide built-in buttons. See [`buttons`](#buttons).                                                                                                                                                                                         |
+| `position`    | `top`             | Whether to show the menu on the `left`, `right`, `top` or `bottom` side of the card. Note that for the `outside` style only the `top` and `bottom` positions have an effect.                                                                                 |
+| `style`       | `hidden`          | The menu style to show by default, one of `none`, `hidden`, `hover`, `hover-card`, `overlay`, or `outside`. See [`style`](#style).                                                                                                                           |
 
 ## `buttons`
 
@@ -70,6 +69,7 @@ menu:
 | `priority`    | `50`                                                                                                                                                                                                                                                                                                                                                          | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
 | `state_color` | `true`                                                                                                                                                                                                                                                                                                                                                        | Whether to colorize the button based on the state of a related entity (where applicable). A `color` in `style` takes precedence.                                                                                                                                                                                             |
 | `style`       |                                                                                                                                                                                                                                                                                                                                                               | CSS to style the button with, e.g. `color: green`. See [button styling](#button-styling).                                                                                                                                                                                                                                    |
+| `unavailable` | `hidden`                                                                                                                                                                                                                                                                                                                                                      | `hidden` omits the button from the menu while it is unavailable (e.g. `play` before the media loads, `mute` when the loaded media has no audio, `download` in the `live` view). `inert` keeps it present in the menu but grayed out and non-interactive, so the menu items do not shift.                                     |
 
 ### Button styling
 
@@ -140,96 +140,112 @@ menu:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:phone
     camera_ui:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:web
     cameras:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:video-switch
     clips:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:filmstrip
     display_mode:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:grid
     download:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:download
     expand:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:arrow-expand-all
     folders:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:folder-multiple
     fullscreen:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:fullscreen
     gallery:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:play-box-multiple
     image:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:image
     info:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:information-outline
     iris:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: advanced-camera-card:iris
     live:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:cctv
     media_player:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:cast
     microphone:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:microphone
       type: momentary
@@ -237,76 +253,87 @@ menu:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:volume-off
     pip:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:picture-in-picture-bottom-right
     play:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:play
     ptz_controls:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:pan
     ptz_home:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:home
     recordings:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:album
     reviews:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:play-box-edit-outline
     screenshot:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:monitor-screenshot
     set_review:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:check-circle
     snapshots:
       priority: 50
       enabled: false
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:camera
     substreams:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:video-input-component
     timeline:
       priority: 50
       enabled: true
       inert: false
+      unavailable: hidden
       alignment: matching
       icon: mdi:chart-gantt
   button_size: 40
   position: top
   style: hidden
-  unavailable_media_buttons: hidden
 ```

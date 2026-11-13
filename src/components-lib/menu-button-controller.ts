@@ -47,23 +47,41 @@ import {
   isViewSupported,
 } from '../view/view-support';
 
-// The buttons that depend on the loaded media, and the icon and title of the
-// inert button shown in their place while unavailable (the media is loading,
-// or for mute, it has no audio) with `menu.unavailable_media_buttons: inert`. A
-// button whose icon follows a state uses its resting icon.
-type MediaButtonName = 'pip' | 'play' | 'mute' | 'screenshot';
-const MEDIA_BUTTONS: Record<MediaButtonName, { icon: string; title: string }> = {
-  pip: {
-    icon: 'mdi:picture-in-picture-bottom-right',
-    title: 'config.menu.buttons.pip',
-  },
-  play: { icon: 'mdi:play', title: 'config.menu.buttons.play' },
-  mute: { icon: 'mdi:volume-off', title: 'config.menu.buttons.mute' },
-  screenshot: {
-    icon: 'mdi:monitor-screenshot',
-    title: 'config.menu.buttons.screenshot',
-  },
+type MenuButtonName = keyof AdvancedCameraCardConfig['menu']['buttons'];
+
+const MENU_BUTTON_ICONS: Record<MenuButtonName, string> = {
+  call: 'mdi:phone',
+  camera_ui: 'mdi:web',
+  cameras: 'mdi:video-switch',
+  clips: 'mdi:filmstrip',
+  display_mode: 'mdi:grid',
+  download: 'mdi:download',
+  expand: 'mdi:arrow-expand-all',
+  folders: 'mdi:folder-multiple',
+  fullscreen: 'mdi:fullscreen',
+  gallery: 'mdi:play-box-multiple',
+  image: 'mdi:image',
+  info: 'mdi:information-outline',
+  iris: 'advanced-camera-card:iris',
+  live: 'mdi:cctv',
+  media_player: 'mdi:cast',
+  microphone: 'mdi:microphone-off',
+  mute: 'mdi:volume-off',
+  pip: 'mdi:picture-in-picture-bottom-right',
+  play: 'mdi:play',
+  ptz_controls: 'mdi:pan',
+  ptz_home: 'mdi:home',
+  recordings: 'mdi:album',
+  reviews: 'mdi:play-box-edit-outline',
+  screenshot: 'mdi:monitor-screenshot',
+  set_review: 'mdi:check-circle-outline',
+  snapshots: 'mdi:camera',
+  substreams: 'mdi:video-input-component',
+  timeline: 'mdi:chart-gantt',
 };
+
+const isMenuButtonName = (name: string): name is MenuButtonName =>
+  name in MENU_BUTTON_ICONS;
 
 export interface MenuButtonControllerOptions {
   callManager?: CallManager | null;
@@ -106,63 +124,88 @@ export class MenuButtonController {
     foldersManager: FoldersManager,
     options?: MenuButtonControllerOptions,
   ): MenuItem[] {
-    const buttons: MenuItem[] = [
-      this._getIrisButton(config),
-      this._getCamerasButton(config, cameraManager, options?.view),
-      this._getSubstreamsButton(config, cameraManager, options?.view),
-      this._getLiveButton(config, cameraManager, foldersManager, options?.view),
-      this._getClipsButton(config, cameraManager, foldersManager, options?.view),
-      this._getSnapshotsButton(config, cameraManager, foldersManager, options?.view),
-      this._getRecordingsButton(config, cameraManager, foldersManager, options?.view),
-      this._getReviewsButton(config, cameraManager, foldersManager, options?.view),
-      this._getGalleryButton(config, cameraManager, foldersManager, options?.view),
-      this._getImageButton(config, cameraManager, foldersManager, options?.view),
-      this._getTimelineButton(config, cameraManager, foldersManager, options?.view),
-      this._getDownloadButton(config, options?.viewItemManager, options?.view),
-      this._getInfoButton(config, cameraManager, options?.view),
-      this._getSetReviewButton(config, options?.view),
-      this._getCameraUIButton(config, options?.showCameraUIButton),
-      this._getCallButton(config, cameraManager, options?.callManager, options?.view),
-      this._getMicrophoneButton(
+    const builtInButtons: Record<MenuButtonName, MenuItem | null> = {
+      iris: this._getIrisButton(config),
+      cameras: this._getCamerasButton(config, cameraManager, options?.view),
+      substreams: this._getSubstreamsButton(config, cameraManager, options?.view),
+      live: this._getLiveButton(config, cameraManager, foldersManager, options?.view),
+      clips: this._getClipsButton(config, cameraManager, foldersManager, options?.view),
+      snapshots: this._getSnapshotsButton(
+        config,
+        cameraManager,
+        foldersManager,
+        options?.view,
+      ),
+      recordings: this._getRecordingsButton(
+        config,
+        cameraManager,
+        foldersManager,
+        options?.view,
+      ),
+      reviews: this._getReviewsButton(
+        config,
+        cameraManager,
+        foldersManager,
+        options?.view,
+      ),
+      gallery: this._getGalleryButton(
+        config,
+        cameraManager,
+        foldersManager,
+        options?.view,
+      ),
+      image: this._getImageButton(config, cameraManager, foldersManager, options?.view),
+      timeline: this._getTimelineButton(
+        config,
+        cameraManager,
+        foldersManager,
+        options?.view,
+      ),
+      download: this._getDownloadButton(config, options?.viewItemManager, options?.view),
+      info: this._getInfoButton(config, cameraManager, options?.view),
+      set_review: this._getSetReviewButton(config, options?.view),
+      camera_ui: this._getCameraUIButton(config, options?.showCameraUIButton),
+      call: this._getCallButton(
+        config,
+        cameraManager,
+        options?.callManager,
+        options?.view,
+      ),
+      microphone: this._getMicrophoneButton(
         config,
         cameraManager,
         options?.view,
         options?.microphoneManager,
         options?.callManager,
       ),
-      this._getExpandButton(config, options?.inExpandedMode),
-      this._getFullscreenButton(config, options?.fullscreenManager),
-      this._orUnavailable(
-        config,
-        'pip',
-        this._getPIPButton(config, options?.pipManager),
-      ),
-      this._getCastButton(
+      expand: this._getExpandButton(config, options?.inExpandedMode),
+      fullscreen: this._getFullscreenButton(config, options?.fullscreenManager),
+      pip: this._getPIPButton(config, options?.pipManager),
+      media_player: this._getCastButton(
         hass,
         config,
         cameraManager,
         options?.view,
         options?.mediaPlayerController,
       ),
-      this._orUnavailable(
+      play: this._getPlayPauseButton(config, options?.currentMediaLoadedInfo),
+      mute: this._getMuteUnmuteButton(config, options?.currentMediaLoadedInfo),
+      screenshot: this._getScreenshotButton(config, options?.currentMediaLoadedInfo),
+      display_mode: this._getDisplayModeButton(
         config,
-        'play',
-        this._getPlayPauseButton(config, options?.currentMediaLoadedInfo),
+        cameraManager,
+        foldersManager,
+        options?.view,
       ),
-      this._orUnavailable(
-        config,
-        'mute',
-        this._getMuteUnmuteButton(config, options?.currentMediaLoadedInfo),
-      ),
-      this._orUnavailable(
-        config,
-        'screenshot',
-        this._getScreenshotButton(config, options?.currentMediaLoadedInfo),
-      ),
-      this._getDisplayModeButton(config, cameraManager, foldersManager, options?.view),
-      this._getPTZControlsButton(config, cameraManager, options?.view),
-      this._getPTZHomeButton(config, cameraManager, options?.view),
-      this._getFoldersButton(config, foldersManager, options?.view),
+      ptz_controls: this._getPTZControlsButton(config, cameraManager, options?.view),
+      ptz_home: this._getPTZHomeButton(config, cameraManager, options?.view),
+      folders: this._getFoldersButton(config, foldersManager, options?.view),
+    };
+
+    const buttons: MenuItem[] = [
+      ...Object.keys(builtInButtons)
+        .filter(isMenuButtonName)
+        .map((name) => this._orUnavailable(config, name, builtInButtons[name])),
 
       ...this._dynamicMenuButtons.map((button) => ({
         ...button,
@@ -183,39 +226,33 @@ export class MenuButtonController {
   }
 
   /**
-   * Get a media button, or for an enabled one that is unavailable (the media
-   * is loading, or for mute, it has no audio) with
-   * `menu.unavailable_media_buttons: inert`, an inert button in its place, so the
-   * menu does not change while the media loads.
+   * Get the button, or an inert placeholder for an unavailable button
+   * configured with `unavailable: inert`.
    * @param config The card configuration.
    * @param name The button's name in `menu.buttons`.
    * @param button The button, or null when it is unavailable.
-   * @returns The button, the inert button, or null.
+   * @returns The button, the inert placeholder, or null.
    */
   private _orUnavailable(
     config: AdvancedCameraCardConfig,
-    name: MediaButtonName,
+    name: MenuButtonName,
     button: MenuItem | null,
   ): MenuItem | null {
-    if (
-      button ||
-      config.menu.unavailable_media_buttons !== 'inert' ||
-      !config.menu.buttons[name].enabled
-    ) {
-      return button;
-    }
-    return {
-      icon: MEDIA_BUTTONS[name].icon,
-      ...config.menu.buttons[name],
-      type: 'custom:advanced-camera-card-menu-icon',
-      title: localize(MEDIA_BUTTONS[name].title),
-      inert: true,
-    };
+    const buttonConfig = config.menu.buttons[name];
+    return button || buttonConfig.unavailable !== 'inert'
+      ? button
+      : {
+          icon: MENU_BUTTON_ICONS[name],
+          ...buttonConfig,
+          type: 'custom:advanced-camera-card-menu-icon',
+          title: localize(`config.menu.buttons.${name}`),
+          inert: true,
+        };
   }
 
   private _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {
     return {
-      icon: 'advanced-camera-card:iris',
+      icon: MENU_BUTTON_ICONS.iris,
       ...config.menu.buttons.iris,
       type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.iris'),
@@ -254,7 +291,7 @@ export class MenuButtonController {
       });
 
       return {
-        icon: 'mdi:video-switch',
+        icon: MENU_BUTTON_ICONS.cameras,
         ...config.menu.buttons.cameras,
         type: 'custom:advanced-camera-card-menu-submenu',
         title: localize('config.menu.buttons.cameras'),
@@ -288,7 +325,7 @@ export class MenuButtonController {
         // If there are only two dependencies (the main camera, and 1 other)
         // then use a button not a menu to toggle.
         return {
-          icon: 'mdi:video-input-component',
+          icon: MENU_BUTTON_ICONS.substreams,
           title: localize('config.menu.buttons.substreams'),
           ...config.menu.buttons.substreams,
           style: this._getStyle(
@@ -317,7 +354,7 @@ export class MenuButtonController {
         });
 
         return {
-          icon: 'mdi:video-input-component',
+          icon: MENU_BUTTON_ICONS.substreams,
           title: localize('config.menu.buttons.substreams'),
           ...config.menu.buttons.substreams,
           style: this._getStyle(
@@ -342,7 +379,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return isViewSupported('live', cameraManager, foldersManager, view?.camera)
       ? {
-          icon: 'mdi:cctv',
+          icon: MENU_BUTTON_ICONS.live,
           ...config.menu.buttons.live,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.live'),
@@ -363,7 +400,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return isViewSupported('clips', cameraManager, foldersManager, view?.camera)
       ? {
-          icon: 'mdi:filmstrip',
+          icon: MENU_BUTTON_ICONS.clips,
           ...config.menu.buttons.clips,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.clips'),
@@ -385,7 +422,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return isViewSupported('snapshots', cameraManager, foldersManager, view?.camera)
       ? {
-          icon: 'mdi:camera',
+          icon: MENU_BUTTON_ICONS.snapshots,
           ...config.menu.buttons.snapshots,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.snapshots'),
@@ -407,7 +444,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return isViewSupported('recordings', cameraManager, foldersManager, view?.camera)
       ? {
-          icon: 'mdi:album',
+          icon: MENU_BUTTON_ICONS.recordings,
           ...config.menu.buttons.recordings,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.recordings'),
@@ -429,7 +466,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return isViewSupported('reviews', cameraManager, foldersManager, view?.camera)
       ? {
-          icon: 'mdi:play-box-edit-outline',
+          icon: MENU_BUTTON_ICONS.reviews,
           ...config.menu.buttons.reviews,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.reviews'),
@@ -451,7 +488,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return isViewSupported('gallery', cameraManager, foldersManager, view?.camera)
       ? {
-          icon: 'mdi:play-box-multiple',
+          icon: MENU_BUTTON_ICONS.gallery,
           ...config.menu.buttons.gallery,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.gallery'),
@@ -473,7 +510,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return isViewSupported('image', cameraManager, foldersManager, view?.camera)
       ? {
-          icon: 'mdi:image',
+          icon: MENU_BUTTON_ICONS.image,
           ...config.menu.buttons.image,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.image'),
@@ -494,7 +531,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return isViewSupported('timeline', cameraManager, foldersManager, view?.camera)
       ? {
-          icon: 'mdi:chart-gantt',
+          icon: MENU_BUTTON_ICONS.timeline,
           ...config.menu.buttons.timeline,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.timeline'),
@@ -518,7 +555,7 @@ export class MenuButtonController {
       : null;
     if (view?.isViewerView() && capabilities?.canDownload && !isBeingCasted()) {
       return {
-        icon: 'mdi:download',
+        icon: MENU_BUTTON_ICONS.download,
         ...config.menu.buttons.download,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.download'),
@@ -541,7 +578,7 @@ export class MenuButtonController {
       return null;
     }
     return {
-      icon: 'mdi:information-outline',
+      icon: MENU_BUTTON_ICONS.info,
       ...config.menu.buttons.info,
       type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.info'),
@@ -563,7 +600,7 @@ export class MenuButtonController {
     }
 
     return {
-      icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline',
+      icon: isReviewed ? 'mdi:check-circle' : MENU_BUTTON_ICONS.set_review,
       ...config.menu.buttons.set_review,
       type: 'custom:advanced-camera-card-menu-icon',
       title: isReviewed
@@ -583,7 +620,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     return showCameraUIButton
       ? {
-          icon: 'mdi:web',
+          icon: MENU_BUTTON_ICONS.camera_ui,
           ...config.menu.buttons.camera_ui,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.camera_ui'),
@@ -641,7 +678,7 @@ export class MenuButtonController {
     // Idle, single target: a plain button (`call_start` resolves the default).
     if (targets.length === 1) {
       return {
-        icon: 'mdi:phone',
+        icon: MENU_BUTTON_ICONS.call,
         title: localize('config.live.controls.call.start'),
         ...config.menu.buttons.call,
         type: 'custom:advanced-camera-card-menu-icon',
@@ -666,7 +703,7 @@ export class MenuButtonController {
     });
 
     return {
-      icon: 'mdi:phone',
+      icon: MENU_BUTTON_ICONS.call,
       title: localize('config.live.controls.call.start'),
       ...config.menu.buttons.call,
       type: 'custom:advanced-camera-card-menu-submenu',
@@ -702,7 +739,7 @@ export class MenuButtonController {
         icon: unavailable
           ? 'mdi:microphone-message-off'
           : muted
-            ? 'mdi:microphone-off'
+            ? MENU_BUTTON_ICONS.microphone
             : 'mdi:microphone',
         ...config.menu.buttons.microphone,
         type: 'custom:advanced-camera-card-menu-icon',
@@ -732,7 +769,7 @@ export class MenuButtonController {
     inExpandedMode?: boolean,
   ): MenuItem {
     return {
-      icon: inExpandedMode ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all',
+      icon: inExpandedMode ? 'mdi:arrow-collapse-all' : MENU_BUTTON_ICONS.expand,
       ...config.menu.buttons.expand,
       type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.expand'),
@@ -751,7 +788,7 @@ export class MenuButtonController {
     const inFullscreen = fullscreenManager?.isInFullscreen();
     return fullscreenManager?.isSupported()
       ? {
-          icon: inFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
+          icon: inFullscreen ? 'mdi:fullscreen-exit' : MENU_BUTTON_ICONS.fullscreen,
           ...config.menu.buttons.fullscreen,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.fullscreen'),
@@ -773,7 +810,7 @@ export class MenuButtonController {
       ? {
           icon: inPIP
             ? 'mdi:picture-in-picture-bottom-right-outline'
-            : 'mdi:picture-in-picture-bottom-right',
+            : MENU_BUTTON_ICONS.pip,
           ...config.menu.buttons.pip,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.pip'),
@@ -825,7 +862,7 @@ export class MenuButtonController {
         });
 
       return {
-        icon: 'mdi:cast',
+        icon: MENU_BUTTON_ICONS.media_player,
         ...config.menu.buttons.media_player,
         type: 'custom:advanced-camera-card-menu-submenu',
         title: localize('config.menu.buttons.media_player'),
@@ -846,7 +883,7 @@ export class MenuButtonController {
     ) {
       const paused = currentMediaLoadedInfo.mediaPlayerController?.playback?.isPaused();
       return {
-        icon: paused ? 'mdi:play' : 'mdi:pause',
+        icon: paused ? MENU_BUTTON_ICONS.play : 'mdi:pause',
         ...config.menu.buttons.play,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.play'),
@@ -867,7 +904,7 @@ export class MenuButtonController {
     ) {
       const muted = currentMediaLoadedInfo.mediaPlayerController?.isMuted();
       return {
-        icon: muted ? 'mdi:volume-off' : 'mdi:volume-high',
+        icon: muted ? MENU_BUTTON_ICONS.mute : 'mdi:volume-high',
         ...config.menu.buttons.mute,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.mute'),
@@ -883,7 +920,7 @@ export class MenuButtonController {
   ): MenuItem | null {
     if (currentMediaLoadedInfo && currentMediaLoadedInfo.mediaPlayerController) {
       return {
-        icon: 'mdi:monitor-screenshot',
+        icon: MENU_BUTTON_ICONS.screenshot,
         ...config.menu.buttons.screenshot,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.screenshot'),
@@ -909,7 +946,7 @@ export class MenuButtonController {
     ) {
       const isGrid = view.isGrid();
       return {
-        icon: isGrid ? 'mdi:grid-off' : 'mdi:grid',
+        icon: isGrid ? 'mdi:grid-off' : MENU_BUTTON_ICONS.display_mode,
         ...config.menu.buttons.display_mode,
         style: this._getStyle(
           config.menu.buttons.display_mode,
@@ -951,7 +988,7 @@ export class MenuButtonController {
           : ptzConfig.mode === 'on' ||
             (ptzConfig.mode === 'auto' && ptzTarget.type === 'ptz');
       return {
-        icon: 'mdi:pan',
+        icon: MENU_BUTTON_ICONS.ptz_controls,
         ...config.menu.buttons.ptz_controls,
         style: this._getStyle(
           config.menu.buttons.ptz_controls,
@@ -986,7 +1023,7 @@ export class MenuButtonController {
     }
 
     return {
-      icon: 'mdi:home',
+      icon: MENU_BUTTON_ICONS.ptz_home,
       ...config.menu.buttons.ptz_home,
       type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.ptz_home'),
@@ -1040,7 +1077,7 @@ export class MenuButtonController {
     });
 
     return {
-      icon: 'mdi:folder-multiple',
+      icon: MENU_BUTTON_ICONS.folders,
       ...config.menu.buttons.folders,
       type: 'custom:advanced-camera-card-menu-submenu',
       title: localize('config.menu.buttons.folders'),

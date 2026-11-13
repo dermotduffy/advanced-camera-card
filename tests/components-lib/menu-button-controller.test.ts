@@ -3138,97 +3138,101 @@ describe('MenuButtonController', () => {
     });
   });
   describe('should handle unavailable buttons', () => {
-    const allButtonsEnabled = {
-      call: { enabled: true },
-      camera_ui: { enabled: true },
-      cameras: { enabled: true },
-      clips: { enabled: true },
-      display_mode: { enabled: true },
-      download: { enabled: true },
-      folders: { enabled: true },
-      fullscreen: { enabled: true },
-      gallery: { enabled: true },
-      image: { enabled: true },
-      info: { enabled: true },
-      live: { enabled: true },
-      media_player: { enabled: true },
-      microphone: { enabled: true },
-      mute: { enabled: true },
-      pip: { enabled: true },
-      play: { enabled: true },
-      ptz_controls: { enabled: true },
-      ptz_home: { enabled: true },
-      recordings: { enabled: true },
-      reviews: { enabled: true },
-      screenshot: { enabled: true },
-      set_review: { enabled: true },
-      snapshots: { enabled: true },
-      substreams: { enabled: true },
-      timeline: { enabled: true },
-    };
+    const getMute = (buttons: MenuItem[]): MenuItem | null =>
+      buttons.find((button) => button.title === 'Mute / Unmute') ?? null;
 
-    it('should omit an unavailable button by default', () => {
+    it('should hide an unavailable button by default', () => {
       const buttons = calculateButtons(controller, {
         config: createConfig({ menu: { buttons: { mute: { enabled: true } } } }),
       });
 
-      expect(buttons).not.toContainEqual(
-        expect.objectContaining({ title: 'Mute / Unmute' }),
-      );
+      expect(getMute(buttons)).toBeNull();
     });
 
-    it('should show an enabled unavailable button inert', () => {
-      const buttons = calculateButtons(controller, {
-        config: createConfig({
-          menu: {
-            unavailable_media_buttons: 'inert',
-            buttons: { mute: { enabled: true } },
+    it.each([
+      { name: 'call', icon: 'mdi:phone', title: 'Call / Two-way audio' },
+      { name: 'camera_ui', icon: 'mdi:web', title: 'Camera user interface' },
+      { name: 'cameras', icon: 'mdi:video-switch', title: 'Cameras' },
+      { name: 'clips', icon: 'mdi:filmstrip', title: 'Clips' },
+      { name: 'display_mode', icon: 'mdi:grid', title: 'Display mode' },
+      { name: 'download', icon: 'mdi:download', title: 'Download' },
+      { name: 'folders', icon: 'mdi:folder-multiple', title: 'Folders' },
+      { name: 'fullscreen', icon: 'mdi:fullscreen', title: 'Fullscreen' },
+      { name: 'gallery', icon: 'mdi:play-box-multiple', title: 'Gallery' },
+      { name: 'image', icon: 'mdi:image', title: 'Image' },
+      { name: 'info', icon: 'mdi:information-outline', title: 'Info' },
+      { name: 'live', icon: 'mdi:cctv', title: 'Live' },
+      { name: 'media_player', icon: 'mdi:cast', title: 'Send to media player' },
+      { name: 'microphone', icon: 'mdi:microphone-off', title: 'Microphone' },
+      { name: 'mute', icon: 'mdi:volume-off', title: 'Mute / Unmute' },
+      {
+        name: 'pip',
+        icon: 'mdi:picture-in-picture-bottom-right',
+        title: 'Picture in Picture',
+      },
+      { name: 'play', icon: 'mdi:play', title: 'Play / Pause' },
+      { name: 'ptz_controls', icon: 'mdi:pan', title: 'Show PTZ controls' },
+      { name: 'ptz_home', icon: 'mdi:home', title: 'PTZ Home' },
+      { name: 'recordings', icon: 'mdi:album', title: 'Recordings' },
+      { name: 'reviews', icon: 'mdi:play-box-edit-outline', title: 'Reviews' },
+      { name: 'screenshot', icon: 'mdi:monitor-screenshot', title: 'Screenshot' },
+      {
+        name: 'set_review',
+        icon: 'mdi:check-circle-outline',
+        title: 'Set review status',
+      },
+      { name: 'snapshots', icon: 'mdi:camera', title: 'Snapshots' },
+      { name: 'substreams', icon: 'mdi:video-input-component', title: 'Substream(s)' },
+      { name: 'timeline', icon: 'mdi:chart-gantt', title: 'Timeline' },
+    ])(
+      'should show an unavailable $name button inert when configured',
+      ({ name, icon, title }) => {
+        vi.mocked(isViewSupported).mockReturnValue(false);
+        const buttons = calculateButtons(controller, {
+          config: createConfig({
+            menu: { buttons: { [name]: { enabled: true, unavailable: 'inert' } } },
+          }),
+          view: createView({ camera: null }),
+        });
+
+        expect(buttons.filter((button) => button.inert)).toEqual([
+          {
+            alignment: 'matching',
+            enabled: true,
+            icon,
+            inert: true,
+            permanent: false,
+            priority: 50,
+            state_color: true,
+            title,
+            type: 'custom:advanced-camera-card-menu-icon',
+            unavailable: 'inert',
           },
-        }),
-      });
-
-      const mute = buttons.find((button) => button.title === 'Mute / Unmute');
-      expect(mute).toEqual({
-        alignment: 'matching',
-        enabled: true,
-        icon: 'mdi:volume-off',
-        inert: true,
-        permanent: false,
-        priority: 50,
-        state_color: true,
-        title: 'Mute / Unmute',
-        type: 'custom:advanced-camera-card-menu-icon',
-      });
-      expect(mute).not.toHaveProperty('tap_action');
-    });
+        ]);
+      },
+    );
 
     it('should keep the configured icon on an inert button', () => {
       const buttons = calculateButtons(controller, {
         config: createConfig({
           menu: {
-            unavailable_media_buttons: 'inert',
-            buttons: { mute: { enabled: true, icon: 'mdi:speaker' } },
+            buttons: {
+              mute: { enabled: true, icon: 'mdi:speaker', unavailable: 'inert' },
+            },
           },
         }),
       });
 
-      expect(buttons).toContainEqual(
-        expect.objectContaining({
-          title: 'Mute / Unmute',
-          icon: 'mdi:speaker',
-          inert: true,
-        }),
-      );
+      expect(getMute(buttons)?.icon).toBe('mdi:speaker');
     });
 
-    it('should not show a disabled unavailable button', () => {
+    it('should keep a disabled inert button disabled', () => {
       const buttons = calculateButtons(controller, {
-        config: createConfig({ menu: { unavailable_media_buttons: 'inert' } }),
+        config: createConfig({ menu: { buttons: { mute: { unavailable: 'inert' } } } }),
       });
 
-      // mute is disabled by default.
-      expect(buttons).not.toContainEqual(
-        expect.objectContaining({ title: 'Mute / Unmute' }),
+      expect(getMute(buttons)).toEqual(
+        expect.objectContaining({ enabled: false, inert: true }),
       );
     });
 
@@ -3237,10 +3241,7 @@ describe('MenuButtonController', () => {
       mediaPlayerController.isMuted.mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         config: createConfig({
-          menu: {
-            unavailable_media_buttons: 'inert',
-            buttons: { mute: { enabled: true } },
-          },
+          menu: { buttons: { mute: { enabled: true, unavailable: 'inert' } } },
         }),
         currentMediaLoadedInfo: createMediaLoadedInfo({
           capabilities: { hasAudio: true },
@@ -3248,31 +3249,87 @@ describe('MenuButtonController', () => {
         }),
       });
 
-      const mute = buttons.find((button) => button.title === 'Mute / Unmute');
+      const mute = getMute(buttons);
       expect(mute?.inert).toBeUndefined();
       expect(mute?.tap_action).toEqual(createGeneralAction('unmute'));
     });
 
-    it('should show only the media buttons inert', () => {
+    it('should keep the built-in buttons in menu order', () => {
+      // Every button is enabled and unavailable, so each one is present as its
+      // inert placeholder (iris and expand are always available).
+      const names = [
+        'iris',
+        'cameras',
+        'substreams',
+        'live',
+        'clips',
+        'snapshots',
+        'recordings',
+        'reviews',
+        'gallery',
+        'image',
+        'timeline',
+        'download',
+        'info',
+        'set_review',
+        'camera_ui',
+        'call',
+        'microphone',
+        'expand',
+        'fullscreen',
+        'pip',
+        'media_player',
+        'play',
+        'mute',
+        'screenshot',
+        'display_mode',
+        'ptz_controls',
+        'ptz_home',
+        'folders',
+      ];
       vi.mocked(isViewSupported).mockReturnValue(false);
+
       const buttons = calculateButtons(controller, {
         config: createConfig({
-          menu: { unavailable_media_buttons: 'inert', buttons: allButtonsEnabled },
+          menu: {
+            buttons: Object.fromEntries(
+              names.map((name) => [name, { enabled: true, unavailable: 'inert' }]),
+            ),
+          },
         }),
         view: createView({ camera: null }),
       });
 
-      const inert = buttons.filter((button) => button.inert);
-      expect(inert.map((button) => button.icon)).toEqual([
-        'mdi:picture-in-picture-bottom-right',
-        'mdi:play',
-        'mdi:volume-off',
-        'mdi:monitor-screenshot',
+      expect(buttons.map((button) => button.title)).toEqual([
+        'Iris / Default View / Unhide menu',
+        'Cameras',
+        'Substream(s)',
+        'Live',
+        'Clips',
+        'Snapshots',
+        'Recordings',
+        'Reviews',
+        'Gallery',
+        'Image',
+        'Timeline',
+        'Download',
+        'Info',
+        'Set review status',
+        'Camera user interface',
+        'Call / Two-way audio',
+        'Microphone',
+        'Expand',
+        'Fullscreen',
+        'Picture in Picture',
+        'Send to media player',
+        'Play / Pause',
+        'Mute / Unmute',
+        'Screenshot',
+        'Display mode',
+        'Show PTZ controls',
+        'PTZ Home',
+        'Folders',
       ]);
-      expect(inert.every((button) => !button.tap_action)).toBe(true);
-      // Other unavailable buttons are left out; iris and expand are always
-      // available.
-      expect(buttons).toHaveLength(inert.length + 2);
     });
   });
 });

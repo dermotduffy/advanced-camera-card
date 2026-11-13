@@ -81,6 +81,23 @@ describe('AdvancedCameraCardMenu', () => {
     expect(icon && getComputedStyle(icon).backgroundColor).toBe(TRANSPARENT);
   });
 
+  it('should show an unavailable button disabled when configured inert', async () => {
+    // A still image has no audio, so the mute button stays unavailable.
+    const card = await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        menu: {
+          style: 'outside',
+          buttons: { mute: { enabled: true, unavailable: 'inert' } },
+        },
+      }),
+      createGenericCameraHASS(),
+    );
+
+    const button = await card.findControl('Mute / Unmute');
+
+    expect(button.hasAttribute('disabled')).toBe(true);
+  });
+
   describe('download button', () => {
     it('should have a download button for camera media', async () => {
       const { card } = await mountCardWithFrigate(
