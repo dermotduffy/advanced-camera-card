@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { actionsSchema } from './actions/types';
+import { buttonBaseSchema } from './common/button';
 import { BUTTON_SIZE_MIN } from './common/const';
 import { nextPreviousControlConfigSchema } from './common/controls/next-previous';
 import { ptzControlsConfigSchema, ptzControlsDefaults } from './common/controls/ptz';
@@ -22,7 +23,6 @@ import {
   MICROPHONE_UNMUTE_CONDITIONS,
 } from './common/media-actions';
 import { transitionEffectConfigSchema } from './common/transition-effect';
-import { menuBaseSchema } from './elements/custom/menu/base';
 
 const microphoneAudioProcessingDefault = {
   auto_gain_control: 'auto' as const,
@@ -72,20 +72,12 @@ const ringtoneConfigSchema = z.object({
 });
 export type RingtoneConfig = z.infer<typeof ringtoneConfigSchema>;
 
-// The icon and style of a call control button, as for a menu button: a
-// configured icon replaces the button's own (in every state), a configured
-// style is merged over its own (e.g. its emphasis colour), and `progress`
-// spins a ring around it. With `overrides` they can follow conditions.
-const callButtonSchema = menuBaseSchema.pick({ icon: true, style: true }).extend({
-  progress: z.boolean().optional(),
-});
-
 const callButtonsSchema = z.object({
-  answer: callButtonSchema.optional(),
-  reject: callButtonSchema.optional(),
-  end: callButtonSchema.optional(),
-  microphone: callButtonSchema.optional(),
-  audio: callButtonSchema.optional(),
+  answer: buttonBaseSchema.optional(),
+  reject: buttonBaseSchema.optional(),
+  end: buttonBaseSchema.optional(),
+  microphone: buttonBaseSchema.optional(),
+  mute: buttonBaseSchema.optional(),
 });
 export type CallButtonsConfig = z.infer<typeof callButtonsSchema>;
 

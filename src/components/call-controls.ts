@@ -33,10 +33,10 @@ import './icon.js';
  * The on-screen overlay shown during a two-way audio call: a centered pill
  * whose contents depend on call state. Pre-answer (inbound ringing) shows
  * reject + answer; post-answer (or outbound) shows end-call + microphone
- * toggle + audio-out toggle.
+ * toggle + mute toggle.
  *
  * This is a purely presentational control showing state and emitting intents.
- * Button taps dispatch actions; the audio-out button fires an
+ * Button taps dispatch actions; the mute button fires an
  * `advanced-camera-card:call:mute-toggle` event for the host to act on.
  */
 @customElement('advanced-camera-card-call-controls')
@@ -47,7 +47,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
   public active = false;
 
   // Whether that call has been answered. Selects between the pre-answer (reject
-  // + answer) and post-answer (end + mic + audio) button sets.
+  // + answer) and post-answer (end + mic + mute) button sets.
   @property({ attribute: false })
   public answered = true;
 
@@ -61,13 +61,8 @@ export class AdvancedCameraCardCallControls extends LitElement {
   @property({ attribute: false })
   public buttonSize?: number;
 
-  // A configured icon and style per button (`live.controls.call.buttons`).
   @property({ attribute: false })
   public buttonsConfig?: CallButtonsConfig;
-
-  // Whether a progress ring turns (`performance.features.animated_progress_indicator`).
-  @property({ attribute: false })
-  public progressAnimated = true;
 
   // True while the exit animation plays after `active` turns false.
   @state()
@@ -186,7 +181,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
           },
         )}
         ${this._renderButton(
-          'audio',
+          'mute',
           audioMuted ? 'mdi:volume-off' : 'mdi:volume-high',
           audioMuted
             ? localize('config.live.controls.call.unmute_audio')
@@ -226,21 +221,18 @@ export class AdvancedCameraCardCallControls extends LitElement {
     },
   ): TemplateResult {
     // As for a menu button: a configured icon replaces the button's own, a
-    // configured style is merged over it (and colours the icon too). With
-    // `progress`, a ring spins around the button (or stands still when
-    // animated progress indicators are switched off).
+    // configured style is merged over it (and colors the icon too).
     const config = this.buttonsConfig?.[name];
-    const progress = !!config?.progress;
+    const inProgress = !!config?.in_progress;
     return html`
       <ha-icon-button
         .label=${label}
         title=${label}
         ?disabled=${!!options?.disabled}
-        aria-busy=${progress ? 'true' : nothing}
+        aria-busy=${inProgress ? 'true' : nothing}
         class=${classMap({
           ...(options?.emphasis && { [options.emphasis]: true }),
-          progress,
-          'progress-static': progress && !this.progressAnimated,
+          'in-progress': inProgress,
         })}
         style=${styleMap(getStyleWithStateIconColor(config?.style))}
         @click=${() => {

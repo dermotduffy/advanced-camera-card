@@ -72,7 +72,7 @@ live:
 
 #### `buttons`
 
-The icon and style of each call control button, as for [menu buttons](./menu.md): a configured `icon` replaces the button's own icon in all its states, and a configured `style` is merged over its own (so a `color` replaces its emphasis colour, and colours the icon). Combined with [`overrides`](./overrides.md) they can follow [conditions](./conditions-triggers.md), e.g. to show a ring around the microphone while a camera's talk session connects:
+The icon and style of each call control button. As with [menu buttons](./menu.md), a configured `icon` replaces the button's own, and a configured `style` is merged over its own (a `color` also colors the icon). Use [`overrides`](./overrides.md) to change them under [conditions](./conditions-triggers.md).
 
 ```yaml
 live:
@@ -86,7 +86,7 @@ live:
             color: orange
 ```
 
-The microphone and audio buttons show by their icon (and the open microphone by its colour) whether they are muted: a configured `icon` or `color` on them hides that, unless it is set through an override that only applies in one state (e.g. with the [`microphone` condition](./conditions-triggers.md)).
+The microphone and mute buttons show whether they are muted through their icon (and the microphone also through its color). A configured `icon` or `color` hides that, unless an override sets it for one state only (e.g. with the [`microphone` condition](./conditions-triggers.md)).
 
 | Button       | Shown            |
 | ------------ | ---------------- |
@@ -94,30 +94,15 @@ The microphone and audio buttons show by their icon (and the open microphone by 
 | `reject`     | before answering |
 | `end`        | after answering  |
 | `microphone` | after answering  |
-| `audio`      | after answering  |
+| `mute`       | after answering  |
 
 Each takes:
 
-| Option     | Default | Description                                                                                                                                                                                                                                                                          |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `icon`     |         | An icon in place of the button's own (e.g. `mdi:phone-in-talk`).                                                                                                                                                                                                                     |
-| `style`    |         | CSS properties for the button (e.g. `color: green`).                                                                                                                                                                                                                                 |
-| `progress` | `false` | Whether a ring spins around the button (in the button's colour), e.g. while something it depends on is getting ready. The ring stands still with [`performance.features.animated_progress_indicator`](./performance.md) set to `false`, and when the system asks for reduced motion. |
-
-Example: a spinning ring around the microphone while the talk session connects, until an entity that reports it is `ready`:
-
-```yaml
-overrides:
-  - conditions:
-      - condition: microphone
-        muted: false
-      - condition: state
-        entity: sensor.office_talk
-        state_not: ready
-    merge:
-      live.controls.call.buttons.microphone:
-        progress: true
-```
+| Option        | Default | Description                                                                                                                                                                           |
+| ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `icon`        |         | An icon in place of the button's own (e.g. `mdi:phone-in-talk`).                                                                                                                      |
+| `in_progress` | `false` | Whether an "in progress ring" is shown around the button (e.g. while something it depends on is loading/waiting). See [example](../examples.md?id=show-a-call-button-as-in-progress). |
+| `style`       |         | CSS properties for the button (e.g. `color: green`).                                                                                                                                  |
 
 #### `ringtone`
 
@@ -340,7 +325,10 @@ live:
       buttons:
         answer:
           icon: mdi:phone
-          progress: false
+          in_progress: false
+          style:
+            # Optionally override the default style.
+            color: green
       lock: true
       ringtone:
         type: chime

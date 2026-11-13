@@ -1407,6 +1407,56 @@ overrides:
       - 'cameras[1]'
 ```
 
+### Show a call button as in progress
+
+This example shows a spinning ring around the call microphone button while the
+office camera's talk session connects, as reported by an entity that is `ready`
+once the camera can hear the caller.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+  - camera_entity: camera.kitchen
+overrides:
+  - conditions:
+      - condition: camera
+        cameras: [camera.office]
+      - condition: microphone
+        muted: false
+      - condition: state
+        entity: sensor.office_talk
+        state_not: ready
+    merge:
+      live.controls.call.buttons.microphone:
+        in_progress: true
+```
+
+### Show a menu button as in progress
+
+This example shows a spinning ring around a gate button in the menu while the
+gate opens or closes.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.driveway
+elements:
+  - type: custom:advanced-camera-card-menu-state-icon
+    entity: cover.gate
+    icon: mdi:gate
+    tap_action:
+      action: toggle
+overrides:
+  - conditions:
+      - condition: state
+        entity: cover.gate
+        state: [opening, closing]
+    merge:
+      'elements[0]':
+        in_progress: true
+```
+
 ### Disable PTZ controls in the Home Assistant Companion App
 
 This example disables the PTZ controls when the card is viewed on the Companion app:

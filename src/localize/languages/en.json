@@ -475,13 +475,12 @@
           "answer": "Answer call",
           "button_size": "Call control button size",
           "buttons": {
-            "answer": "Answer button",
-            "audio": "Audio button",
+            "answer": "Answer call button",
             "editor_label": "Buttons",
-            "end": "End button",
-            "microphone": "Microphone button",
-            "progress": "Show a spinning ring around the button",
-            "reject": "Reject button"
+            "end": "End call button",
+            "microphone": "Microphone mute button",
+            "mute": "Mute / Unmute button",
+            "reject": "Reject call button"
           },
           "editor_label": "Two-way audio call",
           "enabled": "Show on-screen call controls",

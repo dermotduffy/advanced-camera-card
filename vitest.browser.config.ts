@@ -2,6 +2,7 @@ import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 
 import { svgPath } from './scripts/vite/plugins/svg-path.js';
+import { browserCommands } from './scripts/vitest/browser-commands.js';
 import { getBrowsers, type Browser } from './scripts/vitest/browsers.js';
 
 // Browser tests mount the real card in a browser. Their own config rather than
@@ -125,6 +126,11 @@ export default defineConfig({
       instances: getBrowsers().map((browser: Browser) => ({ browser })),
 
       screenshotDirectory: '.vitest/screenshots',
+
+      // Functions that run in Node (not in the browser under test). A test
+      // calls one from the browser by importing `commands` from
+      // `vitest/browser`, and vitest forwards the call.
+      commands: browserCommands,
     },
 
     // Keep the output clean, as the unit tests do, but hand over everything a

@@ -463,8 +463,6 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         .muted=${callMediaPlayerController?.isMuted()}
         .buttonSize=${this.liveConfig.controls.call.button_size}
         .buttonsConfig=${this.liveConfig.controls.call.buttons}
-        .progressAnimated=${this.cardWideConfig?.performance?.features
-          .animated_progress_indicator ?? true}
         @advanced-camera-card:call:mute-toggle=${() => this._toggleMute()}
       >
       </advanced-camera-card-call-controls>

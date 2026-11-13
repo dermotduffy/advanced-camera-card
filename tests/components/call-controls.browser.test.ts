@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 
 import '../../src/components/call-controls';
 
@@ -7,10 +8,18 @@ import type { CallButtonsConfig } from '../../src/config/schema/live';
 import { deepQueryAll } from '../browser/dom';
 import { defineHAElementStubs } from '../browser/ha-element-stubs';
 
+declare module 'vitest/browser' {
+  interface BrowserCommands {
+    emulateReducedMotion: (
+      reducedMotion: 'reduce' | 'no-preference' | null,
+    ) => Promise<void>;
+  }
+}
+
 const mount = async (options?: {
   answered?: boolean;
   buttonsConfig?: CallButtonsConfig;
-  progressAnimated?: boolean;
+  animationOverride?: string;
 }): Promise<AdvancedCameraCardCallControls> => {
   defineHAElementStubs();
 
@@ -18,8 +27,11 @@ const mount = async (options?: {
   controls.active = true;
   controls.answered = options?.answered ?? true;
   controls.buttonsConfig = options?.buttonsConfig;
-  if (options?.progressAnimated !== undefined) {
-    controls.progressAnimated = options.progressAnimated;
+  if (options?.animationOverride) {
+    controls.style.setProperty(
+      '--advanced-camera-card-in-progress-animation-override',
+      options.animationOverride,
+    );
   }
   document.body.append(controls);
 
@@ -35,6 +47,12 @@ const getButtonIcons = (controls: AdvancedCameraCardCallControls): (string | nul
     const icon = button.querySelector('advanced-camera-card-icon');
     return icon?.icon?.icon ?? null;
   });
+
+const expectStillRing = (button: HTMLElement): void => {
+  const ring = getComputedStyle(button, '::after');
+  expect(ring.content).not.toBe('none');
+  expect(ring.animationName).toBe('none');
+};
 
 afterEach(() => {
   document.querySelectorAll('advanced-camera-card-call-controls').forEach((controls) => {
@@ -71,53 +89,47 @@ describe('AdvancedCameraCardCallControls', () => {
     ]);
   });
 
-  it('should spin a ring around a button with progress, not its icon', async () => {
+  it('should draw a ring around a button in progress', async () => {
     const controls = await mount({
       answered: false,
-      buttonsConfig: { answer: { progress: true } },
+      buttonsConfig: { answer: { in_progress: true } },
     });
 
     const [reject, answer] = deepQueryAll<HTMLElement>(controls, 'ha-icon-button');
-    // The progress class sits next to the button's own emphasis.
-    expect([...answer.classList].sort()).toEqual(['positive', 'progress']);
+
+    // The in-progress class sits next to the button's own emphasis.
+    expect([...answer.classList].sort()).toEqual(['in-progress', 'positive']);
     expect(answer.getAttribute('aria-busy')).toBe('true');
     expect(reject.hasAttribute('aria-busy')).toBe(false);
-    expect(getComputedStyle(answer, '::after').animationName).toBe('progress-rotate');
-    expect(getComputedStyle(answer).animationName).not.toBe('progress-rotate');
-    expect(reject.classList.contains('progress')).toBe(false);
+    expect(getComputedStyle(answer, '::after').animationName).toBe('in-progress-rotate');
+    expect(getComputedStyle(answer).animationName).not.toBe('in-progress-rotate');
+    expect(reject.classList.contains('in-progress')).toBe(false);
     expect(getComputedStyle(reject, '::after').animationName).toBe('none');
   });
 
-  it('should keep the ring still when animated progress is off', async () => {
+  it('should keep the ring still when the animation is overridden', async () => {
     const controls = await mount({
-      buttonsConfig: { microphone: { progress: true } },
-      progressAnimated: false,
+      buttonsConfig: { microphone: { in_progress: true } },
+      animationOverride: 'none',
     });
 
-    const microphone = deepQueryAll<HTMLElement>(controls, 'ha-icon-button')[1];
-    const ring = getComputedStyle(microphone, '::after');
-    expect(ring.content).not.toBe('none');
-    expect(ring.animationName).toBe('none');
+    expectStillRing(deepQueryAll<HTMLElement>(controls, 'ha-icon-button')[1]);
   });
 
-  it('should stop the ring for reduced motion', async () => {
-    const controls = await mount();
+  it('should keep the ring still with a reduced motion preference', async () => {
+    const controls = await mount({
+      buttonsConfig: { microphone: { in_progress: true } },
+    });
 
-    // The browser cannot be switched to reduced motion from here: check the
-    // rule that stops the ring is in the stylesheet.
-    const rules = (controls.shadowRoot?.adoptedStyleSheets ?? []).flatMap((sheet) => [
-      ...sheet.cssRules,
-    ]);
-    const reduced = rules.find(
-      (rule): rule is CSSMediaRule =>
-        rule instanceof CSSMediaRule &&
-        rule.conditionText.includes('prefers-reduced-motion: reduce'),
-    );
-    const ring = [...(reduced?.cssRules ?? [])].find(
-      (rule): rule is CSSStyleRule =>
-        rule instanceof CSSStyleRule && rule.selectorText.includes('.progress::after'),
-    );
-    expect(ring?.style.animationName).toBe('none');
+    // WebKit ignores a preference change for shadow root styles that no
+    // mounted element uses, so the preference changes only while the controls
+    // are mounted.
+    await commands.emulateReducedMotion('reduce');
+    try {
+      expectStillRing(deepQueryAll<HTMLElement>(controls, 'ha-icon-button')[1]);
+    } finally {
+      await commands.emulateReducedMotion(null);
+    }
   });
 
   it('should apply a configured style to the button and its icon', async () => {
@@ -133,7 +145,7 @@ describe('AdvancedCameraCardCallControls', () => {
     expect(reject.getAttribute('style') ?? '').toBe('');
   });
 
-  it('should keep its own icons and colours without a configuration', async () => {
+  it('should keep its own icons and colors without a configuration', async () => {
     const controls = await mount({ buttonsConfig: {} });
 
     expect(getButtonIcons(controls)).toEqual([
