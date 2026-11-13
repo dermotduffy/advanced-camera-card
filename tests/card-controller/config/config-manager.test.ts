@@ -251,6 +251,17 @@ describe('ConfigManager', () => {
     expect(api.getViewManager().reset).not.toHaveBeenCalled();
   });
 
+  it('should pass the card_id on in the card wide config', () => {
+    const manager = new ConfigManager(createCardAPI());
+    manager.setConfig({
+      type: 'custom:advanced-camera-card',
+      cameras: [TEST_CAMERAS.OFFICE],
+      card_id: 'office',
+    });
+
+    expect(manager.getCardWideConfig()?.card_id).toBe('office');
+  });
+
   it('should get card wide config', () => {
     const api = createCardAPI();
     const manager = new ConfigManager(api);

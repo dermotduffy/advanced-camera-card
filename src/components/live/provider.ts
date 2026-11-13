@@ -87,6 +87,11 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public zoomObserved?: ZoomSettingsObserved | null;
 
+  // The key of this camera's zoom in the page-wide zoom store, to start from
+  // when the card is built again (see the zoomer).
+  @property({ attribute: false })
+  public zoomStoreKey?: string | null;
+
   @property({ attribute: false })
   public zoom = true;
 
@@ -326,6 +331,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
           )}
           .settings=${this.zoomSettings}
           .observedSettings=${this.zoomObserved}
+          .storeKey=${this.zoomStoreKey}
           .zoom=${this.zoom}
           .dimensionsConfig=${config?.dimensions}
           @advanced-camera-card:zoom:zoomed=${() => (this._zoomed = true)}

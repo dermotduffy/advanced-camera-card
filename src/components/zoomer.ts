@@ -30,6 +30,11 @@ export class AdvancedCameraCardZoomer extends LitElement {
   @property({ attribute: false })
   public observedSettings?: ZoomSettingsObserved | null;
 
+  // The key the target's zoom is kept under in the page-wide zoom store, so a
+  // card built again (e.g. on a return from another dashboard) starts from it.
+  @property({ attribute: false })
+  public storeKey?: string | null;
+
   @property({ attribute: false })
   public zoom = true;
 
@@ -71,6 +76,9 @@ export class AdvancedCameraCardZoomer extends LitElement {
     }
     if (changedProps.has('dimensionsConfig')) {
       this._zoomController.setDimensionsConfig(this.dimensionsConfig ?? null);
+    }
+    if (changedProps.has('storeKey')) {
+      this._zoomController.setStoreKey(this.storeKey ?? null);
     }
     if (changedProps.has('defaultSettings')) {
       this._zoomController.setDefaultSettings(this.defaultSettings ?? null);

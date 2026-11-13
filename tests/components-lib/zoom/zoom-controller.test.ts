@@ -26,6 +26,7 @@ import {
   HOLD_SECONDS,
 } from '../../../src/const';
 import type { Size } from '../../../src/utils/basic';
+import { ZoomStore } from '../../../src/utils/zoom-store';
 import {
   createMediaLoadedInfo,
   createMediaLoadedInfoEvent,
@@ -1864,6 +1865,131 @@ describe('ZoomController', () => {
       // The update goes to the default (1 or 2), not back to the start zoom.
       expect(panzoom.zoom).not.toHaveBeenCalledWith(3, expect.anything());
       expect(panzoom.zoom).toHaveBeenCalled();
+    });
+  });
+
+  describe('should keep the zoom in the store', () => {
+    const KEY = 'camera';
+
+    const create = (
+      store: ZoomStore,
+      setup?: (controller: ZoomController) => void,
+    ): { element: HTMLElement; controller: ZoomController } => {
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+      vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+      const controller = new ZoomController(element, { store });
+      setup?.(controller);
+      controller.activate();
+      return { element, controller };
+    };
+
+    const change = (element: HTMLElement, scale: number): void => {
+      element.dispatchEvent(
+        new CustomEvent('panzoomchange', {
+          detail: { x: 0, y: 0, scale, isSVG: false },
+        }),
+      );
+    };
+
+    it('and start from it when this card has seen no zoom', () => {
+      const store = new ZoomStore();
+      store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+
+      const { element } = create(store, (c) => {
+        c.setStoreKey(KEY);
+        c.setStartSettings(null);
+      });
+
+      expect(Panzoom).toHaveBeenLastCalledWith(
+        element,
+        expect.objectContaining({ startScale: 3 }),
+      );
+    });
+
+    it.each([
+      ['a zoom', false, 2],
+      ['the default', true, undefined],
+    ])(
+      'but start from what this card saw over it: %s',
+      (_name: string, isDefault: boolean, startScale?: number) => {
+        const store = new ZoomStore();
+        store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+
+        const { element } = create(store, (c) => {
+          c.setStoreKey(KEY);
+          c.setStartSettings({
+            zoom: 2,
+            pan: { x: 50, y: 50 },
+            isDefault,
+            unzoomed: false,
+          });
+        });
+
+        expect(Panzoom).toHaveBeenLastCalledWith(
+          element,
+          startScale
+            ? expect.objectContaining({ startScale })
+            : expect.not.objectContaining({ startScale: expect.anything() }),
+        );
+      },
+    );
+
+    it('and not use it without a key', () => {
+      const store = new ZoomStore();
+      store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+
+      const { element } = create(store, (c) => c.setStartSettings(null));
+      change(element, 2);
+
+      expect(Panzoom).toHaveBeenLastCalledWith(
+        element,
+        expect.not.objectContaining({ startScale: expect.anything() }),
+      );
+      expect(store.get(KEY)?.zoom).toBe(3);
+    });
+
+    it('and forget it on a return to the default after its own zoom', () => {
+      const store = new ZoomStore();
+      const { element } = create(store, (c) => c.setStoreKey(KEY));
+
+      change(element, 2);
+      expect(store.get(KEY)?.zoom).toBe(2);
+
+      change(element, 1);
+      expect(store.get(KEY)).toBeNull();
+    });
+
+    it('and forget it on a return to the default after starting from it', () => {
+      const store = new ZoomStore();
+      store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+      const { element } = create(store, (c) => {
+        c.setStoreKey(KEY);
+        c.setStartSettings(null);
+      });
+
+      change(element, 1);
+
+      expect(store.get(KEY)).toBeNull();
+    });
+
+    it('but not on the default of another card loading the same camera', () => {
+      const store = new ZoomStore();
+      store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+
+      // This card has its own (default) zoom, so it does not start from the store.
+      const { element } = create(store, (c) => {
+        c.setStoreKey(KEY);
+        c.setStartSettings({
+          zoom: 1,
+          pan: { x: 50, y: 50 },
+          isDefault: true,
+          unzoomed: true,
+        });
+      });
+      change(element, 1);
+
+      expect(store.get(KEY)?.zoom).toBe(3);
     });
   });
 });

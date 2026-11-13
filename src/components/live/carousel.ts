@@ -39,6 +39,7 @@ import liveCarouselStyle from '../../scss/live-carousel.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import type { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';
+import { getZoomKey } from '../../utils/zoom-store.js';
 import { getStreamCameraID } from '../../view/substream.js';
 import type { View } from '../../view/view.js';
 
@@ -298,6 +299,10 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .preservedFrameManager=${this.preservedFrameManager}
             .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
             .zoomObserved=${view?.context?.zoom?.[cameraID]?.observed}
+            .zoomStoreKey=${getZoomKey({
+              cardID: this.cardWideConfig?.card_id,
+              cameraID,
+            })}
             .zoom=${!this._isGesturesPTZActive(view, cameraID)}
             .forceSelected=${isSelectedSlide}
             .locked=${this.locked}

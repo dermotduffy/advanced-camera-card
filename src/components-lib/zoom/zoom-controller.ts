@@ -23,6 +23,7 @@ import {
 } from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { isMediaContainedAndCentered } from '../../utils/media-layout';
+import { zoomStore, type ZoomStore } from '../../utils/zoom-store';
 import {
   isZoomEmpty,
   ZOOM_DEFAULT_PAN_X,
@@ -97,6 +98,14 @@ export class ZoomController {
   // seen at before a remount (see `setStartSettings`). Ahead of the default,
   // dropped by any request or a new default.
   private _startSettings: ZoomSettingsBase | null = null;
+
+  // The page-wide store of each camera's last zoom (see `setStoreKey`), and
+  // whether this instance put a zoom there or started from one (only then does
+  // a return to the default forget it, so that another card loading the same
+  // camera does not).
+  private _store: ZoomStore;
+  private _storeKey: string | null = null;
+  private _stored = false;
 
   // These values should be suitably less than the value of STEP_DELAY_SECONDS
   // in the ptz_digital action, in order to ensure smooth movements of the
@@ -205,9 +214,11 @@ export class ZoomController {
     options?: {
       config?: PartialZoomSettings | null;
       defaultConfig?: PartialZoomSettings | null;
+      store?: ZoomStore;
     },
   ) {
     this._element = element;
+    this._store = options?.store ?? zoomStore;
     this._settings = options?.config ?? null;
     this._defaultSettings = options?.defaultConfig ?? null;
   }
@@ -324,14 +335,34 @@ export class ZoomController {
   }
 
   /**
-   * Start from the zoom the target was last seen at, unless that was its
-   * default. Set before activation.
+   * Keep this target's zoom in the page-wide store under `key` (null: not at
+   * all), to start from when nothing else says where (see `setStartSettings`).
+   */
+  public setStoreKey(key: string | null): void {
+    this._storeKey = key;
+    this._stored = false;
+  }
+
+  /**
+   * Start from the zoom the target was last seen at in this card, unless that
+   * was its default; without one, from the store. Set before activation.
    */
   public setStartSettings(observed: ZoomSettingsObserved | null): void {
-    this._startSettings =
-      observed && !observed.isDefault
-        ? { zoom: observed.zoom, pan: { ...observed.pan } }
+    const start = observed
+      ? observed.isDefault
+        ? null
+        : observed
+      : this._storeKey
+        ? this._store.get(this._storeKey)
         : null;
+    this._startSettings = start ? { zoom: start.zoom, pan: { ...start.pan } } : null;
+
+    // Starting from it, this instance shows the stored zoom: a return to the
+    // default here forgets it, even before this instance reports a zoom (the
+    // start may need no change to apply, and so report nothing).
+    if (start) {
+      this._stored = true;
+    }
   }
 
   public isActivated(): boolean {
@@ -387,6 +418,11 @@ export class ZoomController {
       isDefault: this._isAtDefaultZoomAndPan(pan.x, pan.y, pz.scale),
       unzoomed: unzoomed,
     };
+
+    if (this._storeKey && (!observed.isDefault || this._stored)) {
+      this._store.set(this._storeKey, observed.isDefault ? null : observed);
+      this._stored = !observed.isDefault;
+    }
 
     fireAdvancedCameraCardEvent(this._element, 'zoom:change', observed);
   }

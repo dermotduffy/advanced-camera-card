@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { dispatchActionExecutionRequest } from '../../src/card-controller/actions/utils/execution-request';
 import { MergeContextViewModifier } from '../../src/card-controller/view/modifiers/merge-context';
@@ -14,6 +14,7 @@ import { arefloatsApproximatelyEqual, isHoverableDevice } from '../../src/utils/
 // has already loaded.
 import '../../src/components/zoomer';
 
+import { zoomStore } from '../../src/utils/zoom-store';
 import { deepQuery } from '../browser/dom';
 import {
   createTestFrigateEvent,
@@ -34,6 +35,10 @@ import {
 
 const ZOOM_CHANGE_EVENT = 'advanced-camera-card:zoom:change';
 const ZOOM_HOME_EVENT = 'advanced-camera-card:zoom:home';
+
+// The store of each camera's last zoom lives as long as the page, which these
+// tests share: each one starts without a remembered zoom.
+afterEach(() => zoomStore.clear());
 
 // A zoom with a pan well away from center so that a pan applied at the wrong
 // magnitude is unmistakable.
@@ -476,6 +481,28 @@ describe('AdvancedCameraCardZoomer after a remount', () => {
     expect(reattached).not.toBe(zoomer);
   });
 
+  it('should keep the zoom and pan in a new card with the same camera', async () => {
+    // As when Home Assistant builds the card again on a return from another
+    // dashboard: a new card element, with a new view context.
+    const first = await mount();
+    await zoomIn(first);
+    first.destroy();
+
+    const card = await mount();
+    await waitForZoomReport(card, 0, isZoomed, 'the zoom in the new card');
+  });
+
+  it('should keep the zoom of each card_id apart', async () => {
+    const first = await mount(undefined, { card_id: 'first' });
+    await zoomIn(first);
+    first.destroy();
+
+    const card = await mount(undefined, { card_id: 'second' });
+    await waitForZoomReport(card, 0, isZoom(1), 'the default zoom');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(getZoomReports(card, 0).some(isZoomed)).toBe(false);
+  });
+
   it('should stay at the default after a double tap home and a remount', async () => {
     const card = await mount();
     const zoomer = await zoomIn(card);
@@ -496,5 +523,11 @@ describe('AdvancedCameraCardZoomer after a remount', () => {
         .filter(isZoomSettingsObserved)
         .some((report) => report.zoom > 1.01),
     ).toBe(false);
+
+    // Nor does a new card with the same camera start zoomed.
+    card.destroy();
+    const rebuilt = await mount();
+    await waitForZoomReport(rebuilt, 0, isZoom(1), 'zoom 1 in a new card');
+    expect(getZoomReports(rebuilt, 0).some((report) => report.zoom > 1.01)).toBe(false);
   });
 });
