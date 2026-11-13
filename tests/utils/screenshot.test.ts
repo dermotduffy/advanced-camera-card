@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { mock } from 'vitest-mock-extended';
 
 import {
+  captureVideoFrame,
   generateScreenshotFilename,
   screenshotImage,
   screenshotVideo,
@@ -37,6 +38,74 @@ describe('screenshotVideo', () => {
     vi.spyOn(document, 'createElement').mockReturnValue(canvas);
 
     expect(screenshotVideo(video)).toBe('data:image/jpeg;base64');
+  });
+});
+
+describe('captureVideoFrame', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const setup = (options?: {
+    toBlob?: (callback: BlobCallback, type?: string, quality?: number) => void;
+    context?: boolean;
+  }) => {
+    const video = document.createElement('video');
+    Object.defineProperty(video, 'videoWidth', { value: 1920 });
+    Object.defineProperty(video, 'videoHeight', { value: 1080 });
+    const canvas = document.createElement('canvas');
+    const context = mock<CanvasRenderingContext2D>();
+    canvas.getContext = vi
+      .fn()
+      .mockReturnValue(options?.context === false ? null : context);
+    canvas.toBlob = vi.fn(
+      options?.toBlob ??
+        ((callback: BlobCallback) =>
+          callback(new Blob(['frame'], { type: 'image/jpeg' }))),
+    );
+    vi.spyOn(document, 'createElement').mockReturnValue(canvas);
+    return { canvas, context, video };
+  };
+
+  it("should draw the frame at once at the video's own size, then encode it", async () => {
+    const { canvas, context, video } = setup();
+
+    const result = captureVideoFrame(video);
+    expect(context.drawImage).toHaveBeenCalledWith(video, 0, 0, 1920, 1080);
+    expect([canvas.width, canvas.height]).toEqual([1920, 1080]);
+    expect(canvas.toBlob).toHaveBeenCalledWith(expect.any(Function), 'image/jpeg', 0.8);
+
+    expect(result?.canvas).toBe(canvas);
+    expect(await result?.url).toBe('data:image/jpeg;base64,ZnJhbWU=');
+  });
+
+  it('should be null without a canvas context', async () => {
+    const { video } = setup({ context: false });
+    expect(captureVideoFrame(video)).toBeNull();
+  });
+
+  it('should be null when the browser refuses a tainted canvas', async () => {
+    const { video } = setup({
+      toBlob: () => {
+        throw new DOMException('tainted', 'SecurityError');
+      },
+    });
+    expect(await captureVideoFrame(video)?.url).toBeNull();
+  });
+
+  it('should be null when the browser gives no picture', async () => {
+    const { video } = setup({ toBlob: (callback: BlobCallback) => callback(null) });
+    expect(await captureVideoFrame(video)?.url).toBeNull();
+  });
+
+  it('should be null when the picture cannot be read', async () => {
+    const { video } = setup();
+    vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(function (
+      this: FileReader,
+    ) {
+      this.onerror?.(new ProgressEvent('error') as ProgressEvent<FileReader>);
+    });
+    expect(await captureVideoFrame(video)?.url).toBeNull();
   });
 });
 

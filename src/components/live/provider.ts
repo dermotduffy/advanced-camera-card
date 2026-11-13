@@ -17,6 +17,10 @@ import { MEDIA_UNAVAILABLE_REASONS } from '../../card-controller/issues/issues/m
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { isAudioIntendedOnLoad } from '../../components-lib/live/audio-intent.js';
 import {
+  getLastFrameImageConfig,
+  LastFrameController,
+} from '../../components-lib/live/last-frame-controller.js';
+import {
   StreamLivenessController,
   type StreamFailure,
 } from '../../components-lib/live/liveness/stream-liveness-controller.js';
@@ -40,6 +44,7 @@ import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-ca
 import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 
 import '../icon.js';
+import '../last-frame-time.js';
 
 import { renderMediaNotification } from '../notification/media.js';
 
@@ -117,8 +122,26 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
+  private _lastFrameController: LastFrameController;
+  private _mediaWasLoaded = false;
+  // The drawn frame stays over the media from its load until the media has
+  // shown a frame of its own (`_releaseDrawnFrameOnFirstFrame`).
+  private _holdDrawnFrame = false;
+
   constructor() {
     super();
+
+    // Image mode `last_frame`: keeps the stream's last frame for the next
+    // load. The constructor registers it as a controller on this host.
+    this._lastFrameController = new LastFrameController(this, {
+      getCameraID: () => this.camera?.getID() ?? null,
+      getCameraConfig: () => this.camera?.getConfig() ?? null,
+      getImageConfig: () => getLastFrameImageConfig(this.camera?.getConfig()?.image),
+      getMediaPlayerController: () =>
+        this._mediaLoadedInfoSinkController.get()?.mediaPlayerController ?? null,
+      isLoaded: () => this._shouldLoad(),
+      isLive: () => this._streamLivenessController.isLive(),
+    });
 
     // Watch for media that fails to load. The constructor registers it as a
     // controller on this host.
@@ -256,13 +279,75 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     );
   }
 
-  private _renderContainer(template: TemplateResult): TemplateResult {
+  // The frame drawn at the last capture (image mode `last_frame`), shown in
+  // place of the media while it is unloaded or loading again: unlike the
+  // encoded frame, it needs no decoding, so it is there in the first paint when
+  // the page is visible again. Dropped once the stream's media has loaded.
+  private _getDrawnFrame(): HTMLCanvasElement | null {
+    const mediaLoaded = this._mediaLoadedInfoSinkController.has();
+    if (
+      mediaLoaded &&
+      !this._mediaWasLoaded &&
+      this._lastFrameController.getDrawnFrame()
+    ) {
+      // Loaded is not yet painted: a video can count as loaded before it shows
+      // its first frame, which left the frame blank between the two.
+      this._holdDrawnFrame = true;
+      void this._releaseDrawnFrameOnFirstFrame();
+    }
+    this._mediaWasLoaded = mediaLoaded;
+
+    const frame =
+      (!mediaLoaded || this._holdDrawnFrame) &&
+      !this.suppressLoadingImage &&
+      this.liveConfig?.show_image_during_load
+        ? this._lastFrameController.getDrawnFrame()
+        : null;
+    frame?.classList.add('drawn-frame');
+    return frame;
+  }
+
+  // Drop the drawn frame once the loaded media has presented a frame of its own
+  // (or, where the browser cannot tell, after two animation frames).
+  private async _releaseDrawnFrameOnFirstFrame(): Promise<void> {
+    await this.updateComplete;
+    const video = this._findVideo(this.renderRoot);
+    await new Promise<void>((resolve) => {
+      if (video && 'requestVideoFrameCallback' in video) {
+        video.requestVideoFrameCallback(() => resolve());
+      } else {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }
+    });
+    this._holdDrawnFrame = false;
+    this._lastFrameController.clearDrawnFrame();
+    this.requestUpdate();
+  }
+
+  private _findVideo(root: ParentNode): HTMLVideoElement | null {
+    for (const element of root.querySelectorAll('*')) {
+      if (element instanceof HTMLVideoElement) {
+        return element;
+      }
+      const inner = element.shadowRoot ? this._findVideo(element.shadowRoot) : null;
+      if (inner) {
+        return inner;
+      }
+    }
+    return null;
+  }
+
+  private _renderContainer(
+    template: TemplateResult,
+    drawnFrame: HTMLCanvasElement | null = null,
+  ): TemplateResult {
     const config = this.camera?.getConfig();
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
-      .dimensionsConfig=${config?.dimensions}
-    >
-      ${template}
-    </advanced-camera-card-media-dimensions-container>`;
+        .dimensionsConfig=${config?.dimensions}
+      >
+        ${template}
+      </advanced-camera-card-media-dimensions-container>
+      ${drawnFrame ?? ''}`;
 
     return html` ${this.liveConfig?.zoomable
       ? html` <advanced-camera-card-zoomer
@@ -327,6 +412,12 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   protected render(): TemplateResult | void {
     const cameraConfig = this.camera?.getConfig();
+    const drawnFrame = this._getDrawnFrame();
+    if (!this._shouldLoad() && drawnFrame && this.liveConfig && this.camera) {
+      // Unloaded, but the last frame fills the frame until the stream is back.
+      this.toggleAttribute('sized', true);
+      return this._renderContainer(html``, drawnFrame);
+    }
     if (
       !this._shouldLoad() ||
       !this.hass ||
@@ -374,76 +465,65 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       hidden: shouldShowImageDuringLoading,
     };
 
-    return html`${this._renderContainer(html`
-      ${shouldShowImageDuringLoading || provider === 'image'
-        ? html` <advanced-camera-card-live-image
-            ${ref(this._refProvider)}
-            .hass=${this.hass}
-            .camera=${this.camera}
-            .targetID=${this.targetID}
-            .cameraTitle=${this.cameraTitle}
-            class=${classMap({
-              ...classes,
-              // The image provider is providing the temporary loading image,
-              // so it should not be hidden.
-              hidden: false,
-            })}
-            @advanced-camera-card:media:loaded=${(
-              ev: CustomEvent<MediaLoadedInfoEventDetail>,
-            ) => {
-              // When the image is rendered as a placeholder behind another
-              // provider, suppress its load event so it doesn't reach the
-              // card-root listener and clobber the real provider's
-              // registration. The real provider's load event will arrive
-              // afterwards.
-              if (provider !== 'image') {
-                this._loadingImageLoaded = true;
+    return html`${this._renderContainer(
+      html`
+        ${shouldShowImageDuringLoading || provider === 'image'
+          ? html` <advanced-camera-card-live-image
+              ${ref(this._refProvider)}
+              .hass=${this.hass}
+              .camera=${this.camera}
+              .targetID=${this.targetID}
+              .cameraTitle=${this.cameraTitle}
+              class=${classMap({
+                ...classes,
+                // The image provider is providing the temporary loading image,
+                // so it should not be hidden.
+                hidden: false,
+              })}
+              @advanced-camera-card:media:loaded=${(
+                ev: CustomEvent<MediaLoadedInfoEventDetail>,
+              ) => {
+                // When the image is rendered as a placeholder behind another
+                // provider, suppress its load event so it doesn't reach the
+                // card-root listener and clobber the real provider's
+                // registration. The real provider's load event will arrive
+                // afterwards.
+                if (provider !== 'image') {
+                  this._loadingImageLoaded = true;
 
-                // Should the image unload, the provider returns to unsized.
-                onAbort(ev.detail.signal, () => (this._loadingImageLoaded = false));
-                ev.stopPropagation();
-              }
-            }}
-          >
-          </advanced-camera-card-live-image>`
-        : html``}
-      ${provider === 'ha'
-        ? html` <advanced-camera-card-live-ha
-            ${ref(this._refProvider)}
-            class=${classMap(classes)}
-            .hass=${this.hass}
-            .camera=${this.camera}
-            .targetID=${this.targetID}
-            .preferAudioStream=${this.forceSelected &&
-            isAudioIntendedOnLoad(this.liveConfig?.auto_unmute ?? [])}
-            ?controls=${this._getEffectiveBuiltinControls()}
-          >
-          </advanced-camera-card-live-ha>`
-        : provider === 'go2rtc'
-          ? html`<advanced-camera-card-live-go2rtc
+                  // Should the image unload, the provider returns to unsized.
+                  onAbort(ev.detail.signal, () => (this._loadingImageLoaded = false));
+                  ev.stopPropagation();
+                }
+              }}
+            >
+            </advanced-camera-card-live-image>`
+          : html``}
+        ${provider === 'ha'
+          ? html` <advanced-camera-card-live-ha
               ${ref(this._refProvider)}
               class=${classMap(classes)}
               .hass=${this.hass}
               .camera=${this.camera}
               .targetID=${this.targetID}
-              .cameraTitle=${this.cameraTitle}
+              .preferAudioStream=${this.forceSelected &&
+              isAudioIntendedOnLoad(this.liveConfig?.auto_unmute ?? [])}
               ?controls=${this._getEffectiveBuiltinControls()}
             >
-            </advanced-camera-card-live-go2rtc>`
-          : provider === 'go2rtc-experimental'
-            ? html`<advanced-camera-card-live-go2rtc-experimental
+            </advanced-camera-card-live-ha>`
+          : provider === 'go2rtc'
+            ? html`<advanced-camera-card-live-go2rtc
                 ${ref(this._refProvider)}
                 class=${classMap(classes)}
                 .hass=${this.hass}
                 .camera=${this.camera}
                 .targetID=${this.targetID}
                 .cameraTitle=${this.cameraTitle}
-                .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this._getEffectiveBuiltinControls()}
               >
-              </advanced-camera-card-live-go2rtc-experimental>`
-            : provider === 'webrtc-card'
-              ? html`<advanced-camera-card-live-webrtc-card
+              </advanced-camera-card-live-go2rtc>`
+            : provider === 'go2rtc-experimental'
+              ? html`<advanced-camera-card-live-go2rtc-experimental
                   ${ref(this._refProvider)}
                   class=${classMap(classes)}
                   .hass=${this.hass}
@@ -453,9 +533,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                   .cardWideConfig=${this.cardWideConfig}
                   ?controls=${this._getEffectiveBuiltinControls()}
                 >
-                </advanced-camera-card-live-webrtc-card>`
-              : provider === 'jsmpeg'
-                ? html` <advanced-camera-card-live-jsmpeg
+                </advanced-camera-card-live-go2rtc-experimental>`
+              : provider === 'webrtc-card'
+                ? html`<advanced-camera-card-live-webrtc-card
                     ${ref(this._refProvider)}
                     class=${classMap(classes)}
                     .hass=${this.hass}
@@ -463,10 +543,33 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                     .targetID=${this.targetID}
                     .cameraTitle=${this.cameraTitle}
                     .cardWideConfig=${this.cardWideConfig}
+                    ?controls=${this._getEffectiveBuiltinControls()}
                   >
-                  </advanced-camera-card-live-jsmpeg>`
-                : html``}
-    `)}
+                  </advanced-camera-card-live-webrtc-card>`
+                : provider === 'jsmpeg'
+                  ? html` <advanced-camera-card-live-jsmpeg
+                      ${ref(this._refProvider)}
+                      class=${classMap(classes)}
+                      .hass=${this.hass}
+                      .camera=${this.camera}
+                      .targetID=${this.targetID}
+                      .cameraTitle=${this.cameraTitle}
+                      .cardWideConfig=${this.cardWideConfig}
+                    >
+                    </advanced-camera-card-live-jsmpeg>`
+                  : html``}
+      `,
+      drawnFrame,
+    )}
+    ${provider === 'image' || loadingImageLoaded
+      ? // Outside the zoomer, so a zoom leaves it as it is.
+        html`<advanced-camera-card-last-frame-time
+          .hass=${this.hass}
+          .cameraID=${this.camera.getID()}
+          .imageConfig=${cameraConfig.image}
+          .cameraConfig=${cameraConfig}
+        ></advanced-camera-card-last-frame-time>`
+      : ''}
     ${failure || mediaLoaded
       ? ''
       : this._renderLoadingOverlay(shouldShowImageDuringLoading)}`;

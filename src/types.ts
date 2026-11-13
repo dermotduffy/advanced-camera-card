@@ -89,11 +89,27 @@ export interface PlaybackControl {
   isPaused(): boolean;
 }
 
+// A frame taken from playing media (MediaPlayerController.captureCurrentFrame).
+export interface CapturedFrame {
+  // The frame as drawn at the call: shown at once, needing no decoding.
+  canvas: HTMLCanvasElement;
+  // The same frame as a JPEG `data:` URL once encoded, or null when the browser
+  // refuses it (a cross-origin video taints the canvas).
+  url: Promise<string | null>;
+}
+
 export interface MediaPlayerController {
   mute(): Promise<void>;
   unmute(): Promise<void>;
   isMuted(): boolean;
   getScreenshotURL(): Promise<string | null>;
+
+  // The frame shown now, at the media's own size: drawn at the call (e.g.
+  // while the player is being removed), and encoded to a `data:` URL
+  // afterwards. Null when there is no new frame since the last one (not yet
+  // playing, paused, frozen). Optional: only players that can draw their media
+  // at once offer it.
+  captureCurrentFrame?(): CapturedFrame | null;
 
   // If no value for controls if specified, the player should use the default.
   setControls(controls?: boolean): Promise<void>;

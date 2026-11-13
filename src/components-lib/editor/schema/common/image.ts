@@ -16,6 +16,10 @@ export const getImageFieldsSchema = (): HAFormSchema[] => [
       { value: 'default', label: localize('config.common.image.modes.default') },
       { value: 'entity', label: localize('config.common.image.modes.entity') },
       {
+        value: 'last_frame',
+        label: localize('config.common.image.modes.last_frame'),
+      },
+      {
         value: 'screensaver',
         label: localize('config.common.image.modes.screensaver'),
       },
@@ -41,5 +45,23 @@ export const getImageFieldsSchema = (): HAFormSchema[] => [
     name: 'refresh_seconds',
     label: localize('config.common.image.refresh_seconds'),
     selector: createNumberSelector(),
+  },
+  {
+    name: 'last_frame',
+    type: 'expandable',
+    title: localize('config.common.image.last_frame.editor_label'),
+    icon: 'mdi:image-refresh',
+    schema: [
+      {
+        name: 'max_age_seconds',
+        label: localize('config.common.image.last_frame.max_age_seconds'),
+        selector: createNumberSelector({ min: 1 }),
+      },
+      {
+        name: 'show_time',
+        label: localize('config.common.image.last_frame.show_time'),
+        selector: { boolean: {} },
+      },
+    ],
   },
 ];
