@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import type { HomeAssistant } from './types';
+import { haICEServerSchema } from './webrtc';
 import { homeAssistantWSRequest } from './ws-request';
 
 const haCameraCapabilitiesSchema = z.object({
@@ -37,14 +38,7 @@ export const supportsHA2WayAudio = async (
 
 const webrtcClientConfigSchema = z.object({
   configuration: z.looseObject({
-    iceServers: z
-      .looseObject({
-        urls: z.union([z.string(), z.string().array()]),
-        username: z.string().optional(),
-        credential: z.string().optional(),
-      })
-      .array()
-      .optional(),
+    iceServers: haICEServerSchema.array().optional(),
   }),
 
   // The label of a data channel the client must open in its offer.

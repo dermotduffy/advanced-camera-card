@@ -98,6 +98,58 @@ describe('AdvancedCameraCardMenu', () => {
     expect(button.hasAttribute('disabled')).toBe(true);
   });
 
+  it('should draw a ring around each kind of button in progress', async () => {
+    const secondCamera = 'camera.kitchen';
+    const sceneEntity = 'input_select.scene';
+    const card = await MountedCardFactory.createFromSource(
+      {
+        ...createStillImageCardConfig({
+          menu: {
+            style: 'outside',
+            buttons: {
+              cameras: { in_progress: true },
+              live: { in_progress: true },
+            },
+          },
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-submenu-select',
+              entity: sceneEntity,
+              in_progress: true,
+            },
+          ],
+        }),
+        cameras: [
+          createStillImageCameraConfig(),
+          createStillImageCameraConfig(secondCamera),
+        ],
+      },
+      createGenericCameraHASS({
+        cameras: [secondCamera],
+        entities: {
+          [sceneEntity]: {
+            state: 'scene.quiet',
+            attributes: { friendly_name: 'Scene', options: ['scene.quiet'] },
+          },
+        },
+      }),
+    );
+
+    for (const name of ['Live view', 'Cameras', 'Scene']) {
+      const button = await card.findControl(name);
+      expect(button.classList.contains('in-progress')).toBe(true);
+      expect(button.getAttribute('aria-busy')).toBe('true');
+      expect(getComputedStyle(button, '::after').animationName).toBe(
+        'in-progress-rotate',
+      );
+    }
+
+    const idle = await card.findControl('Fullscreen');
+    expect(idle.classList.contains('in-progress')).toBe(false);
+    expect(idle.hasAttribute('aria-busy')).toBe(false);
+    expect(getComputedStyle(idle, '::after').content).toBe('none');
+  });
+
   describe('download button', () => {
     it('should have a download button for camera media', async () => {
       const { card } = await mountCardWithFrigate(

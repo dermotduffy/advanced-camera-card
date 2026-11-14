@@ -474,6 +474,14 @@
         "call": {
           "answer": "Answer call",
           "button_size": "Call control button size",
+          "buttons": {
+            "answer": "Answer call button",
+            "editor_label": "Buttons",
+            "end": "End call button",
+            "microphone": "Microphone mute button",
+            "mute": "Mute / Unmute button",
+            "reject": "Reject call button"
+          },
           "editor_label": "Two-way audio call",
           "enabled": "Show on-screen call controls",
           "end": "End 2-way audio call",
@@ -882,6 +890,7 @@
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
+    "timeout_response": "Timed out waiting for response from Home Assistant for request",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",

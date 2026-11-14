@@ -5,11 +5,13 @@ import { MergeContextViewModifier } from '../../../src/card-controller/view/modi
 import type { ViewManager } from '../../../src/card-controller/view/view-manager';
 import {
   generateViewContextForZoom,
+  handleDigitalZoomHomeEvent,
   handleZoomSettingsObservedEvent,
 } from '../../../src/components-lib/zoom/zoom-view-context';
 
 vi.mock('../../../src/card-controller/view/modifiers/merge-context');
 
+// @vitest-environment jsdom
 describe('generateViewContextForZoom', () => {
   it('with observed', () => {
     expect(
@@ -120,5 +122,37 @@ describe('handleZoomSettingsObservedEvent', () => {
         },
       },
     });
+  });
+});
+
+describe('handleDigitalZoomHomeEvent', () => {
+  it('should request the default zoom for the target', () => {
+    const element = document.createElement('div');
+    const handler = vi.fn();
+    element.addEventListener('advanced-camera-card:action:execution-request', handler);
+
+    handleDigitalZoomHomeEvent(element, 'target');
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: {
+          actions: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_digital',
+            target_id: 'target',
+          },
+        },
+      }),
+    );
+  });
+
+  it('should do nothing without a target', () => {
+    const element = document.createElement('div');
+    const handler = vi.fn();
+    element.addEventListener('advanced-camera-card:action:execution-request', handler);
+
+    handleDigitalZoomHomeEvent(element);
+
+    expect(handler).not.toHaveBeenCalled();
   });
 });

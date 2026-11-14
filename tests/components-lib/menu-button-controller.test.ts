@@ -6,6 +6,7 @@ import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import type { CameraManager } from '../../src/camera-manager/manager.js';
 import type { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
 import type { CallManager } from '../../src/card-controller/call/manager.js';
+import type { CallSession } from '../../src/card-controller/call/types.js';
 import type { FoldersManager } from '../../src/card-controller/folders/manager.js';
 import type { FolderQuery } from '../../src/card-controller/folders/types';
 import type { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
@@ -1400,6 +1401,119 @@ describe('MenuButtonController', () => {
           action: 'fire-dom-event',
           advanced_camera_card_action: 'call_end',
         },
+      });
+    });
+
+    it('should keep a configured in-progress ring on the call button', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        config: createConfig({ menu: { buttons: { call: { in_progress: true } } } }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          title: 'Start 2-way audio call',
+          in_progress: true,
+        }),
+      );
+    });
+
+    describe('while a call connects', () => {
+      const createConnectingCallManager = (
+        call: CallSession | null = null,
+      ): CallManager => {
+        const callManager = mock<CallManager>();
+        vi.mocked(callManager.isConnecting).mockReturnValue(true);
+        vi.mocked(callManager.getCall).mockReturnValue(call);
+        return callManager;
+      };
+
+      it('should show a single call button in progress', () => {
+        const cameraManager = createCameraManager(
+          createStore([
+            {
+              cameraID: 'camera-1',
+              capabilities: createCapabilities({ '2-way-audio': true }),
+            },
+          ]),
+        );
+
+        const buttons = calculateButtons(controller, {
+          cameraManager,
+          callManager: createConnectingCallManager(),
+          view: createView({ camera: 'camera-1' }),
+        });
+
+        expect(buttons).toContainEqual(
+          expect.objectContaining({
+            title: 'Start 2-way audio call',
+            in_progress: true,
+          }),
+        );
+      });
+
+      it('should show a call submenu in progress', () => {
+        const cameraManager = createCameraManager(
+          createStore([
+            {
+              cameraID: 'camera-1',
+              capabilities: createCapabilities({ '2-way-audio': true }),
+              config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+            },
+            {
+              cameraID: 'camera-2',
+              capabilities: createCapabilities({ '2-way-audio': true }),
+            },
+          ]),
+        );
+
+        const buttons = calculateButtons(controller, {
+          cameraManager,
+          callManager: createConnectingCallManager(),
+          view: createView({ camera: 'camera-1' }),
+        });
+
+        expect(buttons).toContainEqual(
+          expect.objectContaining({
+            type: 'custom:advanced-camera-card-menu-submenu',
+            in_progress: true,
+          }),
+        );
+      });
+
+      it('should show the answer button in progress', () => {
+        const cameraManager = createCameraManager(
+          createStore([
+            {
+              cameraID: 'camera-1',
+              capabilities: createCapabilities({ '2-way-audio': true }),
+            },
+          ]),
+        );
+
+        const buttons = calculateButtons(controller, {
+          cameraManager,
+          callManager: createConnectingCallManager({
+            cameraID: 'camera-1',
+            inbound: true,
+            answered: false,
+            previousView: createView({ camera: 'camera-1' }),
+          }),
+          view: createView({ camera: 'camera-1' }),
+        });
+
+        expect(buttons).toContainEqual(
+          expect.objectContaining({ title: 'Answer call', in_progress: true }),
+        );
       });
     });
   });

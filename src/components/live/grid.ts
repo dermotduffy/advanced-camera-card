@@ -50,6 +50,9 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public call?: CallSession;
 
+  @property({ attribute: false })
+  public callConnecting?: boolean;
+
   @property({ type: Boolean, reflect: true })
   public locked?: boolean;
 
@@ -80,6 +83,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}
         .call=${this.call}
+        .callConnecting=${this.callConnecting}
         .locked=${this.locked}
         ?triggered=${carouselCameraID &&
         !!this.triggeredCameraIDs?.has(carouselCameraID)}

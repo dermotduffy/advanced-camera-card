@@ -16,7 +16,10 @@ import type { ViewManagerEpoch } from '../card-controller/view/types';
 import { MediaLoadWatchdogController } from '../components-lib/media-load-watchdog-controller';
 import { triggerMediaUnavailableIssue } from '../components-lib/media-unavailable-issue';
 import type { ZoomSettingsObserved } from '../components-lib/zoom/types';
-import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
+import {
+  handleDigitalZoomHomeEvent,
+  handleZoomSettingsObservedEvent,
+} from '../components-lib/zoom/zoom-view-context';
 import type { CameraConfig } from '../config/schema/cameras';
 import {
   resolveProxyConfig,
@@ -134,6 +137,8 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
               this.viewManagerEpoch?.manager,
               zoomTarget,
             )}
+          @advanced-camera-card:zoom:home=${() =>
+            handleDigitalZoomHomeEvent(this, zoomTarget)}
         >
           ${intermediateTemplate}
         </advanced-camera-card-zoomer>`

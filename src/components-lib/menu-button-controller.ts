@@ -649,6 +649,8 @@ export class MenuButtonController {
       return null;
     }
 
+    const connecting = !!callManager?.isConnecting();
+
     // In a call, a single button regardless of target count. An unanswered
     // inbound call (ringing) answers; an answered or outbound call hangs up.
     const call = callManager?.getCall();
@@ -660,6 +662,7 @@ export class MenuButtonController {
           ? localize('config.live.controls.call.answer')
           : localize('config.live.controls.call.end'),
         ...config.menu.buttons.call,
+        ...(connecting && { in_progress: true }),
         style: this._getStyle(
           config.menu.buttons.call,
           ringing
@@ -681,6 +684,7 @@ export class MenuButtonController {
         icon: MENU_BUTTON_ICONS.call,
         title: localize('config.live.controls.call.start'),
         ...config.menu.buttons.call,
+        ...(connecting && { in_progress: true }),
         type: 'custom:advanced-camera-card-menu-icon',
         tap_action: createCallStartAction(),
       };
@@ -706,6 +710,7 @@ export class MenuButtonController {
       icon: MENU_BUTTON_ICONS.call,
       title: localize('config.live.controls.call.start'),
       ...config.menu.buttons.call,
+      ...(connecting && { in_progress: true }),
       type: 'custom:advanced-camera-card-menu-submenu',
       items: menuItems,
     };

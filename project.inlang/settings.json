@@ -12,7 +12,9 @@
     "pt-BR",
     "pt-PT",
     "ru",
-    "sk"
+    "sk",
+    "sr",
+    "sr-Latn"
   ],
   "modules": [
     "https://cdn.jsdelivr.net/npm/@inlang/plugin-json@latest/dist/index.js",

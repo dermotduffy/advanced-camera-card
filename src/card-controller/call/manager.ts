@@ -32,6 +32,11 @@ export class CallManager {
 
   private _backchannel: Backchannel | null = null;
 
+  // The call whose microphone and backchannel are connecting: an outbound call
+  // not yet installed, or the answered form of the ringing inbound call. It
+  // becomes `_call` only once its backchannel connects.
+  private _connecting: CallSession | null = null;
+
   // Identifies the current init/uninit cycle so an in-flight `start()` or
   // `answer()` resuming from its microphone-connect await can detect that its
   // CallManager was torn down -- or torn down and re-initialized -- while it
@@ -64,6 +69,10 @@ export class CallManager {
     return this._call;
   }
 
+  public isConnecting(): boolean {
+    return !!this._connecting;
+  }
+
   // =========================================================================
   // Lifecycle
   // =========================================================================
@@ -75,6 +84,11 @@ export class CallManager {
     streamID?: string;
     inbound?: boolean;
   }): Promise<boolean> {
+    // The user is waiting on the connecting call, so no other call replaces it.
+    if (this._connecting) {
+      return false;
+    }
+
     const inbound = !!options?.inbound;
     const view = this._api.getViewManager().getView();
 
@@ -105,7 +119,7 @@ export class CallManager {
     // the call runs on the parent camera itself.
     const callCameraID = targetID === parentID ? undefined : targetID;
 
-    let existingCall = this._call;
+    const existingCall = this._call;
     if (
       existingCall &&
       existingCall.cameraID === parentID &&
@@ -120,21 +134,13 @@ export class CallManager {
       return false;
     }
 
-    // An inbound call has no use for the microphone until it is answered, and
-    // it arrives without the user gesture that browsers may require before
-    // granting microphone access -- so connecting here would let a refusal stop
-    // the call from ever ringing. The connect is deferred to `answer()`. An
-    // outbound call is answered by construction and needs it immediately.
-    if (!inbound && !(await this._grantTransmissionAndConnect())) {
+    // An inbound call must not yank the user away from a call they care about.
+    // Skip the new start request if the existing call is either manual
+    // (user-initiated) or already answered (user engaged). Newer inbound rings
+    // still replace older unanswered ones.
+    if (existingCall && inbound && (existingCall.answered || !existingCall.inbound)) {
       return false;
     }
-
-    // Re-read: another `start()` may have installed a session while the
-    // microphone connect was in flight. Acting on the reading from before the
-    // await would skip the supersede handling below, leaving that session's
-    // microphone marking and view state stranded with nothing able to undo
-    // them.
-    existingCall = this._call;
 
     // Store the previous view so it can be restored later. A call superseding
     // another inherits the earlier call's previous view -- the user never left
@@ -143,81 +149,39 @@ export class CallManager {
       ? existingCall.previousView
       : view.evolve({ queryResults: null });
 
-    const needsNavigation = !view.is('live') || view.camera !== parentID;
-
-    // An inbound call must not yank the user away from a call they care about.
-    // Skip the new start request if the existing call is either manual
-    // (user-initiated) or already answered (user engaged). Newer inbound rings
-    // still replace older unanswered ones.
     if (existingCall) {
-      if (inbound && (existingCall.answered || !existingCall.inbound)) {
-        return false;
-      }
       // The replacement call inherits the microphone.
       this._end(false, { retainMicrophone: true });
     }
 
     // Outbound calls are answered by construction (the user initiated them);
     // inbound calls start unanswered and wait for an explicit Answer.
-    const answered = !inbound;
-
-    this._call = {
+    const call: CallSession = {
       cameraID: parentID,
       ...(callCameraID && { callCameraID }),
       previousView,
       inbound,
-      answered,
+      answered: !inbound,
     };
 
-    // `_grantTransmissionAndConnect` above reported the need for transmission
-    // before awaiting the microphone connect; a call ending during that await
-    // may have withdrawn it since, so an answered session reports it again --
-    // ahead of the view and condition state below, whose listeners may replace
-    // the session. A ringing session reports nothing: it transmits nothing,
-    // and reporting inactive could end a transmission another request is
-    // using.
-    if (answered) {
-      this._api.getMicrophoneManager().setTransmissionActive(true);
+    // An inbound call has no use for the microphone until it is answered, and
+    // it arrives without the user gesture that browsers may require before
+    // granting microphone access -- so connecting here would let a refusal stop
+    // the call from ever ringing. The connect is deferred to `answer()`.
+    if (inbound) {
+      return this._ring(call);
     }
-
-    this._api.getViewManager().setViewByParameters({
-      ...(needsNavigation && {
-        params: { view: 'live', camera: parentID },
-      }),
-      modifiers: [new SubstreamViewModifier({ stream: callCameraID, camera: parentID })],
-      force: true,
-    });
-    this._api
-      .getConditionStateManager()
-      .setState({ call: answered ? 'answered' : 'ringing' });
-
-    // Re-read the session as the listeners triggered by the call phase may have
-    // already have changed the state.
-    const call = this._call;
-    if (!call) {
+    if (!(await this._connect(call))) {
       return false;
     }
 
-    // Ring only if still unanswered.
-    const callConfig = this._api.getConfigManager().getConfig()?.live.controls.call;
-    const ringtoneConfig = callConfig?.ringtone;
-    if (
-      call.inbound &&
-      !call.answered &&
-      ringtoneConfig &&
-      ringtoneConfig.type !== 'none'
-    ) {
-      this._ringtone.start(ringtoneConfig);
-    }
+    this._call = call;
+    this._showCall(call);
+    this._api.getConditionStateManager().setState({ call: 'answered' });
+    this._api.getCardElementManager().update();
 
-    // Arm the unanswered-call timeout: if the inbound call rings for this long
-    // without being answered, end it.
-    const timeoutSeconds = callConfig?.unanswered_timeout_seconds ?? 0;
-    if (call.inbound && !call.answered && timeoutSeconds > 0) {
-      this._unansweredTimer.start(timeoutSeconds, () => this.end());
-    }
-
-    return call.answered ? await this._openBackchannel(call, inbound) : true;
+    // Listeners triggered by the call phase may have ended the call.
+    return this._call === call;
   }
 
   // Ends the call and returns to the pre-call view. Returns true iff a call was
@@ -229,11 +193,11 @@ export class CallManager {
   // Marks an inbound ringing call as answered: connects the microphone, stops
   // the ringtone, cancels the unanswered timer, and lets the normal call
   // controls take over. Returns true iff the call was answered. No-op (returns
-  // false) if there is no call or it's already answered; rejecting a ringing
-  // call uses `end()` (same teardown).
+  // false) if there is no call, it's already answered, or it is being
+  // answered; rejecting a ringing call uses `end()` (same teardown).
   public async answer(): Promise<boolean> {
     const call = this._call;
-    if (!call || call.answered) {
+    if (!call || call.answered || this._connecting) {
       return false;
     }
 
@@ -241,30 +205,23 @@ export class CallManager {
     // connect, which may put a browser permission prompt on screen.
     this._ringtone.stop();
 
-    // An inbound call rings without the microphone, so this is where it is
-    // connected -- under the user gesture that answering provides. The call is
-    // left ringing on failure so it can be answered again.
-    if (!(await this._grantTransmissionAndConnect())) {
-      return false;
-    }
-
-    // The call may have ended, or been superseded by another, while the
-    // microphone connect was in flight -- there is then nothing left to answer.
-    if (this._call !== call) {
-      this._revokeTransmissionIfNoAnsweredCall();
-      return false;
-    }
-
-    this._unansweredTimer.stop();
     // Replace (don't mutate) so Lit identity checks downstream pick up the
     // change. The `update()` below forces card.ts to re-render and re-read
     // `getCall()`, propagating the new session to the carousel.
     const answeredCall = { ...call, answered: true };
+
+    // The call is left ringing on a microphone failure so it can be answered
+    // again.
+    if (!(await this._connect(answeredCall))) {
+      return false;
+    }
+
     this._call = answeredCall;
     this._api.getConditionStateManager().setState({ call: 'answered' });
     this._api.getCardElementManager().update();
 
-    return await this._openBackchannel(answeredCall, false);
+    // Listeners triggered by the call phase may have ended the call.
+    return this._call === answeredCall;
   }
 
   // Ends the active call iff every supplied predicate matches the session.
@@ -283,20 +240,81 @@ export class CallManager {
     if (options.inbound !== undefined && this._call.inbound !== options.inbound) {
       return false;
     }
-    if (options.answered !== undefined && this._call.answered !== options.answered) {
+    const answered = this._call.answered || !!this._connecting;
+    if (options.answered !== undefined && answered !== options.answered) {
       return false;
     }
     return this.end();
   }
 
-  // Opens the backchannel for an answered call. Failing to open it ends
-  // the call, so the user is never left with call controls when they cannot be
-  // heard. Returns true iff the call is still running.
-  private async _openBackchannel(call: CallSession, inbound: boolean): Promise<boolean> {
+  private _ring(call: CallSession): boolean {
+    this._call = call;
+    this._showCall(call);
+    this._api.getConditionStateManager().setState({ call: 'ringing' });
+
+    // Listeners triggered by the call phase may have ended the call.
+    if (this._call !== call) {
+      return false;
+    }
+
+    const callConfig = this._api.getConfigManager().getConfig()?.live.controls.call;
+    const ringtoneConfig = callConfig?.ringtone;
+    if (ringtoneConfig && ringtoneConfig.type !== 'none') {
+      this._ringtone.start(ringtoneConfig);
+    }
+
+    // Arm the unanswered-call timeout: if the inbound call rings for this long
+    // without being answered, end it.
+    const timeoutSeconds = callConfig?.unanswered_timeout_seconds ?? 0;
+    if (timeoutSeconds > 0) {
+      this._unansweredTimer.start(timeoutSeconds, () => this.end());
+    }
+    return true;
+  }
+
+  // Navigates to the live view of the call's camera, engaging the call stream.
+  private _showCall(call: CallSession): void {
+    const view = this._api.getViewManager().getView();
+    const needsNavigation = !view?.is('live') || view.camera !== call.cameraID;
+    this._api.getViewManager().setViewByParameters({
+      ...(needsNavigation && {
+        params: { view: 'live', camera: call.cameraID },
+      }),
+      modifiers: [
+        new SubstreamViewModifier({ stream: call.callCameraID, camera: call.cameraID }),
+      ],
+      force: true,
+    });
+  }
+
+  // Connects the microphone and the backchannel for an answered `call`, held in
+  // `_connecting` meanwhile so the card can show it connecting. A backchannel
+  // failure ends the call, so the user is never shown call controls when they
+  // cannot be heard. Returns true iff the backchannel connected and `call` is
+  // still wanted; the caller then installs it.
+  private async _connect(call: CallSession): Promise<boolean> {
+    this._connecting = call;
+    this._api.getCardElementManager().update();
+
+    // The microphone manager releases a stream that connects while transmission
+    // is inactive, so transmission is activated first.
+    const microphoneManager = this._api.getMicrophoneManager();
+    microphoneManager.setTransmissionActive(true);
+    const microphoneConnected = await this._connectMicrophone();
+    if (this._connecting !== call) {
+      return false;
+    }
+    if (!microphoneConnected) {
+      this._abandonConnect();
+      return false;
+    }
+
+    this._unansweredTimer.stop();
+
     const targetID = call.callCameraID ?? call.cameraID;
     const hass = this._api.getHASSManager().getHASS();
     const camera = this._api.getCameraManager().getStore().getCamera(targetID);
-    const stream = this._api.getMicrophoneManager().getStream();
+    const stream = microphoneManager.getStream();
 
     const backchannel =
       hass && camera
@@ -305,8 +323,7 @@ export class CallManager {
           )
         : null;
     if (!backchannel || !stream) {
-      this._notifyError('error.call_no_two_way_audio', { inbound });
-      this._end(true);
+      this._failConnect(new BackchannelError('no_two_way_audio'));
       return false;
     }
 
@@ -315,20 +332,32 @@ export class CallManager {
     try {
       await backchannel.start(stream);
     } catch (error: unknown) {
-      if (this._call !== call) {
-        return false;
+      if (this._connecting === call) {
+        this._failConnect(error);
       }
-      this._closeBackchannel();
-      this._notifyBackchannelError(error, inbound);
-      this._end(true);
       return false;
     }
 
-    if (this._call !== call) {
-      backchannel.stop();
+    if (this._connecting !== call) {
       return false;
     }
+    this._connecting = null;
     return true;
+  }
+
+  // Stops connecting, leaving any ringing call in place.
+  private _abandonConnect(): void {
+    this._connecting = null;
+    this._closeBackchannel();
+
+    this._api.getMicrophoneManager().setTransmissionActive(false);
+    this._api.getCardElementManager().update();
+  }
+
+  private _failConnect(error: unknown): void {
+    this._notifyBackchannelError(error);
+    this._abandonConnect();
+    this._end(true);
   }
 
   private _closeBackchannel(): void {
@@ -337,17 +366,18 @@ export class CallManager {
   }
 
   // Ends a call whose backchannel was lost, so the user is not left with call
-  // controls when they can no longer be heard. A backchannel only exists once a
-  // call is answered, so the loss is reported even for an inbound call.
+  // controls when they can no longer be heard.
   private _reportBackchannelLoss(call: CallSession, error: BackchannelError): void {
     if (this._call !== call) {
       return;
     }
-    this._notifyBackchannelError(error, false);
+    this._notifyBackchannelError(error);
     this._end(false);
   }
 
-  private _notifyBackchannelError(error: unknown, inbound: boolean): void {
+  // A backchannel only exists once the user started or answered a call, so
+  // its failures are always reported, even for an inbound call.
+  private _notifyBackchannelError(error: unknown): void {
     // Abandonment means this manager closed the backchannel itself, because the
     // call ended or was replaced. Nothing failed, so there is nothing to report.
     if (error instanceof BackchannelAbandonedError) {
@@ -357,22 +387,22 @@ export class CallManager {
     const reason = error instanceof BackchannelError ? error.reason : 'failed';
 
     this._notifyError(BACKCHANNEL_FAILURE_MESSAGE_KEYS[reason], {
-      inbound,
       ...(error instanceof BackchannelError &&
         error.description && { context: error.description }),
     });
   }
 
   // Tears down everything `initialize()` set up: stops any in-flight ringtone
-  // and unanswered timer, drops the active call session, clears the call
-  // condition state, and de-registers the condition-state listener. Driven by
-  // the card element lifecycle: called from `elementDisconnected`.
+  // and unanswered timer, drops the active and connecting call sessions, clears
+  // the call condition state, and de-registers the condition-state listener.
+  // Driven by the card element lifecycle: called from `elementDisconnected`.
   //
   // Safe to re-initialize afterwards via `initialize()`.
   public uninitialize(): void {
     this._initGeneration.invalidate();
     this._ringtone.stop();
     this._unansweredTimer.stop();
+    this._connecting = null;
     this._closeBackchannel();
     this._api.getMicrophoneManager().setTransmissionActive(false);
     if (this._call) {
@@ -397,6 +427,11 @@ export class CallManager {
     }
     const call = this._call;
     const previousView = call.previousView;
+
+    // Ending a call the user is answering drops the answer too.
+    if (this._connecting) {
+      this._abandonConnect();
+    }
 
     // Silence any ringtone before the navigation.
     this._ringtone.stop();
@@ -451,19 +486,27 @@ export class CallManager {
   // themselves -- not to unrelated state updates (e.g. `mediaLoadedInfo`)
   // that may arrive before the view-manager's own state update.
   private _handleConditionStateChange = (stateChange: ConditionStateChange): void => {
-    if (!this._call) {
-      return;
-    }
-
     const viewRelevantChange =
       stateChange.change.view !== undefined ||
       stateChange.change.camera !== undefined ||
       stateChange.change.substreamID !== undefined;
+    if (!viewRelevantChange) {
+      return;
+    }
+
+    // An outbound call is shown only once connected, so moving elsewhere while
+    // it connects means the user no longer wants it.
+    if (!this._call) {
+      if (this._connecting) {
+        this._abandonConnect();
+      }
+      return;
+    }
+
     if (
-      viewRelevantChange &&
-      (stateChange.new.view !== 'live' ||
-        stateChange.new.camera !== this._call.cameraID ||
-        stateChange.new.substreamID !== this._call.callCameraID)
+      stateChange.new.view !== 'live' ||
+      stateChange.new.camera !== this._call.cameraID ||
+      stateChange.new.substreamID !== this._call.callCameraID
     ) {
       this._end(false);
     }
@@ -511,25 +554,6 @@ export class CallManager {
       return false;
     }
 
-    return true;
-  }
-
-  private _revokeTransmissionIfNoAnsweredCall(): void {
-    if (!this._call?.answered) {
-      this._api.getMicrophoneManager().setTransmissionActive(false);
-    }
-  }
-
-  // The microphone manager releases a stream that connects while transmission
-  // is inactive, so transmission is activated first and revoked on failure.
-  // Returns true iff the microphone is connected and this request is still
-  // current.
-  private async _grantTransmissionAndConnect(): Promise<boolean> {
-    this._api.getMicrophoneManager().setTransmissionActive(true);
-    if (!(await this._connectMicrophone())) {
-      this._revokeTransmissionIfNoAnsweredCall();
-      return false;
-    }
     return true;
   }
 

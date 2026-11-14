@@ -45,7 +45,7 @@ export const getRecordingsSummary = async (
       // See: https://github.com/dermotduffy/advanced-camera-card/issues/1267
       timezone: hass.config.time_zone,
     },
-    true,
+    { passthrough: true },
     // See: https://github.com/colinhacks/zod/pull/1752
   )) as RecordingSummary;
 };
@@ -74,7 +74,7 @@ export const getRecordingSegments = async (
       type: 'frigate/recordings/get',
       ...params,
     },
-    true,
+    { passthrough: true },
   );
 };
 
@@ -101,7 +101,7 @@ export async function retainEvent(
     hass,
     retainResultSchema,
     retainRequest,
-    true,
+    { passthrough: true },
   );
   if (!response.success) {
     throw new AdvancedCameraCardError(localize('error.failed_retain'), {
@@ -142,7 +142,7 @@ export const getEvents = async (
       type: 'frigate/events/get',
       ...params,
     },
-    true,
+    { passthrough: true },
   );
 };
 
@@ -161,7 +161,7 @@ export const getEventSummary = async (
       // See: https://github.com/dermotduffy/advanced-camera-card/issues/1267
       timezone: hass.config.time_zone,
     },
-    true,
+    { passthrough: true },
   );
 };
 
@@ -178,7 +178,7 @@ export const getPTZInfo = async (
       instance_id: clientID,
       camera: cameraName,
     },
-    true,
+    { passthrough: true },
   );
 };
 
@@ -211,7 +211,7 @@ export const getReviews = async (
       type: 'frigate/reviews/get',
       ...params,
     },
-    true,
+    { passthrough: true },
   );
 };
 

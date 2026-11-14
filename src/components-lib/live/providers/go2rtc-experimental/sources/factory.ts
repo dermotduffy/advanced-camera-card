@@ -92,10 +92,12 @@ export interface CreateWebRTCSourceOptions {
 
 export type WebRTCSourceFactory = (
   context: StreamSourceContext<VideoStreamTarget>,
+  getICEServers: () => Promise<RTCIceServer[]>,
   options?: CreateWebRTCSourceOptions,
 ) => WebRTCStreamSource;
 
 export const createWebRTCSource: WebRTCSourceFactory = (
   context: StreamSourceContext<VideoStreamTarget>,
+  getICEServers: () => Promise<RTCIceServer[]>,
   options?: CreateWebRTCSourceOptions,
-): WebRTCStreamSource => new WebRTCStreamSource(context, options);
+): WebRTCStreamSource => new WebRTCStreamSource(context, getICEServers, options);

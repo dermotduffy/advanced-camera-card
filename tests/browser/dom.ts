@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { userEvent } from 'vitest/browser';
 
-import { ACTION_HANDLER_HOLD_SECONDS } from '../../src/const';
+import { HOLD_SECONDS } from '../../src/const';
 import { sleep } from '../../src/utils/sleep';
 
 // `querySelectorAll` does not look inside a shadow root, so a full search has
@@ -112,9 +112,9 @@ export const waitForTransition = (element: Element): Promise<void> =>
 
 const waitForHold = async (): Promise<void> => {
   if (vi.isFakeTimers()) {
-    await vi.advanceTimersByTimeAsync(ACTION_HANDLER_HOLD_SECONDS * 1000);
+    await vi.advanceTimersByTimeAsync(HOLD_SECONDS * 1000);
   } else {
-    await sleep(ACTION_HANDLER_HOLD_SECONDS);
+    await sleep(HOLD_SECONDS);
   }
 };
 

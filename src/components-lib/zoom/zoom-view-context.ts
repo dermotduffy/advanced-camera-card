@@ -1,7 +1,9 @@
 import type { ViewContext } from 'view';
 
+import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context.js';
 import type { ViewManagerInterface } from '../../card-controller/view/types.js';
+import { createPTZDigitalAction } from '../../utils/action.js';
 import type { PartialZoomSettings, ZoomSettingsObserved } from './types.js';
 
 interface ZoomViewContext {
@@ -61,5 +63,17 @@ export const handleZoomSettingsObservedEvent = (
         }),
       ),
     ],
+  });
+};
+
+export const handleDigitalZoomHomeEvent = (
+  element: HTMLElement,
+  targetID?: string,
+): void => {
+  if (!targetID) {
+    return;
+  }
+  dispatchActionExecutionRequest(element, {
+    actions: createPTZDigitalAction({ targetID }),
   });
 };

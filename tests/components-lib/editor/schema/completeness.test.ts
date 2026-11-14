@@ -98,6 +98,11 @@ const EDITOR_EXCLUDED = [
 
   // Advanced folder path parsers/matchers/templating: text-editor only.
   'folders.ha.path',
+
+  // A button's 'in_progress' field is only useful when an override toggles it
+  // (which is only manual).
+  'menu.buttons.*.in_progress',
+  'live.controls.call.buttons.*.in_progress',
 ];
 
 // Every section's forms, keyed by section, so the harness walks the full
@@ -238,12 +243,18 @@ const enumValues = (schema: z.core.$ZodType): unknown[] | null => {
 
 // True if a config path lies inside a subtree the editor forms do not own
 // (YAML-only, or rendered by a custom widget), so the completeness walk skips
-// it.
+// it. A `*` prefix segment matches any single path segment.
 const isPruned = (path: ConfigPath): boolean => {
-  const key = path.join('.');
-  return [...EDITOR_CUSTOM_WIDGETS, ...EDITOR_EXCLUDED].some(
-    (prefix) => key === prefix || key.startsWith(`${prefix}.`),
-  );
+  const segments = path.map(String);
+  return [...EDITOR_CUSTOM_WIDGETS, ...EDITOR_EXCLUDED].some((prefix) => {
+    const prefixSegments = prefix.split('.');
+    return (
+      prefixSegments.length <= segments.length &&
+      prefixSegments.every(
+        (segment, index) => segment === '*' || segment === segments[index],
+      )
+    );
+  });
 };
 
 // Enumerate the configuration schema's leaf field paths (a leaf is anything
