@@ -3251,4 +3251,203 @@ describe('MenuButtonController', () => {
       });
     });
   });
+  describe('should handle unavailable buttons', () => {
+    const getMute = (buttons: MenuItem[]): MenuItem | null =>
+      buttons.find((button) => button.title === 'Mute / Unmute') ?? null;
+
+    it('should hide an unavailable button by default', () => {
+      const buttons = calculateButtons(controller, {
+        config: createConfig({ menu: { buttons: { mute: { enabled: true } } } }),
+      });
+
+      expect(getMute(buttons)).toBeNull();
+    });
+
+    it.each([
+      { name: 'call', icon: 'mdi:phone', title: 'Start 2-way audio call' },
+      { name: 'camera_ui', icon: 'mdi:web', title: 'Camera user interface' },
+      { name: 'cameras', icon: 'mdi:video-switch', title: 'Cameras' },
+      { name: 'clips', icon: 'mdi:filmstrip', title: 'Clips gallery' },
+      {
+        name: 'display_mode',
+        icon: 'mdi:grid',
+        title: 'Show media viewer for each camera in a grid',
+      },
+      { name: 'download', icon: 'mdi:download', title: 'Download' },
+      { name: 'folders', icon: 'mdi:folder-multiple', title: 'Folders' },
+      { name: 'fullscreen', icon: 'mdi:fullscreen', title: 'Fullscreen' },
+      { name: 'gallery', icon: 'mdi:play-box-multiple', title: 'Gallery' },
+      { name: 'image', icon: 'mdi:image', title: 'Static image' },
+      { name: 'info', icon: 'mdi:information-outline', title: 'Info' },
+      { name: 'live', icon: 'mdi:cctv', title: 'Live view' },
+      { name: 'media_player', icon: 'mdi:cast', title: 'Send to media player' },
+      { name: 'microphone', icon: 'mdi:microphone-off', title: 'Microphone' },
+      { name: 'mute', icon: 'mdi:volume-off', title: 'Mute / Unmute' },
+      {
+        name: 'pip',
+        icon: 'mdi:picture-in-picture-bottom-right',
+        title: 'Picture in Picture',
+      },
+      { name: 'play', icon: 'mdi:play', title: 'Play / Pause' },
+      { name: 'ptz_controls', icon: 'mdi:pan', title: 'Show PTZ controls' },
+      { name: 'ptz_home', icon: 'mdi:home', title: 'PTZ Home' },
+      { name: 'recordings', icon: 'mdi:album', title: 'Recordings gallery' },
+      { name: 'reviews', icon: 'mdi:play-box-edit-outline', title: 'Reviews gallery' },
+      { name: 'screenshot', icon: 'mdi:monitor-screenshot', title: 'Screenshot' },
+      {
+        name: 'set_review',
+        icon: 'mdi:check-circle-outline',
+        title: 'Mark as reviewed',
+      },
+      { name: 'snapshots', icon: 'mdi:camera', title: 'Snapshots gallery' },
+      { name: 'substreams', icon: 'mdi:video-input-component', title: 'Substream(s)' },
+      { name: 'timeline', icon: 'mdi:chart-gantt', title: 'Timeline view' },
+    ])(
+      'should show an unavailable $name button inert when configured',
+      ({ name, icon, title }) => {
+        vi.mocked(isViewSupported).mockReturnValue(false);
+        const buttons = calculateButtons(controller, {
+          config: createConfig({
+            menu: { buttons: { [name]: { enabled: true, unavailable: 'inert' } } },
+          }),
+          view: createView({ camera: null }),
+        });
+
+        expect(buttons.filter((button) => button.inert)).toEqual([
+          {
+            alignment: 'matching',
+            enabled: true,
+            icon,
+            inert: true,
+            permanent: false,
+            priority: 50,
+            state_color: true,
+            title,
+            type: 'custom:advanced-camera-card-menu-icon',
+            unavailable: 'inert',
+          },
+        ]);
+      },
+    );
+
+    it('should keep the configured icon on an inert button', () => {
+      const buttons = calculateButtons(controller, {
+        config: createConfig({
+          menu: {
+            buttons: {
+              mute: { enabled: true, icon: 'mdi:speaker', unavailable: 'inert' },
+            },
+          },
+        }),
+      });
+
+      expect(getMute(buttons)?.icon).toBe('mdi:speaker');
+    });
+
+    it('should keep a disabled inert button disabled', () => {
+      const buttons = calculateButtons(controller, {
+        config: createConfig({ menu: { buttons: { mute: { unavailable: 'inert' } } } }),
+      });
+
+      expect(getMute(buttons)).toEqual(
+        expect.objectContaining({ enabled: false, inert: true }),
+      );
+    });
+
+    it('should show an available button as usual', () => {
+      const mediaPlayerController = mock<MediaPlayerController>();
+      mediaPlayerController.isMuted.mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        config: createConfig({
+          menu: { buttons: { mute: { enabled: true, unavailable: 'inert' } } },
+        }),
+        currentMediaLoadedInfo: createMediaLoadedInfo({
+          capabilities: { hasAudio: true },
+          mediaPlayerController,
+        }),
+      });
+
+      const mute = getMute(buttons);
+      expect(mute?.inert).toBeUndefined();
+      expect(mute?.tap_action).toEqual(createGeneralAction('unmute'));
+    });
+
+    it('should keep the built-in buttons in menu order', () => {
+      // Every button is enabled and unavailable, so each one is present as its
+      // inert placeholder (iris and expand are always available).
+      const names = [
+        'iris',
+        'cameras',
+        'substreams',
+        'live',
+        'clips',
+        'snapshots',
+        'recordings',
+        'reviews',
+        'gallery',
+        'image',
+        'timeline',
+        'download',
+        'info',
+        'set_review',
+        'camera_ui',
+        'call',
+        'microphone',
+        'expand',
+        'fullscreen',
+        'pip',
+        'media_player',
+        'play',
+        'mute',
+        'screenshot',
+        'display_mode',
+        'ptz_controls',
+        'ptz_home',
+        'folders',
+      ];
+      vi.mocked(isViewSupported).mockReturnValue(false);
+
+      const buttons = calculateButtons(controller, {
+        config: createConfig({
+          menu: {
+            buttons: Object.fromEntries(
+              names.map((name) => [name, { enabled: true, unavailable: 'inert' }]),
+            ),
+          },
+        }),
+        view: createView({ camera: null }),
+      });
+
+      expect(buttons.map((button) => button.title)).toEqual([
+        'Iris / Default View / Unhide menu',
+        'Cameras',
+        'Substream(s)',
+        'Live view',
+        'Clips gallery',
+        'Snapshots gallery',
+        'Recordings gallery',
+        'Reviews gallery',
+        'Gallery',
+        'Static image',
+        'Timeline view',
+        'Download',
+        'Info',
+        'Mark as reviewed',
+        'Camera user interface',
+        'Start 2-way audio call',
+        'Microphone',
+        'Expand',
+        'Fullscreen',
+        'Picture in Picture',
+        'Send to media player',
+        'Play / Pause',
+        'Mute / Unmute',
+        'Screenshot',
+        'Show media viewer for each camera in a grid',
+        'Show PTZ controls',
+        'PTZ Home',
+        'Folders',
+      ]);
+    });
+  });
 });

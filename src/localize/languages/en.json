@@ -608,6 +608,11 @@
         "types": {
           "momentary": "Momentary",
           "toggle": "Toggle"
+        },
+        "unavailable": "Behavior when unavailable",
+        "unavailables": {
+          "hidden": "Hidden",
+          "inert": "Non-interactive"
         }
       },
       "position": "Position",

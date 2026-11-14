@@ -14,6 +14,7 @@ const MENU_STYLES = [
 ] as const;
 const MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
 const MENU_ALIGNMENTS = MENU_POSITIONS;
+const MENU_BUTTON_UNAVAILABLE_MODES = ['hidden', 'inert'] as const;
 
 const baseButtonDefault = {
   alignment: 'matching' as const,
@@ -78,11 +79,13 @@ export const menuConfigDefault = {
 const visibleButtonSchema = menuBaseSchema.extend({
   enabled: menuBaseSchema.shape.enabled.default(visibleButtonDefault.enabled),
   priority: menuBaseSchema.shape.priority.default(visibleButtonDefault.priority),
+  unavailable: z.enum(MENU_BUTTON_UNAVAILABLE_MODES).optional(),
 });
 
 const hiddenButtonSchema = menuBaseSchema.extend({
   enabled: menuBaseSchema.shape.enabled.default(hiddenButtonDefault.enabled),
   priority: menuBaseSchema.shape.priority.default(hiddenButtonDefault.priority),
+  unavailable: z.enum(MENU_BUTTON_UNAVAILABLE_MODES).optional(),
 });
 
 export const menuConfigSchema = z
