@@ -87,9 +87,19 @@ export class MSEStreamSource implements StreamSource {
   private _negotiationTimer = new Timer();
   private _liveEdge: LiveEdgeTracker;
 
+  private _isWebKit: boolean;
+  private _isPlaybackPrimed = false;
+
   private _unsubscribeCallbacks: UnsubscribeCallback[] = [];
 
   private _loadedHandler = (): void => {
+    if (this._isPlaybackPrimed) {
+      this._isPlaybackPrimed = false;
+
+      // Re-pause the video after priming; the card's `live.auto_play` handling
+      // decides whether to play it.
+      this._context.target.video.pause();
+    }
     this._context.callbacks.loadedCallback();
   };
 
@@ -118,7 +128,8 @@ export class MSEStreamSource implements StreamSource {
     this._createMediaSource = options?.createMediaSource ?? createBrowserMediaSource;
 
     const userAgent = options?.userAgent ?? navigator.userAgent;
-    this._liveEdge = new LiveEdgeTracker({ webkit: isWebKitUserAgent(userAgent) });
+    this._isWebKit = isWebKitUserAgent(userAgent);
+    this._liveEdge = new LiveEdgeTracker({ webkit: this._isWebKit });
     this._codecCandidates = getCodecsForUserAgent(userAgent);
   }
 
@@ -141,6 +152,19 @@ export class MSEStreamSource implements StreamSource {
     this._context.target.video.addEventListener('play', this._playHandler);
 
     mediaSource.attach(this._context.target.video);
+
+    // On iOS, WebKit can stop completing appends to a paused video before the
+    // first frame loads, so the video plays until the first frame loads.
+    if (this._isWebKit) {
+      this._isPlaybackPrimed = true;
+
+      // A refused play() leaves the card to play the video itself after load.
+      this._primePlayback(this._context.target.video).catch(() => {});
+    }
+  }
+
+  private async _primePlayback(video: HTMLVideoElement): Promise<void> {
+    await video.play();
   }
 
   public stop(): void {
