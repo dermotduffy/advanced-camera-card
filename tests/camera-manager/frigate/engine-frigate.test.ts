@@ -1416,6 +1416,34 @@ describe('FrigateCameraManagerEngine', () => {
       });
     });
 
+    it.each([
+      ['no start', undefined],
+      ['a start at the epoch', new Date(0)],
+    ])(
+      'should request reviews from the earliest nonzero time with %s',
+      async (_name: string, start?: Date) => {
+        const hass = createHASS();
+        const config = createCameraConfig({
+          frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+        });
+        const store = createStore([{ cameraID: 'camera-1', config }]);
+
+        vi.mocked(getReviews).mockResolvedValue([]);
+
+        await createEngine().getReviews(hass, store, {
+          type: QueryType.Review,
+          source: QuerySource.Camera,
+          cameraIDs: new Set(['camera-1']),
+          start,
+        });
+
+        expect(getReviews).toHaveBeenCalledWith(
+          hass,
+          expect.objectContaining({ after: 1 }),
+        );
+      },
+    );
+
     it('should return null when no cameras map to instances', async () => {
       const config = createCameraConfig({
         frigate: { camera_name: 'birdseye', client_id: 'client-1' },

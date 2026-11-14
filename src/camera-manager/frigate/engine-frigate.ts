@@ -571,7 +571,16 @@ export class FrigateCameraManagerEngine
               ...(query.what && { labels: Array.from(query.what) }),
               ...(query.where && { zones: Array.from(query.where) }),
               ...(query.end && { before: Math.floor(query.end.getTime() / 1000) }),
-              ...(query.start && { after: Math.floor(query.start.getTime() / 1000) }),
+              after: Math.max(
+                query.start ? Math.floor(query.start.getTime() / 1000) : 0,
+                // Frigate deliberately substitutes the last 24 hours for a
+                // missing or zero `after`, so an unbounded query sends the
+                // earliest non-zero time:
+                //
+                // See: https://github.com/blakeblackshear/frigate/discussions/24968
+                1,
+              ),
+
               ...(query.limit && { limit: query.limit }),
               severity: frigateSeverity,
               ...(query.reviewed !== undefined && { reviewed: query.reviewed }),
