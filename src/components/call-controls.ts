@@ -52,6 +52,9 @@ export class AdvancedCameraCardCallControls extends LitElement {
   public answered = true;
 
   @property({ attribute: false })
+  public connecting = false;
+
+  @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
@@ -145,6 +148,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
           {
             emphasis: 'positive',
             action: createCallAnswerAction(),
+            inProgress: this.connecting,
           },
         )}
       </div>
@@ -216,6 +220,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
     options?: {
       disabled?: boolean;
       emphasis?: 'negative' | 'positive';
+      inProgress?: boolean;
       action?: ActionConfig;
       handler?: () => void;
     },
@@ -223,7 +228,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
     // As for a menu button: a configured icon replaces the button's own, a
     // configured style is merged over it (and colors the icon too).
     const config = this.buttonsConfig?.[name];
-    const inProgress = !!config?.in_progress;
+    const inProgress = !!config?.in_progress || !!options?.inProgress;
     return html`
       <ha-icon-button
         .label=${label}

@@ -112,6 +112,8 @@ enabled by default and appears in the `live` view whenever the selected camera
   applications the rest of the time. Expect under half a second between starting
   a call and being audible on a local network, and a little more remotely. The
   video keeps playing throughout.
+- While connecting, the call or answer button pressed shows a spinning ring, and
+  the call controls appear once successfully connected.
 - The browser asks for microphone permission when a call needs it. How often it
   asks depends on the browser: Chrome remembers the choice for the site, Safari
   asks once per page load, and Firefox asks for every call unless _Remember this

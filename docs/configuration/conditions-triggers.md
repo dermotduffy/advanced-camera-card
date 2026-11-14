@@ -99,11 +99,11 @@ conditions:
 Matches the phase of a [two-way audio](../usage/2-way-audio.md) call. A call is
 in one of three phases:
 
-| Phase      | Meaning                                                       |
-| ---------- | ------------------------------------------------------------- |
-| `idle`     | No call is in progress.                                       |
-| `ringing`  | An inbound call is ringing and has not been answered.         |
-| `answered` | A call is in progress. An outbound call starts in this phase. |
+| Phase      | Meaning                                               |
+| ---------- | ----------------------------------------------------- |
+| `idle`     | No call is in progress.                               |
+| `ringing`  | An inbound call is ringing and has not been answered. |
+| `answered` | A call is in progress and its audio is connected.     |
 
 As a **condition**, true while the call is in a matching phase. As a **trigger**,
 fires when the phase _changes_, optionally limited to changes that start at
