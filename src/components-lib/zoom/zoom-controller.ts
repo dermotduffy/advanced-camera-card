@@ -308,8 +308,6 @@ export class ZoomController {
   }
 
   private _isZoomEqual(a: PartialZoomSettings, b: PartialZoomSettings): boolean {
-    // The ?? clauses below cannot be reached since this function is only ever
-    // used fully specified by this object. It's kept as-is for completeness.
     return (
       arefloatsApproximatelyEqual(
         a.zoom ?? ZOOM_DEFAULT_SCALE,
@@ -321,10 +319,13 @@ export class ZoomController {
         b.pan?.x ?? ZOOM_DEFAULT_PAN_X,
         ZOOM_PRECISION,
       ) &&
+
+      // The ?? clauses below cannot be reached since this function is only ever
+      // used fully specified by this object. It's kept as-is for completeness.
       arefloatsApproximatelyEqual(
-        /* v8 ignore next @preserve */
+        /* v8 ignore next: the fallback cannot be reached, see above -- @preserve */
         a.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
-        /* v8 ignore next @preserve */
+        /* v8 ignore next: the fallback cannot be reached, see above -- @preserve */
         b.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
         ZOOM_PRECISION,
       )
