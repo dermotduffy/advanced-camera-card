@@ -28,6 +28,9 @@ describe('MSEStreamSource', () => {
       writable: true,
       value: false,
     });
+
+    // jsdom does not implement play(), which WebKit sources call on start.
+    video.play = vi.fn(() => Promise.resolve());
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
@@ -78,6 +81,66 @@ describe('MSEStreamSource', () => {
       source.start();
 
       expect(instance.attach).toHaveBeenCalledWith(video);
+    });
+
+    it('should play once attached on WebKit', () => {
+      const { source, video } = setup({ userAgent: SAFARI_17_USER_AGENT });
+      source.start();
+
+      expect(video.play).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not play once attached outside WebKit', () => {
+      const { source, video } = setup();
+      source.start();
+
+      expect(video.play).not.toHaveBeenCalled();
+    });
+
+    it('should tolerate a refused play on WebKit', async () => {
+      const { source, video, failedCallback } = setup({
+        userAgent: SAFARI_17_USER_AGENT,
+      });
+      video.play = vi.fn(() => Promise.reject(new Error('NotAllowedError')));
+      source.start();
+      await vi.runAllTimersAsync();
+
+      expect(failedCallback).not.toHaveBeenCalled();
+    });
+
+    it('should tolerate a throwing play on WebKit', async () => {
+      const { source, video, failedCallback } = setup({
+        userAgent: SAFARI_17_USER_AGENT,
+      });
+      video.play = vi.fn(() => {
+        throw new Error('InvalidStateError');
+      });
+
+      expect(() => source.start()).not.toThrow();
+      await vi.runAllTimersAsync();
+      expect(failedCallback).not.toHaveBeenCalled();
+    });
+
+    it('should pause once the first frame loads on WebKit', () => {
+      const setupResult = setup({ userAgent: SAFARI_17_USER_AGENT });
+      setupResult.video.pause = vi.fn();
+      negotiate(setupResult);
+
+      setupResult.video.dispatchEvent(new Event('loadeddata'));
+      setupResult.video.dispatchEvent(new Event('loadeddata'));
+
+      expect(setupResult.video.pause).toHaveBeenCalledTimes(1);
+      expect(setupResult.loadedCallback).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not pause when the first frame loads outside WebKit', () => {
+      const setupResult = setup();
+      setupResult.video.pause = vi.fn();
+      negotiate(setupResult);
+
+      setupResult.video.dispatchEvent(new Event('loadeddata'));
+
+      expect(setupResult.video.pause).not.toHaveBeenCalled();
     });
   });
 
