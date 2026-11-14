@@ -1396,4 +1396,264 @@ describe('ZoomController', () => {
       expect(home).not.toHaveBeenCalled();
     });
   });
+  describe('with a picture that does not fill the element', () => {
+    // A 16:9 picture in a portrait fullscreen: 411x231.1875 inside 411x914.
+    const setElementToPortraitFullscreen = (element: HTMLElement): void => {
+      Object.defineProperty(element, 'offsetWidth', { configurable: true, value: 411 });
+      Object.defineProperty(element, 'offsetHeight', { configurable: true, value: 914 });
+    };
+
+    const createPictureZoom = (
+      ratio: number | null = 16 / 9,
+    ): { element: HTMLElement; panzoom: PanzoomObject; controller: ZoomController } => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+      const element = createAttachedElement();
+      setElementToPortraitFullscreen(element);
+      const controller = createAndRegisterZoom(element);
+      controller.setPictureAspectRatio(ratio);
+      mockClear(panzoom);
+      return { element, panzoom, controller };
+    };
+
+    it('should pull a gesture back to the picture', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      // At x2 the picture is 822 wide (102.75 of room either side) but only
+      // 462 high, so it stays centered vertically.
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
+      element.dispatchEvent(new PointerEvent('pointerdown'));
+      element.dispatchEvent(new PointerEvent('pointermove'));
+
+      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 0, {
+        animate: false,
+        contain: undefined,
+      });
+    });
+
+    it('should allow a vertical pan once the picture is taller than the element', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(5);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: -300, y: -100 });
+      element.dispatchEvent(new PointerEvent('pointerdown'));
+      element.dispatchEvent(new PointerEvent('pointermove'));
+
+      expect(panzoom.pan).toHaveBeenCalledWith(
+        expect.closeTo(-164.4),
+        expect.closeTo(-24.19375),
+        { animate: false, contain: undefined },
+      );
+    });
+
+    it('should leave a gesture within the picture alone', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 50, y: 0 });
+      element.dispatchEvent(new PointerEvent('pointerdown'));
+      element.dispatchEvent(new PointerEvent('pointermove'));
+
+      expect(panzoom.pan).not.toHaveBeenCalled();
+    });
+
+    it('should pull a wheel zoom back to the picture', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 0, y: -200 });
+      element.dispatchEvent(new WheelEvent('wheel', { deltaY: -120, ctrlKey: true }));
+
+      expect(panzoom.zoomWithWheel).toHaveBeenCalled();
+      expect(panzoom.pan).toHaveBeenCalledWith(0, 0, {
+        animate: false,
+        contain: undefined,
+      });
+    });
+
+    it('should center a wheel zoom back out to scale 1', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(1);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 3, y: 4 });
+      element.dispatchEvent(new WheelEvent('wheel', { deltaY: 120, ctrlKey: true }));
+
+      expect(panzoom.pan).toHaveBeenCalledWith(0, 0, {
+        animate: false,
+        contain: undefined,
+      });
+    });
+
+    it('should not pull back without a picture aspect ratio', () => {
+      const { element, panzoom } = createPictureZoom(null);
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
+      element.dispatchEvent(new PointerEvent('pointerdown'));
+      element.dispatchEvent(new PointerEvent('pointermove'));
+
+      expect(panzoom.pan).not.toHaveBeenCalled();
+    });
+
+    it('should apply a configured pan within the picture', () => {
+      const { panzoom, controller } = createPictureZoom();
+
+      controller.setSettings({ zoom: 2, pan: { x: 0, y: 0 } });
+
+      expect(panzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
+      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 0, {
+        animate: true,
+        duration: 100,
+      });
+    });
+
+    it('should limit the pan to a picture with bars left and right', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+      const element = createAttachedElement();
+      Object.defineProperty(element, 'offsetWidth', { configurable: true, value: 914 });
+      Object.defineProperty(element, 'offsetHeight', { configurable: true, value: 411 });
+      const controller = createAndRegisterZoom(element);
+
+      // A 4:3 picture: 548x411 inside 914x411.
+      controller.setPictureAspectRatio(4 / 3);
+      controller.setSettings({ zoom: 2, pan: { x: 0, y: 100 } });
+
+      expect(panzoom.pan).toHaveBeenCalledWith(
+        expect.closeTo(45.5),
+        expect.closeTo(-102.75),
+        { animate: true, duration: 100 },
+      );
+    });
+
+    it('should report a centered axis and clamp a pan past the limits', () => {
+      const { element } = createPictureZoom();
+      const changeHandler = vi.fn();
+      element.addEventListener('advanced-camera-card:zoom:change', changeHandler);
+
+      element.dispatchEvent(
+        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+          detail: {
+            x: 200,
+            y: 10,
+            scale: 2,
+            isSVG: false,
+            originalEvent: new PointerEvent('pointermove'),
+          },
+        }),
+      );
+
+      expect(changeHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({ pan: { x: 0, y: 50 } }),
+        }),
+      );
+    });
+
+    const gesture = (
+      element: HTMLElement,
+      x: number,
+      y: number,
+      scale: number,
+    ): void => {
+      element.dispatchEvent(
+        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
+          detail: {
+            x,
+            y,
+            scale,
+            isSVG: false,
+            originalEvent: new PointerEvent('pointermove'),
+          },
+        }),
+      );
+    };
+
+    it('should keep the earlier pan on an axis without room', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      // At x5 the picture is taller than the element: a pan towards the top.
+      gesture(element, -100, -10, 5);
+
+      // At x2 it fits the height: a sideways pan cannot move it vertically.
+      gesture(element, 50, 0, 2);
+
+      // Back at the card's size (where the picture fills the element), the
+      // vertical pan from x5 (70.7 %) is still there, the sideways one too.
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      setElementToDefaultCardSize(element);
+      triggerResizeObserver();
+      expect(panzoom.pan).toHaveBeenLastCalledWith(
+        expect.closeTo(59.854),
+        expect.closeTo(-28.597),
+        { animate: false },
+      );
+    });
+
+    it('should keep the earlier sideways pan with bars left and right', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+      const element = createAttachedElement();
+      Object.defineProperty(element, 'offsetWidth', { configurable: true, value: 914 });
+      Object.defineProperty(element, 'offsetHeight', { configurable: true, value: 411 });
+      const controller = createAndRegisterZoom(element);
+
+      // A 16:9 picture: 730.7x411 inside 914x411. At x3 it is wider than the
+      // element: a pan towards the left. At x1.2 it fits the width.
+      controller.setPictureAspectRatio(16 / 9);
+      gesture(element, -100, 0, 3);
+      gesture(element, 0, -20, 1.2);
+
+      vi.mocked(panzoom.getScale).mockReturnValue(1.2);
+      setElementToDefaultCardSize(element);
+      triggerResizeObserver();
+      expect(panzoom.pan).toHaveBeenLastCalledWith(
+        expect.closeTo(-19.249),
+        expect.closeTo(-13.467),
+        { animate: false },
+      );
+    });
+
+    it('should center an axis without room and no earlier pan', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      gesture(element, 50, 0, 2);
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      setElementToDefaultCardSize(element);
+      triggerResizeObserver();
+      expect(panzoom.pan).toHaveBeenLastCalledWith(expect.closeTo(59.854), 0, {
+        animate: false,
+      });
+    });
+
+    it('should re-derive the pan when the aspect ratio changes', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+      const element = createAttachedElement();
+      setElementToPortraitFullscreen(element);
+      const controller = createAndRegisterZoom(element);
+
+      // Without the picture's shape the element bounds the pan.
+      controller.setSettings({ zoom: 2, pan: { x: 0, y: 0 } });
+      expect(panzoom.pan).toHaveBeenLastCalledWith(102.75, 228.5, {
+        animate: true,
+        duration: 100,
+      });
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 102.75, y: 228.5 });
+
+      controller.setPictureAspectRatio(16 / 9);
+      expect(panzoom.pan).toHaveBeenLastCalledWith(102.75, 0, {
+        animate: true,
+        duration: 100,
+      });
+      expect(panzoom.pan).toHaveBeenCalledTimes(2);
+
+      // The same ratio again changes nothing.
+      controller.setPictureAspectRatio(16 / 9);
+      expect(panzoom.pan).toHaveBeenCalledTimes(2);
+    });
+  });
 });

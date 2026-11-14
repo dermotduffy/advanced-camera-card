@@ -233,3 +233,74 @@ describe('AdvancedCameraCardZoomer default zoom', () => {
     expect(await card.findControl(PTZ_HOME)).not.toBeNull();
   });
 });
+
+describe('AdvancedCameraCardZoomer picture limits', () => {
+  // A portrait card around a 16:9 picture, so the picture has bars above and
+  // below it, as a camera does in fullscreen on a phone held upright.
+  const mountPortrait = async (layout: MediaLayoutConfig): Promise<MountedCard> =>
+    await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        cameras: [{ ...createStillImageCameraConfig(), dimensions: { layout } }],
+        dimensions: { aspect_ratio_mode: 'static', aspect_ratio: [9, 16] },
+      }),
+      createGenericCameraHASS(),
+    );
+
+  // The latest zoom report, once the configured zoom and horizontal pan are
+  // both applied (the zoom alone is reported first, with the pan centered).
+  const waitForConfiguredPan = async (
+    card: MountedCard,
+  ): Promise<ZoomSettingsObserved> =>
+    await card.waitForRender(() => {
+      const report = getZoomReports(card, 0).at(-1);
+      return report &&
+        arefloatsApproximatelyEqual(report.zoom, 2, 1) &&
+        arefloatsApproximatelyEqual(report.pan.x, 0, 1)
+        ? report
+        : null;
+    }, 'zoom 2 with a horizontal pan of 0%');
+
+  // The vertical translation Panzoom applied to the zoomer (its transform is
+  // `scale(s) translate(x, y)`), so the test checks where the picture is
+  // rather than only what is reported.
+  const getTranslateY = (zoomer: HTMLElement): number | null => {
+    const match = zoomer.style.transform.match(/translate\([^,]+,\s*([-\d.e]+)px\)/);
+    return match ? Number(match[1]) : null;
+  };
+
+  // The configured zoom is first laid out by the element, until the media
+  // reports its shape (measured: corrected 50 to 80 ms later). The zoomer's
+  // style is not among the mutations `waitForRender` sees, so check it on each
+  // frame, for up to two seconds.
+  const waitForTranslateY = async (
+    card: MountedCard,
+    matches: (y: number) => boolean,
+  ): Promise<number | null> => {
+    const zoomer = await card.waitForSelector<HTMLElement>(
+      'advanced-camera-card-zoomer',
+    );
+    const start = performance.now();
+    let y = getTranslateY(zoomer);
+    while ((y === null || !matches(y)) && performance.now() - start < 2000) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      y = getTranslateY(zoomer);
+    }
+    return y;
+  };
+
+  it('should keep the picture centered on an axis it does not fill', async () => {
+    const card = await mountPortrait({ zoom: 2, pan: { x: 0, y: 0 } });
+    const report = await waitForConfiguredPan(card);
+    expect(report.pan.y).toBeCloseTo(50, 1);
+    expect(await waitForTranslateY(card, (y) => Math.abs(y) < 0.5)).toBeCloseTo(0, 1);
+  });
+
+  it('should keep the element limits when the picture covers it', async () => {
+    const card = await mountPortrait({ fit: 'cover', zoom: 2, pan: { x: 0, y: 0 } });
+    const report = await waitForConfiguredPan(card);
+    expect(report.pan.y).toBeCloseTo(0, 1);
+    // At the element's top edge: a quarter of its height, in unscaled pixels.
+    const y = await waitForTranslateY(card, (y) => y > 50);
+    expect(y).toBeCloseTo(card.card.offsetHeight / 4, -1);
+  });
+});

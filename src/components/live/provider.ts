@@ -276,6 +276,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
           )}
           .settings=${this.zoomSettings}
           .zoom=${this.zoom}
+          .dimensionsConfig=${config?.dimensions}
           @advanced-camera-card:zoom:zoomed=${() => (this._zoomed = true)}
           @advanced-camera-card:zoom:unzoomed=${() => (this._zoomed = false)}
         >
