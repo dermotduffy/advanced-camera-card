@@ -521,18 +521,16 @@ export class ZoomController {
   }
 
   private _isAtDefaultZoomAndPan(x: number, y: number, scale: number): boolean {
-    // A default without a zoom of its own (no layout, or a layout that only sets
-    // `fit`, `position`, `view_box` or a pan) is unzoomed: there the pan does
-    // not matter, as there is nothing to pan.
-    const defaults = this._defaultSettings;
-    const defaultScale = defaults?.zoom ?? ZOOM_DEFAULT_SCALE;
-    if (!defaults || this._isUnzoomed(defaultScale)) {
+    const defaultScale = this._defaultSettings?.zoom ?? ZOOM_DEFAULT_SCALE;
+
+    // An unzoomed default has nothing to pan, so only the scale matters.
+    if (this._isUnzoomed(defaultScale)) {
       return this._isUnzoomed(scale);
     }
 
     const convertedDefault = this._convertPercentToXYPan(
-      defaults.pan?.x ?? ZOOM_DEFAULT_PAN_X,
-      defaults.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
+      this._defaultSettings?.pan?.x ?? ZOOM_DEFAULT_PAN_X,
+      this._defaultSettings?.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
       defaultScale,
     );
 

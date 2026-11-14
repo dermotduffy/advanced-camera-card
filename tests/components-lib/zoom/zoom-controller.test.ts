@@ -468,7 +468,7 @@ describe('ZoomController', () => {
         },
       );
 
-      it('should treat a zoomed default without a pan as centred', () => {
+      it('should treat a zoomed default without a pan as centered', () => {
         const element = createAttachedElement();
         setElementToDefaultCardSize(element);
 
@@ -479,7 +479,7 @@ describe('ZoomController', () => {
         const controller = createAndRegisterZoom(element);
         controller.setDefaultSettings({ zoom: 2 });
 
-        // Panzoom's pan for the centre is 0/0 at any scale.
+        // Panzoom's pan for the center is 0/0 at any scale.
         element.dispatchEvent(
           new CustomEvent<PanzoomEventDetail>('panzoomchange', {
             detail: {
@@ -499,20 +499,21 @@ describe('ZoomController', () => {
         );
       });
 
-      it('should compare only the scale with a zoomed default before there is a size', () => {
-        const element = createAttachedElement();
+      it.each([
+        ['scale 2 is default', 2, true],
+        ['scale 3 is not default', 3, false],
+      ])(
+        'should compare only the scale with a default zoom of 2 before there is a size: %s',
+        (_name: string, scale: number, isDefault: boolean) => {
+          const element = createAttachedElement();
 
-        const changeFunc = vi.fn();
-        element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
+          const changeFunc = vi.fn();
+          element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
 
-        vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
-        const controller = createAndRegisterZoom(element);
-        controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+          vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+          const controller = createAndRegisterZoom(element);
+          controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
 
-        for (const [scale, isDefault] of [
-          [2, true],
-          [3, false],
-        ] as const) {
           element.dispatchEvent(
             new CustomEvent<PanzoomEventDetail>('panzoomchange', {
               detail: {
@@ -524,13 +525,14 @@ describe('ZoomController', () => {
               },
             }),
           );
+
           expect(changeFunc).toHaveBeenLastCalledWith(
             expect.objectContaining({
               detail: expect.objectContaining({ isDefault }),
             }),
           );
-        }
-      });
+        },
+      );
 
       it('should treat being unzoomed as default when the configured default is empty', () => {
         const element = createAttachedElement();
