@@ -308,8 +308,6 @@ export class ZoomController {
   }
 
   private _isZoomEqual(a: PartialZoomSettings, b: PartialZoomSettings): boolean {
-    // The ?? clauses below cannot be reached since this function is only ever
-    // used fully specified by this object. It's kept as-is for completeness.
     return (
       arefloatsApproximatelyEqual(
         a.zoom ?? ZOOM_DEFAULT_SCALE,
@@ -321,10 +319,12 @@ export class ZoomController {
         b.pan?.x ?? ZOOM_DEFAULT_PAN_X,
         ZOOM_PRECISION,
       ) &&
+      // The ?? clauses below cannot be reached since this function is only ever
+      // used fully specified by this object. It's kept as-is for completeness.
       arefloatsApproximatelyEqual(
-        /* v8 ignore next @preserve */
+        /* v8 ignore next: the fallback cannot be reached, see above -- @preserve */
         a.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
-        /* v8 ignore next @preserve */
+        /* v8 ignore next: the fallback cannot be reached, see above -- @preserve */
         b.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
         ZOOM_PRECISION,
       )
@@ -521,24 +521,23 @@ export class ZoomController {
   }
 
   private _isAtDefaultZoomAndPan(x: number, y: number, scale: number): boolean {
-    if (!this._defaultSettings) {
+    const defaultScale = this._defaultSettings?.zoom ?? ZOOM_DEFAULT_SCALE;
+
+    // An unzoomed default has nothing to pan, so only the scale matters.
+    if (this._isUnzoomed(defaultScale)) {
       return this._isUnzoomed(scale);
     }
 
     const convertedDefault = this._convertPercentToXYPan(
-      this._defaultSettings.pan?.x ?? ZOOM_DEFAULT_PAN_X,
-      this._defaultSettings.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
-      this._defaultSettings.zoom ?? ZOOM_DEFAULT_SCALE,
+      this._defaultSettings?.pan?.x ?? ZOOM_DEFAULT_PAN_X,
+      this._defaultSettings?.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
+      defaultScale,
     );
-    if (!convertedDefault) {
-      return true;
-    }
 
-    // The ZOOM_DEFAULT_SCALE fallback cannot be reached: when
-    // this._defaultSettings.zoom is undefined, convertedDefault ends up null
-    // above and this function has already returned.
-    /* v8 ignore next @preserve */
-    const defaultScale = this._defaultSettings.zoom ?? ZOOM_DEFAULT_SCALE;
+    // Without a size the pan cannot be compared, only the scale.
+    if (!convertedDefault) {
+      return arefloatsApproximatelyEqual(scale, defaultScale);
+    }
 
     return (
       arefloatsApproximatelyEqual(x, convertedDefault.x) &&

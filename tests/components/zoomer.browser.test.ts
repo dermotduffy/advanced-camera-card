@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { dispatchActionExecutionRequest } from '../../src/card-controller/actions/utils/execution-request';
-import type {
-  PartialZoomSettings,
-  ZoomSettingsObserved,
-} from '../../src/components-lib/zoom/types';
+import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
+import type { MediaLayoutConfig } from '../../src/config/schema/camera/media-layout';
+import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
 import { createPTZDigitalAction } from '../../src/utils/action';
 import { arefloatsApproximatelyEqual, isHoverableDevice } from '../../src/utils/basic';
+import { deepQuery } from '../browser/dom';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
   createGenericCameraHASS,
@@ -23,13 +23,17 @@ const ZOOM_HOME_EVENT = 'advanced-camera-card:zoom:home';
 // See: https://github.com/dermotduffy/advanced-camera-card/issues/2223
 const CONFIGURED_LAYOUT = { zoom: 2.6, pan: { x: 0, y: 45 } };
 
-const mount = async (layout?: PartialZoomSettings): Promise<MountedCard> =>
+const mount = async (
+  layout?: MediaLayoutConfig,
+  overrides?: PartialAdvancedCameraCardConfig,
+): Promise<MountedCard> =>
   await MountedCardFactory.createFromSource(
-    createStillImageCardConfig(
-      layout
-        ? { cameras: [{ ...createStillImageCameraConfig(), dimensions: { layout } }] }
-        : undefined,
-    ),
+    createStillImageCardConfig({
+      ...(layout && {
+        cameras: [{ ...createStillImageCameraConfig(), dimensions: { layout } }],
+      }),
+      ...overrides,
+    }),
     createGenericCameraHASS(),
     { ledgerEvents: [ZOOM_HOME_EVENT] },
   );
@@ -159,5 +163,73 @@ describe('AdvancedCameraCardZoomer double tap', () => {
     tap(zoomer);
     expect(card.events.getEntries(ZOOM_HOME_EVENT)).toHaveLength(1);
     await waitForZoomReport(card, beforeTap, isZoom(1), 'zoom 1');
+  });
+});
+
+describe('AdvancedCameraCardZoomer default zoom', () => {
+  const PTZ_HOME = 'PTZ Home';
+
+  const PTZ_HOME_MENU: PartialAdvancedCameraCardConfig = {
+    menu: { style: 'outside', buttons: { ptz_home: { enabled: true } } },
+  };
+
+  // `findControl` waits for a control to appear, so absence is checked directly.
+  const hasPTZHomeButton = (card: MountedCard): boolean =>
+    !!deepQuery(card.card, `[title="${PTZ_HOME}"]`);
+
+  const waitForNoPTZHomeButton = async (card: MountedCard): Promise<void> => {
+    await card.waitForRender(
+      () => (hasPTZHomeButton(card) ? null : true),
+      `no ${PTZ_HOME} button`,
+    );
+  };
+
+  const zoomTo = async (card: MountedCard, zoom: number): Promise<void> => {
+    const zoomer = await card.waitForSelector<HTMLElement>(
+      'advanced-camera-card-zoomer',
+    );
+    const before = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+    dispatchActionExecutionRequest(zoomer, {
+      actions: createPTZDigitalAction({ absolute: { zoom, pan: { x: 50, y: 50 } } }),
+    });
+    await waitForZoomReport(card, before, isZoom(zoom), `zoom ${zoom}`);
+  };
+
+  it('should offer PTZ Home while zoomed in with a layout that sets no zoom', async () => {
+    const card = await mount({ fit: 'cover' }, PTZ_HOME_MENU);
+    await waitForZoomReport(
+      card,
+      0,
+      (report) => isZoom(1)(report) && report.isDefault,
+      'a default zoom 1',
+    );
+    expect(hasPTZHomeButton(card)).toBe(false);
+
+    await zoomTo(card, 3);
+    expect(getZoomReports(card, 0).at(-1)?.isDefault).toBe(false);
+
+    const beforeHome = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+    await card.clickControl(PTZ_HOME);
+    await waitForZoomReport(
+      card,
+      beforeHome,
+      (report) => isZoom(1)(report) && report.isDefault,
+      'a default zoom 1',
+    );
+    await waitForNoPTZHomeButton(card);
+  });
+
+  it('should only offer PTZ Home away from the zoom a layout sets', async () => {
+    const card = await mount(CONFIGURED_LAYOUT, PTZ_HOME_MENU);
+    await waitForZoomReport(
+      card,
+      0,
+      (report) => isConfiguredZoomAndPan(report) && report.isDefault,
+      'the configured zoom and pan as default',
+    );
+    expect(hasPTZHomeButton(card)).toBe(false);
+
+    await zoomTo(card, 4);
+    expect(await card.findControl(PTZ_HOME)).not.toBeNull();
   });
 });
