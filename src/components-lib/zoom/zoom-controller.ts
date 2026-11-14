@@ -319,7 +319,6 @@ export class ZoomController {
         b.pan?.x ?? ZOOM_DEFAULT_PAN_X,
         ZOOM_PRECISION,
       ) &&
-
       // The ?? clauses below cannot be reached since this function is only ever
       // used fully specified by this object. It's kept as-is for completeness.
       arefloatsApproximatelyEqual(
