@@ -356,12 +356,18 @@
       "image": {
         "entity": "Entity for use with entity mode",
         "entity_parameters": "Query parameters added to the entity-based picture URLs (e.g. width=1920&height=1080)",
+        "last_frame": {
+          "editor_label": "Last frame",
+          "max_age_seconds": "Maximum age of a frame to show (seconds)",
+          "show_time": "Show when the frame was captured"
+        },
         "mode": "Image mode",
         "modes": {
           "auto": "Automatically chosen based on configuration",
           "camera": "Home Assistant camera snapshot of camera entity",
           "default": "Default embedded image",
           "entity": "Entity with entity_picture attribute",
+          "last_frame": "Last frame of the camera's live stream",
           "screensaver": "Random image",
           "url": "Arbitrary image specified by URL"
         },

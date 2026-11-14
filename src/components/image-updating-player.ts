@@ -14,6 +14,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import type { MediaUnavailableIssueReason } from '../card-controller/issues/issues/media-unavailable.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
+import { LastFrameImageController } from '../components-lib/last-frame-image-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { FRAME_STALL_SECONDS } from '../components-lib/media-player/frame-stall-watchdog.js';
 import { ImageMediaPlayerController } from '../components-lib/media-player/image.js';
@@ -108,6 +109,10 @@ export class AdvancedCameraCardImageUpdatingPlayer
   @property({ attribute: false })
   public targetID?: string;
 
+  // The camera whose captured frame mode `last_frame` shows.
+  @property({ attribute: false })
+  public cameraID?: string;
+
   // The camera's title, shown in error messages to identify the camera.
   @property({ attribute: false })
   public cameraTitle?: string;
@@ -175,6 +180,20 @@ export class AdvancedCameraCardImageUpdatingPlayer
   );
 
   private _unsubscribeDocumentVisibility: UnsubscribeCallback | null = null;
+
+  // The captured frame last handed to the browser to decode (`updated`).
+  private _decodedSrc: string | null = null;
+
+  private _lastFrameController = new LastFrameImageController(this, {
+    getCameraID: () => this.cameraID ?? null,
+    getCameraConfig: () => this.cameraConfig ?? null,
+    getImageConfig: () =>
+      this._getMode() === 'last_frame' ? this.imageConfig ?? null : null,
+    onChange: () => {
+      this._cachedValueController.clearValue();
+      this.requestUpdate();
+    },
+  });
 
   // A poll-refreshed snapshot: the cached-value timer is the pausable update
   // loop, and its cached URL is the screenshot.
@@ -355,6 +374,12 @@ export class AdvancedCameraCardImageUpdatingPlayer
       return;
     }
     if (!visible) {
+      if (this._getMode() === 'last_frame') {
+        // A captured frame is a `data:` URL with no token to expire: keep it,
+        // so it shows at once when the document is visible again.
+        this._cachedValueController?.stopTimer();
+        return;
+      }
       // Set the image to default when the document is hidden. This is to avoid
       // some browsers (e.g. Firefox) eagerly re-loading the old image when the
       // document regains visibility -- for some images (e.g. camera mode) the
@@ -416,7 +441,19 @@ export class AdvancedCameraCardImageUpdatingPlayer
       imageConfig: this.imageConfig,
       cameraConfig: this.cameraConfig,
     });
-    return mode === 'screensaver' ? SCREENSAVER_REFRESH_SECONDS : 1;
+    // A last frame changes only when the store has a new one (it tells).
+    return mode === 'screensaver'
+      ? SCREENSAVER_REFRESH_SECONDS
+      : mode === 'last_frame'
+        ? 0
+        : 1;
+  }
+
+  private _getMode(): Exclude<ImageMode, 'auto'> {
+    return resolveImageMode({
+      imageConfig: this.imageConfig,
+      cameraConfig: this.cameraConfig,
+    });
   }
 
   private _getRelevantEntityForMode(mode: Exclude<ImageMode, 'auto'>): string | null {
@@ -470,6 +507,11 @@ export class AdvancedCameraCardImageUpdatingPlayer
       return this._getScreensaverURL();
     }
 
+    if (mode === 'last_frame') {
+      // Until a frame was captured, the default image.
+      return this._lastFrameController.getLastFrame()?.url ?? defaultImage;
+    }
+
     return defaultImage;
   }
 
@@ -502,6 +544,24 @@ export class AdvancedCameraCardImageUpdatingPlayer
       });
     }
     return null;
+  }
+
+  protected updated(): void {
+    // Decode a captured frame as soon as it is set, also while the document is
+    // hidden: a browser otherwise decodes an image only when it is first
+    // painted, which leaves the image blank for that long on return.
+    const image = this._refImage.value;
+    if (
+      image &&
+      this._getMode() === 'last_frame' &&
+      image.src.startsWith('data:') &&
+      image.src !== this._decodedSrc
+    ) {
+      this._decodedSrc = image.src;
+      image.decode().catch(() => {
+        // A frame the browser cannot decode surfaces through the error event.
+      });
+    }
   }
 
   protected render(): TemplateResult | void {
@@ -539,7 +599,12 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 imageConfig: this.imageConfig,
                 cameraConfig: this.cameraConfig,
               });
-              if (mode === 'camera' || mode === 'entity' || mode === 'screensaver') {
+              if (
+                mode === 'camera' ||
+                mode === 'entity' ||
+                mode === 'screensaver' ||
+                mode === 'last_frame'
+              ) {
                 this._forceSafeImage(true);
               } else if (mode === 'url') {
                 this._imageLoadError = true;

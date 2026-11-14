@@ -3,11 +3,12 @@ import { mock } from 'vitest-mock-extended';
 
 import { FRAME_STALL_SECONDS } from '../../../src/components-lib/media-player/frame-stall-watchdog';
 import { VideoMediaPlayerController } from '../../../src/components-lib/media-player/video';
+import type { CapturedFrame } from '../../../src/types';
 import {
   hideMediaControlsTemporarily,
   setControlsOnVideo,
 } from '../../../src/utils/controls';
-import { screenshotVideo } from '../../../src/utils/screenshot';
+import { captureVideoFrame, screenshotVideo } from '../../../src/utils/screenshot';
 import { createLitElement } from '../../test-utils';
 
 vi.mock('../../../src/utils/controls.js');
@@ -302,6 +303,101 @@ describe('VideoMediaPlayerController', () => {
       const controller = new VideoMediaPlayerController(createLitElement(), () => null);
 
       expect(await controller.getScreenshotURL()).toBeNull();
+    });
+  });
+
+  describe('should capture the current frame', () => {
+    const playing = (video?: Partial<HTMLVideoElement>): HTMLVideoElement =>
+      Object.assign(mock<HTMLVideoElement>(), {
+        readyState: HTMLMediaElement.HAVE_CURRENT_DATA,
+        videoWidth: 1920,
+        paused: false,
+        currentTime: 1,
+        ...video,
+      });
+
+    const frame = (url: Promise<string | null> | string | null): CapturedFrame => ({
+      canvas: document.createElement('canvas'),
+      url: Promise.resolve(url),
+    });
+
+    it('should capture a playing video at its own size, drawn at the call', async () => {
+      const url = 'data:image/jpeg;base64,';
+      const captured = frame(url);
+      vi.mocked(captureVideoFrame).mockReturnValue(captured);
+      const video = playing();
+
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+      const result = controller.captureCurrentFrame();
+
+      expect(captureVideoFrame).toHaveBeenCalledWith(video);
+      expect(result?.canvas).toBe(captured.canvas);
+      expect(await result?.url).toBe(url);
+    });
+
+    it('should return null while the frame has not moved on since the last one', () => {
+      vi.mocked(captureVideoFrame).mockReturnValue(frame('data:image/jpeg;base64,'));
+      const video = playing();
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+      controller.captureCurrentFrame();
+
+      expect(controller.captureCurrentFrame()).toBeNull();
+
+      video.currentTime = 2;
+      expect(controller.captureCurrentFrame()).not.toBeNull();
+    });
+
+    it('should try the same frame again when the browser refused to encode it', async () => {
+      vi.mocked(captureVideoFrame).mockReturnValueOnce(frame(null));
+      const video = playing();
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+
+      expect(await controller.captureCurrentFrame()?.url).toBeNull();
+      vi.mocked(captureVideoFrame).mockReturnValueOnce(frame('data:image/jpeg;base64,'));
+      expect(controller.captureCurrentFrame()).not.toBeNull();
+    });
+
+    it('should try the same frame again when it could not be drawn', () => {
+      vi.mocked(captureVideoFrame).mockReturnValueOnce(null);
+      const video = playing();
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+
+      expect(controller.captureCurrentFrame()).toBeNull();
+      vi.mocked(captureVideoFrame).mockReturnValueOnce(frame('data:image/jpeg;base64,'));
+      expect(controller.captureCurrentFrame()).not.toBeNull();
+    });
+
+    it('should not forget a newer frame when an older capture is refused', async () => {
+      let refuse: (value: string | null) => void = () => undefined;
+      vi.mocked(captureVideoFrame).mockReturnValueOnce(
+        frame(new Promise<string | null>((resolve) => (refuse = resolve))),
+      );
+      const video = playing();
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+      const first = controller.captureCurrentFrame();
+
+      video.currentTime = 2;
+      vi.mocked(captureVideoFrame).mockReturnValueOnce(frame('data:image/jpeg;base64,'));
+      expect(controller.captureCurrentFrame()).not.toBeNull();
+      refuse(null);
+      expect(await first?.url).toBeNull();
+
+      // Frame 2 was taken: not again.
+      expect(controller.captureCurrentFrame()).toBeNull();
+    });
+
+    it.each([
+      ['no video', null],
+      ['a video without data yet', { readyState: HTMLMediaElement.HAVE_METADATA }],
+      ['a video without a size', { videoWidth: 0 }],
+      ['a paused video', { paused: true }],
+    ])('should return null for %s', (_name, video) => {
+      const controller = new VideoMediaPlayerController(createLitElement(), () =>
+        video ? playing(video) : null,
+      );
+
+      expect(controller.captureCurrentFrame()).toBeNull();
+      expect(captureVideoFrame).not.toHaveBeenCalled();
     });
   });
 

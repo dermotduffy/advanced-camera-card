@@ -29,6 +29,10 @@ describe('config defaults', () => {
           metadata_fetch_timeout_seconds: 2,
         },
         image: {
+          last_frame: {
+            max_age_seconds: 86400,
+            show_time: true,
+          },
           mode: 'auto',
           refresh_seconds: 'auto',
         },
@@ -86,6 +90,10 @@ describe('config defaults', () => {
           ssl_ciphers: 'auto',
           ssl_verification: 'auto',
           enabled: false,
+        },
+        last_frame: {
+          max_age_seconds: 86400,
+          show_time: true,
         },
         refresh_seconds: 'auto',
         zoomable: true,

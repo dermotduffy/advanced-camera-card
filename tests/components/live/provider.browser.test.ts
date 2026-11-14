@@ -178,4 +178,91 @@ describe('AdvancedCameraCardLiveProvider', () => {
       expectMeasuredAspectRatio(card.card, DEFAULT_RATIO);
     });
   });
+
+  describe('should show the last drawn frame in place of the media', () => {
+    const setVisibility = (state: DocumentVisibilityState): void => {
+      Object.defineProperty(document, 'visibilityState', {
+        value: state,
+        configurable: true,
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+    };
+
+    afterEach(() => {
+      setVisibility('visible');
+    });
+
+    // Set as a capture would: a stream's player is needed to draw a real one.
+    const setDrawnFrame = (provider: LitElement, canvas: HTMLCanvasElement): void => {
+      (
+        provider as unknown as {
+          _lastFrameController: { _drawnFrame: HTMLCanvasElement | null };
+        }
+      )._lastFrameController._drawnFrame = canvas;
+      provider.requestUpdate();
+    };
+
+    const getDrawnFrame = (provider: LitElement): Element | null =>
+      deepQuery(provider, 'canvas.drawn-frame');
+
+    it('while the stream is unloaded, and until its media loads again', async () => {
+      const card = await mount(
+        {
+          live_provider: 'image',
+          image: { mode: 'url', url: IMAGE_URL, refresh_seconds: 0 },
+        },
+        { show_image_during_load: true, lazy_unload: ['hidden'] },
+      );
+      const provider = await getProvider(card);
+      await card.waitForRender(
+        () => provider.hasAttribute('sized') || null,
+        'the media having loaded',
+      );
+
+      const canvas = document.createElement('canvas');
+      setDrawnFrame(provider, canvas);
+      await provider.updateComplete;
+      // While the media plays it is not drawn over.
+      expect(getDrawnFrame(provider)).toBeNull();
+
+      setVisibility('hidden');
+      await card.waitForRender(
+        () => getDrawnFrame(provider),
+        'the drawn frame in place of the unloaded stream',
+      );
+      expect(getDrawnFrame(provider)).toBe(canvas);
+      expect(deepQuery(provider, 'advanced-camera-card-live-image')).toBeNull();
+      expect(provider.hasAttribute('sized')).toBe(true);
+
+      setVisibility('visible');
+      await card.waitForRender(
+        () => (getDrawnFrame(provider) ? null : true),
+        'the drawn frame giving way to the loaded media',
+      );
+      expect(deepQuery(provider, 'advanced-camera-card-live-image')).not.toBeNull();
+    });
+
+    it('not when the loading image is switched off', async () => {
+      const card = await mount(
+        {
+          live_provider: 'image',
+          image: { mode: 'url', url: IMAGE_URL, refresh_seconds: 0 },
+        },
+        { show_image_during_load: false, lazy_unload: ['hidden'] },
+      );
+      const provider = await getProvider(card);
+      await card.waitForRender(
+        () => provider.hasAttribute('sized') || null,
+        'the media having loaded',
+      );
+      setDrawnFrame(provider, document.createElement('canvas'));
+
+      setVisibility('hidden');
+      await card.waitForRender(
+        () => (deepQuery(provider, 'advanced-camera-card-live-image') ? null : true),
+        'the stream being unloaded',
+      );
+      expect(getDrawnFrame(provider)).toBeNull();
+    });
+  });
 });

@@ -1,0 +1,16 @@
+// Over the bottom-left corner of the view, outside its zoomer (so never zoomed
+// itself): buttons usually sit on the bottom right.
+:host {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  pointer-events: none;
+}
+
+.last-frame-time {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 0.8em;
+}

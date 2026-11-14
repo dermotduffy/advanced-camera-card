@@ -57,6 +57,7 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
         .imageConfig=${cameraConfig.image}
         .cameraConfig=${cameraConfig}
         .targetID=${this.targetID}
+        .cameraID=${this.camera?.getID()}
         .cameraTitle=${this.cameraTitle}
         .proxyConfig=${this.camera?.getLiveProxyConfig()}
         @advanced-camera-card:image-updating-player:error=${(
