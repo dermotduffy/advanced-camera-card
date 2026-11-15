@@ -186,13 +186,13 @@ export class AdvancedCameraCardGo2RTCExperimental
   }
 
   // Drop the session and everything it was playing on. The surfaces keep their
-  // elements but the session has emptied them, so the media that was announced
-  // no longer exists and must stop being claimed -- otherwise a later reconnect
-  // would replay it and the card would believe a dead camera was loaded.
+  // elements but the session clears them.
   private _destroyMedia(): void {
+    // Retire the media before the session clears the surfaces (see
+    // `MediaLoadedInfoSourceController.clear()`).
+    this._mediaLoadedInfoSourceController.clear();
     this._session.reset();
     this._activeSurface = null;
-    this._mediaLoadedInfoSourceController.clear();
   }
 
   // Lit keeps updating a detached element, and every update re-signs the URL

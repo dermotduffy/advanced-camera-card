@@ -7,11 +7,11 @@ import {
   hideMediaControlsTemporarily,
   setControlsOnVideo,
 } from '../../../src/utils/controls';
-import { screenshotVideo } from '../../../src/utils/screenshot';
+import { getVideoFrameDataURL } from '../../../src/utils/frame-data-url';
 import { createLitElement } from '../../test-utils';
 
 vi.mock('../../../src/utils/controls.js');
-vi.mock('../../../src/utils/screenshot.js');
+vi.mock('../../../src/utils/frame-data-url.js');
 
 class NotAllowedError extends Error {
   name = 'NotAllowedError';
@@ -286,22 +286,22 @@ describe('VideoMediaPlayerController', () => {
     });
   });
 
-  describe('should get screenshot URL', async () => {
-    it('should return screenshot URL with video', async () => {
+  describe('should get frame URL', async () => {
+    it('should return frame URL with video', async () => {
       const url = 'data:image/png;base64,';
-      vi.mocked(screenshotVideo).mockReturnValue(url);
+      vi.mocked(getVideoFrameDataURL).mockResolvedValue(url);
 
       const video = mock<HTMLVideoElement>();
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      expect(await controller.getScreenshotURL()).toBe(url);
+      expect(await controller.getFrameURL()).toBe(url);
     });
 
     it('should return null without video', async () => {
       const controller = new VideoMediaPlayerController(createLitElement(), () => null);
 
-      expect(await controller.getScreenshotURL()).toBeNull();
+      expect(await controller.getFrameURL()).toBeNull();
     });
   });
 

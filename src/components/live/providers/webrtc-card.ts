@@ -84,10 +84,9 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   });
 
   private _webrtcCardController = new WebRTCCardController(this, {
-    // The video belongs to the discarded element, so it must stop being claimed
-    // -- otherwise the card would be told media is loaded during the window
-    // where there is no element at all, and would keep believing it if the
-    // replacement never loads.
+    // The video belongs to the element about to be discarded. Clearing tells
+    // the card the video is about to be destroyed (see
+    // `MediaLoadedInfoSourceController.clear()`).
     destroyCallback: () => this._mediaLoadedInfoSourceController.clear(),
   });
 
@@ -111,10 +110,10 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   }
 
   disconnectedCallback(): void {
+    super.disconnectedCallback();
+
     this._videoRTC = null;
     this._notification = null;
-
-    super.disconnectedCallback();
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {

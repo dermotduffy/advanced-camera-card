@@ -5,10 +5,10 @@ import {
   ImageMediaPlayerController,
   type ImageUpdateControl,
 } from '../../../src/components-lib/media-player/image';
-import { screenshotImage } from '../../../src/utils/screenshot';
+import { getImageFrameDataURL } from '../../../src/utils/frame-data-url';
 import { createLitElement } from '../../test-utils';
 
-vi.mock('../../../src/utils/screenshot.js');
+vi.mock('../../../src/utils/frame-data-url.js');
 
 const STALL_SECONDS = 10;
 const STALL_MS = STALL_SECONDS * 1000;
@@ -62,35 +62,49 @@ describe('ImageMediaPlayerController', () => {
     // No playback controls, so nothing to observe.
   });
 
-  describe('should get screenshot URL', () => {
-    it('should return screenshot URL with image', async () => {
+  describe('should get frame URL', () => {
+    it('should return a drawn frame URL with image', async () => {
       const url = 'data:image/png;base64,';
-      vi.mocked(screenshotImage).mockReturnValue(url);
+      vi.mocked(getImageFrameDataURL).mockResolvedValue(url);
 
       const image = mock<HTMLImageElement>();
 
       const controller = new ImageMediaPlayerController(createLitElement(), () => image);
 
-      expect(await controller.getScreenshotURL()).toBe(url);
+      expect(await controller.getFrameURL()).toBe(url);
     });
 
     it('should return null without image', async () => {
       const controller = new ImageMediaPlayerController(createLitElement(), () => null);
 
-      expect(await controller.getScreenshotURL()).toBeNull();
+      expect(await controller.getFrameURL()).toBeNull();
     });
 
-    it('should use the screenshot provider when given', async () => {
-      const url = 'data:image/png;base64,provider';
+    it('should return the source URL when given', async () => {
+      const url = 'https://example.com/image.jpg';
       const image = mock<HTMLImageElement>();
       const controller = new ImageMediaPlayerController(
         createLitElement(),
         () => image,
-        { screenshotProvider: async () => url },
+        { getSourceURL: () => url },
       );
 
-      expect(await controller.getScreenshotURL()).toBe(url);
-      expect(screenshotImage).not.toHaveBeenCalled();
+      expect(await controller.getFrameURL()).toBe(url);
+      expect(getImageFrameDataURL).not.toHaveBeenCalled();
+    });
+
+    it('should draw the image instead of the source URL when a data URL is mandated', async () => {
+      const url = 'data:image/jpeg;base64,drawn';
+      vi.mocked(getImageFrameDataURL).mockResolvedValue(url);
+      const image = mock<HTMLImageElement>();
+      const controller = new ImageMediaPlayerController(
+        createLitElement(),
+        () => image,
+        { getSourceURL: () => 'https://example.com/image.jpg' },
+      );
+
+      expect(await controller.getFrameURL(true)).toBe(url);
+      expect(getImageFrameDataURL).toHaveBeenCalledWith(image);
     });
   });
 

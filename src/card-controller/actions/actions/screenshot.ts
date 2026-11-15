@@ -11,7 +11,7 @@ export class ScreenshotAction extends AdvancedCameraCardAction<GeneralActionConf
     const url = await api
       .getMediaLoadedInfoManager()
       .get()
-      ?.mediaPlayerController?.getScreenshotURL();
+      ?.mediaPlayerController?.getFrameURL();
 
     if (url) {
       downloadURL(url, generateScreenshotFilename(api.getViewManager().getView()));

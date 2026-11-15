@@ -89,11 +89,20 @@ export interface PlaybackControl {
   isPaused(): boolean;
 }
 
+export type DataURL = `data:${string}`;
+
 export interface MediaPlayerController {
   mute(): Promise<void>;
   unmute(): Promise<void>;
   isMuted(): boolean;
-  getScreenshotURL(): Promise<string | null>;
+
+  // A URL of the current frame, or null when the player has no frame to give.
+  // With `dataURLOnly`, the URL is always a `data:` URL drawn from the media;
+  // otherwise it may be the URL the media was loaded from, which can point at
+  // another origin. The frame is taken synchronously, so the caller may destroy
+  // the media straight after the call.
+  getFrameURL(dataURLOnly: true): Promise<DataURL | null>;
+  getFrameURL(dataURLOnly?: boolean): Promise<string | null>;
 
   // If no value for controls if specified, the player should use the default.
   setControls(controls?: boolean): Promise<void>;

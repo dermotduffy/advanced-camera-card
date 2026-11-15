@@ -73,6 +73,7 @@ export class CardElementManager {
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
     this._api.getPIPManager().initialize();
+    this._api.getPreservedFrameManager().initialize();
     this._api.getKeyboardStateManager().initialize();
     this._api.getCallManager().initialize();
 
@@ -187,6 +188,7 @@ export class CardElementManager {
     this._api.getMediaLoadedInfoManager().clear();
     this._api.getFullscreenManager().disconnect();
     this._api.getPIPManager().uninitialize();
+    this._api.getPreservedFrameManager().uninitialize();
     this._api.getKeyboardStateManager().uninitialize();
     void this._api.getActionsManager().uninitialize();
     this._api.getInteractionManager().uninitialize();

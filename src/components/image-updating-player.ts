@@ -177,7 +177,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
   private _unsubscribeDocumentVisibility: UnsubscribeCallback | null = null;
 
   // A poll-refreshed snapshot: the cached-value timer is the pausable update
-  // loop, and its cached URL is the screenshot.
+  // loop, and its cached URL is the source URL.
   private _mediaPlayerController = new ImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
@@ -187,7 +187,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
         stop: () => this._cachedValueController.stopTimer(),
         isRunning: () => this._cachedValueController.hasTimer(),
       },
-      screenshotProvider: async () => this._cachedValueController.getValue(),
+      getSourceURL: () => this._cachedValueController.getValue(),
       livenessOptions: {
         // Frames are only due while the refresh timer runs. A snapshot with
         // refreshing switched off shows one picture forever, which is the

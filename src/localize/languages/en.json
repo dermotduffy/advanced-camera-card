@@ -365,6 +365,7 @@
           "screensaver": "Random image",
           "url": "Arbitrary image specified by URL"
         },
+        "preserve_frame_seconds": "Seconds a preserved frame of the camera may stand in for the image (0=never)",
         "proxy": {
           "editor_label": "Image proxying"
         },

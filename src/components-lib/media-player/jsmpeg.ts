@@ -2,6 +2,7 @@ import type JSMpeg from '@cycjimmy/jsmpeg-player';
 import type { LitElement } from 'lit';
 
 import type {
+  DataURL,
   FullscreenElement,
   LivenessCallback,
   MediaPlayerController,
@@ -9,6 +10,7 @@ import type {
   PlaybackControl,
   UnsubscribeCallback,
 } from '../../types';
+import { getCanvasFrameDataURL } from '../../utils/frame-data-url';
 import { FrameStallWatchdog } from './frame-stall-watchdog';
 
 export class JSMPEGMediaPlayerController implements MediaPlayerController {
@@ -86,9 +88,9 @@ export class JSMPEGMediaPlayerController implements MediaPlayerController {
     // Not implemented.
   }
 
-  public async getScreenshotURL(): Promise<string | null> {
-    await this._host.updateComplete;
-    return this._getCanvasElementCallback()?.toDataURL('image/jpeg') ?? null;
+  public async getFrameURL(): Promise<DataURL | null> {
+    const canvas = this._getCanvasElementCallback();
+    return canvas ? getCanvasFrameDataURL(canvas) : null;
   }
 
   public getFullscreenElement(): FullscreenElement | null {

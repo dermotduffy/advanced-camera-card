@@ -30,6 +30,7 @@ describe('config defaults', () => {
         },
         image: {
           mode: 'auto',
+          preserve_frame_seconds: 0,
           refresh_seconds: 'auto',
         },
         live_provider: 'auto',
@@ -87,6 +88,7 @@ describe('config defaults', () => {
           ssl_verification: 'auto',
           enabled: false,
         },
+        preserve_frame_seconds: 0,
         refresh_seconds: 'auto',
         zoomable: true,
       },

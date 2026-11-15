@@ -5,6 +5,7 @@ import { isMediaSourceID } from '../ha/media-source';
 import { resolveMedia } from '../ha/resolved-media';
 import type { HomeAssistant } from '../ha/types';
 import { AdvancedCameraCardError } from '../types';
+import { readBlobAsDataURL } from './blob';
 import { classifyMimeType, resolveImageMimeType } from './mime-type';
 
 // See: https://github.com/sindresorhus/is-absolute-url
@@ -69,15 +70,7 @@ const fetchThumbnail = async (
     );
   }
 
-  return new Promise<string | null>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      resolve(typeof result === 'string' ? result : null);
-    };
-    reader.onerror = (e) => reject(e);
-    reader.readAsDataURL(blob);
-  });
+  return readBlobAsDataURL(blob);
 };
 
 export type FetchThumbnailTaskArgs = [boolean, string | undefined];
