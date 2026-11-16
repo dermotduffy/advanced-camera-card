@@ -1,32 +1,58 @@
 @use 'locked.scss';
+@use './z-index.scss' as *;
 
 $drawer-icon-size: 20px;
 $drawer-padding-extend: 20px;
 
-side-drawer {
-  background-color: var(--card-background-color);
+// Closed: size to the handle only so the host does not cover the card. Open:
+// expand to the surround so the panel can cover the media.
+:host {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+:host([location='left']) {
+  left: 0;
+}
+:host([location='right']) {
+  right: 0;
+}
+:host([open]:not([empty])) {
+  inset: 0;
+  width: auto;
 }
 
+side-drawer {
+  background-color: transparent;
+}
+
+// The handle sits outside side-drawer's <dialog> so it stays clickable while
+// that dialog is closed. Anchored to the card edge rather than the panel edge.
 div.control-surround {
   position: absolute;
   bottom: 50%;
   transform: translateY(50%);
   padding-top: $drawer-padding-extend;
   padding-bottom: $drawer-padding-extend;
+  pointer-events: auto;
+  z-index: #{$z-index-menu + 1};
 }
 :host([location='left']) div.control-surround {
   @if $drawer-icon-size < 32 {
     // Ensure the clickable area is at least 32px wide.
     padding-right: calc(32px - $drawer-icon-size);
   }
-  left: 100%;
+  left: 0;
 }
 :host([location='right']) div.control-surround {
   @if $drawer-icon-size < 32 {
     // See note above.
     padding-left: calc(32px - $drawer-icon-size);
   }
-  right: 100%;
+  right: 0;
 }
 :host([empty]),
 :host([empty]) > * {
@@ -35,6 +61,12 @@ div.control-surround {
 :host(:not([empty])),
 :host(:not([empty])) > * {
   visibility: visible;
+}
+
+// Closed dialog is display:none; keep the host out of the stacking order too.
+:host(:not([open]):not([empty])) side-drawer {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 advanced-camera-card-icon.control {

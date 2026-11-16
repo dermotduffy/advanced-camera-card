@@ -138,7 +138,7 @@ describe('AdvancedCameraCardTimelineCore', () => {
     expect(getElementAtPoint(x, y)).toBe(tools);
 
     const panel = await card.waitForRender(
-      () => deepQuery(drawer, '#d'),
+      () => deepQuery(drawer, 'dialog'),
       'the drawer panel',
     );
     const drawerOpenComplete = new Promise((resolve) =>
