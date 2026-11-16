@@ -8,7 +8,7 @@ import { QuerySource } from '../../src/query-source';
 import type { ViewMedia } from '../../src/view/item';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import { UnifiedQueryRunner } from '../../src/view/unified-query-runner';
-import { createEventQuery, createFolderQuery } from './test-utils';
+import { createEventQuery, createFolderQuery, TestViewMedia } from './test-utils';
 
 describe('UnifiedQueryRunner', () => {
   describe('execute', () => {
@@ -48,6 +48,35 @@ describe('UnifiedQueryRunner', () => {
         undefined,
         expect.objectContaining({ useCache: undefined }),
       );
+    });
+
+    it('should sort results from multiple folders by time', async () => {
+      const foldersManager = mock<FoldersManager>();
+      const runner = new UnifiedQueryRunner(
+        mock<CameraManager>(),
+        foldersManager,
+        mock<ConditionStateManagerReadonlyInterface>(),
+      );
+
+      const createMedia = (id: string, startTime: string) =>
+        new TestViewMedia({ id, startTime: new Date(startTime) });
+
+      const f1Old = createMedia('f1-old', '2026-11-10T10:00:00');
+      const f1New = createMedia('f1-new', '2026-11-14T10:00:00');
+      const f2Old = createMedia('f2-old', '2026-11-09T10:00:00');
+      const f2New = createMedia('f2-new', '2026-11-11T10:00:00');
+
+      // Each folder's results are sorted on their own, but the last folder
+      // does not have the most recent media.
+      foldersManager.expandFolder
+        .mockResolvedValueOnce([f1Old, f1New])
+        .mockResolvedValueOnce([f2Old, f2New]);
+
+      const query = new UnifiedQuery();
+      query.addNode(createFolderQuery('f1'));
+      query.addNode(createFolderQuery('f2'));
+
+      expect(await runner.execute(query)).toEqual([f2Old, f1Old, f2New, f1New]);
     });
 
     it('should handle empty query gracefully', async () => {
