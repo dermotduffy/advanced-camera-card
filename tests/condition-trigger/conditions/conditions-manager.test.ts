@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TemplateManager } from '../../../src/card-controller/templates';
 import { ConditionsManager } from '../../../src/condition-trigger/conditions/conditions-manager';
@@ -99,6 +99,62 @@ describe('ConditionsManager', () => {
     // Destroy tears the subscription down.
     manager.destroy();
     expect(removeEventListener).toHaveBeenCalled();
+  });
+
+  describe('should handle a state condition with for', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-06-05T22:56:56Z'));
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    // The door has just opened, so the 5s hold is still pending.
+    const createManager = (): ConditionsManager => {
+      const stateManager = new ConditionStateManager();
+      stateManager.setState({
+        hass: createHASS({
+          'binary_sensor.door': createStateEntity({
+            state: 'on',
+            last_changed: '2026-06-05T22:56:56Z',
+          }),
+        }),
+      });
+      return new ConditionsManager(
+        [
+          {
+            condition: 'state' as const,
+            entity: 'binary_sensor.door',
+            state: 'on',
+            for: '00:00:05',
+          },
+        ],
+        templateManager,
+        stateManager,
+      );
+    };
+
+    it('should notify once the duration passes without further state updates', () => {
+      const manager = createManager();
+      const listener = vi.fn();
+      manager.addListener(listener);
+      expect(manager.getEvaluation()).toEqual({ result: false });
+
+      vi.advanceTimersByTime(5001);
+
+      expect(manager.getEvaluation()).toEqual({ result: true });
+      expect(listener).toHaveBeenCalledWith({ result: true }, undefined);
+    });
+
+    it('should not leave a timer behind when destroyed', () => {
+      const manager = createManager();
+      expect(vi.getTimerCount()).toBe(1);
+
+      manager.destroy();
+
+      expect(vi.getTimerCount()).toBe(0);
+    });
   });
 
   describe('should handle listeners correctly', () => {

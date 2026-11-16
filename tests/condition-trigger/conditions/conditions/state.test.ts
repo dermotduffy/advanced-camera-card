@@ -679,6 +679,122 @@ describe('state condition', () => {
         }).result,
       ).toBeFalsy();
     });
+
+    describe('should signal when the duration elapses', () => {
+      const createForEvaluator = (options?: { match?: 'any' }) =>
+        createConditionEvaluator(
+          {
+            condition: 'state' as const,
+            entity_id: ['binary_sensor.foo', 'binary_sensor.bar'],
+            state: 'on',
+            for: '00:00:05',
+            ...options,
+          },
+          createEvaluatorContext(),
+        );
+
+      const createState = (
+        foo: { state: string; last_changed: string },
+        bar?: { state: string; last_changed: string },
+      ) => ({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity(foo),
+          'binary_sensor.bar': createStateEntity(
+            bar ?? { state: 'on', last_changed: '2026-06-05T22:50:00Z' },
+          ),
+        }),
+      });
+
+      // Held 2s of 5s when evaluated (now is 22:56:56).
+      const pending = { state: 'on', last_changed: '2026-06-05T22:56:54Z' };
+
+      it('should have no external sources without for', () => {
+        const evaluator = createConditionEvaluator(
+          { condition: 'state' as const, entity_id: 'binary_sensor.foo', state: 'on' },
+          createEvaluatorContext(),
+        );
+        expect(evaluator.externalSources ?? []).toHaveLength(0);
+      });
+
+      it('should call the subscriber once the duration has elapsed', () => {
+        const evaluator = createForEvaluator();
+        const callback = vi.fn();
+        evaluator.externalSources?.[0].subscribe(callback);
+
+        const state = createState(pending);
+        expect(evaluator.evaluate(state).result).toBeFalsy();
+
+        // Held exactly 5s is not yet a match, so nothing is signalled.
+        vi.advanceTimersByTime(3000);
+        expect(callback).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(1);
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(evaluator.evaluate(state).result).toBeTruthy();
+
+        // Once matched, nothing more is pending.
+        vi.advanceTimersByTime(60000);
+        expect(callback).toHaveBeenCalledTimes(1);
+      });
+
+      it('should signal for the earliest pending entity', () => {
+        const evaluator = createForEvaluator({ match: 'any' });
+        const callback = vi.fn();
+        evaluator.externalSources?.[0].subscribe(callback);
+
+        // foo is due in 3s, bar (held 4s) is due in 1s.
+        evaluator.evaluate(
+          createState(pending, { state: 'on', last_changed: '2026-06-05T22:56:52Z' }),
+        );
+
+        vi.advanceTimersByTime(1001);
+        expect(callback).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not signal once the state no longer matches', () => {
+        const evaluator = createForEvaluator();
+        const callback = vi.fn();
+        evaluator.externalSources?.[0].subscribe(callback);
+
+        evaluator.evaluate(createState(pending));
+        evaluator.evaluate(
+          createState({ state: 'off', last_changed: '2026-06-05T22:56:56Z' }),
+        );
+
+        vi.advanceTimersByTime(60000);
+        expect(callback).not.toHaveBeenCalled();
+      });
+
+      it('should not signal after unsubscribing', () => {
+        const evaluator = createForEvaluator();
+        const callback = vi.fn();
+        const unsubscribe = evaluator.externalSources?.[0].subscribe(callback);
+
+        evaluator.evaluate(createState(pending));
+        unsubscribe?.();
+
+        expect(vi.getTimerCount()).toBe(0);
+        vi.advanceTimersByTime(60000);
+        expect(callback).not.toHaveBeenCalled();
+      });
+
+      it('should not start a timer without a subscriber', () => {
+        const evaluator = createForEvaluator();
+
+        evaluator.evaluate(createState(pending));
+
+        expect(vi.getTimerCount()).toBe(0);
+      });
+
+      it('should not start a timer when last_changed is invalid', () => {
+        const evaluator = createForEvaluator();
+        evaluator.externalSources?.[0].subscribe(vi.fn());
+
+        evaluator.evaluate(createState({ state: 'on', last_changed: 'never' }));
+
+        expect(vi.getTimerCount()).toBe(0);
+      });
+    });
   });
 
   it('should resolve an expected state that names another entity', () => {
