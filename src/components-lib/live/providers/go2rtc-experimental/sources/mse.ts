@@ -9,6 +9,7 @@ import type {
 } from '../../../../../types';
 import { hasAudio } from '../../../../../utils/audio';
 import { Timer } from '../../../../../utils/timer';
+import { trimLiveSourceBuffer } from '../../../utils/trim-live-source-buffer';
 import {
   createBrowserMediaSource,
   type MediaSourceFactory,
@@ -337,12 +338,6 @@ export class MSEStreamSource implements StreamSource {
     sourceBuffer: SourceBuffer,
     end: number,
   ): void {
-    const retainedStart = end - RETAINED_BUFFER_SECONDS;
-    const bufferedStart = sourceBuffer.buffered.start(0);
-
-    if (retainedStart > bufferedStart) {
-      sourceBuffer.remove(bufferedStart, retainedStart);
-      mediaSource.setLiveSeekableRange(retainedStart, end);
-    }
+    trimLiveSourceBuffer(mediaSource, sourceBuffer, end - RETAINED_BUFFER_SECONDS, end);
   }
 }
