@@ -491,7 +491,7 @@ describe('ZoomController', () => {
           maxScale: 10,
           minScale: 1,
           noBind: true,
-          touchAction: '',
+          touchAction: 'pan-x pan-y',
           startScale: 2,
           startX: 115.62,
           startY: 63.6525,
@@ -1049,6 +1049,6 @@ describe('ZoomController', () => {
       },
     });
     element.dispatchEvent(ev_2);
-    expect(element.style.touchAction).toBeFalsy();
+    expect(element.style.touchAction).toBe('pan-x pan-y');
   });
 });
