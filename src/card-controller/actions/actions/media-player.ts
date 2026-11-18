@@ -1,10 +1,14 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { MediaPlayerActionConfig } from '../../../config/schema/actions/custom/media-player';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import { getStreamCameraID } from '../../../view/substream';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class MediaPlayerAction extends AdvancedCameraCardAction<MediaPlayerActionConfig> {
+export class MediaPlayerAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<MediaPlayerActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

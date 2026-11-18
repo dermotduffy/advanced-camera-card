@@ -8,12 +8,13 @@ import { InitializationAspect } from '../initialization/initialization-manager';
 import type { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
 import { applyViewModifiers } from './modifiers';
-import type {
-  QueryExecutorOptions,
-  ViewFactoryOptions,
-  ViewManagerEpoch,
-  ViewManagerInterface,
-  ViewModifier,
+import {
+  ViewDeferred,
+  type QueryExecutorOptions,
+  type ViewFactoryOptions,
+  type ViewManagerEpoch,
+  type ViewManagerInterface,
+  type ViewModifier,
 } from './types';
 import { ViewQueryExecutor } from './view-query-executor';
 
@@ -149,6 +150,10 @@ export class ViewManager implements ViewManagerInterface {
         this._api.getIssueManager().reset('media_query');
       }
     } catch (e) {
+      // A camera that may serve this view is still initializing.
+      if (e instanceof ViewDeferred) {
+        return;
+      }
       if (!this._view) {
         view = this._getFailSafeView(viewFactoryFunc);
       }
@@ -234,6 +239,10 @@ export class ViewManager implements ViewManagerInterface {
       });
       this._api.getIssueManager().reset('view_incompatible');
     } catch (e) {
+      // A camera that may serve this view is still initializing.
+      if (e instanceof ViewDeferred) {
+        return;
+      }
       if (!this._view) {
         initialView = this._getFailSafeView(viewFactoryFunc);
       }
@@ -406,6 +415,61 @@ export class ViewManager implements ViewManagerInterface {
     void this.setViewDefaultWithNewQuery({ failSafe: true });
     return this.hasView();
   };
+
+  /**
+   * A camera gained media capabilities. If the current view's query was
+   * default-derived, or the view has no query yet, re-derive it and rebuild the
+   * view atomically (query first, then one _setView) to avoid blanking the UI.
+   * If no view exists, re-attempt the default view.
+   */
+  public async handleCameraLifecycleChange(): Promise<void> {
+    if (!this.hasView()) {
+      void this.setViewDefaultWithNewQuery({ failSafe: true });
+      return;
+    }
+
+    // The card only replaces a query it derived itself, or the absence of one;
+    // a query the user chose is kept.
+    const view = this._view;
+    if (!view || (view.query && view.query.getOrigin() !== 'default')) {
+      return;
+    }
+
+    const viewModifiers = await this._viewQueryExecutor.getNewQueryModifiers(view);
+    if (!viewModifiers) {
+      return;
+    }
+
+    // The view may have moved on while the query ran.
+    if (this._view && this.hasMajorMediaChange(this._view, view)) {
+      return;
+    }
+
+    /* v8 ignore if: defensive -- the major-change guard above ensures _view
+    exists -- @preserve */
+    if (!this._view) {
+      return;
+    }
+
+    const previouslySelectedID = this._view.queryResults?.getSelectedResult()?.getID();
+
+    const newView = this._view.clone();
+    applyViewModifiers(newView, viewModifiers);
+
+    // No camera can serve a query for this view yet.
+    if (!view.query && !newView.query) {
+      return;
+    }
+
+    // Re-select the item the user was looking at before the rebuild.
+    if (previouslySelectedID && newView.queryResults) {
+      newView.queryResults.selectResultIfFound(
+        (item) => item.getID() === previouslySelectedID,
+      );
+    }
+
+    this._setView(newView);
+  }
 
   private _setView(view: Readonly<View> | null): void {
     const oldView = this._view;

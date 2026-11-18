@@ -34,7 +34,11 @@ import { QuerySource } from '../../../src/query-source';
 import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createHASS, createHASSManager, createRegistryEntity } from '../../test-utils';
-import { createInitializedCamera, createStore } from '../test-utils';
+import {
+  createCameraFromConfig,
+  createInitializedCamera,
+  createStore,
+} from '../test-utils';
 
 vi.mock('../../../src/ha/ws-request');
 vi.mock('../../../src/ha/camera-webrtc', () => ({
@@ -208,10 +212,11 @@ const createStoreWithReolinkCamera = async (
   engine: ReolinkCameraManagerEngine,
 ): Promise<CameraManagerStore> => {
   const store = new CameraManagerStore();
-  const camera = await engine.createCamera(
+  const camera = engine.createCamera(
     createCameraConfig({ camera_entity: 'camera.office', id: 'office' }),
   );
-  store.addCamera(camera);
+  await camera.initialize();
+  store.setCameras([camera]);
   return store;
 };
 
@@ -248,7 +253,8 @@ describe('ReolinkCameraManagerEngine', () => {
       unique_id: 'office',
     });
 
-    const camera = await engine.createCamera(config);
+    const camera = engine.createCamera(config);
+    await camera.initialize();
 
     expect(camera.getConfig()).toBe(config);
     expect(camera.getEngine()).toBe(engine);
@@ -270,7 +276,9 @@ describe('ReolinkCameraManagerEngine', () => {
       icon: 'mdi:camera',
     });
     const engine = createEngine();
-    expect(engine.getCameraMetadata(createHASS(), cameraConfig)).toEqual({
+    expect(
+      engine.getCameraMetadata(createHASS(), createCameraFromConfig(cameraConfig)),
+    ).toEqual({
       engineIcon: 'reolink',
       icon: {
         icon: 'mdi:camera',
@@ -284,7 +292,7 @@ describe('ReolinkCameraManagerEngine', () => {
   describe('should get camera endpoints', () => {
     it('should return ui endpoint', async () => {
       const engine = createPopulatedEngine();
-      const camera = await engine.createCamera(
+      const camera = engine.createCamera(
         createCameraConfig({
           camera_entity: 'camera.office',
           reolink: {
@@ -302,7 +310,7 @@ describe('ReolinkCameraManagerEngine', () => {
 
     it('should return go2rtc endpoint', async () => {
       const engine = createPopulatedEngine();
-      const camera = await engine.createCamera(
+      const camera = engine.createCamera(
         createCameraConfig({
           camera_entity: 'camera.office',
           go2rtc: {
@@ -490,7 +498,7 @@ describe('ReolinkCameraManagerEngine', () => {
 
     it('should request high resolution if configured', async () => {
       const engine = createPopulatedEngine();
-      const camera = await engine.createCamera(
+      const camera = engine.createCamera(
         createCameraConfig({
           camera_entity: 'camera.office',
           id: 'office',
@@ -499,9 +507,10 @@ describe('ReolinkCameraManagerEngine', () => {
           },
         }),
       );
+      await camera.initialize();
 
       const store = new CameraManagerStore();
-      store.addCamera(camera);
+      store.setCameras([camera]);
 
       vi.mocked(homeAssistantWSRequest)
         .mockResolvedValueOnce(TEST_CAMERAS)
@@ -637,9 +646,9 @@ describe('ReolinkCameraManagerEngine', () => {
         const engine = createPopulatedEngine();
 
         const store = new CameraManagerStore();
-        store.addCamera(
+        store.setCameras([
           await createInitializedCamera(createCameraConfig({ id: 'office' }), engine),
-        );
+        ]);
 
         const hass = createHASS();
         const events = await engine.getEvents(hass, store, {
@@ -1159,9 +1168,9 @@ describe('ReolinkCameraManagerEngine', () => {
         const engine = createPopulatedEngine();
 
         const store = new CameraManagerStore();
-        store.addCamera(
+        store.setCameras([
           await createInitializedCamera(createCameraConfig({ id: 'office' }), engine),
-        );
+        ]);
 
         const metadata = await engine.getMediaMetadata(createHASS(), store, {
           type: QueryType.MediaMetadata,

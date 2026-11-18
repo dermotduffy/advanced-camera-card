@@ -4,12 +4,16 @@ import type { TimelineEventPropertiesResult, TimelineWindow } from 'vis-timeline
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
+import type { CameraManager } from '../../../src/camera-manager/manager';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import type {
   ViewManagerEpoch,
   ViewManagerInterface,
 } from '../../../src/card-controller/view/types';
-import { TimelineController } from '../../../src/components-lib/timeline/controller';
+import {
+  TimelineController,
+  type TimelineControllerOptions,
+} from '../../../src/components-lib/timeline/controller';
 import type { AdvancedCameraCardTimelineItem } from '../../../src/components-lib/timeline/source';
 import type {
   ExtendedTimeline,
@@ -62,7 +66,9 @@ const createTimelineConfig = (
 });
 
 interface TestHarness {
+  cameraManager: CameraManager;
   controller: TimelineController;
+  controllerOptions: TimelineControllerOptions;
   timeline: ExtendedTimeline;
   manager: ViewManagerInterface;
   trigger: (event: string, ...args: unknown[]) => void;
@@ -107,14 +113,15 @@ const createHarness = async (options?: {
 
   const controller = new TimelineController(new TimelineControllerTestHost());
   controller.setHass(createHASS());
-  controller.setOptions({
-    cameraManager: cameraManager,
+  const controllerOptions: TimelineControllerOptions = {
+    cameraManagerEpoch: { manager: cameraManager },
     foldersManager: mock<FoldersManager>(),
     conditionStateManager: mock<ConditionStateManagerReadonlyInterface>(),
     timelineConfig: createTimelineConfig(options?.panMode ?? 'pan', options?.style),
     mini: options?.mini ?? true,
     query,
-  });
+  };
+  controller.setOptions(controllerOptions);
   controller.setTimelineElement(document.createElement('div'));
 
   const manager = mock<ViewManagerInterface>();
@@ -132,9 +139,11 @@ const createHarness = async (options?: {
   await controller.setView(mock<ViewManagerEpoch>({ manager: manager }));
 
   return {
-    controller: controller,
-    timeline: timeline,
-    manager: manager,
+    cameraManager,
+    controller,
+    controllerOptions,
+    timeline,
+    manager,
     trigger: (event: string, ...args: unknown[]): void => {
       handlers.get(event)?.(...args);
     },
@@ -190,6 +199,30 @@ describe('TimelineController', () => {
     const options = timelineConstructor.mock.calls[0]?.at(-1);
 
     expect(options).toEqual(expect.objectContaining({ dataAttributes: ['severity'] }));
+  });
+
+  describe('should handle a camera manager change', () => {
+    it('should keep the timeline when the same camera manager arrives in a new epoch', async () => {
+      const harness = await createHarness();
+
+      harness.controller.setOptions({
+        ...harness.controllerOptions,
+        cameraManagerEpoch: { manager: harness.cameraManager },
+      });
+
+      expect(harness.timeline.destroy).not.toHaveBeenCalled();
+    });
+
+    it('should rebuild the timeline for a different camera manager', async () => {
+      const harness = await createHarness();
+
+      harness.controller.setOptions({
+        ...harness.controllerOptions,
+        cameraManagerEpoch: { manager: createCameraManager() },
+      });
+
+      expect(harness.timeline.destroy).toHaveBeenCalled();
+    });
   });
 
   describe('should decide what can be clustered', () => {

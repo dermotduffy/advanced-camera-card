@@ -5,6 +5,7 @@ import { Engine } from '../../../src/camera-manager/types';
 import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createHASS, createHASSManager, createRegistryEntity } from '../../test-utils';
+import { createCameraFromConfig } from '../test-utils';
 
 const createEngine = (options?: {
   entityRegistryManager?: EntityRegistryManagerMock;
@@ -40,7 +41,8 @@ describe('TPLinkCameraManagerEngine', () => {
       id: 'tapo_office',
     });
 
-    const camera = await engine.createCamera(config);
+    const camera = engine.createCamera(config);
+    await camera.initialize();
 
     expect(camera.getConfig()).toBe(config);
     expect(camera.getEngine()).toBe(engine);
@@ -61,7 +63,9 @@ describe('TPLinkCameraManagerEngine', () => {
       icon: 'mdi:camera',
     });
     const engine = createEngine();
-    expect(engine.getCameraMetadata(createHASS(), cameraConfig)).toEqual({
+    expect(
+      engine.getCameraMetadata(createHASS(), createCameraFromConfig(cameraConfig)),
+    ).toEqual({
       engineIcon: 'tplink',
       icon: {
         icon: 'mdi:camera',
@@ -89,13 +93,15 @@ describe('TPLinkCameraManagerEngine', () => {
       },
     });
     const engine = createEngine();
-    expect(engine.getCameraMetadata(hass, cameraConfig)).toEqual({
-      engineIcon: 'tplink',
-      icon: {
-        entity: 'camera.tapo_c520ws_39d3_live_view',
-        fallback: 'mdi:video',
+    expect(engine.getCameraMetadata(hass, createCameraFromConfig(cameraConfig))).toEqual(
+      {
+        engineIcon: 'tplink',
+        icon: {
+          entity: 'camera.tapo_c520ws_39d3_live_view',
+          fallback: 'mdi:video',
+        },
+        title: 'Tapo C520WS Live View',
       },
-      title: 'Tapo C520WS Live View',
-    });
+    );
   });
 });

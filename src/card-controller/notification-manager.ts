@@ -1,15 +1,17 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { Notification } from '../config/schema/actions/types';
 import type { CardNotificationAPI } from './types';
 
 export class NotificationManager {
-  private _notification: Notification | null = null;
+  private _notification: ReadonlyDeep<Notification> | null = null;
   private _api: CardNotificationAPI;
 
   constructor(api: CardNotificationAPI) {
     this._api = api;
   }
 
-  public getNotification(): Notification | null {
+  public getNotification(): ReadonlyDeep<Notification> | null {
     return this._notification;
   }
 
@@ -19,7 +21,7 @@ export class NotificationManager {
 
   // Also used to replace the current notification in-place (e.g. to refresh
   // control state after a toggle action).
-  public setNotification(notification: Notification): void {
+  public setNotification(notification: ReadonlyDeep<Notification>): void {
     this._notification = notification;
     this._api.getCardElementManager().update();
   }

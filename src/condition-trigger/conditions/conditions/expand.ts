@@ -1,11 +1,13 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { ExpandBase } from '../../../config/schema/condition-trigger/common/expand';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator } from './types';
 
 export class ExpandConditionEvaluator implements ConditionEvaluator {
-  private _condition: ExpandBase;
+  private _condition: ReadonlyDeep<ExpandBase>;
 
-  constructor(condition: ExpandBase) {
+  constructor(condition: ReadonlyDeep<ExpandBase>) {
     this._condition = condition;
   }
 

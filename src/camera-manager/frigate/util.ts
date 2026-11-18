@@ -1,11 +1,11 @@
 import { fromUnixTime, subSeconds } from 'date-fns';
 
-import type { CameraConfig } from '../../config/schema/cameras';
 import type { Severity } from '../../severity';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
 import { getDayHourInTimeZone, startOfHourInTimeZone } from '../../utils/timezone';
 import type {
   FrigateEvent,
+  FrigateIdentity,
   FrigateRecording,
   FrigateReview,
   FrigateReviewSeverity,
@@ -105,15 +105,16 @@ export const getRecordingMediaContentID = (
  * Get a recording ID for internal de-duping.
  */
 export const getRecordingID = (
-  cameraConfig: CameraConfig,
+  identity: FrigateIdentity,
   recording: FrigateRecording,
 ): string => {
   // ID name is derived from the real camera name (not CameraID) since the
   // recordings for the same camera across multiple zones will be the same and
   // can be dedup'd from this id.
-  return `${cameraConfig.frigate?.client_id ?? ''}/${
-    cameraConfig.frigate.camera_name ?? ''
-  }/${recording.startTime.getTime()}/${recording.endTime.getTime()}`;
+  return (
+    `${identity.clientID}/${identity.cameraName}` +
+    `/${recording.startTime.getTime()}/${recording.endTime.getTime()}`
+  );
 };
 
 /**

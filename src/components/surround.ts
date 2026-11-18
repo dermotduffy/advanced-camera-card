@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { CameraManager } from '../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../camera-manager/lifecycle.js';
 import type { FoldersManager } from '../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../card-controller/view/types.js';
@@ -39,7 +39,7 @@ export class AdvancedCameraCardSurround extends LitElement {
   public timelineConfig?: MiniTimelineControlConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public foldersManager?: FoldersManager;
@@ -105,7 +105,7 @@ export class AdvancedCameraCardSurround extends LitElement {
             slot=${this.thumbnailConfig.mode}
             .hass=${this.hass}
             .config=${this.thumbnailConfig}
-            .cameraManager=${this.cameraManager}
+            .cameraManagerEpoch=${this.cameraManagerEpoch}
             .viewItemManager=${this.viewItemManager}
             .fadeThumbnails=${view.isViewerView()}
             .viewManagerEpoch=${this.viewManagerEpoch}
@@ -129,7 +129,7 @@ export class AdvancedCameraCardSurround extends LitElement {
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
             .thumbnailConfig=${this.thumbnailConfig}
-            .cameraManager=${this.cameraManager}
+            .cameraManagerEpoch=${this.cameraManagerEpoch}
             .foldersManager=${this.foldersManager}
             .conditionStateManager=${this.conditionStateManager}
             .viewItemManager=${this.viewItemManager}

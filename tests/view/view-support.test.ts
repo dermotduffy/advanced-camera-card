@@ -5,10 +5,10 @@ import type { FoldersManager } from '../../src/card-controller/folders/manager';
 import type { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import type { CapabilityKey } from '../../src/types';
 import {
+  getCameraIDsSupportingView,
   getCameraIDsWithCapabilityForView,
   isViewAvailable,
   isViewSupported,
-  isViewSupportedByCamera,
 } from '../../src/view/view-support';
 import {
   createCameraManager,
@@ -232,8 +232,8 @@ describe('isViewAvailable', () => {
   });
 });
 
-describe('isViewSupportedByCamera', () => {
-  it('should return true for supported view', () => {
+describe('getCameraIDsSupportingView', () => {
+  it('should return the supporting camera IDs', () => {
     const cameraManager = createCameraManager();
     vi.mocked(cameraManager.getStore).mockReturnValue(
       createStore([
@@ -246,11 +246,12 @@ describe('isViewSupportedByCamera', () => {
     const foldersManager = mock<FoldersManager>();
 
     expect(
-      isViewSupportedByCamera('live', cameraManager, foldersManager, 'camera-1'),
-    ).toBe(true);
+      getCameraIDsSupportingView('live', cameraManager, foldersManager, 'camera-1')
+        ?.size,
+    ).toBeGreaterThan(0);
   });
 
-  it('should return false for unsupported view', () => {
+  it('should return an empty set for an unsupported view', () => {
     const cameraManager = createCameraManager();
     vi.mocked(cameraManager.getStore).mockReturnValue(
       createStore([
@@ -263,8 +264,74 @@ describe('isViewSupportedByCamera', () => {
     const foldersManager = mock<FoldersManager>();
 
     expect(
-      isViewSupportedByCamera('live', cameraManager, foldersManager, 'camera-1'),
-    ).toBe(false);
+      getCameraIDsSupportingView('live', cameraManager, foldersManager, 'camera-1'),
+    ).toEqual(new Set());
+  });
+
+  it('should return null while the camera is still initializing', () => {
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          capabilities: createCapabilities({ live: false }),
+        },
+      ]),
+    );
+    vi.mocked(cameraManager.isCameraInitializing).mockReturnValue(true);
+    const foldersManager = mock<FoldersManager>();
+
+    expect(
+      getCameraIDsSupportingView('live', cameraManager, foldersManager, 'camera-1'),
+    ).toBeNull();
+  });
+
+  it('should return null while a camera it depends on is still initializing', () => {
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+          capabilities: createCapabilities({ live: false }),
+        },
+        {
+          cameraID: 'camera-2',
+          capabilities: createCapabilities({ live: false }),
+        },
+      ]),
+    );
+    vi.mocked(cameraManager.isCameraInitializing).mockImplementation(
+      (cameraID: string) => cameraID === 'camera-2',
+    );
+    const foldersManager = mock<FoldersManager>();
+
+    expect(
+      getCameraIDsSupportingView('live', cameraManager, foldersManager, 'camera-1'),
+    ).toBeNull();
+  });
+
+  it('should return an empty set once nothing it depends on is initializing', () => {
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+          capabilities: createCapabilities({ live: false }),
+        },
+        {
+          cameraID: 'camera-2',
+          capabilities: createCapabilities({ live: false }),
+        },
+      ]),
+    );
+    vi.mocked(cameraManager.isCameraInitializing).mockReturnValue(false);
+    const foldersManager = mock<FoldersManager>();
+
+    expect(
+      getCameraIDsSupportingView('live', cameraManager, foldersManager, 'camera-1'),
+    ).toEqual(new Set());
   });
 });
 

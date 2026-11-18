@@ -11,7 +11,7 @@ import { guard } from 'lit/directives/guard.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
@@ -83,7 +83,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
@@ -341,11 +341,11 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
             this.viewManagerEpoch?.manager.getView()?.camera ??
             null,
         },
-        this.cameraManager,
+        this.cameraManagerEpoch?.manager,
       );
     }
 
-    if (!this.hass || !this.cameraManager || this._selected === null) {
+    if (!this.hass || !this.cameraManagerEpoch || this._selected === null) {
       return;
     }
 
@@ -498,7 +498,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
           .media=${media}
           .viewerConfig=${this.viewerConfig}
           .resolvedMediaCache=${this.resolvedMediaCache}
-          .cameraManager=${this.cameraManager}
+          .cameraManagerEpoch=${this.cameraManagerEpoch}
           .cardWideConfig=${this.cardWideConfig}
           .viewItemManager=${this.viewItemManager}
           .forceSelected=${isSelected}

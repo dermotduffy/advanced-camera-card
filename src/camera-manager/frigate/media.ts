@@ -1,6 +1,5 @@
 import { fromUnixTime } from 'date-fns';
 
-import type { CameraConfig } from '../../config/schema/cameras';
 import type { Severity } from '../../severity';
 import {
   ViewMedia,
@@ -9,7 +8,12 @@ import {
   type RecordingViewMedia,
   type ReviewViewMedia,
 } from '../../view/item';
-import type { FrigateEvent, FrigateRecording, FrigateReview } from './types';
+import type {
+  FrigateEvent,
+  FrigateIdentity,
+  FrigateRecording,
+  FrigateReview,
+} from './types';
 import {
   getEventMediaContentID,
   getEventThumbnailURL,
@@ -217,15 +221,13 @@ export class FrigateViewMediaFactory {
   static createEventViewMedia(
     mediaType: ViewMediaType,
     cameraID: string,
-    cameraConfig: CameraConfig,
+    identity: FrigateIdentity,
     event: FrigateEvent,
     subLabels?: string[],
   ): FrigateEventViewMedia | null {
     if (
       (mediaType === 'clip' && !event.has_clip) ||
-      (mediaType === 'snapshot' && !event.has_snapshot) ||
-      !cameraConfig.frigate.client_id ||
-      !cameraConfig.frigate.camera_name
+      (mediaType === 'snapshot' && !event.has_snapshot)
     ) {
       return null;
     }
@@ -235,12 +237,12 @@ export class FrigateViewMediaFactory {
       cameraID,
       event,
       getEventMediaContentID(
-        cameraConfig.frigate.client_id,
-        cameraConfig.frigate.camera_name,
+        identity.clientID,
+        identity.cameraName,
         event,
         mediaType === 'clip' ? 'clips' : 'snapshots',
       ),
-      getEventThumbnailURL(cameraConfig.frigate.client_id, event),
+      getEventThumbnailURL(identity.clientID, event),
       subLabels,
     );
   }
@@ -248,22 +250,18 @@ export class FrigateViewMediaFactory {
   static createRecordingViewMedia(
     cameraID: string,
     recording: FrigateRecording,
-    cameraConfig: CameraConfig,
+    identity: FrigateIdentity,
     cameraTitle: string,
     timeZone: string,
-  ): FrigateRecordingViewMedia | null {
-    if (!cameraConfig.frigate.client_id || !cameraConfig.frigate.camera_name) {
-      return null;
-    }
-
+  ): FrigateRecordingViewMedia {
     return new FrigateRecordingViewMedia(
       ViewMediaType.Recording,
       cameraID,
       recording,
-      getRecordingID(cameraConfig, recording),
+      getRecordingID(identity, recording),
       getRecordingMediaContentID(
-        cameraConfig.frigate.client_id,
-        cameraConfig.frigate.camera_name,
+        identity.clientID,
+        identity.cameraName,
         recording,
         timeZone,
       ),
@@ -274,23 +272,14 @@ export class FrigateViewMediaFactory {
   static createReviewViewMedia(
     cameraID: string,
     review: FrigateReview,
-    cameraConfig: CameraConfig,
+    identity: FrigateIdentity,
     timeZone: string,
-  ): FrigateReviewViewMedia | null {
-    if (!cameraConfig.frigate.client_id || !cameraConfig.frigate.camera_name) {
-      return null;
-    }
-
+  ): FrigateReviewViewMedia {
     return new FrigateReviewViewMedia(
       cameraID,
       review,
-      getReviewMediaContentID(
-        cameraConfig.frigate.client_id,
-        cameraConfig.frigate.camera_name,
-        review,
-        timeZone,
-      ),
-      getReviewThumbnailURL(cameraConfig.frigate.client_id, review),
+      getReviewMediaContentID(identity.clientID, identity.cameraName, review, timeZone),
+      getReviewThumbnailURL(identity.clientID, review),
       getReviewPlaybackStartTime(review, timeZone),
     );
   }

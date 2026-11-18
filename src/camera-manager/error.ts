@@ -1,7 +1,10 @@
 import { localize } from '../localize/localize.js';
 import { AdvancedCameraCardError } from '../types.js';
 
-class CameraInitializationError extends AdvancedCameraCardError {}
+// An initialization failure the user has to act on (e.g. a misconfiguration).
+// Distinct from Home Assistant being temporarily unable to answer, which is
+// re-attempted rather than reported as a hard failure.
+export class CameraInitializationError extends AdvancedCameraCardError {}
 
 export class CameraNoEngineError extends CameraInitializationError {
   constructor(context?: unknown) {

@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { CameraManager } from '../../camera-manager/manager';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import { isMediaReviewed } from '../../components-lib/media/format';
@@ -29,7 +29,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public item?: ViewItem;
@@ -56,12 +56,12 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
 
   protected willUpdate(changedProperties: PropertyValues): void {
     if (
-      ['item', 'seek', 'cameraManager', 'size'].some((prop) =>
+      ['item', 'seek', 'cameraManagerEpoch', 'size'].some((prop) =>
         changedProperties.has(prop),
       )
     ) {
       this._controller.calculate({
-        cameraManager: this.cameraManager,
+        cameraManager: this.cameraManagerEpoch?.manager,
         item: this.item,
         seek: this.seek,
         size: this.size,

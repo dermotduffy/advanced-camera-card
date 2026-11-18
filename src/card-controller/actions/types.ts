@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { TriggerData } from '../../condition-trigger/triggers/types.js';
 import type {
   ActionConfig,
@@ -23,7 +25,7 @@ export interface Action {
 }
 
 export interface ActionsExecutionRequest {
-  actions: ActionConfig[] | ActionConfig;
+  actions: ReadonlyDeep<ActionConfig[] | ActionConfig>;
   config?: AuxillaryActionConfig;
   triggerData?: TriggerData;
 }

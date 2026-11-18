@@ -7,13 +7,8 @@ import {
   type CapabilitiesRaw,
   type PTZCapabilities,
 } from '../../types';
-import type { CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
 import { getPTZCapabilitiesFromCameraConfig, mergePTZCapabilities } from '../utils/ptz';
-
-interface TPLinkCameraInitializationOptions extends CameraInitializationOptions {
-  entityRegistryManager: EntityRegistryManager;
-}
 
 interface PTZEntities {
   left?: string;
@@ -23,20 +18,22 @@ interface PTZEntities {
 }
 type PTZEntity = keyof PTZEntities;
 
-export class TPLinkCamera extends EntityCamera<TPLinkCameraInitializationOptions> {
+export class TPLinkCamera extends EntityCamera {
+  // TPLink cameras require a registry manager to resolve their PTZ entities,
+  // which the engine's dependency wiring guarantees; the base camera only
+  // optionally has one.
+  protected declare _entityRegistryManager: EntityRegistryManager;
+
   private _ptzEntities: PTZEntities | null = null;
 
-  protected async _initializeBeforeCapabilities(
-    hass: HomeAssistant,
-    options: TPLinkCameraInitializationOptions,
-  ): Promise<void> {
-    await super._initializeBeforeCapabilities(hass, options);
-    this._ptzEntities = await this._getPTZEntities(hass, options.entityRegistryManager);
+  protected async _initializeBeforeCapabilities(hass: HomeAssistant): Promise<void> {
+    await super._initializeBeforeCapabilities(hass);
+    this._ptzEntities = await this._getPTZEntities(hass);
   }
 
-  protected async _getRawCapabilities(
-    hass: HomeAssistant,
-    options: TPLinkCameraInitializationOptions,
+  protected override async _deriveResolvedCapabilities(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _hass: HomeAssistant,
   ): Promise<CapabilitiesRaw> {
     const configPTZ = getPTZCapabilitiesFromCameraConfig(this.getConfig());
     const tplinkPTZ = this._ptzEntities
@@ -46,21 +43,17 @@ export class TPLinkCamera extends EntityCamera<TPLinkCameraInitializationOptions
     const combinedPTZ = mergePTZCapabilities(tplinkPTZ, configPTZ);
 
     return {
-      ...(await super._getRawCapabilities(hass, options)),
       ...(combinedPTZ && { ptz: combinedPTZ }),
     };
   }
 
-  private async _getPTZEntities(
-    hass: HomeAssistant,
-    entityRegistry: EntityRegistryManager,
-  ): Promise<PTZEntities | null> {
+  private async _getPTZEntities(hass: HomeAssistant): Promise<PTZEntities | null> {
     if (!this._entity?.device_id) {
       return null;
     }
 
     // Find all button entities on the same device
-    const buttonEntities = await entityRegistry.getMatchingEntities(
+    const buttonEntities = await this._entityRegistryManager.getMatchingEntities(
       hass,
       (ent: Entity) =>
         ent.device_id === this._entity?.device_id &&

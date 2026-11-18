@@ -1,4 +1,5 @@
 import type { ActionContext } from 'action';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { ActionConfig } from '../../../config/schema/actions/types';
 import { arrayify } from '../../../utils/basic';
@@ -14,7 +15,7 @@ interface ActionSetOptions {
 // A self-contained sequence of actions, executed in order.
 export class ActionSet {
   private _context: ActionContext;
-  private _actions: ActionConfig[];
+  private _actions: readonly ReadonlyDeep<ActionConfig>[];
   private _factoryOptions?: ActionFactoryOptions;
   private _renderTemplates: boolean;
   private _factory = new ActionFactory();
@@ -22,7 +23,7 @@ export class ActionSet {
 
   constructor(
     context: ActionContext,
-    actions: ActionConfig | ActionConfig[],
+    actions: ReadonlyDeep<ActionConfig | ActionConfig[]>,
     options?: ActionSetOptions,
   ) {
     this._context = context;

@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
@@ -41,7 +41,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
@@ -139,7 +139,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
 
     return html`
       <advanced-camera-card-thumbnail-feature
-        .cameraManager=${this.cameraManager}
+        .cameraManagerEpoch=${this.cameraManagerEpoch}
         .thumbnailStyle=${this.thumbnailStyle}
         .hass=${this.hass}
         .item=${this.item}
@@ -157,7 +157,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
       </advanced-camera-card-thumbnail-feature>
       ${this.thumbnailStyle === 'overlay' || this.thumbnailStyle === 'hover'
         ? html`<advanced-camera-card-thumbnail-details-overlay
-            .cameraManager=${this.cameraManager}
+            .cameraManagerEpoch=${this.cameraManagerEpoch}
             .item=${this.item}
             .thumbnailStyle=${this.thumbnailStyle}
             .size=${this.size}
@@ -167,7 +167,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         ? html`<advanced-camera-card-thumbnail-details-panel
             .hass=${this.hass}
             .item=${this.item ?? undefined}
-            .cameraManager=${this.cameraManager}
+            .cameraManagerEpoch=${this.cameraManagerEpoch}
             .seek=${this.seek}
             .viewItemManager=${this.viewItemManager}
             .viewManagerEpoch=${this.viewManagerEpoch}

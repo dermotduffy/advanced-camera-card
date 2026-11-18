@@ -72,30 +72,24 @@ describe('TPLinkCamera', () => {
   describe('should initialize config', () => {
     it('without a camera_entity', async () => {
       const config = createCameraConfig();
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
+        hassManager: createHASSManager(),
+        entityRegistryManager: new EntityRegistryManagerMock(),
+      });
 
-      expect(
-        async () =>
-          await camera.initialize({
-            hassManager: createHASSManager(),
-            entityRegistryManager: new EntityRegistryManagerMock(),
-          }),
-      ).rejects.toThrow('Could not find camera entity');
+      await expect(camera.initialize()).rejects.toThrow('Could not find camera entity');
     });
 
     it('without a matching entity in registry', async () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
+        hassManager: createHASSManager(),
+        entityRegistryManager: new EntityRegistryManagerMock(),
+      });
 
-      expect(
-        async () =>
-          await camera.initialize({
-            hassManager: createHASSManager(),
-            entityRegistryManager: new EntityRegistryManagerMock(),
-          }),
-      ).rejects.toThrow('Could not find camera entity');
+      await expect(camera.initialize()).rejects.toThrow('Could not find camera entity');
     });
 
     it('successfully with webrtc_card.entity fallback', async () => {
@@ -104,14 +98,15 @@ describe('TPLinkCamera', () => {
           entity: 'camera.tapo_c520ws_39d3_live_view',
         },
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
 
       const entityRegistryManager = new EntityRegistryManagerMock([cameraEntity]);
 
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager,
       });
+
+      await camera.initialize();
 
       expect(camera.getEntity()).toBe(cameraEntity);
     });
@@ -120,14 +115,15 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
 
       const entityRegistryManager = new EntityRegistryManagerMock([cameraEntity]);
 
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager,
       });
+
+      await camera.initialize();
 
       expect(camera.getEntity()).toBe(cameraEntity);
       expect(camera.getCapabilities()?.getPTZCapabilities()).toBeNull();
@@ -138,12 +134,12 @@ describe('TPLinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.tapo_c520ws_39d3_live_view',
         });
-        const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
         });
+
+        await camera.initialize();
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: ['relative'],
@@ -166,12 +162,12 @@ describe('TPLinkCamera', () => {
             },
           },
         });
-        const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
         });
+
+        await camera.initialize();
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: ['relative'],
@@ -188,12 +184,12 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       expect(await camera.executePTZAction(executor, 'left')).toBeFalsy();
@@ -208,12 +204,12 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       expect(
@@ -230,12 +226,12 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       expect(
@@ -249,12 +245,12 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       // Stop should return true (handled) but not execute any actions
@@ -276,12 +272,12 @@ describe('TPLinkCamera', () => {
         const config = createCameraConfig({
           camera_entity: 'camera.tapo_c520ws_39d3_live_view',
         });
-        const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-        await camera.initialize({
+        const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
           hassManager: createHASSManager(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
         });
+
+        await camera.initialize();
         const executor = mock<ActionsExecutor>();
 
         await camera.executePTZAction(executor, action);
@@ -303,12 +299,12 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
@@ -338,15 +334,15 @@ describe('TPLinkCamera', () => {
           },
         },
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([
           cameraEntity,
           buttonEntityPanLeft,
         ]),
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
 
@@ -375,15 +371,15 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([
           cameraWithDifferentUniqueId,
           buttonEntityPanLeft,
         ]),
       });
+
+      await camera.initialize();
 
       // Should not find PTZ entities since unique_id doesn't end with _live_view
       expect(camera.getCapabilities()?.getPTZCapabilities()).toBeNull();
@@ -399,15 +395,15 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([
           cameraWithoutUniqueId,
           buttonEntityPanLeft,
         ]),
       });
+
+      await camera.initialize();
 
       // Should not find PTZ entities since camera has no unique_id
       expect(camera.getCapabilities()?.getPTZCapabilities()).toBeNull();
@@ -420,15 +416,15 @@ describe('TPLinkCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.tapo_c520ws_39d3_live_view',
       });
-      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>());
-
-      await camera.initialize({
+      const camera = new TPLinkCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([
           cameraEntity,
           buttonEntityPanLeft, // Only left button available
         ]),
       });
+
+      await camera.initialize();
       const executor = mock<ActionsExecutor>();
 
       // Left should work

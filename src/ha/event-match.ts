@@ -1,5 +1,6 @@
 import type { HassEventBase } from 'home-assistant-js-websocket';
 import { isEqualWith } from 'lodash-es';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { HAEventContextFilter } from '../config/schema/common/ha-event';
 import { isRecord } from '../utils/basic';
@@ -91,7 +92,7 @@ const matchesSchemaValue = (expected: unknown, actual: unknown): boolean => {
 // explicit filter, mirroring HA's behavior.
 // https://www.home-assistant.io/docs/automation/trigger/#event-trigger
 export const matchesEventContext = (
-  filter: HAEventContextFilter,
+  filter: ReadonlyDeep<HAEventContextFilter>,
   context: HassEventBase['context'],
 ): boolean =>
   matchesContextField(filter.id, context.id) &&
@@ -99,7 +100,7 @@ export const matchesEventContext = (
   matchesContextField(filter.parent_id, context.parent_id);
 
 const matchesContextField = (
-  expected: string | string[] | undefined,
+  expected: string | readonly string[] | undefined,
   actual: string | null,
 ): boolean => {
   if (expected === undefined) {

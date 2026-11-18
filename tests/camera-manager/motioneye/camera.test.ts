@@ -18,7 +18,9 @@ describe('MotionEyeCamera', () => {
       const config = createCameraConfig({
         proxy: { media: 'auto' },
       });
-      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
+      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>(), {
+        hassManager: createHASSManager(),
+      });
       expect(camera.getProxyConfig().media).toBe(true);
     });
 
@@ -26,7 +28,9 @@ describe('MotionEyeCamera', () => {
       const config = createCameraConfig({
         proxy: { media: false },
       });
-      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
+      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>(), {
+        hassManager: createHASSManager(),
+      });
       expect(camera.getProxyConfig().media).toBe(false);
     });
 
@@ -34,7 +38,9 @@ describe('MotionEyeCamera', () => {
       const config = createCameraConfig({
         proxy: { media: true },
       });
-      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
+      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>(), {
+        hassManager: createHASSManager(),
+      });
       expect(camera.getProxyConfig().media).toBe(true);
     });
   });
@@ -45,11 +51,11 @@ describe('MotionEyeCamera', () => {
         camera_entity: 'camera.motioneye',
         motioneye: { url: 'http://motioneye.local' },
       });
-      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
-      await camera.initialize({
+      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
       });
+      await camera.initialize();
 
       const endpoints = camera.getEndpoints();
       expect(endpoints?.ui).toEqual({
@@ -61,11 +67,11 @@ describe('MotionEyeCamera', () => {
       const config = createCameraConfig({
         camera_entity: 'camera.motioneye',
       });
-      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
-      await camera.initialize({
+      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
       });
+      await camera.initialize();
 
       const endpoints = camera.getEndpoints();
       expect(endpoints?.ui).toBeUndefined();
@@ -73,15 +79,26 @@ describe('MotionEyeCamera', () => {
   });
 
   describe('capabilities', () => {
+    it('should provisionally claim clips and snapshots before initialization', () => {
+      const camera = new MotionEyeCamera(
+        createCameraConfig(),
+        mock<CameraManagerEngine>(),
+        { hassManager: createHASSManager() },
+      );
+
+      expect(camera.getCapabilities().has('clips')).toBe(true);
+      expect(camera.getCapabilities().has('snapshots')).toBe(true);
+    });
+
     it('should include clips and snapshots', async () => {
       const config = createCameraConfig({
         camera_entity: 'camera.motioneye',
       });
-      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
-      await camera.initialize({
+      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
       });
+      await camera.initialize();
 
       const capabilities = camera.getCapabilities();
       expect(capabilities?.has('clips')).toBe(true);
@@ -101,11 +118,11 @@ describe('MotionEyeCamera', () => {
           },
         },
       });
-      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
-      await camera.initialize({
+      const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>(), {
         hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
       });
+      await camera.initialize();
 
       const capabilities = camera.getCapabilities();
       expect(capabilities?.getPTZCapabilities()).toBeTruthy();

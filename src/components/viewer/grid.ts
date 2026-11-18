@@ -9,7 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import type { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
@@ -43,7 +43,7 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
@@ -53,8 +53,8 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
 
     // Get the camera's grid width factor from its dimensions config.
     const gridWidthFactor = filterCamera
-      ? this.cameraManager?.getStore().getCameraConfig(filterCamera)?.dimensions?.grid
-          ?.width_factor
+      ? this.cameraManagerEpoch?.manager.getStore().getCameraConfig(filterCamera)
+          ?.dimensions?.grid?.width_factor
       : undefined;
 
     return html`
@@ -67,7 +67,7 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
         .autoHeight=${!filterCamera}
         .viewerConfig=${this.viewerConfig}
         .resolvedMediaCache=${this.resolvedMediaCache}
-        .cameraManager=${this.cameraManager}
+        .cameraManagerEpoch=${this.cameraManagerEpoch}
         .cardWideConfig=${this.cardWideConfig}
         .showControls=${!filterCamera || selectedCameraID === filterCamera}
         .viewItemManager=${this.viewItemManager}

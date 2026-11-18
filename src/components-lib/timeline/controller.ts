@@ -13,7 +13,7 @@ import {
   type TimelineWindow,
 } from 'vis-timeline';
 
-import type { CameraManager } from '../../camera-manager/manager';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle';
 import { rangesOverlap } from '../../camera-manager/range';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
 import type { FoldersManager } from '../../card-controller/folders/manager';
@@ -51,9 +51,9 @@ import type {
   TimelineRangeChange,
 } from './types';
 
-interface TimelineControllerOptions {
+export interface TimelineControllerOptions {
   hass?: HomeAssistant;
-  cameraManager?: CameraManager;
+  cameraManagerEpoch?: CameraManagerEpoch;
   conditionStateManager?: ConditionStateManagerReadonlyInterface;
   foldersManager?: FoldersManager;
   viewItemManager?: ViewItemManager;
@@ -74,7 +74,7 @@ export class TimelineController {
 
   private _hass: HomeAssistant | null = null;
 
-  private _cameraManager: CameraManager | null = null;
+  private _cameraManagerEpoch: CameraManagerEpoch | null = null;
   private _foldersManager: FoldersManager | null = null;
 
   private _viewItemManager: ViewItemManager | null = null;
@@ -144,7 +144,7 @@ export class TimelineController {
     // Rebuild source if config, dependencies, or shape changed.
     const needsRebuild =
       !this._source ||
-      this._cameraManager !== (options.cameraManager ?? null) ||
+      this._cameraManagerEpoch?.manager !== options.cameraManagerEpoch?.manager ||
       this._foldersManager !== (options.foldersManager ?? null) ||
       !isEqual(this._timelineConfig, options.timelineConfig ?? null) ||
       !this._hasSameShape(this._source?.shape, newShape);
@@ -154,13 +154,13 @@ export class TimelineController {
 
       if (
         newShape &&
-        options.cameraManager &&
+        options.cameraManagerEpoch &&
         options.foldersManager &&
         options.conditionStateManager &&
         options.timelineConfig
       ) {
         this._source = new TimelineDataSource(
-          options.cameraManager,
+          options.cameraManagerEpoch.manager,
           options.foldersManager,
           options.conditionStateManager,
           newShape,
@@ -191,7 +191,7 @@ export class TimelineController {
     }
 
     this._thumbnailConfig = options?.thumbnailConfig ?? null;
-    this._cameraManager = options?.cameraManager ?? null;
+    this._cameraManagerEpoch = options?.cameraManagerEpoch ?? null;
     this._foldersManager = options?.foldersManager ?? null;
     this._viewItemManager = options?.viewItemManager ?? null;
     this._timelineConfig = options?.timelineConfig ?? null;
@@ -213,12 +213,15 @@ export class TimelineController {
     const itemID = request.detail.item;
     const media = this._source?.dataset.get(itemID)?.media;
     const cameraConfig = media
-      ? this._cameraManager?.getStore().getCameraConfigForMedia(media) ?? undefined
+      ? this._cameraManagerEpoch?.manager
+          .getStore()
+          .getCameraForMedia(media)
+          ?.getConfig()
       : undefined;
 
     request.detail.hass = this._hass ?? undefined;
     request.detail.cameraConfig = cameraConfig;
-    request.detail.cameraManager = this._cameraManager ?? undefined;
+    request.detail.cameraManagerEpoch = this._cameraManagerEpoch ?? undefined;
     request.detail.viewItemManager = this._viewItemManager ?? undefined;
     request.detail.media = media;
     request.detail.viewManagerEpoch = this._viewManagerEpoch ?? undefined;
@@ -403,7 +406,7 @@ export class TimelineController {
       !this._timeline ||
       !view ||
       !this._hass ||
-      !this._cameraManager ||
+      !this._cameraManagerEpoch ||
       panMode === 'pan'
     ) {
       return;

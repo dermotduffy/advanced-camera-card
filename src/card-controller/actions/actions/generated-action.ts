@@ -1,4 +1,5 @@
 import type { ActionContext } from 'action';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { TriggerData } from '../../../condition-trigger/triggers/types';
 import type { GeneratedActionConfig } from '../../../config/schema/actions/custom/generated-action';
@@ -6,12 +7,14 @@ import type { AuxillaryActionConfig } from '../../../config/schema/actions/types
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class GeneratedAction extends AdvancedCameraCardAction<GeneratedActionConfig> {
+export class GeneratedAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<GeneratedActionConfig>
+> {
   private _triggerData?: TriggerData;
 
   constructor(
     context: ActionContext,
-    action: GeneratedActionConfig,
+    action: ReadonlyDeep<GeneratedActionConfig>,
     config?: AuxillaryActionConfig,
     triggerData?: TriggerData,
   ) {

@@ -39,6 +39,11 @@ cameras_global:
 
 The `capabilities` block allows selected disabling of auto-detected camera capabilities. This is rarely used, with substreams being a notable exception.
 
+Auto-detection happens per camera as the card starts, so capability-dependent
+controls (such as the call button for `2-way-audio`) may appear a moment
+after the camera itself. `force` and `disable` / `disable_except` are read from
+the configuration and so apply immediately.
+
 ```yaml
 cameras:
   - camera_entity: camera.office

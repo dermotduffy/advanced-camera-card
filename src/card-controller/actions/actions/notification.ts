@@ -1,8 +1,12 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { NotificationActionConfig } from '../../../config/schema/actions/types';
 import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class NotificationAction extends AdvancedCameraCardAction<NotificationActionConfig> {
+export class NotificationAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<NotificationActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
     api.getNotificationManager().setNotification(this._getAction().notification);

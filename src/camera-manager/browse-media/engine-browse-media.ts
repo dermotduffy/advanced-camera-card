@@ -1,5 +1,4 @@
 import type { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
-import type { CameraConfig } from '../../config/schema/cameras';
 import { BROWSE_MEDIA_CACHE_SECONDS } from '../../ha/browse-media/types';
 import type { BrowseMediaWalker } from '../../ha/browse-media/walker';
 import { getMediaDownloadPath } from '../../ha/download';
@@ -10,6 +9,7 @@ import { QuerySource } from '../../query-source.js';
 import type { Endpoint } from '../../types';
 import type { ViewMedia } from '../../view/item';
 import type { ViewItemCapabilities } from '../../view/types';
+import type { Camera } from '../camera';
 import type { CameraManagerEngine } from '../engine';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import type { CameraManagerReadOnlyConfigStore } from '../store';
@@ -66,7 +66,7 @@ export class BrowseMediaCameraManagerEngine
 
   public async getMediaDownloadPath(
     hass: HomeAssistant,
-    _cameraConfig: CameraConfig,
+    _camera: Camera,
     media: ViewMedia,
   ): Promise<Endpoint | null> {
     return getMediaDownloadPath(hass, media.getContentID(), this._resolvedMediaCache);

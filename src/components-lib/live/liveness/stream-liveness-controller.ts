@@ -1,4 +1,5 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { Camera } from '../../../camera-manager/camera';
 import type { StateWatcherSubscriptionInterface } from '../../../card-controller/hass/state-watcher';
@@ -119,7 +120,7 @@ export class StreamLivenessController implements ReactiveController {
     this._config = config;
 
     const onChange = (): void => this._onDetectorChange();
-    const getCameraConfig = (): CameraConfig | null =>
+    const getCameraConfig = (): ReadonlyDeep<CameraConfig> | null =>
       config.getCamera()?.getConfig() ?? null;
 
     this._detectors = [

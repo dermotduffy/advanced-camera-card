@@ -1,7 +1,6 @@
 import { html, LitElement, unsafeCSS, type CSSResult, type TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { CameraManager } from '../../camera-manager/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import {
@@ -28,7 +27,6 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
   // These are read only when a control is activated, never to decide what to
   // render, so they are not reactive / do not trigger a re-render.
   public hass?: HomeAssistant;
-  public cameraManager?: CameraManager;
   public viewManagerEpoch?: ViewManagerEpoch;
   public filterReviewed?: boolean;
   public filterFavorite?: boolean;

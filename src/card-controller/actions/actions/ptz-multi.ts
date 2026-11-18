@@ -1,3 +1,5 @@
+import type { ReadonlyDeep } from 'type-fest';
+
 import type { PTZMultiActionConfig } from '../../../config/schema/actions/custom/ptz-multi';
 import { createPTZAction, createPTZDigitalAction } from '../../../utils/action';
 import { getPTZTarget, hasCameraTruePTZ, type PTZType } from '../../../utils/ptz';
@@ -6,7 +8,9 @@ import { AdvancedCameraCardAction } from './base';
 import { PTZAction } from './ptz';
 import { PTZDigitalAction } from './ptz-digital';
 
-export class PTZMultiAction extends AdvancedCameraCardAction<PTZMultiActionConfig> {
+export class PTZMultiAction extends AdvancedCameraCardAction<
+  ReadonlyDeep<PTZMultiActionConfig>
+> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

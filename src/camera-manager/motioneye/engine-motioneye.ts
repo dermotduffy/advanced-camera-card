@@ -68,14 +68,16 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     return Engine.MotionEye;
   }
 
-  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
-    const camera = new MotionEyeCamera(cameraConfig, this, {
-      eventCallback: this._eventCallback,
-    });
-    return await camera.initialize({
-      hassManager: this._hassManager,
-      entityRegistryManager: this._entityRegistryManager,
-    });
+  public createCamera(cameraConfig: CameraConfig): Camera {
+    return new MotionEyeCamera(
+      cameraConfig,
+      this,
+      {
+        hassManager: this._hassManager,
+        entityRegistryManager: this._entityRegistryManager,
+      },
+      { eventCallback: this._eventCallback },
+    );
   }
 
   private _convertMotionEyeTimeFormatToDateFNS(part: string): string {
@@ -390,10 +392,10 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
 
   public getCameraMetadata(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
+    camera: Camera,
   ): CameraManagerCameraMetadata {
     return {
-      ...super.getCameraMetadata(hass, cameraConfig),
+      ...super.getCameraMetadata(hass, camera),
       engineIcon: 'motioneye',
     };
   }

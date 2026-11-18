@@ -88,7 +88,16 @@ export interface ViewManagerInterface {
   hasMajorMediaChange(oldView?: View | null, newView?: View | null): boolean;
 }
 
+// No camera can serve the view.
 export class ViewIncompatible extends AdvancedCameraCardError {
+  constructor(context?: unknown) {
+    super('', context);
+  }
+}
+
+// No camera can serve the view *yet* (but an initializing camera may in
+// future).
+export class ViewDeferred extends AdvancedCameraCardError {
   constructor(context?: unknown) {
     super('', context);
   }

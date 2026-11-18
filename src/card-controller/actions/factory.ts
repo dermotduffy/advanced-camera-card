@@ -1,4 +1,5 @@
 import type { ActionContext } from 'action';
+import type { ReadonlyDeep } from 'type-fest';
 
 import type { TriggerData } from '../../condition-trigger/triggers/types';
 import { GENERATED_ACTION } from '../../config/schema/actions/custom/generated-action';
@@ -69,7 +70,7 @@ export interface ActionFactoryOptions {
 export class ActionFactory {
   public createAction(
     context: ActionContext,
-    action: ActionConfig,
+    action: ReadonlyDeep<ActionConfig>,
     options?: ActionFactoryOptions,
   ): Action | null {
     if (

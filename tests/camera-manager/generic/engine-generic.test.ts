@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 
+import { Camera } from '../../../src/camera-manager/camera';
+import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { GenericCameraManagerEngine } from '../../../src/camera-manager/generic/engine-generic';
 import { Engine, QueryResultsType, QueryType } from '../../../src/camera-manager/types';
 import type { CameraConfig } from '../../../src/config/schema/cameras';
@@ -20,6 +23,16 @@ const createGenericCameraConfig = (
   return createCameraConfig(config);
 };
 
+const createGenericCamera = (config?: RawAdvancedCameraCardConfig): Camera => {
+  const camera = new Camera(
+    createGenericCameraConfig(config),
+    mock<CameraManagerEngine>(),
+    { hassManager: createHASSManager() },
+  );
+  camera.setID('camera-1');
+  return camera;
+};
+
 describe('GenericCameraManagerEngine', () => {
   it('should get engine type', () => {
     expect(createEngine().getEngineType()).toBe(Engine.Generic);
@@ -27,7 +40,8 @@ describe('GenericCameraManagerEngine', () => {
 
   it('should initialize camera', async () => {
     const config = createGenericCameraConfig();
-    const camera = await createEngine().createCamera(config);
+    const camera = createEngine().createCamera(config);
+    await camera.initialize();
 
     expect(camera.getConfig()).toEqual(config);
     expect(camera.getCapabilities()).toBeTruthy();
@@ -42,7 +56,7 @@ describe('GenericCameraManagerEngine', () => {
 
   it('should get default query parameters', async () => {
     const config = createGenericCameraConfig();
-    const camera = await createEngine().createCamera(config);
+    const camera = createEngine().createCamera(config);
     expect(createEngine().getDefaultQueryParameters(camera, QueryType.Event)).toEqual(
       {},
     );
@@ -216,7 +230,7 @@ describe('GenericCameraManagerEngine', () => {
     expect(
       await createEngine().getMediaDownloadPath(
         createHASS(),
-        createGenericCameraConfig(),
+        createGenericCamera(),
         new TestViewMedia(),
       ),
     ).toBeNull();
@@ -226,7 +240,7 @@ describe('GenericCameraManagerEngine', () => {
     expect(
       await createEngine().favoriteMedia(
         createHASS(),
-        createGenericCameraConfig(),
+        createGenericCamera(),
         new TestViewMedia(),
         true,
       ),
@@ -237,7 +251,7 @@ describe('GenericCameraManagerEngine', () => {
     expect(
       await createEngine().reviewMedia(
         createHASS(),
-        createGenericCameraConfig(),
+        createGenericCamera(),
         new TestViewMedia(),
         true,
       ),
@@ -277,39 +291,24 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   describe('should get camera metadata', () => {
-    it('with empty config', async () => {
+    it('with nothing but an identifier', async () => {
       expect(
-        createEngine().getCameraMetadata(createHASS(), createGenericCameraConfig()),
+        createEngine().getCameraMetadata(createHASS(), createGenericCamera()),
       ).toEqual({
         icon: {
           entity: undefined,
           icon: undefined,
           fallback: 'mdi:video',
         },
-        title: '',
+        title: 'camera-1',
       });
-    });
-
-    it('with id', async () => {
-      expect(
-        createEngine().getCameraMetadata(
-          createHASS(),
-          createGenericCameraConfig({ id: 'https://go2rtc#stream' }),
-        ),
-      ).toEqual(
-        expect.objectContaining({
-          title: 'https://go2rtc#stream',
-        }),
-      );
     });
 
     it('with configured title', async () => {
       expect(
         createEngine().getCameraMetadata(
           createHASS(),
-          createGenericCameraConfig({
-            title: 'My Camera',
-          }),
+          createGenericCamera({ title: 'My Camera' }),
         ),
       ).toEqual(
         expect.objectContaining({
@@ -327,9 +326,7 @@ describe('GenericCameraManagerEngine', () => {
                 attributes: { friendly_name: 'My Entity Camera' },
               }),
             }),
-            createGenericCameraConfig({
-              camera_entity: 'camera.test',
-            }),
+            createGenericCamera({ camera_entity: 'camera.test' }),
           ),
         ).toEqual(
           expect.objectContaining({
@@ -346,11 +343,7 @@ describe('GenericCameraManagerEngine', () => {
                 attributes: { friendly_name: 'My Entity Camera' },
               }),
             }),
-            createGenericCameraConfig({
-              webrtc_card: {
-                entity: 'camera.test',
-              },
-            }),
+            createGenericCamera({ webrtc_card: { entity: 'camera.test' } }),
           ),
         ).toEqual(
           expect.objectContaining({
@@ -367,12 +360,12 @@ describe('GenericCameraManagerEngine', () => {
 
   describe('should get camera endpoints', () => {
     it('default', async () => {
-      const camera = await createEngine().createCamera(createGenericCameraConfig());
+      const camera = createEngine().createCamera(createGenericCameraConfig());
       expect(camera.getEndpoints()).toBeNull();
     });
 
     it('for go2rtc', async () => {
-      const camera = await createEngine().createCamera(
+      const camera = createEngine().createCamera(
         createGenericCameraConfig({
           go2rtc: {
             stream: 'stream',
@@ -390,7 +383,7 @@ describe('GenericCameraManagerEngine', () => {
     });
 
     it('for webrtc-card', async () => {
-      const camera = await createEngine().createCamera(
+      const camera = createEngine().createCamera(
         createGenericCameraConfig({
           camera_entity: 'camera.office',
         }),

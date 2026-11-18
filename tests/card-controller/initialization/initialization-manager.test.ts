@@ -2,6 +2,7 @@ import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
+import { setCamerasFromConfig } from '../../../src/card-controller/config/load-cameras';
 import {
   InitializationAspect,
   InitializationManager,
@@ -14,6 +15,7 @@ import type { Initializer } from '../../../src/utils/initializer/initializer';
 import { createConfig } from '../../config/test-utils';
 import { createCardAPI, createHASS } from '../../test-utils';
 
+vi.mock('../../../src/card-controller/config/load-cameras.js');
 vi.mock('../../../src/localize/localize.js');
 vi.mock('../../../src/ha/side-load-ha-elements.js');
 
@@ -132,7 +134,8 @@ describe('InitializationManager', () => {
 
       expect(loadLanguages).toHaveBeenCalled();
       expect(sideLoadHomeAssistantElements).toHaveBeenCalled();
-      expect(api.getCameraManager().initializeCamerasFromConfig).toHaveBeenCalled();
+      expect(api.createCameraManager).toHaveBeenCalled();
+      expect(setCamerasFromConfig).toHaveBeenCalledWith(api);
       expect(api.getViewManager().initialize).toHaveBeenCalled();
       expect(api.getMicrophoneManager().connect).not.toHaveBeenCalled();
       expect(api.getCardElementManager().update).toHaveBeenCalled();
@@ -255,9 +258,7 @@ describe('InitializationManager', () => {
       expect(api.getAutomationsManager().subscribe).toHaveBeenCalled();
 
       // The later run found every aspect already initialized.
-      expect(api.getCameraManager().initializeCamerasFromConfig).toHaveBeenCalledTimes(
-        1,
-      );
+      expect(setCamerasFromConfig).toHaveBeenCalledTimes(1);
     });
 
     it('should stop when a full-card issue appears during initialization', async () => {
@@ -274,7 +275,7 @@ describe('InitializationManager', () => {
 
       await manager.initializeMandatory();
 
-      expect(api.getCameraManager().initializeCamerasFromConfig).not.toHaveBeenCalled();
+      expect(setCamerasFromConfig).not.toHaveBeenCalled();
       expect(api.getViewManager().initialize).not.toHaveBeenCalled();
       expect(api.getIssueManager().trigger).not.toHaveBeenCalled();
     });
@@ -407,7 +408,7 @@ describe('InitializationManager', () => {
       const manager = new InitializationManager(api);
       await manager.initializeMandatory();
 
-      expect(api.getCameraManager().initializeCamerasFromConfig).not.toHaveBeenCalled();
+      expect(setCamerasFromConfig).not.toHaveBeenCalled();
       expect(api.getIssueManager().trigger).not.toHaveBeenCalled();
       expect(stateManager.getState().initialized).toBeUndefined();
     });
@@ -539,16 +540,12 @@ describe('InitializationManager', () => {
       const blockedCameras = new Promise<void>((resolve) => {
         releaseCameras = resolve;
       });
-      vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockImplementation(
-        () => blockedCameras,
-      );
+      vi.mocked(setCamerasFromConfig).mockImplementation(() => blockedCameras);
 
       const first = manager.initializeMandatory();
       const second = manager.initializeMandatory();
 
-      await vi.waitFor(() =>
-        expect(api.getCameraManager().initializeCamerasFromConfig).toHaveBeenCalled(),
-      );
+      await vi.waitFor(() => expect(setCamerasFromConfig).toHaveBeenCalled());
 
       // The card leaves the page while the first initialization awaits the
       // cameras and the second attempt waits in the queue.
@@ -561,9 +558,7 @@ describe('InitializationManager', () => {
       await first;
       await second;
 
-      expect(api.getCameraManager().initializeCamerasFromConfig).toHaveBeenCalledTimes(
-        1,
-      );
+      expect(setCamerasFromConfig).toHaveBeenCalledTimes(1);
       expect(stateManager.getState().initialized).toBeUndefined();
       expect(manager.getSessionManager().wasEverInitialized()).toBeFalsy();
     });
@@ -578,14 +573,10 @@ describe('InitializationManager', () => {
       const blockedCameras = new Promise<void>((_, reject) => {
         failCameras = (): void => reject(new Error('cameras torn down'));
       });
-      vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockImplementation(
-        () => blockedCameras,
-      );
+      vi.mocked(setCamerasFromConfig).mockImplementation(() => blockedCameras);
 
       const attempt = manager.initializeMandatory();
-      await vi.waitFor(() =>
-        expect(api.getCameraManager().initializeCamerasFromConfig).toHaveBeenCalled(),
-      );
+      await vi.waitFor(() => expect(setCamerasFromConfig).toHaveBeenCalled());
 
       // The card leaves the page, and the in-flight camera work then fails
       // because of that very teardown. An error from a card state that no
@@ -613,12 +604,12 @@ describe('InitializationManager', () => {
       // invalidating an aspect an earlier step already completed. Reporting the
       // card started then would call it ready with stale cameras -- and the
       // initialization that follows would not make `initialized` change again.
-      vi.mocked(
-        api.getCameraTriggersManager().handleInitialCameraTriggers,
-      ).mockImplementation(async () => {
-        manager.invalidateAspect(InitializationAspect.CAMERAS);
-        return true;
-      });
+      vi.mocked(api.getCameraTriggersManager().handleInitialTriggers).mockImplementation(
+        async () => {
+          manager.invalidateAspect(InitializationAspect.CAMERAS);
+          return true;
+        },
+      );
 
       await manager.initializeMandatory();
 

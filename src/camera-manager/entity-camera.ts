@@ -1,5 +1,5 @@
 import type { HomeAssistant } from '../ha/types';
-import { Camera, type CameraInitializationOptions } from './camera';
+import { Camera } from './camera';
 import { CameraNoEntityError } from './error';
 
 /**
@@ -8,16 +8,13 @@ import { CameraNoEntityError } from './error';
  * subclass turns absence into an error for engines that cannot function
  * without it (motionEye, Reolink, TPLink).
  */
-export class EntityCamera<
-  Options extends CameraInitializationOptions = CameraInitializationOptions,
-> extends Camera<Options> {
+export class EntityCamera extends Camera {
   protected override async _initializeBeforeCapabilities(
     hass: HomeAssistant,
-    options: Options,
   ): Promise<void> {
     if (!this._entity) {
       throw new CameraNoEntityError(this.getConfig());
     }
-    await super._initializeBeforeCapabilities(hass, options);
+    await super._initializeBeforeCapabilities(hass);
   }
 }

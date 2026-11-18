@@ -6,6 +6,7 @@ import type { HomeAssistant } from '../../ha/types';
 import type { Severity } from '../../severity';
 
 export type IssueKey =
+  | 'camera_initialization'
   | 'config_error'
   | 'config_upgrade'
   | 'config_upgrade_failure'

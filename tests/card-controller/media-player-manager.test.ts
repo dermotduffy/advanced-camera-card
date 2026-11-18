@@ -453,12 +453,12 @@ describe('MediaPlayerManager', () => {
           // Bypass schema validation -- the code has a runtime guard
           // (TypeScript narrowing) for the case where dashboard config is
           // present but dashboard_path / view_path are missing.
-          const configWithNoDashboardPaths = createCameraConfig({
-            camera_entity: 'camera.foo',
-          });
-          (configWithNoDashboardPaths as Record<string, unknown>).cast = {
-            method: 'dashboard',
-            dashboard: { dashboard_path: undefined, view_path: undefined },
+          const configWithNoDashboardPaths = {
+            ...createCameraConfig({ camera_entity: 'camera.foo' }),
+            cast: {
+              method: 'dashboard' as const,
+              dashboard: { dashboard_path: undefined, view_path: undefined },
+            },
           };
 
           vi.mocked(api.getCameraManager().getStore).mockReturnValue(

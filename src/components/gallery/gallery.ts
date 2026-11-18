@@ -9,7 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 
 import { actionHandler } from '../../action-handler-directive.js';
-import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerEpoch } from '../../camera-manager/lifecycle.js';
 import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context.js';
@@ -67,7 +67,7 @@ export class AdvancedCameraCardGallery extends LitElement {
   public galleryConfig?: MediaGalleryConfig;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public foldersManager?: FoldersManager;
@@ -87,11 +87,14 @@ export class AdvancedCameraCardGallery extends LitElement {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (
-      (changedProps.has('cameraManager') || changedProps.has('foldersManager')) &&
-      this.cameraManager &&
+      (changedProps.has('cameraManagerEpoch') || changedProps.has('foldersManager')) &&
+      this.cameraManagerEpoch &&
       this.foldersManager
     ) {
-      this._builder = new UnifiedQueryBuilder(this.cameraManager, this.foldersManager);
+      this._builder = new UnifiedQueryBuilder(
+        this.cameraManagerEpoch.manager,
+        this.foldersManager,
+      );
     }
 
     if (changedProps.has('viewManagerEpoch')) {
@@ -118,7 +121,7 @@ export class AdvancedCameraCardGallery extends LitElement {
   private _getInfoContext(): MediaInfoContext {
     return {
       hass: this.hass,
-      cameraManager: this.cameraManager,
+      cameraManager: this.cameraManagerEpoch?.manager,
       viewItemManager: this.viewItemManager,
       viewManagerEpoch: this.viewManagerEpoch,
     };
@@ -158,7 +161,7 @@ export class AdvancedCameraCardGallery extends LitElement {
         return html`<advanced-camera-card-thumbnail
           clickable
           .hass=${this.hass}
-          .cameraManager=${this.cameraManager}
+          .cameraManagerEpoch=${this.cameraManagerEpoch}
           .viewItemManager=${this.viewItemManager}
           .item=${item}
           .viewManagerEpoch=${this.viewManagerEpoch}
@@ -236,7 +239,7 @@ export class AdvancedCameraCardGallery extends LitElement {
         ${showFilter && this.galleryConfig
           ? html` <advanced-camera-card-media-filter
               .hass=${this.hass}
-              .cameraManager=${this.cameraManager}
+              .cameraManagerEpoch=${this.cameraManagerEpoch}
               .foldersManager=${this.foldersManager}
               .viewManagerEpoch=${this.viewManagerEpoch}
               .cardWideConfig=${this.cardWideConfig}
@@ -250,7 +253,7 @@ export class AdvancedCameraCardGallery extends LitElement {
                 cameraID: this.viewManagerEpoch?.manager.getView()?.camera ?? null,
                 inProgress: isLoading,
               },
-              this.cameraManager,
+              this.cameraManagerEpoch?.manager,
             )
           : html`<advanced-camera-card-gallery-core
               .hass=${this.hass}
@@ -285,7 +288,7 @@ export class AdvancedCameraCardGallery extends LitElement {
     useCache = true,
   ): Promise<void> {
     if (
-      !this.cameraManager ||
+      !this.cameraManagerEpoch ||
       !this.foldersManager ||
       !this.viewManagerEpoch ||
       !this.conditionStateManager
@@ -295,7 +298,7 @@ export class AdvancedCameraCardGallery extends LitElement {
     }
 
     const runner = new UnifiedQueryRunner(
-      this.cameraManager,
+      this.cameraManagerEpoch.manager,
       this.foldersManager,
       this.conditionStateManager,
     );

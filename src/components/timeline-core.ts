@@ -11,7 +11,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import type { IdType } from 'vis-timeline/esnext';
 
-import type { CameraManager } from '../camera-manager/manager';
+import type { CameraManagerEpoch } from '../camera-manager/lifecycle';
 import type { FoldersManager } from '../card-controller/folders/manager';
 import type { ViewItemManager } from '../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
@@ -97,7 +97,7 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
 
     if (
       !dataRequest.hass ||
-      !dataRequest.cameraManager ||
+      !dataRequest.cameraManagerEpoch ||
       !dataRequest.cameraConfig ||
       !dataRequest.viewItemManager ||
       !dataRequest.media ||
@@ -108,7 +108,7 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
 
     return html` <advanced-camera-card-thumbnail
       .hass=${dataRequest.hass}
-      .cameraManager=${dataRequest.cameraManager}
+      .cameraManagerEpoch=${dataRequest.cameraManagerEpoch}
       .viewItemManager=${dataRequest.viewItemManager}
       .item=${dataRequest.media}
       .viewManagerEpoch=${dataRequest.viewManagerEpoch}
@@ -139,7 +139,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
   public mini = false;
 
   @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  public cameraManagerEpoch?: CameraManagerEpoch;
 
   @property({ attribute: false })
   public foldersManager?: FoldersManager;
@@ -248,7 +248,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected shouldUpdate(_changedProps: PropertyValues): boolean {
-    return !!this.hass && !!this.cameraManager;
+    return !!this.hass && !!this.cameraManagerEpoch;
   }
 
   /**
@@ -263,7 +263,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     if (
       [
         'viewManagerEpoch',
-        'cameraManager',
+        'cameraManagerEpoch',
         'viewItemManager',
         'timelineConfig',
         'mini',
@@ -273,7 +273,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       ].some((prop) => changedProps.has(prop))
     ) {
       this._controller.setOptions({
-        cameraManager: this.cameraManager,
+        cameraManagerEpoch: this.cameraManagerEpoch,
         foldersManager: this.foldersManager,
         viewItemManager: this.viewItemManager,
         conditionStateManager: this.conditionStateManager,
