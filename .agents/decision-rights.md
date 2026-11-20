@@ -9,37 +9,37 @@ answers.
 
 ## Standing answers
 
-| Question                                                         | Answer                                                                                                                                   |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Apply the local refactor, rename or simplification I recommend?  | Yes, when confined to non-public code in the files under change. Report in one line.                                                     |
-| Which of several internal names?                                 | The one that reuses existing vocabulary and matches siblings.                                                                            |
-| Keep or drop polish that costs complexity?                       | Drop. Log the user-visible cost and the line count saved.                                                                                |
-| Implementation fork A or B?                                      | Take your recommendation when it is reversible and has no public surface. Log the runner-up.                                             |
-| Found an unrelated pre-existing bug. Fix it?                     | No. File an issue and continue. Fix in place only when it shares the root cause.                                                         |
-| Add a browser test, or leave it as a manual check?               | Add the test, including a small harness capability if that is what it takes.                                                             |
-| Remove debug probes and abandoned alternatives?                  | Yes, as soon as the measurement or decision is made.                                                                                     |
-| How to sync with `dev`?                                          | Rebase. Never a merge commit or a WIP commit.                                                                                            |
-| Where does a CI fix go?                                          | The same branch.                                                                                                                         |
-| What next at the end of a phase?                                 | Run the gate (format, lint, typecheck, coverage, prune), then continue. Record where things stand and what is left.                      |
-| Accept or reject a reviewer finding?                             | Verify it against the code or a real run. Fix real defects. Reject per Tier 3 of the [rubric](review-rubric.md), with a one-line reason. |
+| Question                                                        | Answer                                                                                                                                   |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Apply the local refactor, rename or simplification I recommend? | Yes, when confined to non-public code in the files under change. Report in one line.                                                     |
+| Which of several internal names?                                | The one that reuses existing vocabulary and matches siblings.                                                                            |
+| Keep or drop polish that costs complexity?                      | Drop. Log the user-visible cost and the line count saved.                                                                                |
+| Implementation fork A or B?                                     | Take your recommendation when it is reversible and has no public surface. Log the runner-up.                                             |
+| Found an unrelated pre-existing bug. Fix it?                    | No. File an issue and continue. Fix in place only when it shares the root cause.                                                         |
+| Add a browser test, or leave it as a manual check?              | Add the test, including a small harness capability if that is what it takes.                                                             |
+| Remove debug probes and abandoned alternatives?                 | Yes, as soon as the measurement or decision is made.                                                                                     |
+| How to sync with `dev`?                                         | Rebase. Never a merge commit or a WIP commit.                                                                                            |
+| Where does a CI fix go?                                         | The same branch.                                                                                                                         |
+| What next at the end of a phase?                                | Run the gate (format, lint, typecheck, coverage, prune), then continue. Record where things stand and what is left.                      |
+| Accept or reject a reviewer finding?                            | Verify it against the code or a real run. Fix real defects. Reject per Tier 3 of the [rubric](review-rubric.md), with a one-line reason. |
 
 ## Who decides the rest
 
-| Decision                                                                 | Who                 |
-| ------------------------------------------------------------------------ | ------------------- |
-| Test design                                                              | Agent               |
-| Trimming scope to the smallest change that resolves the issue            | Agent, logged       |
-| New structure: a new manager or controller, who owns state, API shape    | Agent, logged (\*)  |
-| Additive, optional config (new option, default preserves behavior)       | Agent, logged (\*)  |
-| Any `config-upgrade` change (rename, move, changed default)              | Maintainer notified |
-| Any `breaking` change                                                    | Maintainer          |
-| Visual judgment (sizes, spacing, hover and motion)                       | Maintainer          |
-| Accepting or declining a contributor's feature; amend versus re-do       | Maintainer          |
-| Declining or closing a user's request                                    | Maintainer          |
-| Any public reply to a user or contributor                                | Maintainer          |
-| New runtime dependency                                                   | Maintainer          |
-| Behavior that can only be verified on a real device                      | Maintainer          |
-| Merge and release                                                        | Maintainer          |
+| Decision                                                              | Who                 |
+| --------------------------------------------------------------------- | ------------------- |
+| Test design                                                           | Agent               |
+| Trimming scope to the smallest change that resolves the issue         | Agent, logged       |
+| New structure: a new manager or controller, who owns state, API shape | Agent, logged (\*)  |
+| Additive, optional config (new option, default preserves behavior)    | Agent, logged (\*)  |
+| Any `config-upgrade` change (rename, move, changed default)           | Maintainer notified |
+| Any `breaking` change                                                 | Maintainer          |
+| Visual judgment (sizes, spacing, hover and motion)                    | Maintainer          |
+| Accepting or declining a contributor's feature; amend versus re-do    | Maintainer          |
+| Declining or closing a user's request                                 | Maintainer          |
+| Any public reply to a user or contributor                             | Maintainer          |
+| New runtime dependency                                                | Maintainer          |
+| Behavior that can only be verified on a real device                   | Maintainer          |
+| Merge and release                                                     | Maintainer          |
 
 (\*) Open questions for the maintainer. Both rows are agent-decided here
 because both can be undone later without users noticing (structure by

@@ -37,14 +37,14 @@ Agents never debate each other, or the maintainer, in public issues or PRs.
 
 Each role has a trigger and an output. None is a chat partner.
 
-| Role              | Trigger                | Output                                           |
-| ----------------- | ---------------------- | ------------------------------------------------ |
-| Implementer       | Approved issue         | Plan, then PR, then inbox issue with the record. |
-| Design challenger | Implementer's plan     | Approve or redirect, before code is written.     |
-| Reviewer          | Before the PR opens    | Classified findings against the rubric.          |
-| Sweep             | Weekly                 | Refactor PRs, new mechanical checks, a report.   |
-| Triage            | Daily                  | Labels, one inbox digest of recommendations.     |
-| Feature           | Fortnightly            | Ranked proposals in the inbox.                   |
+| Role              | Trigger             | Output                                           |
+| ----------------- | ------------------- | ------------------------------------------------ |
+| Implementer       | Approved issue      | Plan, then PR, then inbox issue with the record. |
+| Design challenger | Implementer's plan  | Approve or redirect, before code is written.     |
+| Reviewer          | Before the PR opens | Classified findings against the rubric.          |
+| Sweep             | Weekly              | Refactor PRs, new mechanical checks, a report.   |
+| Triage            | Daily               | Labels, one inbox digest of recommendations.     |
+| Feature           | Fortnightly         | Ranked proposals in the inbox.                   |
 
 The reviewer and design challenger run on a different model from the
 implementer (Codex, called over MCP from the implementer's session).

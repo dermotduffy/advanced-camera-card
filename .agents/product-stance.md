@@ -90,17 +90,17 @@ Reasons, most common first:
 
 ## Handling recurring situations
 
-| Situation                   | Recommendation                                                              |
-| --------------------------- | --------------------------------------------------------------------------- |
-| Bug without diagnostics     | Ask for card diagnostics, with the docs link. Label `waiting`.              |
-| Cannot reproduce            | Say so, give a minimal working config, ask the reporter to try it.          |
-| Possibly upstream           | Ask whether it happens in HA without the card.                              |
-| Duplicate                   | Link the canonical issue; close as duplicate.                               |
-| Already fixed or in beta    | One line pointing at the release.                                           |
-| Unrelated follow-up comment | Ask for a new issue with diagnostics.                                       |
-| Confirmed regression        | `regression` plus `P0`/`P1`; goes to the front of the implement queue.      |
-| Stale and unanswered        | Close as not planned, inviting a reopen with more information.              |
-| Contribution offered        | Welcome it.                                                                 |
+| Situation                   | Recommendation                                                         |
+| --------------------------- | ---------------------------------------------------------------------- |
+| Bug without diagnostics     | Ask for card diagnostics, with the docs link. Label `waiting`.         |
+| Cannot reproduce            | Say so, give a minimal working config, ask the reporter to try it.     |
+| Possibly upstream           | Ask whether it happens in HA without the card.                         |
+| Duplicate                   | Link the canonical issue; close as duplicate.                          |
+| Already fixed or in beta    | One line pointing at the release.                                      |
+| Unrelated follow-up comment | Ask for a new issue with diagnostics.                                  |
+| Confirmed regression        | `regression` plus `P0`/`P1`; goes to the front of the implement queue. |
+| Stale and unanswered        | Close as not planned, inviting a reopen with more information.         |
+| Contribution offered        | Welcome it.                                                            |
 
 ## Voice for drafted replies
 

@@ -3,11 +3,11 @@
 Every PR is in exactly one class. A release inherits the most severe class
 among its PRs.
 
-| Class            | PR label         | Meaning                                                               | Who may ship it     |
-| ---------------- | ---------------- | --------------------------------------------------------------------- | ------------------- |
-| Compatible       | _(none)_         | Existing configs behave as before.                                    | Agent               |
-| Config upgrade   | `config-upgrade` | Existing configs may need changing; an automatic upgrade is provided. | Agent, with notice  |
-| Breaking         | `breaking`       | Users must act manually, or behavior is lost with no upgrade path.    | Maintainer only     |
+| Class          | PR label         | Meaning                                                               | Who may ship it    |
+| -------------- | ---------------- | --------------------------------------------------------------------- | ------------------ |
+| Compatible     | _(none)_         | Existing configs behave as before.                                    | Agent              |
+| Config upgrade | `config-upgrade` | Existing configs may need changing; an automatic upgrade is provided. | Agent, with notice |
+| Breaking       | `breaking`       | Users must act manually, or behavior is lost with no upgrade path.    | Maintainer only    |
 
 `breaking` is expected to be very rare. If a change looks breaking, first look
 for a way to make it a config upgrade.
