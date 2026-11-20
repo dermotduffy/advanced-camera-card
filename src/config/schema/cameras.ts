@@ -170,7 +170,10 @@ export const cameraConfigDefault = {
     media: 'auto' as const,
   },
   go2rtc: go2rtcConfigDefault,
-  image: imageBaseConfigDefault,
+  image: {
+    ...imageBaseConfigDefault,
+    preserve_frame_seconds: 0,
+  },
   always_error_if_entity_unavailable: false,
 };
 
@@ -329,7 +332,15 @@ export const cameraConfigSchema = z
     // Live provider options.
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
     go2rtc: go2rtcConfigSchema.optional().default(go2rtcConfigDefault),
-    image: imageBaseConfigSchema.optional().default(imageBaseConfigDefault),
+    image: imageBaseConfigSchema
+      .extend({
+        preserve_frame_seconds: z
+          .number()
+          .min(0)
+          .default(cameraConfigDefault.image.preserve_frame_seconds),
+      })
+      .optional()
+      .default(cameraConfigDefault.image),
     jsmpeg: jsmpegConfigSchema.optional(),
     webrtc_card: webrtcCardConfigSchema.optional(),
 

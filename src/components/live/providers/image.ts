@@ -10,6 +10,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { Camera } from '../../../camera-manager/camera.js';
 import type { MediaUnavailableIssueReason } from '../../../card-controller/issues/issues/media-unavailable.js';
+import type { PreservedFrameManager } from '../../../card-controller/preserved-frame-manager.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import type { HomeAssistant } from '../../../ha/types';
 import basicBlockStyle from '../../../scss/basic-block.scss?inline';
@@ -37,6 +38,9 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
   @property({ attribute: false })
   public cameraTitle?: string;
 
+  @property({ attribute: false })
+  public preservedFrameManager?: PreservedFrameManager;
+
   private _refImage: Ref<MediaPlayerElement> = createRef();
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -58,6 +62,7 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
         .cameraConfig=${cameraConfig}
         .targetID=${this.targetID}
         .cameraTitle=${this.cameraTitle}
+        .preservedFrameManager=${this.preservedFrameManager}
         .proxyConfig=${this.camera?.getLiveProxyConfig()}
         @advanced-camera-card:image-updating-player:error=${(
           ev: CustomEvent<MediaUnavailableIssueReason>,

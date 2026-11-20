@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const imageBaseConfigDefault = {
   mode: 'auto' as const,
-  preserve_frame_seconds: 0,
   refresh_seconds: 'auto' as const,
 };
 
@@ -18,11 +17,6 @@ export type ImageMode = (typeof IMAGE_MODES)[number];
 
 export const imageBaseConfigSchema = z.object({
   mode: z.enum(IMAGE_MODES).default(imageBaseConfigDefault.mode),
-
-  preserve_frame_seconds: z
-    .number()
-    .min(0)
-    .default(imageBaseConfigDefault.preserve_frame_seconds),
 
   refresh_seconds: z
     .union([z.literal('auto'), z.number().min(0)])

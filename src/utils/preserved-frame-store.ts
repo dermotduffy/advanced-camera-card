@@ -1,18 +1,17 @@
 import { LRUCache } from '../cache/lru';
-import type { DataURL, UnsubscribeCallback } from '../types';
+import type { AdvancedCameraCardConfig } from '../config/schema/types';
+import type { DataURL } from '../types';
 
 export interface PreservedFrame {
   url: DataURL;
-  capturedAt: Date;
+  date: Date;
 }
 
 export interface PreservedFrameKey {
   // Cards without a `card_id` share frames for the same camera ID.
-  cardID?: string;
+  cardID?: AdvancedCameraCardConfig['card_id'];
   cameraID: string;
 }
-
-type PreservedFrameStoreCallback = (key: PreservedFrameKey) => void;
 
 // Arbitrary cap on how many frames to store. The LRU cache may hold up to twice
 // this, so 16 frames at 4K is roughly 16-32MB (each a 1-2 MB `data:` URL).
@@ -25,36 +24,21 @@ const PRESERVED_FRAME_STORE_CAPACITY = 8;
  */
 export class PreservedFrameStore {
   private _frames = new LRUCache<string, PreservedFrame>(PRESERVED_FRAME_STORE_CAPACITY);
-  private _callbacks = new Set<PreservedFrameStoreCallback>();
 
-  /** The frame under `key`, unless it is `maxAgeSeconds` old or older. */
   public get(key: PreservedFrameKey, maxAgeSeconds: number): PreservedFrame | null {
     const frame = this._frames.get(this._encodeKey(key));
-    if (!frame) {
-      return null;
-    }
-    const age = new Date().getTime() - frame.capturedAt.getTime();
-    return age < maxAgeSeconds * 1000 ? frame : null;
+    return frame && this.getSecondsUntilExpired(frame, maxAgeSeconds) > 0 ? frame : null;
   }
 
-  /**
-   * Keep a frame under `key`, unless a frame captured at the same time or later
-   * is already kept there. Subscribers hear of a kept frame.
-   */
+  public getSecondsUntilExpired(frame: PreservedFrame, maxAgeSeconds: number): number {
+    return maxAgeSeconds - (new Date().getTime() - frame.date.getTime()) / 1000;
+  }
+
   public set(key: PreservedFrameKey, frame: PreservedFrame): void {
     const encodedKey = this._encodeKey(key);
-    const existing = this._frames.get(encodedKey);
-    if (existing && existing.capturedAt >= frame.capturedAt) {
-      return;
+    if (this._frames.get(encodedKey)?.url !== frame.url) {
+      this._frames.set(encodedKey, frame);
     }
-
-    this._frames.set(encodedKey, frame);
-    [...this._callbacks].forEach((callback) => callback(key));
-  }
-
-  public subscribe(callback: PreservedFrameStoreCallback): UnsubscribeCallback {
-    this._callbacks.add(callback);
-    return () => this._callbacks.delete(callback);
   }
 
   private _encodeKey(key: PreservedFrameKey): string {

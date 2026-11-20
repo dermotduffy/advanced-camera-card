@@ -1,132 +1,80 @@
-import type {
-  MediaLoadedInfo,
-  MediaPlayerController,
-  UnsubscribeCallback,
-} from '../types';
-import {
-  sharedDocumentVisibility,
-  type DocumentVisibility,
-} from '../utils/document-visibility';
+import type { MediaPlayerController } from '../types';
+import { onAbort } from '../utils/abort-signal';
 import {
   sharedPreservedFrameStore,
+  type PreservedFrame,
   type PreservedFrameKey,
   type PreservedFrameStore,
 } from '../utils/preserved-frame-store';
-import type { MediaLoadedInfoChange } from './media-info-manager';
 import type { CardPreservedFrameAPI } from './types';
 
-interface PreservablePlayer {
-  key: PreservedFrameKey;
-  player: MediaPlayerController;
-}
-
 /**
- * Preserves the last frame of each media player, so that frame can stand in for
- * the camera's image when the stream next loads.
- *
- * A frame is captured when a player showing a camera goes away and when the
- * page as a whole is hidden (as at that point the player may lose its frame,
- * e.g. lazy-unloading).
+ * Preserves the last frame of a camera's live media, so that frame can stand in
+ * for the camera's image when the stream next loads.
  */
 export class PreservedFrameManager {
   private _api: CardPreservedFrameAPI;
   private _store: PreservedFrameStore;
-  private _documentVisibility: DocumentVisibility;
 
-  // The player currently showing each preserved camera, by camera ID.
-  private _players = new Map<string, PreservablePlayer>();
+  // The preserved frame a player is showing for each camera ID.
+  private _showingFrames = new Map<string, PreservedFrame>();
 
-  private _unsubscribeDocumentVisibility: UnsubscribeCallback | null = null;
-  private _unsubscribeMediaLoadedInfo: UnsubscribeCallback | null = null;
-
-  constructor(
-    api: CardPreservedFrameAPI,
-    store?: PreservedFrameStore,
-    documentVisibility?: DocumentVisibility,
-  ) {
+  constructor(api: CardPreservedFrameAPI, store?: PreservedFrameStore) {
     this._api = api;
     this._store = store ?? sharedPreservedFrameStore;
-    this._documentVisibility = documentVisibility ?? sharedDocumentVisibility;
   }
 
-  public initialize(): void {
-    this.uninitialize();
-
-    this._unsubscribeDocumentVisibility = this._documentVisibility.subscribe((visible) =>
-      this._handleDocumentVisibilityChange(visible),
-    );
-    this._unsubscribeMediaLoadedInfo = this._api
-      .getMediaLoadedInfoManager()
-      .subscribe((change) => this._handleMediaLoadedInfoChange(change));
+  public get(cameraID: string): PreservedFrame | null {
+    return this._store.get(this._getKey(cameraID), this._getMaxAgeSeconds(cameraID));
   }
 
-  public uninitialize(): void {
-    this._unsubscribeDocumentVisibility?.();
-    this._unsubscribeDocumentVisibility = null;
-    this._unsubscribeMediaLoadedInfo?.();
-    this._unsubscribeMediaLoadedInfo = null;
+  public has(cameraID: string): boolean {
+    return !!this.get(cameraID);
   }
 
-  private _handleMediaLoadedInfoChange(change: MediaLoadedInfoChange): void {
-    if (change.type === 'load') {
-      this._handleLoad(change.targetID, change.info);
-    } else if (change.type === 'unload') {
-      this._handleUnload(change.targetID);
-    }
+  public getSecondsUntilExpired(cameraID: string, frame: PreservedFrame): number {
+    return this._store.getSecondsUntilExpired(frame, this._getMaxAgeSeconds(cameraID));
   }
 
-  private _handleLoad(targetID: string, info: MediaLoadedInfo): void {
-    const player = info.mediaPlayerController;
-    if (
-      !player ||
-      !this._api.getViewManager().getView()?.is('live') ||
-      !this._api.getCameraManager().getStore().hasCameraID(targetID) ||
-      !this._isPreserving(targetID)
-    ) {
+  /**
+   * Preserve the player's current frame as the camera's frame. Nothing is
+   * preserved unless the camera's `image` config sets `preserve_frame_seconds`.
+   */
+  public async capture(cameraID: string, player: MediaPlayerController): Promise<void> {
+    if (this._getMaxAgeSeconds(cameraID) <= 0) {
       return;
     }
 
-    this._players.set(targetID, { player, key: this._getKey(targetID) });
-  }
-
-  private _handleUnload(targetID: string): void {
-    const preservable = this._players.get(targetID);
-    if (!preservable) {
-      return;
-    }
-    this._players.delete(targetID);
-    this._capture(preservable).catch(() => {});
-  }
-
-  private _handleDocumentVisibilityChange(visible: boolean): void {
-    if (visible) {
-      return;
-    }
-
-    for (const preservable of this._players.values()) {
-      this._capture(preservable).catch(() => {});
-    }
-  }
-
-  // The player draws its frame synchronously, while it still has its media.
-  private async _capture(preservable: PreservablePlayer): Promise<void> {
-    const capturedAt = new Date();
-    const url = await preservable.player.getFrameURL(true);
+    const date = new Date();
+    const url = await player.getFrameURL(true);
     if (url) {
-      this._store.set(preservable.key, { url, capturedAt });
+      this._store.set(this._getKey(cameraID), { url, date });
     }
   }
 
-  private _isPreserving(cameraID: string): boolean {
-    const cameraImageConfig = this._api
-      .getCameraManager()
-      .getStore()
-      .getCamera(cameraID)
-      ?.getConfig().image;
-    const cardImageConfig = this._api.getConfigManager().getConfig()?.image;
+  /** Record that a player is showing `frame` for the camera until `signal`
+   * aborts. */
+  public setShowing(cameraID: string, frame: PreservedFrame, signal: AbortSignal): void {
+    this._showingFrames.set(cameraID, frame);
+    this._api.getCardElementManager().update();
+
+    onAbort(signal, () => {
+      this._showingFrames.delete(cameraID);
+      this._api.getCardElementManager().update();
+    });
+  }
+
+  /** The preserved frame a player is showing for the camera, if any. */
+  public getShowingFrame(cameraID: string): PreservedFrame | null {
+    return this._showingFrames.get(cameraID) ?? null;
+  }
+
+  // The camera's own setting applies to every stream for the camera (i.e.
+  // including substreams).
+  private _getMaxAgeSeconds(cameraID: string): number {
     return (
-      (cameraImageConfig?.preserve_frame_seconds ?? 0) > 0 ||
-      (cardImageConfig?.preserve_frame_seconds ?? 0) > 0
+      this._api.getCameraManager().getStore().getCamera(cameraID)?.getConfig().image
+        .preserve_frame_seconds ?? 0
     );
   }
 

@@ -2,6 +2,7 @@ import { expect, onTestFinished, vi } from 'vitest';
 
 import type { AdvancedCameraCard } from '../../src/card';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
+import { setVisibilityStateAndDispatch } from '../test-utils';
 import {
   clickElement,
   deepQuery,
@@ -406,6 +407,7 @@ export class MountedCard {
   private _hass: FakeHASS;
   private _expectedConsoleErrors: RegExp[];
   private _toleratedConsoleErrors: RegExp[];
+  private _hidden = false;
 
   /**
    * The card is ready to observe but not yet rendered: initializing happens
@@ -547,6 +549,14 @@ export class MountedCard {
   }
 
   /**
+   * Hide or show the page, as the browser does when the user switches tabs.
+   */
+  public setPageVisible(visible: boolean): void {
+    setVisibilityStateAndDispatch(visible ? 'visible' : 'hidden');
+    this._hidden = !visible;
+  }
+
+  /**
    * Resolves once the card itself has rendered, which says nothing about the
    * elements beneath it.
    */
@@ -647,6 +657,12 @@ export class MountedCard {
 
   public destroy(): void {
     this.card.remove();
+
+    // Page is shared, restore visibility settings.
+    if (this._hidden) {
+      this.setPageVisible(true);
+    }
+
     this._container.remove();
     this.events.destroy();
     this.console.destroy();

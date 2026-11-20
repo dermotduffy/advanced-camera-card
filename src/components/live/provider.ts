@@ -14,6 +14,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import type { Camera } from '../../camera-manager/camera.js';
 import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
 import { MEDIA_UNAVAILABLE_REASONS } from '../../card-controller/issues/issues/media-unavailable.js';
+import type { PreservedFrameManager } from '../../card-controller/preserved-frame-manager.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { isAudioIntendedOnLoad } from '../../components-lib/live/audio-intent.js';
 import {
@@ -22,6 +23,7 @@ import {
 } from '../../components-lib/live/liveness/stream-liveness-controller.js';
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
+import { PreservedFrameCaptureController } from '../../components-lib/preserved-frame-capture-controller.js';
 import type { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import type { LiveConfig } from '../../config/schema/live.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
@@ -70,6 +72,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  @property({ attribute: false })
+  public preservedFrameManager?: PreservedFrameManager;
 
   @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
@@ -133,6 +138,13 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         // liveness detectors.
         !this._streamLivenessController.getFailure(),
     });
+
+    // Preserve the last frame of the media this provider plays. The constructor
+    // registers it as a controller on this host.
+    new PreservedFrameCaptureController(this, {
+      getManager: () => this.preservedFrameManager ?? null,
+      getMediaLoadedInfo: () => this._mediaLoadedInfoSinkController.get(),
+    });
   }
 
   // A note on dynamic imports:
@@ -161,11 +173,16 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     return (
       !this.suppressLoadingImage &&
       !this._mediaLoadedInfoSinkController.has() &&
-      !!this.camera?.getConfig()?.camera_entity &&
+      // A preserved frame of the camera can be shown even without its entity.
+      (!!this.camera?.getConfig()?.camera_entity || this._hasPreservedFrame()) &&
       !!this.hass &&
       !!this.liveConfig?.show_image_during_load &&
       this._streamLivenessController.isLive()
     );
+  }
+
+  private _hasPreservedFrame(): boolean {
+    return !!this.targetID && !!this.preservedFrameManager?.has(this.targetID);
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -382,6 +399,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             .camera=${this.camera}
             .targetID=${this.targetID}
             .cameraTitle=${this.cameraTitle}
+            .preservedFrameManager=${this.preservedFrameManager}
             class=${classMap({
               ...classes,
               // The image provider is providing the temporary loading image,

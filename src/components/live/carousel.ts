@@ -14,6 +14,7 @@ import type { CameraManager } from '../../camera-manager/manager.js';
 import type { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
 import type { CallSession } from '../../card-controller/call/types.js';
 import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
+import type { PreservedFrameManager } from '../../card-controller/preserved-frame-manager.js';
 import type { MicrophoneState } from '../../card-controller/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
@@ -78,6 +79,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public preservedFrameManager?: PreservedFrameManager;
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
@@ -291,6 +295,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .hass=${this.hass}
             .stateWatcher=${this.stateWatcher}
             .cardWideConfig=${this.cardWideConfig}
+            .preservedFrameManager=${this.preservedFrameManager}
             .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
             .zoom=${!this._isGesturesPTZActive(view, cameraID)}
             .forceSelected=${isSelectedSlide}

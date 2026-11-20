@@ -2,9 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import type { StatusBarString } from '../../src/config/schema/actions/types';
+import { formatDateAndTime } from '../../src/utils/basic';
 import { QueryResults } from '../../src/view/query-results';
 import { createCameraManager, createStore } from '../camera-manager/test-utils';
+import { createConfig } from '../config/test-utils';
 import { createCardAPI } from '../test-utils';
+import { createPreservedFrame } from '../utils/test-utils';
 import { createView, TestViewMedia } from '../view/test-utils';
 
 describe('StatusBarItemManager', () => {
@@ -238,6 +241,56 @@ describe('StatusBarItemManager', () => {
       });
     });
 
+    describe('preserved frame', () => {
+      const date = new Date('2026-11-17T12:00:00');
+      const preservedFrame = createPreservedFrame({ date });
+
+      it('should show an icon and the date of the frame', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        expect(manager.calculateItems({ preservedFrame })).toEqual([
+          {
+            type: 'custom:advanced-camera-card-status-bar-icon' as const,
+            icon: 'mdi:clock-alert',
+          },
+          {
+            type: 'custom:advanced-camera-card-status-bar-string' as const,
+            string: formatDateAndTime(date),
+          },
+        ]);
+      });
+
+      it('should show nothing without a frame', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        expect(manager.calculateItems({ preservedFrame: null })).toEqual([]);
+      });
+
+      it('should apply config overrides to both items', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+        const statusConfig = createConfig({
+          status_bar: { items: { preserved_frame: { priority: 90 } } },
+        }).status_bar;
+
+        expect(manager.calculateItems({ statusConfig, preservedFrame })).toEqual([
+          {
+            type: 'custom:advanced-camera-card-status-bar-icon' as const,
+            icon: 'mdi:clock-alert',
+            enabled: true,
+            permanent: true,
+            priority: 90,
+          },
+          {
+            type: 'custom:advanced-camera-card-status-bar-string' as const,
+            string: formatDateAndTime(date),
+            enabled: true,
+            permanent: true,
+            priority: 90,
+          },
+        ]);
+      });
+    });
+
     describe('issues', () => {
       it('should show issue items', () => {
         const manager = new StatusBarItemManager(createCardAPI());
@@ -317,6 +370,7 @@ describe('StatusBarItemManager', () => {
             items: {
               engine: { enabled: true, priority: 50 },
               issues: { enabled: false, priority: 50 },
+              preserved_frame: { enabled: true, priority: 50 },
               resolution: { enabled: true, priority: 50 },
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
@@ -362,6 +416,7 @@ describe('StatusBarItemManager', () => {
             items: {
               engine: { enabled: true, priority: 50 },
               issues: { enabled: true, priority: 90 },
+              preserved_frame: { enabled: true, priority: 50 },
               resolution: { enabled: true, priority: 50 },
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },

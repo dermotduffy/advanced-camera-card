@@ -30,7 +30,6 @@ import type {
 } from './microphone-manager';
 import type { NotificationManager } from './notification-manager';
 import type { PIPManager } from './pip-manager';
-import type { PreservedFrameManager } from './preserved-frame-manager';
 import type { QueryStringManager } from './query-string-manager';
 import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
@@ -178,7 +177,6 @@ export interface CardElementAPI {
   getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
   getPIPManager(): PIPManager;
-  getPreservedFrameManager(): PreservedFrameManager;
   getIssueManager(): IssueManager;
   getQueryStringManager(): QueryStringManager;
   getCameraTriggersManager(): CameraTriggersManager;
@@ -310,9 +308,8 @@ export interface CardMicrophoneAPI {
 
 export interface CardPreservedFrameAPI {
   getCameraManager(): CameraManager;
+  getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
-  getMediaLoadedInfoManager(): MediaLoadedInfoManager;
-  getViewManager(): ViewManager;
 }
 
 export interface CardQueryStringAPI {

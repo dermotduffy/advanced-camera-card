@@ -42,9 +42,4 @@ export const getImageFieldsSchema = (): HAFormSchema[] => [
     label: localize('config.common.image.refresh_seconds'),
     selector: createNumberSelector(),
   },
-  {
-    name: 'preserve_frame_seconds',
-    label: localize('config.common.image.preserve_frame_seconds'),
-    selector: createNumberSelector(),
-  },
 ];

@@ -3,8 +3,6 @@ import { readBlobAsDataURL } from './blob';
 import { isDataURL } from './data-url';
 import { sharedDocumentVisibility } from './document-visibility';
 
-const FRAME_JPEG_QUALITY = 0.8;
-
 /**
  * The current frame of a video as a JPEG `data:` URL, or null when the video
  * has no frame to give.
@@ -72,11 +70,11 @@ export const getCanvasFrameDataURL = async (
     // carousel transition), and several frames may be encoded at once (e.g. a
     // grid of cameras leaving the page).
     if (!sharedDocumentVisibility.isVisible()) {
-      const url = canvas.toDataURL('image/jpeg', FRAME_JPEG_QUALITY);
+      const url = canvas.toDataURL('image/jpeg');
       return isDataURL(url) ? url : null;
     }
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, 'image/jpeg', FRAME_JPEG_QUALITY),
+      canvas.toBlob(resolve, 'image/jpeg'),
     );
     return blob ? await readBlobAsDataURL(blob) : null;
   } catch {

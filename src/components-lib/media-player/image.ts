@@ -9,6 +9,7 @@ import type {
   PlaybackControl,
   UnsubscribeCallback,
 } from '../../types';
+import { isDataURL } from '../../utils/data-url';
 import { getImageFrameDataURL } from '../../utils/frame-data-url';
 import { FrameStallWatchdog } from './frame-stall-watchdog';
 
@@ -139,8 +140,14 @@ export class ImageMediaPlayerController
   public getFrameURL(dataURLOnly: true): Promise<DataURL | null>;
   public getFrameURL(dataURLOnly?: boolean): Promise<string | null>;
   public async getFrameURL(dataURLOnly?: boolean): Promise<string | null> {
-    if (!dataURLOnly && this._getSourceURL) {
-      return this._getSourceURL();
+    if (this._getSourceURL) {
+      const sourceURL = this._getSourceURL();
+
+      // A `data:` source is returned unchanged, as drawing it again would give
+      // a different URL for the same image.
+      if (!dataURLOnly || (sourceURL && isDataURL(sourceURL))) {
+        return sourceURL;
+      }
     }
     const image = this._getImageCallback();
     return image ? getImageFrameDataURL(image) : null;

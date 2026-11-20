@@ -394,6 +394,11 @@ export const setVisibilityState = (state: DocumentVisibilityState): void => {
   });
 };
 
+export const setVisibilityStateAndDispatch = (state: DocumentVisibilityState): void => {
+  setVisibilityState(state);
+  document.dispatchEvent(new Event('visibilitychange'));
+};
+
 export const callVisibilityHandler = async (visible: boolean): Promise<void> => {
   setVisibilityState(visible ? 'visible' : 'hidden');
 

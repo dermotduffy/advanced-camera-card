@@ -106,6 +106,33 @@ describe('ImageMediaPlayerController', () => {
       expect(await controller.getFrameURL(true)).toBe(url);
       expect(getImageFrameDataURL).toHaveBeenCalledWith(image);
     });
+
+    it('should return a data source URL unchanged when a data URL is mandated', async () => {
+      const url = 'data:image/jpeg;base64,source';
+      const image = mock<HTMLImageElement>();
+      const controller = new ImageMediaPlayerController(
+        createLitElement(),
+        () => image,
+        { getSourceURL: () => url },
+      );
+
+      expect(await controller.getFrameURL(true)).toBe(url);
+      expect(getImageFrameDataURL).not.toHaveBeenCalled();
+    });
+
+    it('should draw the image when a data URL is mandated and there is no source URL', async () => {
+      const url = 'data:image/jpeg;base64,drawn';
+      vi.mocked(getImageFrameDataURL).mockResolvedValue(url);
+      const image = mock<HTMLImageElement>();
+      const controller = new ImageMediaPlayerController(
+        createLitElement(),
+        () => image,
+        { getSourceURL: () => null },
+      );
+
+      expect(await controller.getFrameURL(true)).toBe(url);
+      expect(getImageFrameDataURL).toHaveBeenCalledWith(image);
+    });
   });
 
   describe('should get fullscreen element', () => {

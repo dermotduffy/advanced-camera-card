@@ -366,7 +366,14 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
           type: 'expandable',
           title: localize('config.cameras.image.editor_label'),
           icon: 'mdi:image',
-          schema: getImageFieldsSchema(),
+          schema: [
+            ...getImageFieldsSchema(),
+            {
+              name: 'preserve_frame_seconds',
+              label: localize('config.cameras.image.preserve_frame_seconds'),
+              selector: createNumberSelector(),
+            },
+          ],
         },
         {
           name: 'webrtc_card',

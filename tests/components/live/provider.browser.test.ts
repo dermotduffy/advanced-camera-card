@@ -1,9 +1,12 @@
 import type { LitElement } from 'lit';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 
 import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../src/components-lib/live/liveness/detectors/entity-availability';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
-import { aspectRatioToString } from '../../../src/utils/basic';
+import type { DataURL } from '../../../src/types';
+import { aspectRatioToString, formatDateAndTime } from '../../../src/utils/basic';
+import { isDataURL } from '../../../src/utils/data-url';
+import { sharedPreservedFrameStore } from '../../../src/utils/preserved-frame-store';
 import { deepQuery } from '../../browser/dom';
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from '../../browser/fixtures';
 import { MountedCardFactory, type MountedCard } from '../../browser/mounted-card';
@@ -12,6 +15,7 @@ import {
   CAMERA_ENTITY,
   createGenericCameraHASS,
   createStillImageCardConfig,
+  getStatusBarStrings,
 } from '../../browser/test-utils';
 
 useTestMedia();
@@ -74,6 +78,24 @@ const waitForMeasuredAspectRatio = async (
     },
     `the card being measured as ${aspectRatioToString({ ratio })}`,
   );
+};
+
+// The image the card's image player shows, if it shows one.
+const getImage = (card: MountedCard): HTMLImageElement | null => {
+  const player = deepQuery(card.card, 'advanced-camera-card-image-updating-player');
+  return (player && deepQuery<HTMLImageElement>(player, 'img')) ?? null;
+};
+
+const getImageSource = (card: MountedCard): string | null => getImage(card)?.src ?? null;
+
+// A frame large enough for the card to accept as loaded media.
+const createPreservedFrameURL = (): DataURL => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 100;
+  canvas.height = 100;
+  const url = canvas.toDataURL();
+  assert(isDataURL(url));
+  return url;
 };
 
 describe('AdvancedCameraCardLiveProvider', () => {
@@ -177,5 +199,284 @@ describe('AdvancedCameraCardLiveProvider', () => {
       expect(getReservedAspectRatio(provider)).toBe(DEFAULT_RATIO_STYLE);
       expectMeasuredAspectRatio(card.card, DEFAULT_RATIO);
     });
+  });
+
+  describe('should show the date of a preserved frame in the status bar', () => {
+    it('should show the date while the frame is the loading image of another provider', async () => {
+      const date = new Date();
+      sharedPreservedFrameStore.set(
+        { cameraID: 'loading-image' },
+        { url: createPreservedFrameURL(), date },
+      );
+
+      const card = await mount(
+        {
+          id: 'loading-image',
+          live_provider: 'go2rtc',
+          go2rtc: { url: 'http://localhost:1984', stream: 'office' },
+          proxy: { live: false },
+          image: { refresh_seconds: 0, preserve_frame_seconds: 600 },
+        },
+        { show_image_during_load: true },
+      );
+
+      await card.waitForRender(
+        () => getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+        'the status bar showing the date of the loading image',
+      );
+    });
+
+    it('should show the date while the frame is the image of the image provider', async () => {
+      const date = new Date();
+      sharedPreservedFrameStore.set(
+        { cameraID: 'image-provider' },
+        { url: createPreservedFrameURL(), date },
+      );
+
+      const card = await mount({
+        id: 'image-provider',
+        live_provider: 'image',
+        image: {
+          mode: 'url',
+          url: IMAGE_URL,
+          refresh_seconds: 0,
+          preserve_frame_seconds: 600,
+        },
+      });
+
+      await card.waitForRender(
+        () => getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+        'the status bar showing the date of the image',
+      );
+    });
+
+    it('should show no date for a loading image that is not a preserved frame', async () => {
+      const card = await mount(
+        {
+          id: 'snapshot',
+          live_provider: 'go2rtc',
+          go2rtc: { url: 'http://localhost:1984', stream: 'office' },
+          proxy: { live: false },
+          image: { mode: 'url', url: IMAGE_URL, refresh_seconds: 0 },
+        },
+        { show_image_during_load: true },
+      );
+
+      const provider = await getProvider(card);
+      await card.waitForRender(
+        () => provider.hasAttribute('sized') || null,
+        'the loading image having loaded',
+      );
+
+      expect(getStatusBarStrings(card.card)).toEqual(['office']);
+    });
+  });
+
+  it('should show the preserved frame once the card returns to the page', async () => {
+    const card = await mount({
+      id: 'returns',
+      live_provider: 'image',
+      image: {
+        mode: 'url',
+        url: IMAGE_URL,
+        refresh_seconds: 0,
+        preserve_frame_seconds: 600,
+      },
+    });
+    const provider = await getProvider(card);
+    await card.waitForRender(
+      () => provider.hasAttribute('sized') || null,
+      'the image having loaded',
+    );
+    expect(sharedPreservedFrameStore.get({ cameraID: 'returns' }, 600)).toBeNull();
+
+    card.detach();
+
+    const frame = await vi.waitFor(() => {
+      const frame = sharedPreservedFrameStore.get({ cameraID: 'returns' }, 600);
+      assert(frame);
+      return frame;
+    });
+
+    card.attach();
+
+    await card.waitForRender(
+      () => getImageSource(card) === frame.url || null,
+      'the image showing the preserved frame',
+    );
+    await card.waitForRender(
+      () =>
+        getStatusBarStrings(card.card).includes(formatDateAndTime(frame.date)) || null,
+      'the status bar showing the date of the frame',
+    );
+  });
+
+  it('should show the frame preserved as the page hides once the page is shown again', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    const card = await mount({
+      id: 'page-hidden',
+      live_provider: 'image',
+      image: {
+        mode: 'url',
+        url: IMAGE_URL,
+        refresh_seconds: 10,
+        preserve_frame_seconds: 600,
+      },
+    });
+    const provider = await getProvider(card);
+    await card.waitForRender(
+      () => provider.hasAttribute('sized') || null,
+      'the image having loaded',
+    );
+    const image = getImage(card);
+    assert(image);
+    const refreshed = new Promise((resolve) =>
+      image.addEventListener('load', resolve, { once: true }),
+    );
+
+    // At each refresh the image player dismisses the preserved frames captured
+    // before that refresh, which must not include the frame captured later as
+    // the page hides.
+    await card.advanceSeconds(10);
+    await refreshed;
+
+    // The fake clock may not move by itself between these steps, and a frame
+    // captured at the same instant as a refresh counts as dismissed -- avoid
+    // this by advancing by 1 second.
+    await card.advanceSeconds(1);
+
+    card.setPageVisible(false);
+    await card.advanceSeconds(1);
+    const frame = sharedPreservedFrameStore.get({ cameraID: 'page-hidden' }, 600);
+    assert(frame);
+
+    card.setPageVisible(true);
+
+    await card.waitForRender(
+      () => getImageSource(card) === frame.url || null,
+      'the image showing the preserved frame',
+    );
+  });
+
+  describe('should replace a preserved frame at the first refresh of the image', () => {
+    it('should replace the frame of the image provider', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const date = new Date();
+      const frameURL = createPreservedFrameURL();
+      sharedPreservedFrameStore.set(
+        { cameraID: 'image-refresh' },
+        { url: frameURL, date },
+      );
+
+      const card = await mount({
+        id: 'image-refresh',
+        live_provider: 'image',
+        image: {
+          mode: 'url',
+          url: IMAGE_URL,
+          refresh_seconds: 1,
+          preserve_frame_seconds: 600,
+        },
+      });
+      await card.waitForRender(
+        () => getImageSource(card) === frameURL || null,
+        'the image showing the preserved frame',
+      );
+
+      await card.advanceSeconds(1);
+
+      await card.waitForRender(
+        () => getImageSource(card)?.includes(SNAPSHOT_FIXTURE_FILENAME) || null,
+        'the image showing its configured URL',
+      );
+      await card.waitForRender(
+        () => !getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+        'the status bar no longer showing the date of the frame',
+      );
+    });
+
+    it('should replace the frame of a loading image', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const frameURL = createPreservedFrameURL();
+      sharedPreservedFrameStore.set(
+        { cameraID: 'loading-refresh' },
+        { url: frameURL, date: new Date() },
+      );
+
+      const card = await mount(
+        {
+          id: 'loading-refresh',
+          live_provider: 'go2rtc',
+          go2rtc: { url: 'http://localhost:1984', stream: 'office' },
+          proxy: { live: false },
+          image: {
+            mode: 'url',
+            url: IMAGE_URL,
+            refresh_seconds: 1,
+            preserve_frame_seconds: 600,
+          },
+        },
+        { show_image_during_load: true },
+      );
+      await card.waitForRender(
+        () => getImageSource(card) === frameURL || null,
+        'the loading image showing the preserved frame',
+      );
+
+      await card.advanceSeconds(1);
+
+      await card.waitForRender(
+        () => getImageSource(card)?.includes(SNAPSHOT_FIXTURE_FILENAME) || null,
+        'the loading image showing its configured URL',
+      );
+    });
+  });
+
+  it('should replace a preserved frame once it is too old', async () => {
+    // The clock still runs by itself, so the card mounts as usual.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    const date = new Date();
+    const frameURL = createPreservedFrameURL();
+    sharedPreservedFrameStore.set({ cameraID: 'too-old' }, { url: frameURL, date });
+
+    // The image never refreshes, so only the age of the frame can replace it.
+    const card = await mount({
+      id: 'too-old',
+      live_provider: 'image',
+      image: {
+        mode: 'url',
+        url: IMAGE_URL,
+        refresh_seconds: 0,
+        preserve_frame_seconds: 60,
+      },
+    });
+
+    const player = await card.waitForSelector(
+      'advanced-camera-card-image-updating-player',
+    );
+    const image = await card.waitForRender(
+      () => deepQuery<HTMLImageElement>(player, 'img'),
+      'the image being rendered',
+    );
+    await card.waitForRender(
+      () => getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+      'the status bar showing the date of the image',
+    );
+    expect(image.src).toBe(frameURL);
+
+    await card.advanceSeconds(60);
+
+    await card.waitForRender(
+      () => image.src.includes(SNAPSHOT_FIXTURE_FILENAME) || null,
+      'the image showing its configured URL',
+    );
+    await card.waitForRender(
+      () => !getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+      'the status bar no longer showing the date of the frame',
+    );
   });
 });

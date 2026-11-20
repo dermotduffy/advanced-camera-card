@@ -93,7 +93,7 @@ describe('getCanvasFrameDataURL', () => {
     const canvas = createCanvas();
 
     expect(await getCanvasFrameDataURL(canvas)).toBe(DATA_URL);
-    expect(canvas.toDataURL).toHaveBeenCalledWith('image/jpeg', 0.8);
+    expect(canvas.toDataURL).toHaveBeenCalledWith('image/jpeg');
     expect(canvas.toBlob).not.toHaveBeenCalled();
   });
 
@@ -110,7 +110,7 @@ describe('getCanvasFrameDataURL', () => {
     const canvas = createCanvas();
 
     expect(await getCanvasFrameDataURL(canvas)).toBe(DATA_URL);
-    expect(canvas.toBlob).toHaveBeenCalledWith(expect.any(Function), 'image/jpeg', 0.8);
+    expect(canvas.toBlob).toHaveBeenCalledWith(expect.any(Function), 'image/jpeg');
     expect(canvas.toDataURL).not.toHaveBeenCalled();
   });
 

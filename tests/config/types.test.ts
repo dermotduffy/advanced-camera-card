@@ -88,7 +88,6 @@ describe('config defaults', () => {
           ssl_verification: 'auto',
           enabled: false,
         },
-        preserve_frame_seconds: 0,
         refresh_seconds: 'auto',
         zoomable: true,
       },
@@ -465,6 +464,11 @@ describe('config defaults', () => {
             priority: 50,
           },
           issues: {
+            enabled: true,
+            permanent: true,
+            priority: 50,
+          },
+          preserved_frame: {
             enabled: true,
             permanent: true,
             priority: 50,
