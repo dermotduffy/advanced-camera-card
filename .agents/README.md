@@ -59,9 +59,34 @@ implementer (Codex, called over MCP from the implementer's session).
    compatibility class right?
 3. **Implement**, with tests and docs, until `yarn run lint`, `typecheck`,
    `coverage`, `format-check` and `prune` pass.
-4. **Review** under the reviewer guardrails below.
-5. **Open the PR** with a short description. File an inbox issue with the
-   review record.
+4. **Self-audit** against Tier 1 of the [rubric](review-rubric.md): every
+   comment, name and test title added.
+5. **Review** under the reviewer guardrails below.
+6. **Verify.** Prefer a permanent browser test. Whatever can only be checked on
+   a real device becomes a minimal manual plan for the maintainer.
+7. **Open the PR** with a short description. File an inbox issue with the
+   review record and any manual plan.
+
+### Relation to the existing skills
+
+The maintainer's current pipeline is plan, phased implementation,
+`/review-table`, Codex review, `/acc-manual-verify`, `/ready-commit`, then a
+manual commit. The implement loop keeps those stages and changes who performs
+them:
+
+| Today                                              | Implement loop                                              |
+| -------------------------------------------------- | ----------------------------------------------------------- |
+| Maintainer annotates the plan                      | Design challenger gates the plan                            |
+| Stop after each phase for review                   | Run the gate and continue                                   |
+| `/review-table`, line-by-line maintainer review    | Tier 1 self-audit, then reviewer; maintainer samples        |
+| Codex review, maintainer builds the fix pile       | Implementer adjudicates per the rubric and logs rejections  |
+| `/acc-manual-verify` for most changes              | Browser tests first; manual plan only for device-only cases |
+| `/ready-commit`, maintainer commits and opens a PR | Agent commits to its own branch and opens the PR            |
+| `/pr-review` and `/my-voice` on contributor PRs    | Unchanged; direction and replies stay with the maintainer   |
+
+Standing rules that currently live only in the maintainer's local memory files
+should move into `INSTRUCTIONS.md` or these documents so every agent sees
+them.
 
 ### Reviewer guardrails
 
@@ -75,6 +100,11 @@ implementer (Codex, called over MCP from the implementer's session).
   landed; it may not raise new non-blocking findings.
 - **Deadlock:** an unresolved blocking disagreement goes to the inbox as a
   one-line question.
+- **Verification:** the implementer checks each finding against the code or a
+  real run before acting on it. Findings are not taken at face value.
+- **Quota:** Codex usage is limited. It is spent first on the design gate and
+  on the final review. When it runs out, a fresh-context agent on the
+  implementer's model takes the reviewer role and the review record says so.
 
 ### Sweep
 
@@ -108,12 +138,18 @@ Options: <only if a real choice exists>
 PR: <link>            Session: <link>
 Decisions made alone: <one line each, with reason>
 Reviewer findings: <n blocking fixed, n rejected (reason each), n follow-up>
-Needs you: <nothing | the question>
+Verified by: <browser tests added | manual plan below>
+Needs you: <nothing | the question | the manual plan>
 ```
+
+Questions follow "Asking well" in [decision-rights.md](decision-rights.md):
+options in a table first, then one recommendation.
 
 ## Trial
 
 Stage 1 is the implement loop on two or three well-specified bugs. Measured by
 maintainer minutes per merged PR, issues closed per week, and regressions after
-merge. Later stages (CalVer, sweep, triage and feature roles) follow only if
+merge. During the trial the maintainer still reads each PR, and every comment
+he would have made becomes a rubric line, so the trial also measures how many
+such comments remain. Later stages (CalVer, sweep, triage and feature roles) follow only if
 stage 1 works.
