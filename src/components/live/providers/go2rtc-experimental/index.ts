@@ -146,6 +146,7 @@ export class AdvancedCameraCardGo2RTCExperimental
     getCardWideConfig: () => this.cardWideConfig ?? null,
     getICEServers: () => getICEServers(this.hass),
     mediaLoadedCallback: (info) => this._mediaLoadedInfoSourceController.set(info),
+    mediaUnloadedCallback: () => this._mediaLoadedInfoSourceController.clear(),
 
     surfaceCommittedCallback: (surface) => {
       this._activeSurface = surface;
