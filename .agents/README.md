@@ -16,7 +16,7 @@ structured.
 | [review-rubric.md](review-rubric.md)       | The code standards a change is held to.                         |
 | [product-stance.md](product-stance.md)     | What the card is for, non-goals, accept and decline heuristics. |
 | [releases.md](releases.md)                 | Versioning, channels, compatibility and verification classes.   |
-| [test-environment.md](test-environment.md) | What the maintainer can test on in person.                      |
+| [test-environment.md](test-environment.md) | Hardware available to the maintainer for testing.               |
 | [triage.md](triage.md)                     | Priority, investigation, and the replies agents may post alone. |
 | [user-replies.md](user-replies.md)         | How any reply to a user is written.                             |
 

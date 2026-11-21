@@ -142,14 +142,20 @@ judge.
   and ordered, with configs that validate against the schema.
 - The maintainer runs it and merges the PR. The merge is the release.
 - **Who performs a check.** First choice is the reporter: the agent asks them
-  to try the beta, and their confirmation satisfies the check. If there is no
-  reply, the maintainer performs it, provided
-  [test-environment.md](test-environment.md) lists the hardware it needs. If it
-  does not, the check is marked unverified in the checklist and does not block
-  the release.
-- **Time budget.** The whole release test takes the maintainer no more than
-  ten minutes. Checks beyond that are ranked by risk; the rest are marked
-  unverified and ship on the evidence of the beta.
+  to try the beta, and their confirmation satisfies the check. Otherwise the
+  maintainer performs it, provided [test-environment.md](test-environment.md)
+  lists the hardware it needs.
+- **Nothing ships unverified by default.** A check that nobody has performed
+  is listed at the top of the release PR under "Not verified", with the reason.
+  Whether to release with it outstanding is the maintainer's judgment, made by
+  merging or not merging. An agent never waives a check.
+- **Plan for this before merging to `dev`.** If a change's check needs hardware
+  the maintainer does not have, the agent lines up the reporter first, or says
+  so at plan time. A change is not classed `AUTOMATED_FOR_PRE_RELEASE` with a
+  check that has no one to perform it.
+- **Time budget.** The release test takes the maintainer no more than ten
+  minutes. If the checks would exceed that, the agent ranks them by risk and
+  the remainder appear under "Not verified".
 - **Expensive setups are avoided.** Casting and iPhone emulation cost far more
   than their minutes suggest. A check needs one of them only when nothing
   cheaper would show the same thing, and says why.
