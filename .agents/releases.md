@@ -67,11 +67,31 @@ user who never set the option would see different behavior.
 **Breaking** requires maintainer sign-off at plan time and a "what to do"
 paragraph for the release notes. It is expected to be very rare.
 
-Each release's notes open with one line:
+### No batching
 
-- `Config impact: none.`
-- `Config impact: open the card editor and click Automatic Upgrade (<options>).`
-- `Config impact: manual changes required. <what to do>`
+Config upgrades merge as soon as they are ready, in order, and go through the
+beta like any other change. They are never held back to group them: holding
+PRs puts work out of order, hides problems between PRs until release, and
+discourages doing the right thing by the architecture. The weekly stable
+release is the only grouping. A stable user may therefore be asked to upgrade
+as often as once a week.
+
+### Telling users
+
+Every release's notes, beta and stable, open with exactly one of these lines.
+It is never omitted, including when there is nothing to do.
+
+- `Config impact: none. No changes to your configuration are needed.`
+- `Config impact: automatic upgrade required. Open the card editor, click
+Automatic Upgrade, and save. Until you do, the card shows an error.
+Affected options: <options>.`
+- `Config impact: manual changes required. <what to change, with before and
+after>`
+
+The line links to the user documentation that explains it. That page, part of
+the published docs, covers: the stable and beta channels and how to opt in to
+betas; what each of the three lines means and what to do; and that an
+automatic upgrade always needs the user to open the editor and save.
 
 ## Verification classes
 
@@ -145,6 +165,8 @@ One-off. Remove this section when done.
    labels with the `Config impact` line first.
 5. Rewrite the release sections of `docs/developing.md` and the "too many
    releases" FAQ entry: stable users now get about one release a week; the
-   per-merge cadence continues on the beta channel.
+   per-merge cadence continues on the beta channel. Add the user page on
+   releases and config impact described under "Telling users", and link the
+   `Config impact` line to it.
 6. This change is one-way: after `2026.x`, a return to `9.x` would sort as a
    downgrade.
