@@ -110,7 +110,8 @@ See [user-replies.md](user-replies.md).
 
 Type: `bug`, `feature`, `documentation`, `performance`, `refactoring`,
 `testing`, `chore`, `ci`. Priority: `P0` to `P3`. State: `waiting`,
-`regression`, `fixed-pending-release`, `help wanted`, `question`.
+`regression`, `fixed-pending-release`, `help wanted`, `question`,
+`needs-maintainer` (waiting on the maintainer, as `waiting` is on the reporter).
 Compatibility and verification: see [releases.md](releases.md).
 
 Known gaps for triage to correct:

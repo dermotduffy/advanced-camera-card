@@ -40,15 +40,15 @@ Everything not in this list happens without the maintainer.
 
 ## Where things happen
 
-| What                                                            | Where                                         |
-| --------------------------------------------------------------- | --------------------------------------------- |
-| The work queue, slots in use, what is waiting on the maintainer | Private project board, written by agents      |
-| Questions to the maintainer, and the answers                    | The agent's own session                       |
-| Agent-to-agent discussion                                       | Inside the agent session                      |
-| What a change does and the evidence it works                    | The PR description, kept short                |
-| Release state and the release-test checklist                    | The standing `dev`→`main` PR                  |
-| Standing rules                                                  | This directory                                |
-| Public GitHub                                                   | Labels, PRs, maintainer-approved replies only |
+| What                                                            | Where                                                            |
+| --------------------------------------------------------------- | ---------------------------------------------------------------- |
+| The work queue, slots in use, what is waiting on the maintainer | Labels and PRs; the private project board shows them in one view |
+| Questions to the maintainer, and the answers                    | The agent's own session                                          |
+| Agent-to-agent discussion                                       | Inside the agent session                                         |
+| What a change does and the evidence it works                    | The PR description, kept short                                   |
+| Release state and the release-test checklist                    | The standing `dev`→`main` PR                                     |
+| Standing rules                                                  | This directory                                                   |
+| Public GitHub                                                   | Labels, PRs, maintainer-approved replies only                    |
 
 The maintainer never debates an agent in public. The only public exchange
 between agents is the cross-model review on a PR.
@@ -66,23 +66,30 @@ how to reach a human.
 
 Agent sessions run in the cloud: each gets its own clone, starts without
 maintainer setup, and receives its own PR's CI results. A session that needs
-the maintainer waits; its board card moves to "Waiting on you" with the
-question summarized and a link to the session.
+the maintainer waits, and puts the `needs-maintainer` label on its issue or
+PR.
+
+The private project board is a view, not a store. It is configured to reflect
+labels and PR activity: priority from `P0` to `P3`, in progress from an open
+draft PR, ready to merge from a ready PR, and waiting on the maintainer from
+`needs-maintainer`. Agents never write to the board; they set labels and open
+PRs, and the board follows. `needs-maintainer` is distinct from `waiting`,
+which means waiting on the reporter.
 
 ## Roles
 
 Each role has a trigger and an output. None is a chat partner.
 
-| Role              | Trigger             | Output                                                 |
-| ----------------- | ------------------- | ------------------------------------------------------ |
-| Orchestrator      | Schedule            | Fills free slots from the queue; keeps the board true. |
-| Implementer       | A slot and an issue | Plan, then PR.                                         |
-| Design challenger | Implementer's plan  | Approve or redirect, before code is written.           |
-| Reviewer          | Before the PR opens | Classified findings against the rubric.                |
-| Architecture      | Weekly              | Refactor PRs, new lint rules or checks, a report.      |
-| Testing           | Weekly              | Test PRs, harness improvements, a report.              |
-| Triage            | Daily               | Labels and priorities; a digest of recommendations.    |
-| Feature           | Fortnightly         | Ranked proposals.                                      |
+| Role              | Trigger             | Output                                              |
+| ----------------- | ------------------- | --------------------------------------------------- |
+| Orchestrator      | Schedule            | Fills free slots from the queue.                    |
+| Implementer       | A slot and an issue | Plan, then PR.                                      |
+| Design challenger | Implementer's plan  | Approve or redirect, before code is written.        |
+| Reviewer          | Before the PR opens | Classified findings against the rubric.             |
+| Architecture      | Weekly              | Refactor PRs, new lint rules or checks, a report.   |
+| Testing           | Weekly              | Test PRs, harness improvements, a report.           |
+| Triage            | Daily               | Labels and priorities; a digest of recommendations. |
+| Feature           | Fortnightly         | Ranked proposals.                                   |
 
 The design challenger and reviewer are fresh-context agents, separate from the
 implementer. They are given the plan or the diff and the rubric, never the
@@ -97,7 +104,7 @@ PR itself (see "Cross-model review" below).
   is skipped, not waited for.
 - No more than three features or fixes in flight, plus one slot reserved for
   architecture or testing work. In flight means from plan to merge.
-- The maintainer overrides priority with labels or on the board, and changes
+- The maintainer overrides priority with labels, and changes
   the slot counts as confidence grows.
 
 ### Implement loop
@@ -189,15 +196,16 @@ change code.
    hand.
 3. Releases: CalVer, the beta channel, the release PR (see
    [releases.md](releases.md)).
-4. Orchestrator and board automation.
+4. Orchestrator, and the board configured to reflect labels.
 5. Architecture and testing roles, and the first lint ratchets.
 6. Triage and feature roles.
 
 ## Not yet verified
 
-- That release-it's CalVer plugin can publish betas from `dev`.
-- That agents can keep the private project board updated with the available
-  token types.
+- That release-it can flag every release from `dev` as a pre-release, and the
+  other release-tooling points listed in [releases.md](releases.md).
+- That the existing project board can be configured to follow labels and PR
+  activity as described above.
 - That the subscription's usage limits allow four concurrent sessions plus the
   scheduled roles.
 - How much of the release test can be automated against Home Assistant in a
