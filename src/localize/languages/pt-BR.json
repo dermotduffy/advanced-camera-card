@@ -289,14 +289,6 @@
           }
         },
         "thumbnails": {
-          "style": "Estilo",
-          "styles": {
-            "auto": "Automático",
-            "hover": "Miniatura com detalhes ao passar o mouse",
-            "plain": "Miniatura sem detalhes",
-            "overlay": "Miniatura com detalhes sobrepostos",
-            "panel": "Miniatura com painel de detalhes"
-          },
           "editor_label": "Miniaturas",
           "mode": "Modo de miniaturas",
           "modes": {
@@ -311,7 +303,15 @@
           "show_info_control": "Mostrar controle de informações",
           "show_review_control": "Mostrar controle de revisão",
           "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",
-          "size": "Tamanho das miniaturas em pixels"
+          "size": "Tamanho das miniaturas em pixels",
+          "style": "Estilo",
+          "styles": {
+            "auto": "Automático",
+            "hover": "Miniatura com detalhes ao passar o mouse",
+            "overlay": "Miniatura com detalhes sobrepostos",
+            "panel": "Miniatura com painel de detalhes",
+            "plain": "Miniatura sem detalhes"
+          }
         },
         "timeline": {
           "editor_label": "Minilinha do tempo",
@@ -780,9 +780,8 @@
   },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",
-    "back": "Voltar",
-    "edit": "Editar",
     "add_new_folder": "Adicionar pasta",
+    "back": "Voltar",
     "camera": "Câmera",
     "cameras": "Câmeras",
     "cameras_secondary": "Quais câmeras renderizar neste cartão",
@@ -790,6 +789,7 @@
     "dimensions": "Dimensões",
     "dimensions_secondary": "Opções de dimensões e formato do cartão",
     "docs": "Documentação",
+    "edit": "Editar",
     "folders": "Pastas",
     "folders_secondary": "Quais pastas exibir neste cartão",
     "image": "Imagem",
