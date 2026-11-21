@@ -1,18 +1,20 @@
 # Review rubric (DRAFT)
 
 > Inferred from 29 merged contributor PRs (what was submitted versus what was
-> merged) and 42 maintainer-steered agent sessions. A first draft for the
-> maintainer to correct. Rules marked _(weak)_ rest on one or two examples.
+> merged) and 42 maintainer-steered agent sessions, then corrected by the
+> maintainer. Rules marked _(weak)_ rest on one or two examples.
 
-`INSTRUCTIONS.md` holds the short always-loaded rules. This file adds what
-those rules do not say, and sorts everything into three tiers:
+`INSTRUCTIONS.md` holds the short always-loaded rules. This file adds the rest,
+in three tiers:
 
 - **Self-audit:** the implementer checks these before anyone else sees the
-  change. They are where most review time has gone historically, and they are
-  cheap to get right first time.
+  change. They are where most review time has gone historically.
 - **Blocking:** the reviewer may block on these, with a concrete failure
   scenario.
 - **Follow-up:** worth noting, never worth blocking.
+
+Wherever a rule here can be enforced by a lint rule or a test, it should be,
+and then removed from this file.
 
 ## Tier 1: self-audit before presenting
 
@@ -65,10 +67,7 @@ Go through every line you added.
 ### Simplicity
 
 - Every line and concept earns its keep. When polish costs complexity, the
-  default is to leave it out. State the user-visible cost and the line count
-  if you think it is worth keeping.
-- Search for an existing primitive (cache, concurrency helper, constant,
-  utility) before writing one.
+  default is to leave it out.
 - Inline single-use helpers and variables.
 - No unexplained numbers. Derive them, or say why that value.
 - Plain control flow. Remove branches and guards that cannot occur, unneeded
@@ -79,45 +78,66 @@ Go through every line you added.
 
 - US English. No em-dashes.
 - Optional interface properties and parameters use `?`, not `| null` or
-  `| undefined`; optional parameters last. `null` is for returned absent
-  values and stored state.
-- Fix the type instead of casting. `as unknown as T` is a last resort.
+  `| undefined`; optional parameters last. `null` is for returned and stored
+  absent values.
+- No type assertions with `as`. Fix the type. `as const` is the exception.
 - Several optional positional parameters become an options object. _(weak)_
 - Run the formatter.
 
 ## Tier 2: blocking
 
-### Correctness and design
+### Reuse before building
 
-- **Fix the cause at the component that owns the state**, not the symptom
-  where it shows. No `!important` overrides or compensating events around
-  another component's behavior.
-- **When a fix exposes a class of bug, fix the sibling cases in the same
-  change.** (Unrelated bugs are different: file an issue.)
-- **Input and lifecycle edge cases are handled**: cancelled gestures, multiple
-  pointers, re-entry, teardown order, state leaking across reused elements.
-- **One owner per kind of state.** Before adding a manager or controller, show
-  why an existing one cannot own it.
+- **Search for an existing primitive in the repository** (cache, concurrency
+  helper, constant, utility) before writing one.
+- **Search for an established external tool** before building any tool, script
+  or mechanism. Hand-rolling needs a strong justification and a readiness to
+  defend the choice.
+
+### Structure
+
+Agents decide structure without the maintainer, by these rules.
+
+- **New code and state live at the lowest, most isolated level that works.**
+  Scope to the instance or the single module that needs it. Widen only when a
+  second user appears, and say why.
+- **One owner per kind of state.**
+- **No new manager or controller unless no existing owner fits**, and the plan
+  says why.
 - **Logic lives in the layer that already dispatches that concern.** `card.ts`
   and components stay thin. A manager does not perform another manager's side
   effects.
 - **Knowledge stays local.** Generic interfaces and events do not carry
   feature-specific fields or causes.
+- **Sibling APIs have the same shape.** Subscribe implies unsubscribe.
 - **No assumptions about other components' behavior** that the types do not
   guarantee. Prefer making the type require it.
-- **No module-scope mutable state.** Config and shared view items are replaced,
-  not mutated.
+- **Config and shared view items are replaced, not mutated.**
+- **Where two designs remain after discussion, the one with fewer new concepts
+  wins.**
+
+### Correctness
+
+- **Fix the cause at the component that owns the state**, not the symptom
+  where it shows. No `!important` overrides or compensating events around
+  another component's behavior.
+- **When a fix exposes a class of bug, fix the sibling cases in the same
+  change.** Unrelated bugs are different: file an issue.
+- **Input and lifecycle edge cases are handled**: cancelled gestures, multiple
+  pointers, re-entry, teardown order, state leaking across reused elements.
 - **The bug is shown to be real** (reproduced or measured) before complexity is
   added to fix it.
 - **Old runtimes keep working**, Chromecast in particular. State what they see.
 
 ### Config and user-facing surface
 
-- **A new option must be justified.** It fits an existing schema shape and
-  applies everywhere that shape is used, not to one special case. Otherwise it
-  is not added.
-- **Options are named for what the user is doing**, not for the underlying API,
-  and reuse the card's existing vocabulary.
+Every config change has already been approved by the maintainer at plan time.
+The reviewer checks that what was built matches what was approved, and:
+
+- **The option fits an existing schema shape** and applies everywhere that
+  shape is used, not to one special case.
+- **Options are named for what the user is doing**, not for the underlying
+  API, and reuse the card's existing vocabulary.
 - **Orthogonal behavior is its own key**, not a new enum mode.
 - **A feature costs nothing unless configured.**
 - **Each new option ships complete**: schema default, `en.json` strings, a row
@@ -126,8 +146,8 @@ Go through every line you added.
 - **Docs describe current behavior everywhere it is mentioned.** Stale caveats
   on usage and troubleshooting pages are removed in the same change. Worked
   examples go in `docs/examples.md` and are linked from the option's row.
-- **The compatibility class is correct** (see
-  [compatibility.md](compatibility.md)).
+- **The compatibility and verification classes are correct** (see
+  [releases.md](releases.md)).
 
 ### Tests
 
@@ -153,17 +173,3 @@ Go through every line you added.
 
 A reviewer finding in these categories is recorded and not acted on in the
 change under review.
-
-## Proposed edits to `INSTRUCTIONS.md`
-
-These lines conflict with observed practice and should be reconciled by the
-maintainer:
-
-- `yarn run build` is listed as a workflow command, but agents are told not to
-  run it in the maintainer's working tree.
-- "Return `null` (not `undefined`) for absent values" needs scoping to return
-  values, with `?` for optional properties and parameters.
-- "New cross-cutting concerns → new manager" reads as encouragement; practice
-  is to resist new managers unless no existing owner fits.
-- "`as unknown as T`" is listed as acceptable; practice is to fix the type.
-- Browser tests are not mentioned.

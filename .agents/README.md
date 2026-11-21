@@ -4,152 +4,166 @@
 > notice is removed.
 
 How AI agents work on this project with minimal maintainer involvement. The
-maintainer sets direction and owns the decisions that are hard to undo; agents
-own everything else, including implementation approach.
+maintainer owns the user-facing surface and the final merge. Agents own
+everything else, including what to work on next and how the code is
+structured.
 
 ## Documents
 
-| File                                       | Purpose                                                      |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| [decision-rights.md](decision-rights.md)   | What an agent decides alone, decides and logs, or escalates. |
-| [review-rubric.md](review-rubric.md)       | The code standards a change is reviewed against.             |
-| [product-stance.md](product-stance.md)     | What the card is for, non-goals, accept/decline heuristics.  |
-| [compatibility.md](compatibility.md)       | The three compatibility classes and how they are enforced.   |
-| [calver-migration.md](calver-migration.md) | One-off proposal to move from SemVer to CalVer.              |
+| File                                     | Purpose                                                         |
+| ---------------------------------------- | --------------------------------------------------------------- |
+| [decision-rights.md](decision-rights.md) | What an agent decides alone and what goes to the maintainer.    |
+| [review-rubric.md](review-rubric.md)     | The code standards a change is held to.                         |
+| [product-stance.md](product-stance.md)   | What the card is for, non-goals, accept and decline heuristics. |
+| [releases.md](releases.md)               | Versioning, channels, compatibility and verification classes.   |
 
-`INSTRUCTIONS.md` (linked as `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`) remains the
-short always-loaded rule list. These documents are loaded by the role that
-needs them.
+`INSTRUCTIONS.md` (linked as `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`) is the
+short always-loaded rule list and points here.
+
+## Where the maintainer is involved
+
+Everything not in this list happens without the maintainer.
+
+| Touchpoint                                  | When                                |
+| ------------------------------------------- | ----------------------------------- |
+| Approve a config change                     | At plan time, before code           |
+| Sign off a `breaking` change                | At plan time                        |
+| Decide a contributor PR's direction         | When one arrives                    |
+| Approve declining or closing a request      | From the triage digest              |
+| Approve a public reply                      | From the triage digest              |
+| Test a `MANUAL` change in person            | Before it merges to `dev`           |
+| Merge a PR to `dev`                         | When its checks and record are done |
+| Run the release test and merge `dev`→`main` | Weekly                              |
 
 ## Where things happen
 
-| Activity                  | Place                                                    |
-| ------------------------- | -------------------------------------------------------- |
-| Maintainer decisions      | Private inbox repository (issues).                       |
-| Agent-to-agent discussion | Inside the agent session; summarized in the inbox issue. |
-| Watching / stepping in    | VS Code Agents window; one git worktree per issue.       |
-| Discussion with an agent  | The agent session itself (desktop or phone).             |
-| Public GitHub             | Labels, finished PRs, maintainer-approved user replies.  |
+| What                                                            | Where                                         |
+| --------------------------------------------------------------- | --------------------------------------------- |
+| The work queue, slots in use, what is waiting on the maintainer | Private project board, written by agents      |
+| Questions to the maintainer, and the answers                    | The agent's own session                       |
+| Agent-to-agent discussion                                       | Inside the agent session                      |
+| What a change does and the evidence it works                    | The PR description, kept short                |
+| Release state and the release-test checklist                    | The standing `dev`→`main` PR                  |
+| Standing rules                                                  | This directory                                |
+| Public GitHub                                                   | Labels, PRs, maintainer-approved replies only |
 
 Agents never debate each other, or the maintainer, in public issues or PRs.
+
+Agent sessions run in the cloud: each gets its own clone, starts without
+maintainer setup, and receives its own PR's CI results. A session that needs
+the maintainer waits; its board card moves to "Waiting on you" with the
+question summarized and a link to the session.
 
 ## Roles
 
 Each role has a trigger and an output. None is a chat partner.
 
-| Role              | Trigger             | Output                                           |
-| ----------------- | ------------------- | ------------------------------------------------ |
-| Implementer       | Approved issue      | Plan, then PR, then inbox issue with the record. |
-| Design challenger | Implementer's plan  | Approve or redirect, before code is written.     |
-| Reviewer          | Before the PR opens | Classified findings against the rubric.          |
-| Sweep             | Weekly              | Refactor PRs, new mechanical checks, a report.   |
-| Triage            | Daily               | Labels, one inbox digest of recommendations.     |
-| Feature           | Fortnightly         | Ranked proposals in the inbox.                   |
+| Role              | Trigger             | Output                                                 |
+| ----------------- | ------------------- | ------------------------------------------------------ |
+| Orchestrator      | Schedule            | Fills free slots from the queue; keeps the board true. |
+| Implementer       | A slot and an issue | Plan, then PR.                                         |
+| Design challenger | Implementer's plan  | Approve or redirect, before code is written.           |
+| Reviewer          | Before the PR opens | Classified findings against the rubric.                |
+| Architecture      | Weekly              | Refactor PRs, new lint rules or checks, a report.      |
+| Testing           | Weekly              | Test PRs, harness improvements, a report.              |
+| Triage            | Daily               | Labels and priorities; a digest of recommendations.    |
+| Feature           | Fortnightly         | Ranked proposals.                                      |
 
-The reviewer and design challenger run on a different model from the
-implementer (Codex, called over MCP from the implementer's session).
+The design challenger and reviewer are fresh-context agents. They are given
+the plan or the diff and the rubric, never the implementer's reasoning. The
+maintainer may additionally run a second model over any PR as an audit.
+
+### Queue and slots
+
+- Agents choose their own work: regressions first, then bugs by priority label
+  and age, then features by votes weighed against the
+  [product stance](product-stance.md). Anything waiting on a maintainer answer
+  is skipped, not waited for.
+- No more than three features or fixes in flight, plus one slot reserved for
+  architecture or testing work. In flight means from plan to merge.
+- The maintainer overrides priority with labels or on the board, and changes
+  the slot counts as confidence grows.
 
 ### Implement loop
 
-1. **Plan.** Modules touched, existing helpers reused, why existing code is not
-   being extended instead, compatibility class, tests to add.
-2. **Design gate.** The challenger reads the plan with the whole repository
-   open, not a diff. It asks: is this the n-th instance of an existing pattern?
-   Is the logic in the right layer? Is there a simpler change? Is the
-   compatibility class right?
-3. **Implement**, with tests and docs, until `yarn run lint`, `typecheck`,
-   `coverage`, `format-check` and `prune` pass.
-4. **Self-audit** against Tier 1 of the [rubric](review-rubric.md): every
+1. **Plan.** Modules touched; existing code and tools reused; why existing
+   code is not being extended instead; any config change; compatibility and
+   verification class; tests to add. Plans are short and discarded after merge.
+2. **Prior-art search.** Before building any tool, script or mechanism, look
+   for an established one. Hand-rolling needs a strong justification and a
+   readiness to defend the choice.
+3. **Design gate.** The challenger reads the plan with the whole repository
+   open. Is this the n-th instance of an existing pattern? Is the code at the
+   lowest level that works? Is there a simpler change? Are the classes right?
+4. **Config approval**, if the plan changes config. The maintainer sees the
+   proposal before any code exists (see
+   [decision-rights.md](decision-rights.md)).
+5. **Implement**, with tests and docs, until lint, typecheck, coverage,
+   format-check and prune pass.
+6. **Self-audit** against Tier 1 of the [rubric](review-rubric.md): every
    comment, name and test title added.
-5. **Review** under the reviewer guardrails below.
-6. **Verify.** Prefer a permanent browser test. Whatever can only be checked on
-   a real device becomes a minimal manual plan for the maintainer.
-7. **Open the PR** with a short description. File an inbox issue with the
-   review record and any manual plan.
-
-### Relation to the existing skills
-
-The maintainer's current pipeline is plan, phased implementation,
-`/review-table`, Codex review, `/acc-manual-verify`, `/ready-commit`, then a
-manual commit. The implement loop keeps those stages and changes who performs
-them:
-
-| Today                                              | Implement loop                                              |
-| -------------------------------------------------- | ----------------------------------------------------------- |
-| Maintainer annotates the plan                      | Design challenger gates the plan                            |
-| Stop after each phase for review                   | Run the gate and continue                                   |
-| `/review-table`, line-by-line maintainer review    | Tier 1 self-audit, then reviewer; maintainer samples        |
-| Codex review, maintainer builds the fix pile       | Implementer adjudicates per the rubric and logs rejections  |
-| `/acc-manual-verify` for most changes              | Browser tests first; manual plan only for device-only cases |
-| `/ready-commit`, maintainer commits and opens a PR | Agent commits to its own branch and opens the PR            |
-| `/pr-review` and `/my-voice` on contributor PRs    | Unchanged; direction and replies stay with the maintainer   |
-
-Standing rules that currently live only in the maintainer's local memory files
-should move into `INSTRUCTIONS.md` or these documents so every agent sees
-them.
+7. **Review** under the guardrails below.
+8. **Open the PR** against `dev`, with labels, a short description and the
+   evidence. Subscribe to its CI and fix failures on the same branch.
 
 ### Reviewer guardrails
 
-- **Scope:** the diff only. Pre-existing code is the sweep's job.
+- **Scope:** the diff only. Pre-existing code belongs to the weekly roles.
 - **Classification:** every finding is `blocking` or `follow-up` per the
-  rubric. `blocking` requires a concrete failure scenario (inputs or state,
-  then the wrong outcome). No scenario means `follow-up`.
-- **Adjudication:** the implementer may reject a finding with a stated reason.
-  The reviewer advises; it does not gate.
-- **Rounds:** two at most. The second round only verifies that blocking fixes
-  landed; it may not raise new non-blocking findings.
-- **Deadlock:** an unresolved blocking disagreement goes to the inbox as a
-  one-line question.
+  rubric. `blocking` requires a concrete failure scenario. No scenario means
+  `follow-up`.
 - **Verification:** the implementer checks each finding against the code or a
-  real run before acting on it. Findings are not taken at face value.
-- **Quota:** Codex usage is limited. It is spent first on the design gate and
-  on the final review. When it runs out, a fresh-context agent on the
-  implementer's model takes the reviewer role and the review record says so.
+  real run before acting on it.
+- **Adjudication:** the implementer may reject a finding with a stated reason.
+- **Rounds:** two at most. The second only verifies that blocking fixes landed.
+- **Deadlock:** where implementer and reviewer still disagree, the option with
+  fewer new concepts wins, and the disagreement is logged.
 
-### Sweep
+### Weekly roles
 
-Reads the whole codebase plus the week's merged diffs. Looks for duplicated
-logic, drifting patterns, layering violations (`components/` holding logic
-that belongs in `components-lib/`), weak or redundant tests. Each finding
-becomes, in order of preference:
+Both take the week's merged PRs as input and share the reserved slot.
 
-1. a mechanical check (lint rule, duplicate detector, boundary check, test);
-2. a refactor PR through the implement loop;
-3. a new rubric line.
+- **Architecture** looks for repeated patterns, code or state at too high a
+  level, drifting structure, and hand-rolled things an established tool covers.
+- **Testing** looks for weak or redundant tests, release-test checks that could
+  become browser tests, and gaps exposed by the week's bugs.
 
-## Inbox issue formats
+Each finding becomes, in order of preference: a mechanical check (lint rule,
+duplicate detector, boundary check); a PR through the implement loop; a new
+rubric line.
 
-One issue per decision. Fixed, short. The maintainer answers with a label
-(`approved`, `declined`) or a one-line redirect. Closed means done.
+## Maintainer feedback
 
-**Proposal / triage recommendation**
+Given privately in the PR's session, as discussion or as line-anchored remarks.
+Never as public PR comments. The agent applies it, and classifies it as a
+one-off or a rule. A rule is added to the rubric or decision rights in the same
+change. A question from the maintainer is a discussion, not an instruction to
+change code.
 
-```
-What: <one sentence>
-Why: <demand or defect evidence, with issue links>
-Recommendation: <fix | decline | needs-info | propose config shape>
-Compatibility: <compatible | config-upgrade | breaking>
-Options: <only if a real choice exists>
-```
+## How much code the maintainer reads
 
-**Review record (one per PR)**
+- **During the trial:** everything. Each remark is counted by category. The
+  trial ends when remarks per PR are few and none are blocking.
+- **After it:** the PR description on every PR; the config and docs diff where
+  present; full code on one sampled PR a week.
 
-```
-PR: <link>            Session: <link>
-Decisions made alone: <one line each, with reason>
-Reviewer findings: <n blocking fixed, n rejected (reason each), n follow-up>
-Verified by: <browser tests added | manual plan below>
-Needs you: <nothing | the question | the manual plan>
-```
+## Build order
 
-Questions follow "Asking well" in [decision-rights.md](decision-rights.md):
-options in a table first, then one recommendation.
+1. These documents and `INSTRUCTIONS.md`.
+2. The implement loop, trialed on two or three well-specified bugs started by
+   hand.
+3. Releases: CalVer, the beta channel, the release PR (see
+   [releases.md](releases.md)).
+4. Orchestrator and board automation.
+5. Architecture and testing roles, and the first lint ratchets.
+6. Triage and feature roles.
 
-## Trial
+## Not yet verified
 
-Stage 1 is the implement loop on two or three well-specified bugs. Measured by
-maintainer minutes per merged PR, issues closed per week, and regressions after
-merge. During the trial the maintainer still reads each PR, and every comment
-he would have made becomes a rubric line, so the trial also measures how many
-such comments remain. Later stages (CalVer, sweep, triage and feature roles) follow only if
-stage 1 works.
+- That release-it's CalVer plugin can publish betas from `dev`.
+- That agents can keep the private project board updated with the available
+  token types.
+- That the subscription's usage limits allow four concurrent sessions plus the
+  scheduled roles.
+- How much of the release test can be automated against Home Assistant in a
+  container.
