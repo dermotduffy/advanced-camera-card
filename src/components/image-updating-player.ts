@@ -148,20 +148,23 @@ export class AdvancedCameraCardImageUpdatingPlayer
     () => this._getImageSource(),
     () => dispatchMediaPlayEvent(this),
     () => dispatchMediaPauseEvent(this),
-    // Clear image load errors and preserved frames on each timer tick so the
-    // next render retries the <img> -- but only for modes where the underlying
-    // URL genuinely changes between ticks (camera/entity snapshots). For mode:
-    // url, the same static URL will fail the same way every time, so clearing
-    // the error just causes a visible flicker (notification → blank <img> →
+    // Clear image load errors on each timer tick so the next render retries
+    // the <img> -- but only for modes where the underlying URL genuinely
+    // changes between ticks (camera/entity snapshots). For mode: url, the
+    // same static URL will fail the same way every time, so clearing the
+    // error just causes a visible flicker (notification → blank <img> →
     // notification) every refresh_seconds. URL-mode retries are driven by
     // mediaEpoch (user-initiated or auto-retry) instead.
     () => {
-      this._preservedFrameDisplayController.dismiss();
-
       const mode = resolveImageMode({
         imageConfig: this.imageConfig,
         cameraConfig: this.cameraConfig,
       });
+
+      // The default embedded image is never newer than a preserved frame.
+      if (mode !== 'default') {
+        this._preservedFrameDisplayController.dismiss();
+      }
       if (mode !== 'url') {
         this._imageLoadError = false;
       }

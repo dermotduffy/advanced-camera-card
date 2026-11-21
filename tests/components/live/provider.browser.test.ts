@@ -435,6 +435,80 @@ describe('AdvancedCameraCardLiveProvider', () => {
     });
   });
 
+  it('should keep a preserved frame through refreshes of the default image', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    const frameURL = createPreservedFrameURL();
+    sharedPreservedFrameStore.set(
+      { cameraID: 'default-refresh' },
+      { url: frameURL, date: new Date() },
+    );
+
+    // The default image refreshes every second unless configured otherwise.
+    const card = await mount(
+      {
+        id: 'default-refresh',
+        live_provider: 'go2rtc',
+        go2rtc: { url: 'http://localhost:1984', stream: 'office' },
+        proxy: { live: false },
+        image: { mode: 'default', preserve_frame_seconds: 600 },
+      },
+      { show_image_during_load: true },
+    );
+    await card.waitForRender(
+      () => getImageSource(card) === frameURL || null,
+      'the loading image showing the preserved frame',
+    );
+    const player = await card.waitForSelector<LitElement>(
+      'advanced-camera-card-image-updating-player',
+    );
+
+    await card.advanceSeconds(1);
+    await player.updateComplete;
+
+    expect(getImageSource(card)).toBe(frameURL);
+  });
+
+  it('should keep showing the preserved frame of a camera without an entity while its stream loads', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    const frameURL = createPreservedFrameURL();
+    sharedPreservedFrameStore.set(
+      { cameraID: 'no-entity' },
+      { url: frameURL, date: new Date() },
+    );
+
+    // Without an entity the image falls back to the default image, which
+    // refreshes every second.
+    const card = await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        cameras: [
+          {
+            id: 'no-entity',
+            live_provider: 'go2rtc',
+            go2rtc: { url: 'http://localhost:1984', stream: 'office' },
+            proxy: { live: false },
+            image: { preserve_frame_seconds: 600 },
+          },
+        ],
+        live: { show_image_during_load: true },
+      }),
+      createGenericCameraHASS(),
+    );
+    await card.waitForRender(
+      () => getImageSource(card) === frameURL || null,
+      'the loading image showing the preserved frame',
+    );
+    const player = await card.waitForSelector<LitElement>(
+      'advanced-camera-card-image-updating-player',
+    );
+
+    await card.advanceSeconds(1);
+    await player.updateComplete;
+
+    expect(getImageSource(card)).toBe(frameURL);
+  });
+
   it('should replace a preserved frame once it is too old', async () => {
     // The clock still runs by itself, so the card mounts as usual.
     vi.useFakeTimers({ shouldAdvanceTime: true });

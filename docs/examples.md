@@ -188,6 +188,35 @@ automations:
         advanced_camera_card_action: clips
 ```
 
+## Battery-powered cameras
+
+This example limits how often a battery-powered camera is woken up. The live stream still plays as normal: only what the card shows while it starts changes.
+
+- `lazy_unload` stops the stream whenever the camera is out of sight, and the card saves the last frame just before it stops.
+- When the camera is shown again, that preserved frame is shown while the stream loads, instead of waking the camera to retrieve a fresh snapshot. The [status bar](configuration/status-bar.md?id=available-items) shows when the preserved frame was captured.
+- `refresh_seconds: 0` keeps that frame up until the stream plays, instead of replacing it with a snapshot every second. A snapshot is fetched only when there is no frame younger than `preserve_frame_seconds` (e.g. after the page is reloaded).
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: ha
+
+    # The placeholder image shown while the live view loads.
+    image:
+      # Show a frame up to 10 mins old.
+      preserve_frame_seconds: 600
+
+      # Don't refresh the placeholder image.
+      refresh_seconds: 0
+live:
+  lazy_unload:
+    - unselected
+    - hidden
+```
+
+See [`preserve_frame_seconds`](configuration/cameras/live-provider.md?id=image) for more details.
+
 ## Cameras
 
 ### Frigate camera without a `camera_entity`
