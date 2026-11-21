@@ -1,7 +1,7 @@
 {
   "actions": {
     "abort": "Ação abortada",
-    "confirmation": "Tem certeza de que deseja executar esta ação?"
+    "confirmation": "Tem certeza de que deseja executar esta ação"
   },
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
@@ -24,7 +24,7 @@
     },
     "severity": "Severidade",
     "today": "Hoje",
-    "up": "Cima",
+    "up": "Pasta acima",
     "yesterday": "Ontem"
   },
   "config": {
