@@ -87,15 +87,18 @@ export class MediaHeightController {
     // card is in fullscreen mode.
     this._host.style.maxHeight = '';
 
-    // Calculate the true height.
-    const selectedHeight = this._selectedChild.getBoundingClientRect().height;
+    // Calculate the true layout height. `offsetHeight` is used rather than
+    // `getBoundingClientRect()` as the latter includes any ancestor transform
+    // (e.g. a scaled SVG <foreignObject>), whereas `max-height` below is set in
+    // untransformed CSS pixels.
+    const selectedHeight = this._selectedChild.offsetHeight;
 
     // Reset the original height so that browser transition animation can be
     // applied from the current to the target.
     this._host.style.maxHeight = originalHeight;
 
     // Force the browser to reflow.
-    this._selectedChild.getBoundingClientRect();
+    void this._selectedChild.offsetHeight;
 
     if (selectedHeight && !isNaN(selectedHeight) && selectedHeight > 0) {
       this._host.style.maxHeight = `${selectedHeight}px`;

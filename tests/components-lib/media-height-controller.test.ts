@@ -20,6 +20,14 @@ import {
   ResizeObserverMock,
 } from '../test-utils';
 
+// jsdom performs no layout, so the layout height is supplied explicitly.
+const setLayoutHeight = (element: HTMLElement, height: number): void => {
+  Object.defineProperty(element, 'offsetHeight', {
+    configurable: true,
+    value: height,
+  });
+};
+
 // @vitest-environment jsdom
 describe('MediaHeightController', () => {
   beforeAll(() => {
@@ -47,9 +55,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 600,
-      });
+      setLayoutHeight(child, 600);
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -62,6 +68,29 @@ describe('MediaHeightController', () => {
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
 
       expect(host.style.maxHeight).toBe(`600px`);
+    });
+
+    it('should ignore ancestor transforms when measuring the height', () => {
+      const host = document.createElement('div');
+      const controller = new MediaHeightController(host, 'div');
+
+      const root = document.createElement('div');
+      const child = document.createElement('div');
+      setLayoutHeight(child, 600);
+      // E.g. the card is inside an SVG <foreignObject> that is scaled down: the
+      // bounding rect reports the scaled height, but max-height is applied in
+      // untransformed pixels.
+      child.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 300,
+      });
+      root.appendChild(child);
+
+      controller.setRoot(root);
+      controller.setSelected(0);
+
+      vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
+
+      expect(host.style.maxHeight).toBe('600px');
     });
 
     it('should not set height without children', () => {
@@ -90,9 +119,7 @@ describe('MediaHeightController', () => {
       controller.setRoot(root);
       controller.setSelected(0);
 
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 800,
-      });
+      setLayoutHeight(child, 800);
 
       callResizeHandler([
         {
@@ -117,9 +144,7 @@ describe('MediaHeightController', () => {
 
       controller.setRoot(root);
 
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 800,
-      });
+      setLayoutHeight(child, 800);
 
       callResizeHandler([
         {
@@ -140,17 +165,13 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child_0 = document.createElement('div');
-      child_0.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 100,
-      });
+      setLayoutHeight(child_0, 100);
       root.appendChild(child_0);
 
       controller.setRoot(root);
 
       const child_1 = document.createElement('div');
-      child_1.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 200,
-      });
+      setLayoutHeight(child_1, 200);
       root.appendChild(child_1);
 
       callMutationHandler();
@@ -168,9 +189,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 700,
-      });
+      setLayoutHeight(child, 700);
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -180,9 +199,7 @@ describe('MediaHeightController', () => {
 
       expect(host.style.maxHeight).toBe('700px');
 
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 900,
-      });
+      setLayoutHeight(child, 900);
 
       controller.recalculate();
 
@@ -197,9 +214,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 0,
-      });
+      setLayoutHeight(child, 0);
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -216,13 +231,9 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child_0 = document.createElement('div');
-      child_0.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 750,
-      });
+      setLayoutHeight(child_0, 750);
       const child_1 = document.createElement('div');
-      child_1.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 562,
-      });
+      setLayoutHeight(child_1, 562);
       root.appendChild(child_0);
       root.appendChild(child_1);
 
