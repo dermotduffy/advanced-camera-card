@@ -3,17 +3,6 @@
 > [!NOTE]
 > Want to contribute? Development help [**welcome**](https://github.com/dermotduffy/advanced-camera-card/issues/1248)!
 
-## Contributing
-
-If you tick "Allow edits by maintainers" on your pull request, the maintainer or
-the maintainer's AI agents may change it directly so that it can be merged.
-These changes are new commits on your branch. Your commits and credit are kept.
-If you do not allow edits, you will get the requested changes as comments
-instead.
-
-How AI is used to review and help merge contributions is described in
-[How AI Is Used](ai.md?id=if-you-contribute-code).
-
 ## Building
 
 This project uses [Volta](https://github.com/volta-cli/volta) to ensure a

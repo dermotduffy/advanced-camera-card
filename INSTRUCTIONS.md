@@ -10,19 +10,15 @@ The agent documents are in [`.agents/`](.agents/README.md), in two folders.
 
 **Every agent** working on this repository follows [`.agents/standards/`](.agents/standards/):
 
-- [`hard-rules.md`](.agents/standards/hard-rules.md) -- always. These may not be broken for any reason.
 - [`review-rubric.md`](.agents/standards/review-rubric.md) -- before presenting or reviewing a change.
 - [`writing.md`](.agents/standards/writing.md) -- before writing any comment, doc, name, test title or PR text.
-- [`change-classes.md`](.agents/standards/change-classes.md) -- for any change to config, or to how a change is verified.
 
-**Agents acting on the maintainer's behalf** also follow [`.agents/maintainer/`](.agents/maintainer/README.md). Other agents must not take the actions it describes, such as labeling issues, replying to users or posting in the maintainer's name.
+**Hard rule** (never broken, for any reason): the card makes no outbound network connection to anything other than Home Assistant or a URL the user has provided. Exceptions are `picsum.photos` (screensaver images) and `stun.home-assistant.io` (fallback STUN server).
 
+**Agents acting on the maintainer's behalf** also follow [`.agents/maintainer/`](.agents/maintainer/README.md). Other agents must not take the actions it describes, such as posting in the maintainer's name.
+
+- [`README.md`](.agents/maintainer/README.md) -- the implement loop.
 - [`decision-rights.md`](.agents/maintainer/decision-rights.md) -- before asking the maintainer anything.
-- [`triage.md`](.agents/maintainer/triage.md) -- for labeling, investigating or replying to issues.
-- [`contributions.md`](.agents/maintainer/contributions.md) -- for any pull request from someone other than the maintainer.
-- [`user-replies.md`](.agents/maintainer/user-replies.md) -- before writing any reply to a user or contributor.
-- [`releases.md`](.agents/maintainer/releases.md) -- for releases and the release test.
-- [`product-stance.md`](.agents/maintainer/product-stance.md) -- for triage recommendations and feature proposals.
 
 ## Code Style
 
@@ -79,7 +75,7 @@ The agent documents are in [`.agents/`](.agents/README.md), in two folders.
 
 ## Posting on GitHub
 
-Anything an agent posts under the maintainer's name -- a comment, reply, review or PR description -- starts with this line, alone: `_Posted by an AI agent on behalf of the maintainer ([how AI is used in this project](https://card.camera/#/ai))._`
+Anything an agent posts under the maintainer's name -- a comment, reply, review or PR description -- starts with this line, alone: `_Posted by an AI agent on behalf of the maintainer._`
 
 ## Review guidelines
 
@@ -88,4 +84,3 @@ For any agent reviewing a pull request in this repository:
 - Review the diff only. Do not report on code the change did not touch.
 - Report only findings that are blocking under Tier 2 of [`.agents/standards/review-rubric.md`](.agents/standards/review-rubric.md), each with a concrete failure scenario: the inputs or state, then the wrong outcome.
 - Do not report anything listed under Tier 3 of that file: hardening for cases bounded by construction, alternative internal names, refactors of untouched code, or fixes that would add config or API surface.
-- Check that the PR's compatibility and verification labels match the change (see [`.agents/standards/change-classes.md`](.agents/standards/change-classes.md)).

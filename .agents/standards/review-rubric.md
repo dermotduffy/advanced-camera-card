@@ -146,8 +146,6 @@ The reviewer checks that what was built matches what was approved, and:
 - **Docs describe current behavior everywhere it is mentioned.** Stale caveats
   on usage and troubleshooting pages are removed in the same change. Worked
   examples go in `docs/examples.md` and are linked from the option's row.
-- **The compatibility and verification classes are correct** (see
-  [change-classes.md](change-classes.md)).
 
 ### Tests
 

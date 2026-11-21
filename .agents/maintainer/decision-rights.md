@@ -22,7 +22,7 @@ always answered the same way.
 | Where does a CI fix go?                                         | The same branch.                                                                                                                                      |
 | What next at the end of a phase?                                | Run the gate (format, lint, typecheck, coverage, prune) and continue.                                                                                 |
 | Accept or reject a reviewer finding?                            | Verify it against the code or a real run. Fix real defects. Reject per Tier 3 of the [rubric](../standards/review-rubric.md), with a one-line reason. |
-| What to work on next?                                           | The queue order in [README.md](README.md). Do not ask.                                                                                                |
+| What to work on next?                                           | The issue you were given. Do not start another.                                                                                                       |
 
 ## Who decides the rest
 
@@ -31,15 +31,12 @@ always answered the same way.
 | Implementation approach, test design, internal naming                 | Agent      |
 | Structure: a new manager or controller, who owns state, internal APIs | Agent      |
 | Trimming scope to the smallest change that resolves the issue         | Agent      |
-| Compatibility and verification class                                  | Agent      |
 | Any config change: new option, rename, move, changed default          | Maintainer |
 | Any `breaking` change                                                 | Maintainer |
 | Accepting or declining a contributor's feature; amend versus re-do    | Maintainer |
 | Declining or closing a user's request                                 | Maintainer |
 | Any public reply to a user or contributor                             | Maintainer |
 | New runtime dependency                                                | Maintainer |
-| In-person testing of a `MANUAL` change; the weekly release test       | Maintainer |
-| Releasing without a release-test check that nobody could perform      | Maintainer |
 | Merge and release                                                     | Maintainer |
 
 Agent decisions are logged in one line each: the choice and the reason.
@@ -48,8 +45,7 @@ Agent decisions are logged in one line each: the choice and the reason.
 
 Structure decisions never go to the maintainer. They follow the structure
 section of the [rubric](../standards/review-rubric.md). The design challenger checks them
-before code exists, and the weekly architecture role revisits them. A wrong
-call is fixed by a later refactor.
+before code exists. A wrong call is fixed by a later refactor.
 
 ### Config
 
@@ -59,7 +55,7 @@ written:
 
 - The option's name, location in the schema, type and default.
 - The nearest existing option it is modeled on.
-- Its compatibility class, and the upgrade if one is needed.
+- Whether existing configurations need upgrading, and the upgrade if so.
 - The docs table row as it would read.
 
 That piece of work waits for the answer. Other work continues. Once the
