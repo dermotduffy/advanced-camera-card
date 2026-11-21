@@ -22,8 +22,8 @@ maintainer wrote it.
 - **Triage.** Agents label issues and set their priority.
 - **Fix bugs and build features.** Agents write the code, tests and
   documentation, and review each other's work.
-- **Review pull requests.** A different AI model reviews every pull request,
-  including those from contributors, and may comment on it.
+- **Review changes.** A different AI model reviews every change before it is
+  merged, including contributions.
 - **Reply, in a small number of fixed cases** (see below).
 
 ## What a human always does
@@ -68,8 +68,8 @@ while.
 
 ## If you contribute code
 
-- Your pull request will be reviewed by an AI model, and you may get comments
-  from it. You are welcome to disagree with them.
+- Your pull request will be reviewed by AI models. Anything that needs changing
+  is raised with you in a comment, and you are welcome to disagree.
 - The maintainer decides whether and how a contribution is merged. An agent
   may make follow-up changes on your pull request so that it can be merged with
   credit to you.

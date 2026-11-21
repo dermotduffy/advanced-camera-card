@@ -3,7 +3,7 @@
 > Status: draft for maintainer review. Nothing here is in force until this
 > notice is removed.
 
-How AI agents work on this project with minimal maintainer involvement. The
+How AI agents effectively work on this project. The
 maintainer owns the user-facing surface and the final merge. Agents own
 everything else, including what to work on next and how the code is
 structured.
@@ -51,8 +51,9 @@ Everything not in this list happens without the maintainer.
 | Standing rules                                                  | This directory                                                   |
 | Public GitHub                                                   | Labels, PRs, maintainer-approved replies only                    |
 
-The maintainer never debates an agent in public. The only public exchange
-between agents is the cross-model review on a PR.
+The maintainer never debates an agent in public, and agents do not debate
+each other in public either: the cross-model review happens inside the agent
+session.
 
 **Every comment, reply, review or PR description an agent posts under the
 maintainer's name starts with this line, alone:**
@@ -94,8 +95,8 @@ Each role has a trigger and an output. None is a chat partner.
 
 The design challenger and reviewer are fresh-context agents, separate from the
 implementer. They are given the plan or the diff and the rubric, never the
-implementer's reasoning. A second review, by a different model, happens on the
-PR itself (see "Cross-model review" below).
+implementer's reasoning. A second review, by a different model, follows (see
+"Cross-model review" below).
 
 ### Queue and slots
 
@@ -127,10 +128,9 @@ PR itself (see "Cross-model review" below).
 6. **Self-audit** against Tier 1 of the [rubric](review-rubric.md): every
    comment, name and test title added.
 7. **Review** under the guardrails below.
-8. **Open the PR** against `dev` as a draft, with labels, a short description
-   and the evidence. Subscribe to its CI and fix failures on the same branch.
-9. **Cross-model review** on the PR. When it is settled, mark the PR ready.
-   The maintainer looks only at PRs that are ready.
+8. **Cross-model review**, privately, in the session (see below).
+9. **Open the PR** against `dev`, with labels, a short description and the
+   evidence. Subscribe to its CI and fix failures on the same branch.
 
 ### Reviewer guardrails
 
@@ -147,20 +147,23 @@ PR itself (see "Cross-model review" below).
 
 ### Cross-model review
 
-Codex reviews every PR on GitHub. This is the one place agents exchange
-findings in public; it is agent to agent, and the maintainer is not a party
-to it.
+Codex, a model from a different family, reviews every change before its PR
+opens. It runs on the maintainer's computer, which is always on, under the
+maintainer's own Codex sign-in: the cloud session attaches a folder on that
+computer through Remote Control and runs Codex there. Nothing about this
+exchange is public.
 
-- Codex is guided by the "Review guidelines" section of `INSTRUCTIONS.md`,
-  which holds it to the same scope and tiers as the in-session reviewer.
-- The implementer verifies each finding against the code or a real run. Real
-  defects are fixed with a commit.
-- A finding it will not apply gets one reply of one line giving the reason.
-  No further exchange on that thread.
+- Codex is given the diff and the "Review guidelines" section of
+  `INSTRUCTIONS.md`, which holds it to the same scope and tiers as the
+  in-session reviewer.
+- The implementer verifies each finding against the code or a real run, and
+  fixes real defects. A finding it rejects is logged with a one-line reason.
 - Two rounds at most. After the second, remaining non-blocking findings are
   left as they are.
-- The maintainer never replies in these threads. Maintainer feedback stays
-  private.
+- If the computer cannot be reached, the session waits and retries; it does not
+  open the PR without the review. After a day it flags `needs-maintainer`.
+- Codex's own automatic review on GitHub stays off, so contributor PRs are
+  reviewed the same way, in the session, not in public.
 
 ### Weekly roles
 
@@ -204,8 +207,7 @@ change code.
 2. The implement loop, trialed on two or three well-specified bugs started by
    hand, one at a time. One slot is the starting point so that mistakes in the
    process have a small blast radius; slots are added once it works. The trial
-   runs in public from the start, draft PR and cross-model review included,
-   but a trial session acts only on its own PR: it does not comment on, label
+   runs in public from the start, but a trial session acts only on its own PR: it does not comment on, label
    or otherwise touch any other issue or PR.
 3. Releases: CalVer, the beta channel, the release PR (see
    [releases.md](releases.md)).
@@ -235,6 +237,7 @@ other. Each item starts with a search for an established tool.
 | Release tooling: release-it with CalVer, the beta channel, the release PR                                  | [Releases](releases.md)      |
 | User docs: releases and config impact; rewrite of `docs/developing.md` and the release FAQ                 | Releases                     |
 | Agent and scheduled-task definitions for each role                                                         | Roles                        |
+| A folder on the maintainer's computer shared through Remote Control, with Codex signed in there            | Cross-model review           |
 
 ## Not yet verified
 
