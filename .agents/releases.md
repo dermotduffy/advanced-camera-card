@@ -145,10 +145,15 @@ judge.
   to try the beta, and their confirmation satisfies the check. Otherwise the
   maintainer performs it, provided [test-environment.md](test-environment.md)
   lists the hardware it needs.
-- **Nothing ships unverified by default.** A check that nobody has performed
-  is listed at the top of the release PR under "Not verified", with the reason.
-  Whether to release with it outstanding is the maintainer's judgment, made by
-  merging or not merging. An agent never waives a check.
+- **Nothing ships unverified without the maintainer deciding so.** If the
+  reporter has not confirmed within three days of being asked, and the
+  maintainer cannot perform the check, the agent puts the decision to the
+  maintainer: what the check was for, what could go wrong for which users if
+  it is skipped, what evidence exists so far (tests, time on the beta, other
+  reports), and a recommendation. The maintainer chooses to release without
+  the check, to wait longer, or something else. An agent never waives a check.
+  A check released without being performed is listed in the release PR under
+  "Not verified".
 - **Plan for this before merging to `dev`.** If a change's check needs hardware
   the maintainer does not have, the agent lines up the reporter first, or says
   so at plan time. A change is not classed `AUTOMATED_FOR_PRE_RELEASE` with a

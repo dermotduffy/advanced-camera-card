@@ -39,6 +39,7 @@ the same way every time.
 | Any public reply to a user or contributor                             | Maintainer |
 | New runtime dependency                                                | Maintainer |
 | In-person testing of a `MANUAL` change; the weekly release test       | Maintainer |
+| Releasing without a release-test check that nobody could perform      | Maintainer |
 | Merge and release                                                     | Maintainer |
 
 Agent decisions are logged in one line each: the choice and the reason.

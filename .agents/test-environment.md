@@ -13,11 +13,12 @@ card supports. Agents use it to decide who can perform a release-test check
 | Android phone, HA Companion app              | Yes         | Low          |
 | PTZ camera                                   | Yes         | Low          |
 | Cameras: Amcrest, Dahua, Reolink, Tapo, Wyze | Yes         | Low          |
+| Camera with 2-way audio                      | Yes         | Low          |
+| Doorbell camera                              | No          | --           |
 | Chromecast / casting                         | Yes         | High. Avoid. |
 | iPhone emulation                             | Yes         | High. Avoid. |
 | iPhone or iPad, real device                  | No          | --           |
 | Windows                                      | No          | --           |
-| Camera with 2-way audio or a doorbell        | Unconfirmed | Unconfirmed  |
 | Desktop browsers other than Chrome           | Unconfirmed | Unconfirmed  |
 
 Rules:
