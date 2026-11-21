@@ -58,6 +58,24 @@ class MemoryRangedCache<Data> {
   public expireMatches(predicate: (data: Data) => boolean): void {
     this._data = this._data.filter((data) => !predicate(data));
   }
+
+  /**
+   * Drop data and coverage that sit outside `range`. Unlike `expireMatches`,
+   * this also forgets the coverage, so a later query there is a cache miss.
+   */
+  public retain(range: DateRange): void {
+    const start = range.start.getTime();
+    const end = range.end.getTime();
+    this._data = this._data.filter((data) => {
+      const time = this._timeFunc(data);
+      return time >= start && time <= end;
+    });
+    this._ranges.retain(range);
+  }
+
+  public hasCoverageRemaining(): boolean {
+    return !this._ranges.isEmpty();
+  }
 }
 
 export class RecordingSegmentsCache {
@@ -101,5 +119,20 @@ export class RecordingSegmentsCache {
     func: (segment: RecordingSegment) => boolean,
   ): void {
     this._segments.get(cameraID)?.expireMatches(func);
+  }
+
+  /**
+   * Forget segments for one camera that fall outside `range`. The camera is
+   * dropped once nothing it cached still overlaps that range.
+   */
+  public retain(cameraID: string, range: DateRange): void {
+    const cache = this._segments.get(cameraID);
+    if (!cache) {
+      return;
+    }
+    cache.retain(range);
+    if (!cache.hasCoverageRemaining()) {
+      this._segments.delete(cameraID);
+    }
   }
 }
