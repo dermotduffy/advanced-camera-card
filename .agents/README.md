@@ -202,7 +202,10 @@ change code.
 1. These documents and `INSTRUCTIONS.md`.
 2. The implement loop, trialed on two or three well-specified bugs started by
    hand, one at a time. One slot is the starting point so that mistakes in the
-   process have a small blast radius; slots are added once it works.
+   process have a small blast radius; slots are added once it works. The trial
+   runs in public from the start, draft PR and cross-model review included,
+   but a trial session acts only on its own PR: it does not comment on, label
+   or otherwise touch any other issue or PR.
 3. Releases: CalVer, the beta channel, the release PR (see
    [releases.md](releases.md)).
 4. Orchestrator, and the board configured to reflect labels.
