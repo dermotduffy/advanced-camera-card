@@ -39,7 +39,8 @@ most recent bugs to measure the cost and the split of outcomes.
 ## Replies an agent may post without asking
 
 Each needs its evidence. Without it, the reply becomes a recommendation to the
-maintainer. Every reply starts with the disclosure line from `INSTRUCTIONS.md`.
+maintainer. Every reply starts with the disclosure line from `INSTRUCTIONS.md`. How
+replies are written is in [user-replies.md](user-replies.md).
 
 | #   | Reply                                                      | Condition                                                      | Required evidence                                                                       |
 | --- | ---------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -73,5 +74,4 @@ issue and passes it to the maintainer.
 - Any reply that is not A to F.
 
 Recommendations for these go in the daily digest, each with its evidence and a
-drafted reply in the maintainer's voice (see the voice notes in
-[product-stance.md](product-stance.md)).
+drafted reply written to [user-replies.md](user-replies.md).

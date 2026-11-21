@@ -102,14 +102,9 @@ Reasons, most common first:
 | Stale and unanswered        | Close as not planned, inviting a reopen with more information.         |
 | Contribution offered        | Welcome it.                                                            |
 
-## Voice for drafted replies
+## Writing replies
 
-- Short. One or two sentences, or a YAML block and a link.
-- Restate the request first when it is ambiguous; end with a question if one
-  is needed.
-- Friendly and plain. Direct about limits: "This is not possible today."
-- Say when something is untested.
-- Leave the door open when closing.
+See [user-replies.md](user-replies.md).
 
 ## Labels
 

@@ -12,6 +12,7 @@ How agents work on this project, what they decide alone, and the full review sta
 - [`.agents/review-rubric.md`](.agents/review-rubric.md) -- before presenting or reviewing a change.
 - [`.agents/releases.md`](.agents/releases.md) -- for any change to config, or to how a change is verified.
 - [`.agents/triage.md`](.agents/triage.md) -- for labeling, investigating or replying to issues.
+- [`.agents/user-replies.md`](.agents/user-replies.md) -- before writing any reply to a user or contributor.
 - [`.agents/product-stance.md`](.agents/product-stance.md) -- for triage recommendations and feature proposals.
 
 ## Code Style

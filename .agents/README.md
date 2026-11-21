@@ -17,6 +17,7 @@ structured.
 | [product-stance.md](product-stance.md)   | What the card is for, non-goals, accept and decline heuristics. |
 | [releases.md](releases.md)               | Versioning, channels, compatibility and verification classes.   |
 | [triage.md](triage.md)                   | Priority, investigation, and the replies agents may post alone. |
+| [user-replies.md](user-replies.md)       | How any reply to a user is written.                             |
 
 `INSTRUCTIONS.md` (linked as `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`) is the
 short always-loaded rule list and points here.
