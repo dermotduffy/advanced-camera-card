@@ -23,10 +23,10 @@ asks the maintainer.
 An exception is a named host, a reason, and the maintainer's agreement. Adding
 one is the maintainer's decision.
 
-| Host                     | Used for                                                                                                     | Status                         |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------ |
-| `picsum.photos`          | Screensaver images (`src/components/image-updating-player.ts`).                                              | Agreed.                        |
-| `stun.home-assistant.io` | Fallback STUN server when Home Assistant does not supply ICE servers, matching Home Assistant's own default. | For the maintainer to confirm. |
+| Host                     | Used for                                                                                                     | Status  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ | ------- |
+| `picsum.photos`          | Screensaver images (`src/components/image-updating-player.ts`).                                              | Agreed. |
+| `stun.home-assistant.io` | Fallback STUN server when Home Assistant does not supply ICE servers, matching Home Assistant's own default. | Agreed. |
 
 ### Rule 1: current state
 

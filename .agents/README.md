@@ -215,8 +215,11 @@ change code.
 
 ## Work this plan creates
 
-To be filed as issues when the process starts, and taken through the implement
-loop like any other work. Each starts with a search for an established tool.
+This section is temporary. When the process starts, a one-time setup session
+drafts one issue per row and shows them to the maintainer; once approved it
+files them and deletes this section in the same change. From then on the
+issues are the record, and the work goes through the implement loop like any
+other. Each item starts with a search for an established tool.
 
 | Work                                                                                                       | Enforces or enables          |
 | ---------------------------------------------------------------------------------------------------------- | ---------------------------- |
@@ -224,6 +227,7 @@ loop like any other work. Each starts with a search for an established tool.
 | Browser tests fail on any request that is not mocked                                                       | Hard rule 1                  |
 | Lint rule against type assertions (`as`), with existing uses cleaned up                                    | `INSTRUCTIONS.md`            |
 | Lint rule against disabled and focused tests                                                               | Proposed hard rule 5         |
+| Lint rule requiring test names to start with "should "                                                     | `INSTRUCTIONS.md`            |
 | Deny rule for merge tools, and a hook requiring the disclosure line, in `.claude/settings.json`            | Proposed hard rules 3 and 4  |
 | A test that fails when a config path is removed or renamed without an upgrade                              | Compatibility classes        |
 | Fix the feature request template, which applies a label that does not exist                                | Triage                       |
