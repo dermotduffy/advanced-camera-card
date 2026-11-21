@@ -12,6 +12,7 @@ structured.
 
 | File                                       | Purpose                                                         |
 | ------------------------------------------ | --------------------------------------------------------------- |
+| [hard-rules.md](hard-rules.md)             | Rules no agent may break, and what enforces each.               |
 | [decision-rights.md](decision-rights.md)   | What an agent decides alone and what goes to the maintainer.    |
 | [review-rubric.md](review-rubric.md)       | The code standards a change is held to.                         |
 | [product-stance.md](product-stance.md)     | What the card is for, non-goals, accept and decline heuristics. |

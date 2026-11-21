@@ -8,6 +8,7 @@ Commands: `yarn install`, `yarn run build`, `yarn run test`, `yarn run test:brow
 
 How agents work on this project, what they decide alone, and the full review standards are in [`.agents/`](.agents/README.md). Read the document your task needs:
 
+- [`.agents/hard-rules.md`](.agents/hard-rules.md) -- always. These may not be broken for any reason.
 - [`.agents/decision-rights.md`](.agents/decision-rights.md) -- before asking the maintainer anything.
 - [`.agents/review-rubric.md`](.agents/review-rubric.md) -- before presenting or reviewing a change.
 - [`.agents/releases.md`](.agents/releases.md) -- for any change to config, or to how a change is verified.
