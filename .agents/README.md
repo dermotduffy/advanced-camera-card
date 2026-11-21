@@ -213,10 +213,31 @@ change code.
 5. Architecture and testing roles, and the first lint ratchets.
 6. Triage and feature roles.
 
+## Work this plan creates
+
+To be filed as issues when the process starts, and taken through the implement
+loop like any other work. Each starts with a search for an established tool.
+
+| Work                                                                                                       | Enforces or enables          |
+| ---------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Lint rule restricting network APIs to an allowlist of files                                                | [Hard rule](hard-rules.md) 1 |
+| Browser tests fail on any request that is not mocked                                                       | Hard rule 1                  |
+| Lint rule against type assertions (`as`), with existing uses cleaned up                                    | `INSTRUCTIONS.md`            |
+| Lint rule against disabled and focused tests                                                               | Proposed hard rule 5         |
+| Deny rule for merge tools, and a hook requiring the disclosure line, in `.claude/settings.json`            | Proposed hard rules 3 and 4  |
+| A test that fails when a config path is removed or renamed without an upgrade                              | Compatibility classes        |
+| Fix the feature request template, which applies a label that does not exist                                | Triage                       |
+| New labels: `behavior-change`, `config-upgrade`, `verify:pre-release`, `verify:manual`, `needs-maintainer` | Releases, the board          |
+| Release tooling: release-it with CalVer, the beta channel, the release PR                                  | [Releases](releases.md)      |
+| User docs: releases and config impact; rewrite of `docs/developing.md` and the release FAQ                 | Releases                     |
+| Agent and scheduled-task definitions for each role                                                         | Roles                        |
+
 ## Not yet verified
 
 - That release-it can flag every release from `dev` as a pre-release, and the
-  other release-tooling points listed in [releases.md](releases.md).
+  other release-tooling points listed in [releases.md](releases.md), including
+  whether a stable release can take its notes from the release PR's
+  description so the maintainer can edit them before merging.
 - That the existing project board can be configured to follow labels and PR
   activity as described above.
 - What each session costs in subscription usage. This is measured during the

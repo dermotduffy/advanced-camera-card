@@ -18,26 +18,32 @@ asks the maintainer.
 | --- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | The card makes no outbound network connection to anything other than Home Assistant or a URL the user has provided. | **Not yet enforced.** Planned: (a) ESLint's built-in restricted-globals and restricted-properties rules banning `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource` and `sendBeacon` outside a short list of files; (b) the browser tests failing on any request that is not mocked. See below. |
 
+### Rule 1: exceptions
+
+An exception is a named host, a reason, and the maintainer's agreement. Adding
+one is the maintainer's decision.
+
+| Host                     | Used for                                                                                                     | Status                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------ |
+| `picsum.photos`          | Screensaver images (`src/components/image-updating-player.ts`).                                              | Agreed.                        |
+| `stun.home-assistant.io` | Fallback STUN server when Home Assistant does not supply ICE servers, matching Home Assistant's own default. | For the maintainer to confirm. |
+
 ### Rule 1: current state
 
-Network calls in the card's own code are confined to four files, which makes a
-lint allowlist practical:
+Assessed against `dev`.
 
-- `src/ha/fetch.ts`
-- `src/go2rtc/signaling.ts`
-- `src/go2rtc/peer-connection.ts`
-- `src/components/live/providers/go2rtc/video-rtc.js` (vendored)
-
-Two places in the code do not meet the rule as worded today. The maintainer
-has to decide whether each is a documented exception or is changed:
-
-- `src/components/image-updating-player.ts` fetches screensaver images from
-  `https://picsum.photos`.
-- `src/go2rtc/peer-connection.ts` defaults to public STUN servers
-  (`stun.l.google.com`, `stun.cloudflare.com`).
-
-Lint cannot see a connection made by setting a URL on an image or video
-element, or one made inside a dependency. The browser-test check covers those.
+- Network calls in the card's own code are confined to a handful of files
+  (`src/ha/`, `src/go2rtc/`, and the vendored
+  `src/components/live/providers/go2rtc/video-rtc.js`), which makes a lint
+  allowlist practical.
+- STUN and TURN servers come from Home Assistant (`src/ha/webrtc.ts`). The
+  public Google and Cloudflare defaults that `main` still carries are gone.
+- The vendored `video-rtc.js` keeps a Google STUN server in its default
+  configuration, which the card replaces before any connection is made. The
+  browser-test check should confirm no connection to it occurs.
+- Lint cannot see a connection made by setting a URL on an image or video
+  element, or one made inside a dependency. The browser-test check covers
+  those.
 
 ## Proposed, not yet agreed
 
