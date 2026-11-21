@@ -23,8 +23,10 @@
 - **A beta must never reach a user who has not opted in.** HACS offers a
   release flagged as a pre-release only to users who have enabled pre-releases
   for the card. The `dev` workflow therefore always sets the flag and never
-  marks its release as "latest". This is checked before the first beta ships
-  and is the one property of the release tooling that may not regress.
+  marks its release as "latest". This is the one property of the release
+  tooling that may not regress. It rests on how the `next` release candidates
+  have behaved to date, which is assumed, not tested; the first beta is
+  watched for reports from users who did not opt in.
 - The docs site is built from `main`, so it describes the stable release. Beta
   users read the PRs for what is new.
 
@@ -186,8 +188,8 @@ One-off. Remove this section when done.
      prerelease option, so betas are plain versions flagged as pre-releases
      (see Channels). The plugin will not bump from `8.2.0`: the first CalVer
      tag is created by hand, after which it continues correctly.
-   - that a release from `dev` is flagged as a pre-release and is not offered
-     by HACS to a user who has not opted in;
+   - that release-it sets the pre-release flag on every release from `dev` and
+     never marks one "latest";
    - "resolved in version" comments on released issues and PRs;
    - that HACS orders `2026.x` above `8.x`.
 3. If release-it cannot meet the opt-in requirement, that returns to the
