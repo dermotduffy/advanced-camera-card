@@ -69,9 +69,10 @@ Each role has a trigger and an output. None is a chat partner.
 | Triage            | Daily               | Labels and priorities; a digest of recommendations.    |
 | Feature           | Fortnightly         | Ranked proposals.                                      |
 
-The design challenger and reviewer are fresh-context agents. They are given
-the plan or the diff and the rubric, never the implementer's reasoning. The
-maintainer may additionally run a second model over any PR as an audit.
+The design challenger and reviewer are fresh-context agents, separate from the
+implementer. They are given the plan or the diff and the rubric, never the
+implementer's reasoning. A second review, by a different model, happens on the
+PR itself (see "Cross-model review" below).
 
 ### Queue and slots
 
@@ -103,8 +104,10 @@ maintainer may additionally run a second model over any PR as an audit.
 6. **Self-audit** against Tier 1 of the [rubric](review-rubric.md): every
    comment, name and test title added.
 7. **Review** under the guardrails below.
-8. **Open the PR** against `dev`, with labels, a short description and the
-   evidence. Subscribe to its CI and fix failures on the same branch.
+8. **Open the PR** against `dev` as a draft, with labels, a short description
+   and the evidence. Subscribe to its CI and fix failures on the same branch.
+9. **Cross-model review** on the PR. When it is settled, mark the PR ready.
+   The maintainer looks only at PRs that are ready.
 
 ### Reviewer guardrails
 
@@ -118,6 +121,23 @@ maintainer may additionally run a second model over any PR as an audit.
 - **Rounds:** two at most. The second only verifies that blocking fixes landed.
 - **Deadlock:** where implementer and reviewer still disagree, the option with
   fewer new concepts wins, and the disagreement is logged.
+
+### Cross-model review
+
+Codex reviews every PR on GitHub. This is the one place agents exchange
+findings in public; it is agent to agent, and the maintainer is not a party
+to it.
+
+- Codex is guided by the "Review guidelines" section of `INSTRUCTIONS.md`,
+  which holds it to the same scope and tiers as the in-session reviewer.
+- The implementer verifies each finding against the code or a real run. Real
+  defects are fixed with a commit.
+- A finding it will not apply gets one reply of one line giving the reason.
+  No further exchange on that thread.
+- Two rounds at most. After the second, remaining non-blocking findings are
+  left as they are.
+- The maintainer never replies in these threads. Maintainer feedback stays
+  private.
 
 ### Weekly roles
 

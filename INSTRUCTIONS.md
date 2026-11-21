@@ -65,3 +65,12 @@ How agents work on this project, what they decide alone, and the full review sta
 - Verify CSS cascade (e.g. `pointer-events`) before adding interactive children.
 - Preserve alphabetical ordering when inserting into sorted lists/sections.
 - Prefer structural CSS selectors (`.parent child-element`) over permanently-enabled classes.
+
+## Review guidelines
+
+For any agent reviewing a pull request in this repository:
+
+- Review the diff only. Do not report on code the change did not touch.
+- Report only findings that are blocking under Tier 2 of [`.agents/review-rubric.md`](.agents/review-rubric.md), each with a concrete failure scenario: the inputs or state, then the wrong outcome.
+- Do not report anything listed under Tier 3 of that file: hardening for cases bounded by construction, alternative internal names, refactors of untouched code, or fixes that would add config or API surface.
+- Check that the PR's compatibility and verification labels match the change (see [`.agents/releases.md`](.agents/releases.md)).
