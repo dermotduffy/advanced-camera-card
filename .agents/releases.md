@@ -45,24 +45,29 @@ Betas and stable releases share the one counter, so stable numbers skip:
 
 ## Compatibility classes
 
-Every PR is in exactly one class. A release takes the most severe class among
-its PRs.
+Every PR is in exactly one class. A release lists every class present among
+its PRs, most severe first.
 
-| Class          | PR label         | What the user experiences                                                              |
-| -------------- | ---------------- | -------------------------------------------------------------------------------------- |
-| Compatible     | _(none)_         | Nothing.                                                                               |
-| Config upgrade | `config-upgrade` | The card shows an error until they open the editor, click Automatic Upgrade, and save. |
-| Breaking       | `breaking`       | The card shows an error and they must edit their configuration by hand.                |
+| Class           | PR label          | What the user experiences                                                              |
+| --------------- | ----------------- | -------------------------------------------------------------------------------------- |
+| Compatible      | _(none)_          | Nothing.                                                                               |
+| Behavior change | `behavior-change` | The card keeps working but behaves differently. Nothing to click.                      |
+| Config upgrade  | `config-upgrade`  | The card shows an error until they open the editor, click Automatic Upgrade, and save. |
+| Breaking        | `breaking`        | The card shows an error and they must edit their configuration by hand.                |
 
 Upgrades run only from the editor, deliberately: every stored configuration is
 valid for the version that reads it. A config upgrade is therefore a real cost
 to users. Every config change is approved by the maintainer at plan time (see
 [decision-rights.md](decision-rights.md)), which is where that cost is weighed.
 
+**Behavior change** is a changed default, or any change where a user who has
+not touched their configuration sees the card act differently. It requires the
+docs to state the new default and the release note to say how to keep the old
+behavior.
+
 **Config upgrade** requires an entry in `UPGRADES`
 (`src/config/management.ts`) covering overrides and profiles where relevant,
-tests for it, and docs in the new shape only. A changed default counts when a
-user who never set the option would see different behavior.
+tests for it, and docs in the new shape only.
 
 **Breaking** requires maintainer sign-off at plan time and a "what to do"
 paragraph for the release notes. It is expected to be very rare.
@@ -78,10 +83,13 @@ as often as once a week.
 
 ### Telling users
 
-Every release's notes, beta and stable, open with exactly one of these lines.
-It is never omitted, including when there is nothing to do.
+Every release's notes, beta and stable, open with a `Config impact` line for
+each class present. It is never omitted, including when there is nothing to
+do. The wording below is provisional, pending the maintainer's edit.
 
 - `Config impact: none. No changes to your configuration are needed.`
+- `Config impact: behavior change. <option> now defaults to <value>. Set it
+explicitly to keep the old behavior.`
 - `Config impact: automatic upgrade required. Open the card editor, click
 Automatic Upgrade, and save. Until you do, the card shows an error.
 Affected options: <options>.`
@@ -90,7 +98,7 @@ after>`
 
 The line links to the user documentation that explains it. That page, part of
 the published docs, covers: the stable and beta channels and how to opt in to
-betas; what each of the three lines means and what to do; and that an
+betas; what each of the lines means and what to do; and that an
 automatic upgrade always needs the user to open the editor and save.
 
 ## Verification classes
@@ -160,7 +168,7 @@ One-off. Remove this section when done.
    - that HACS orders `2026.x` above `8.x`.
 3. If release-it cannot meet the opt-in requirement, that returns to the
    maintainer as a decision. It is not filled with custom code.
-4. Add the `config-upgrade`, `verify:pre-release` and `verify:manual` labels;
+4. Add the `behavior-change`, `config-upgrade`, `verify:pre-release` and `verify:manual` labels;
    narrow `breaking` to "manual changes required"; generate release notes from
    labels with the `Config impact` line first.
 5. Rewrite the release sections of `docs/developing.md` and the "too many
