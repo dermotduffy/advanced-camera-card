@@ -8,3 +8,4 @@
 ---
 
 - [Developing](developing.md)
+- [How AI Is Used](ai.md)

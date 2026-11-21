@@ -16,6 +16,7 @@ structured.
 | [review-rubric.md](review-rubric.md)     | The code standards a change is held to.                         |
 | [product-stance.md](product-stance.md)   | What the card is for, non-goals, accept and decline heuristics. |
 | [releases.md](releases.md)               | Versioning, channels, compatibility and verification classes.   |
+| [triage.md](triage.md)                   | Priority, investigation, and the replies agents may post alone. |
 
 `INSTRUCTIONS.md` (linked as `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`) is the
 short always-loaded rule list and points here.
@@ -24,16 +25,16 @@ short always-loaded rule list and points here.
 
 Everything not in this list happens without the maintainer.
 
-| Touchpoint                                  | When                                |
-| ------------------------------------------- | ----------------------------------- |
-| Approve a config change                     | At plan time, before code           |
-| Sign off a `breaking` change                | At plan time                        |
-| Decide a contributor PR's direction         | When one arrives                    |
-| Approve declining or closing a request      | From the triage digest              |
-| Approve a public reply                      | From the triage digest              |
-| Test a `MANUAL` change in person            | Before it merges to `dev`           |
-| Merge a PR to `dev`                         | When its checks and record are done |
-| Run the release test and merge `dev`→`main` | Weekly                              |
+| Touchpoint                                                                 | When                                |
+| -------------------------------------------------------------------------- | ----------------------------------- |
+| Approve a config change                                                    | At plan time, before code           |
+| Sign off a `breaking` change                                               | At plan time                        |
+| Decide a contributor PR's direction                                        | When one arrives                    |
+| Approve declining or closing a request                                     | From the triage digest              |
+| Approve a public reply outside the fixed classes in [triage.md](triage.md) | From the triage digest              |
+| Test a `MANUAL` change in person                                           | Before it merges to `dev`           |
+| Merge a PR to `dev`                                                        | When its checks and record are done |
+| Run the release test and merge `dev`→`main`                                | Weekly                              |
 
 ## Where things happen
 
@@ -54,10 +55,12 @@ between agents is the cross-model review on a PR.
 maintainer's name starts with this line, alone:**
 
 ```
-_Posted by an AI agent on behalf of the maintainer._
+_Posted by an AI agent on behalf of the maintainer ([how AI is used in this project](https://card.camera/#/ai))._
 ```
 
 This includes replies the maintainer approved before an agent posted them.
+The linked page, [`docs/ai.md`](../docs/ai.md), tells users what agents do and
+how to reach a human.
 
 Agent sessions run in the cloud: each gets its own clone, starts without
 maintainer setup, and receives its own PR's CI results. A session that needs

@@ -11,7 +11,8 @@ How agents work on this project, what they decide alone, and the full review sta
 - [`.agents/decision-rights.md`](.agents/decision-rights.md) -- before asking the maintainer anything.
 - [`.agents/review-rubric.md`](.agents/review-rubric.md) -- before presenting or reviewing a change.
 - [`.agents/releases.md`](.agents/releases.md) -- for any change to config, or to how a change is verified.
-- [`.agents/product-stance.md`](.agents/product-stance.md) -- for triage and feature proposals.
+- [`.agents/triage.md`](.agents/triage.md) -- for labeling, investigating or replying to issues.
+- [`.agents/product-stance.md`](.agents/product-stance.md) -- for triage recommendations and feature proposals.
 
 ## Code Style
 
@@ -68,7 +69,7 @@ How agents work on this project, what they decide alone, and the full review sta
 
 ## Posting on GitHub
 
-Anything an agent posts under the maintainer's name -- a comment, reply, review or PR description -- starts with this line, alone: `_Posted by an AI agent on behalf of the maintainer._`
+Anything an agent posts under the maintainer's name -- a comment, reply, review or PR description -- starts with this line, alone: `_Posted by an AI agent on behalf of the maintainer ([how AI is used in this project](https://card.camera/#/ai))._`
 
 ## Review guidelines
 
