@@ -179,6 +179,7 @@ describe('Go2RTCSessionController', () => {
     const getControls = vi.fn(() => options?.controls ?? false);
     const getICEServers = vi.fn(async () => ICE_SERVERS);
     const mediaLoadedCallback = vi.fn();
+    const mediaUnloadedCallback = vi.fn();
     const surfaceCommittedCallback = vi.fn();
     const streamErrorCallback = vi.fn();
 
@@ -188,6 +189,7 @@ describe('Go2RTCSessionController', () => {
         getCardWideConfig: () => options?.cardWideConfig ?? null,
         getICEServers,
         mediaLoadedCallback,
+        mediaUnloadedCallback,
         surfaceCommittedCallback,
         streamErrorCallback,
       },
@@ -207,6 +209,7 @@ describe('Go2RTCSessionController', () => {
       getICEServers,
       streamErrorCallback,
       mediaLoadedCallback,
+      mediaUnloadedCallback,
       offscreenVideos,
       session,
       surfaceCommittedCallback,
@@ -287,6 +290,7 @@ describe('Go2RTCSessionController', () => {
         getCardWideConfig: () => null,
         getICEServers: async () => ICE_SERVERS,
         mediaLoadedCallback: vi.fn(),
+        mediaUnloadedCallback: vi.fn(),
         streamErrorCallback: vi.fn(),
       });
       session.connect('ws://localhost:1/api/ws', createSurfaces().surfaces, ['mse']);
@@ -492,6 +496,53 @@ describe('Go2RTCSessionController', () => {
       );
       expect(mediaLoadedCallback.mock.calls[1][0]).toEqual(
         expect.objectContaining({ width: 1920, height: 1080 }),
+      );
+    });
+
+    it('should not report unloaded media on the first load', () => {
+      const { session, surfaces, websockets, binaryContexts, mediaUnloadedCallback } =
+        setup();
+      session.connect('http://host/api/ws?src=camera', surfaces, ['mse']);
+      websockets[0].fireOpen();
+      binaryContexts[0].callbacks.loadedCallback();
+
+      expect(mediaUnloadedCallback).not.toHaveBeenCalled();
+    });
+
+    it('should not report unloaded media when the same source reloads', () => {
+      const { session, surfaces, websockets, binaryContexts, mediaUnloadedCallback } =
+        setup();
+      session.connect('http://host/api/ws?src=camera', surfaces, ['mse']);
+      websockets[0].fireOpen();
+      binaryContexts[0].callbacks.loadedCallback();
+      binaryContexts[0].callbacks.loadedCallback();
+
+      expect(mediaUnloadedCallback).not.toHaveBeenCalled();
+    });
+
+    it('should report unloaded media before a reconnected source loads', () => {
+      const {
+        session,
+        surfaces,
+        websockets,
+        binaryContexts,
+        mediaLoadedCallback,
+        mediaUnloadedCallback,
+      } = setup();
+      session.connect('http://host/api/ws?src=camera', surfaces, ['mse']);
+      websockets[0].fireOpen();
+      binaryContexts[0].callbacks.loadedCallback();
+      binaryContexts[0].callbacks.failedCallback('media_error');
+
+      vi.advanceTimersByTime(2 * 1000);
+      websockets[1].fireOpen();
+      mediaLoadedCallback.mockClear();
+      binaryContexts[1].callbacks.loadedCallback();
+
+      expect(mediaUnloadedCallback).toHaveBeenCalledTimes(1);
+      expect(mediaLoadedCallback).toHaveBeenCalledTimes(1);
+      expect(mediaUnloadedCallback.mock.invocationCallOrder[0]).toBeLessThan(
+        mediaLoadedCallback.mock.invocationCallOrder[0],
       );
     });
   });
@@ -1057,6 +1108,7 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback,
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket, createBinarySource },
@@ -1092,6 +1144,7 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback,
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket, createWebRTCSource },
@@ -1119,6 +1172,7 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket },
@@ -1151,6 +1205,7 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket },
@@ -1192,6 +1247,7 @@ describe('Go2RTCSessionController', () => {
           getCardWideConfig: () => null,
           getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket, createBinarySource, createWebRTCSource },

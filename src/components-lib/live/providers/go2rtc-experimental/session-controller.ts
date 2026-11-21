@@ -88,6 +88,7 @@ interface Go2RTCSessionCallbacks {
   getCardWideConfig: () => CardWideConfig | null;
   getICEServers: () => Promise<RTCIceServer[]>;
   mediaLoadedCallback: (info: UntargetedMediaLoadedInfo) => void;
+  mediaUnloadedCallback: () => void;
 
   // The lane that just committed is live on this surface (the component shows
   // it and hides the other).
@@ -654,6 +655,9 @@ export class Go2RTCSessionController {
       // control hide would leak its loadstart listener on each repeat.
       this._dispatchMediaLoaded(context, surface, source, dimensionsVideo);
       return;
+    }
+    if (this._committedSource) {
+      this._callbacks.mediaUnloadedCallback();
     }
     this._committedSource = source;
 
