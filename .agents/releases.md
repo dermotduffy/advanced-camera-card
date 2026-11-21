@@ -126,11 +126,14 @@ not a trigger.
   design challenger must agree.
 
 **An `AUTOMATED_FOR_PRE_RELEASE` PR** states its check as a single observable
-step, for example "on Chromecast, the template renders".
+step, for example "on Android, the stream keeps playing after entering
+fullscreen", and names the hardware it needs.
 
 **A `MANUAL` change** stays on its own branch, kept rebased on `dev`. Before
 asking for the maintainer's time the agent supplies screenshots at minimum,
-default and maximum sizes and runs what it can itself.
+default and maximum sizes and runs what it can itself. The in-person test plan
+takes no more than five minutes; the agent cuts it to what only a person can
+judge.
 
 ## The release test
 
@@ -138,8 +141,18 @@ default and maximum sizes and runs what it can itself.
   `verify:pre-release` PRs merged since the last stable release, deduplicated
   and ordered, with configs that validate against the schema.
 - The maintainer runs it and merges the PR. The merge is the release.
-- The checklist has a time budget. Checks beyond it are ranked by risk; the
-  rest ship on the evidence of the beta.
+- **Who performs a check.** First choice is the reporter: the agent asks them
+  to try the beta, and their confirmation satisfies the check. If there is no
+  reply, the maintainer performs it, provided
+  [test-environment.md](test-environment.md) lists the hardware it needs. If it
+  does not, the check is marked unverified in the checklist and does not block
+  the release.
+- **Time budget.** The whole release test takes the maintainer no more than
+  ten minutes. Checks beyond that are ranked by risk; the rest are marked
+  unverified and ship on the evidence of the beta.
+- **Expensive setups are avoided.** Casting and iPhone emulation cost far more
+  than their minutes suggest. A check needs one of them only when nothing
+  cheaper would show the same thing, and says why.
 - **A failed check is fixed by rolling forward**, never by reverting. The fix
   goes to the front of the queue, merges to `dev`, and only the failed check is
   re-run. The stable release waits for it; betas continue.
