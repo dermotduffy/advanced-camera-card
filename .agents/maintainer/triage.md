@@ -1,13 +1,12 @@
 # Triage (DRAFT)
 
 How issues are labeled, prioritized, investigated and answered. The public
-explanation of this for users is [`docs/ai.md`](../docs/ai.md); keep the two in
-step.
+explanation for users is [`docs/ai.md`](../../docs/ai.md). Keep the two in step.
 
 ## Priority
 
-The triage agent sets `P0` to `P3`, and agents pick work in that order, so this
-is a judgment about what gets built. Weigh:
+The triage agent sets a priority from `P0` to `P3`. Agents pick work in that
+order, so setting a priority is a judgment about what gets built. Weigh:
 
 - How many users are affected. A new Home Assistant, Frigate or go2rtc release
   that breaks something for many users outranks an older bug with more votes.
@@ -15,13 +14,13 @@ is a judgment about what gets built. Weigh:
 - Votes on the top post.
 - Fit with the [product stance](product-stance.md).
 
-The maintainer overrides with a label at any time.
+The maintainer can override the priority with a label at any time.
 
 ## Investigation
 
-Every bug is investigated before anything is concluded about it. The agent
-tries to reproduce the problem from the reporter's config and diagnostics, as a
-unit or browser test.
+An agent investigates every bug before concluding anything about it. It tries
+to reproduce the problem as a unit or browser test, from the reporter's config
+and diagnostics.
 
 | Outcome                                              | Evidence                              | What happens                                               |
 | ---------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------- |
@@ -33,14 +32,16 @@ unit or browser test.
 | Looks upstream                                       | The mechanism and where it belongs    | Recommendation to the maintainer.                          |
 | Needs hardware or a setup that cannot be simulated   | What was tried                        | Stays open, labeled, low priority.                         |
 
-The existing backlog is drained the same way, in batches, starting with the ten
-most recent bugs to measure the cost and the split of outcomes.
+Agents work through the existing backlog the same way, in batches. The first
+batch is the ten most recent bugs, to measure the cost and the split of
+outcomes.
 
 ## Replies an agent may post without asking
 
-Each needs its evidence. Without it, the reply becomes a recommendation to the
-maintainer. Every reply starts with the disclosure line from `INSTRUCTIONS.md`. How
-replies are written is in [user-replies.md](user-replies.md).
+Each reply needs its evidence. Without the evidence, the reply becomes a
+recommendation to the maintainer. Every reply starts with the disclosure line
+from `INSTRUCTIONS.md`. How to write replies is in
+[user-replies.md](user-replies.md).
 
 | #   | Reply                                                      | Condition                                                      | Required evidence                                                                       |
 | --- | ---------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -56,14 +57,14 @@ Rules for F:
 
 - Questions only. No conclusions, blame, promises, or anything about whether or
   when something will be fixed.
-- Two rounds of questions on one issue at most. Then it goes to the maintainer
-  with everything gathered.
+- At most two rounds of questions on one issue. After that, the issue goes to
+  the maintainer with everything gathered.
 - The daily run notices the reporter's answer and resumes the investigation.
 
-**Warm-up:** the first twenty or so replies are shown to the maintainer before
-posting. During the warm-up an agent makes no public change of any kind before
-the maintainer has approved it: no comment, no label, no pushed branch, no PR,
-and no commit message that mentions an issue number, since each of those shows
+**Warm-up:** the maintainer sees the first twenty or so replies before they are
+posted. During the warm-up, an agent makes no public change of any kind until
+the maintainer approves it. That means no comment, no label, no pushed branch,
+no PR, and no commit message that mentions an issue number. Each of those shows
 on the issue. Everything stays inside the agent's session.
 
 - Each run ends with one digest in its session: per issue, the outcome, the
@@ -75,8 +76,8 @@ on the issue. Everything stays inside the agent's session.
   input. The `needs-maintainer` label is not used during the warm-up, because
   it is public.
 
-After the warm-up, replies in the fixed classes post directly and appear in
-the daily digest. The first batch of ten backlog investigations falls inside
+After the warm-up, replies in the fixed classes are posted directly. They also
+appear in the daily digest. The first batch of ten backlog investigations falls inside
 the warm-up.
 
 **A reporter who asks for a human gets one.** The agent stops replying on that
@@ -87,8 +88,9 @@ issue and passes it to the maintainer.
 - Declining a feature request.
 - Saying something is an upstream problem.
 - Closing anything as not planned or stale.
-- Anything addressed to a contributor about their PR.
+- Anything addressed to a contributor about their PR, other than the fixed
+  replies in [contributions.md](contributions.md).
 - Any reply that is not A to G.
 
-Recommendations for these go in the daily digest, each with its evidence and a
-drafted reply written to [user-replies.md](user-replies.md).
+Recommendations for these go in the daily digest. Each has its evidence and a
+draft reply that follows [user-replies.md](user-replies.md).

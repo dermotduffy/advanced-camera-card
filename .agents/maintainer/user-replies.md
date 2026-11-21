@@ -1,12 +1,12 @@
 # Replying to users (DRAFT)
 
 How any reply on an issue, discussion or pull request is written. This replaces
-the maintainer's local `/my-voice` skill. Which replies an agent may post
-without asking is in [triage.md](triage.md); this file is about how they read.
+the maintainer's local `/my-voice` skill. [triage.md](triage.md) says which
+replies an agent may post without asking. This file covers how they read.
 
-A good reply is short and moves the issue one concrete step toward closed. The
-two failures are verbosity, and open-endedness: a reply that trails off with no
-next step and leaves the issue lingering.
+A good reply is short and moves the issue one concrete step toward being
+closed. The two failures are verbosity and open-endedness. An open-ended reply
+trails off with no next step, and the issue lingers.
 
 ## Two kinds of reply
 
@@ -34,7 +34,7 @@ Before writing, pick the track and write toward its end state.
 | Duplicate                        | The canonical issue linked; closed.                                                    | Agent (D)  |
 | Off-topic follow-up              | A request for a new issue. One problem per issue.                                      | Agent (E)  |
 | Bug, reproduced                  | "Reproduced, and queued for a fix." No date.                                           | Agent (G)  |
-| Bug, confirmed, anything further | Owned plainly.                                                                         | Maintainer |
+| Bug, confirmed, anything further | Said plainly to be a bug that will be fixed.                                           | Maintainer |
 | Works as intended                | Said to be expected, the reason given once, then closed or pointed at config.          | Maintainer |
 | Feature, will do                 | Confirmed, the first version scoped, votes invited.                                    | Maintainer |
 | Feature, no or not now           | Said so, with the reason.                                                              | Maintainer |
@@ -42,8 +42,8 @@ Before writing, pick the track and write toward its end state.
 
 ## Closing
 
-Closes are short, final, and leave a way back. Not a paragraph of hedged
-summary.
+A close is short and final, and leaves a way back. It is not a paragraph of
+hedged summary.
 
 - "I believe this is fixed in the latest release, please re-open if not!"
 - "Closing as a duplicate of #NNNN, which covers X. Follow along there."
@@ -65,22 +65,23 @@ Rules:
 - **Isolate card from upstream first.** For any stream, playback or loading
   problem: does the same camera load in Home Assistant outside the card? If it
   fails there too, the problem is upstream of the card.
-- **Suspect a stale version.** Many reports are cached old builds. Ask for the
-  version printed in the browser's Javascript console.
+- **Suspect a stale version.** Many reports come from old builds the browser has
+  cached. Ask for the version printed in the browser's Javascript console.
 - **Ask for the Javascript console output and card diagnostics** when data is
   needed.
 - **Warn about secrets** whenever asking for logs or URLs: "**Be careful to
   remove any passwords present in the output**".
-- **State the branches**, so the reply teaches before they answer: "If it works
-  in HA but not the card, it's a card problem. If it fails in both, ...".
+- **State the branches**, so the reporter learns something before answering:
+  "If it works in HA but not the card, it's a card problem. If it fails in
+  both, ...".
 - **Confirm understanding with a restatement, not an open question**: "To make
   sure I understand:", a short bullet list, "Is that right?".
 
 ## Link, don't re-explain
 
-Where the docs already answer it, link the section. Sometimes the whole reply
-is the link. Check the anchor exists before posting: headings change. When
-telling someone to update, link the release.
+Where the docs already answer the question, link the section. Sometimes the
+whole reply is the link. Check that the anchor exists before posting, because
+headings change. When telling someone to update, link the release.
 
 ## Structure
 
@@ -114,8 +115,9 @@ Match the length to the question. A short question gets one line.
 
 ## The maintainer's voice
 
-For drafts the maintainer will approve. Weight his own shorter comments from
-before mid-2026 as the reference; later long ones were often agent-drafted.
+For drafts the maintainer will approve. Treat his own shorter comments from
+before mid-2026 as the reference. Later long comments were often drafted by
+agents.
 
 - Warm but economical: "Thanks for the report!", "Thanks & good luck."
 - Text emoticons, sparingly, to soften a no or for dry humor: `:-)` `;-)`.
@@ -124,13 +126,15 @@ before mid-2026 as the reference; later long ones were often agent-drafted.
 - Dry humor about absurd input, never at the reporter's expense.
 - Direct about difficulty without discouraging: "I'm not suggesting it's
   impossible, just much harder than it should be to do well :-)".
-- Prioritization is by thumbs-up on the top post, and he says so.
+- He prioritizes by thumbs-up on the top post, and says so.
 - Casual "lets" is fine.
 
 A draft never includes a personal fact (what he owns, tests on, or plans) that
 is not already in the thread or the docs. Leave a marked gap for him instead.
 
 ## Before posting
+
+Run the prose check in [writing.md](../standards/writing.md) first. Then:
 
 1. Does it have an exit?
 2. Is it as short as the question deserves?

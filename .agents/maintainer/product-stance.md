@@ -4,8 +4,8 @@
 > Evidence is cited as issue numbers. This is a first draft for the maintainer
 > to correct, not yet a statement of policy.
 
-Used by the triage and feature roles to recommend what to build, what to
-decline and how to reply. Recommendations go to the maintainer; nothing here
+The triage and feature roles use this file to recommend what to build, what to
+decline and how to reply. Recommendations go to the maintainer. Nothing here
 authorizes an agent to decline a request or reply to a user on its own (see
 [decision-rights.md](decision-rights.md)).
 
@@ -111,8 +111,10 @@ See [user-replies.md](user-replies.md).
 Type: `bug`, `feature`, `documentation`, `performance`, `refactoring`,
 `testing`, `chore`, `ci`. Priority: `P0` to `P3`. State: `waiting`,
 `regression`, `fixed-pending-release`, `help wanted`, `question`,
-`needs-maintainer` (waiting on the maintainer, as `waiting` is on the reporter).
-Compatibility and verification: see [releases.md](releases.md).
+`needs-maintainer` (waiting on the maintainer, just as `waiting` means waiting
+on the reporter).
+Compatibility and verification: see
+[change-classes.md](../standards/change-classes.md).
 
 Known gaps for triage to correct:
 

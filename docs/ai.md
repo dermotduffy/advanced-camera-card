@@ -1,6 +1,6 @@
 # How AI Is Used in This Project
 
-This card is a hobby project with one maintainer and far more issues and
+This card is a hobby project with one maintainer. It gets far more issues and
 requests than one person can keep up with. AI agents do much of the work so
 that bugs get fixed and questions get answered sooner. This page explains what
 they do, what they do not do, and how to reach a human.
@@ -55,13 +55,13 @@ maintainer.
 
 An agent asks questions on an issue at most twice. If the problem is still
 not understood after that, the issue goes to the maintainer with everything
-gathered so far. You will not be kept answering questions indefinitely.
+gathered so far. Agents will not keep asking you questions indefinitely.
 
 ## Reaching a human
 
 If an agent's reply is wrong or unhelpful, or you would rather deal with a
-person, say so in a comment on the issue. The agent stops replying on that
-issue and it is passed to the maintainer.
+person, say so in a comment on the issue. The agent then stops replying on that
+issue and passes it to the maintainer.
 
 Please bear in mind that this is a hobby project. A human reply may take a
 while.
@@ -70,11 +70,14 @@ while.
 
 - Your pull request will be reviewed by an AI model, and you may get comments
   from it. You are welcome to disagree with them.
-- The maintainer decides whether and how a contribution is merged. An agent
-  may make follow-up changes on your pull request so that it can be merged with
-  credit to you.
+- The maintainer decides whether and how a contribution is merged.
+- If you allow edits by maintainers on your pull request, the maintainer or
+  the maintainer's AI agents may change it directly so that it can be merged.
+  These changes are new commits on your branch. Your commits and credit are
+  kept. If you do not allow edits, you will get the requested changes as
+  comments instead.
 - The standards agents work to are public, in
-  [`.agents/`](https://github.com/dermotduffy/advanced-camera-card/tree/main/.agents),
+  [`.agents/standards/`](https://github.com/dermotduffy/advanced-camera-card/tree/main/.agents/standards),
   and apply equally to AI and human contributions.
 - You are welcome to use AI tools yourself. You are responsible for what you
   submit.

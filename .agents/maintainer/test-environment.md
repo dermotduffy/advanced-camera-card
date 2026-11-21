@@ -1,8 +1,9 @@
 # Hardware available to the maintainer (DRAFT)
 
-What the maintainer personally has to test on. This is not a list of what the
-card supports. Agents use it to decide who can perform a release-test check
-(see [releases.md](releases.md)) and to avoid writing a check nobody can run.
+The hardware the maintainer personally has for testing. This is not a list of
+what the card supports. Agents use it to decide who can perform a release-test
+check (see [releases.md](releases.md)) and to avoid writing a check nobody can
+run.
 
 | Setup                                        | Available? | Cost to use  |
 | -------------------------------------------- | ---------- | ------------ |
@@ -26,5 +27,5 @@ Rules:
 - A check that needs a setup marked "No" can only be performed by a reporter.
 - A check that needs a "Medium" or "High" setup must say why nothing cheaper
   would do. "High" setups are avoided unless there is no other way.
-- Browser checks are written for the first browser in this order that can show
-  the problem: Chrome, then Firefox, then Safari.
+- Write each browser check for the first browser that can show the problem, in
+  this order: Chrome, then Firefox, then Safari.

@@ -6,15 +6,23 @@ TypeScript (strict), Lit v3, Zod, Vitest, Vite, Yarn.
 
 Commands: `yarn install`, `yarn run build`, `yarn run test`, `yarn run test:browser`, `yarn run coverage`, `yarn run typecheck`, `yarn run format`, `yarn run lint`, `yarn run prune`, `yarn run docs-check-links`.
 
-How agents work on this project, what they decide alone, and the full review standards are in [`.agents/`](.agents/README.md). Read the document your task needs:
+The agent documents are in [`.agents/`](.agents/README.md), in two folders.
 
-- [`.agents/hard-rules.md`](.agents/hard-rules.md) -- always. These may not be broken for any reason.
-- [`.agents/decision-rights.md`](.agents/decision-rights.md) -- before asking the maintainer anything.
-- [`.agents/review-rubric.md`](.agents/review-rubric.md) -- before presenting or reviewing a change.
-- [`.agents/releases.md`](.agents/releases.md) -- for any change to config, or to how a change is verified.
-- [`.agents/triage.md`](.agents/triage.md) -- for labeling, investigating or replying to issues.
-- [`.agents/user-replies.md`](.agents/user-replies.md) -- before writing any reply to a user or contributor.
-- [`.agents/product-stance.md`](.agents/product-stance.md) -- for triage recommendations and feature proposals.
+**Every agent** working on this repository follows [`.agents/standards/`](.agents/standards/):
+
+- [`hard-rules.md`](.agents/standards/hard-rules.md) -- always. These may not be broken for any reason.
+- [`review-rubric.md`](.agents/standards/review-rubric.md) -- before presenting or reviewing a change.
+- [`writing.md`](.agents/standards/writing.md) -- before writing any comment, doc, name, test title or PR text.
+- [`change-classes.md`](.agents/standards/change-classes.md) -- for any change to config, or to how a change is verified.
+
+**Agents acting on the maintainer's behalf** also follow [`.agents/maintainer/`](.agents/maintainer/README.md). Other agents must not take the actions it describes, such as labeling issues, replying to users or posting in the maintainer's name.
+
+- [`decision-rights.md`](.agents/maintainer/decision-rights.md) -- before asking the maintainer anything.
+- [`triage.md`](.agents/maintainer/triage.md) -- for labeling, investigating or replying to issues.
+- [`contributions.md`](.agents/maintainer/contributions.md) -- for any pull request from someone other than the maintainer.
+- [`user-replies.md`](.agents/maintainer/user-replies.md) -- before writing any reply to a user or contributor.
+- [`releases.md`](.agents/maintainer/releases.md) -- for releases and the release test.
+- [`product-stance.md`](.agents/maintainer/product-stance.md) -- for triage recommendations and feature proposals.
 
 ## Code Style
 
@@ -78,6 +86,6 @@ Anything an agent posts under the maintainer's name -- a comment, reply, review 
 For any agent reviewing a pull request in this repository:
 
 - Review the diff only. Do not report on code the change did not touch.
-- Report only findings that are blocking under Tier 2 of [`.agents/review-rubric.md`](.agents/review-rubric.md), each with a concrete failure scenario: the inputs or state, then the wrong outcome.
+- Report only findings that are blocking under Tier 2 of [`.agents/standards/review-rubric.md`](.agents/standards/review-rubric.md), each with a concrete failure scenario: the inputs or state, then the wrong outcome.
 - Do not report anything listed under Tier 3 of that file: hardening for cases bounded by construction, alternative internal names, refactors of untouched code, or fixes that would add config or API surface.
-- Check that the PR's compatibility and verification labels match the change (see [`.agents/releases.md`](.agents/releases.md)).
+- Check that the PR's compatibility and verification labels match the change (see [`.agents/standards/change-classes.md`](.agents/standards/change-classes.md)).

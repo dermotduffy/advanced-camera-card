@@ -8,13 +8,13 @@
 in three tiers:
 
 - **Self-audit:** the implementer checks these before anyone else sees the
-  change. They are where most review time has gone historically.
+  change. Historically, most review time has gone on these.
 - **Blocking:** the reviewer may block on these, with a concrete failure
   scenario.
 - **Follow-up:** worth noting, never worth blocking.
 
-Wherever a rule here can be enforced by a lint rule or a test, it should be,
-and then removed from this file.
+If a lint rule or a test can enforce a rule in this file, it should. The rule
+is then removed from this file.
 
 ## Tier 1: self-audit before presenting
 
@@ -26,21 +26,21 @@ Go through every line you added.
 - Short, present tense, plain words. Two or three lines at most.
 - Say what the code does and why. Not the history of the bug, and not what
   would happen without the code.
-- A comment explains the code it sits on, on its own line above that code.
+- A comment sits on its own line, directly above the code it explains.
 - Where siblings need the same explanation, use the same wording or point to
   one central comment.
 - If the maintainer has reworded a comment, keep the wording.
 
 ### Names
 
-- Use words the codebase already uses. Do not coin terms, in code, comments or
+- Use words the codebase already uses. Do not coin terms in code, comments or
   test names. Terms from an external spec or a design discussion do not count
   as existing vocabulary.
 - A name describes what the thing returns or computes. If the computation
   changes, the name changes.
 - Match siblings: a new config key, CSS variable, event or localization key is
   named by analogy with its nearest existing neighbor.
-- Two near-synonymous names for different things is a design smell. Make the
+- Giving different things near-synonymous names is a design smell. Make the
   difference obvious or merge them.
 - Verbs are accurate: `fetchX` performs a request, `isX`/`hasX` are booleans in
   the positive sense the caller needs.
@@ -127,7 +127,7 @@ Agents decide structure without the maintainer, by these rules.
   pointers, re-entry, teardown order, state leaking across reused elements.
 - **The bug is shown to be real** (reproduced or measured) before complexity is
   added to fix it.
-- **Old runtimes keep working**, Chromecast in particular. State what they see.
+- **Old runtimes keep working**, Chromecast in particular. State what users of those runtimes see.
 
 ### Config and user-facing surface
 
@@ -147,7 +147,7 @@ The reviewer checks that what was built matches what was approved, and:
   on usage and troubleshooting pages are removed in the same change. Worked
   examples go in `docs/examples.md` and are linked from the option's row.
 - **The compatibility and verification classes are correct** (see
-  [releases.md](releases.md)).
+  [change-classes.md](change-classes.md)).
 
 ### Tests
 
