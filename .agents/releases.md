@@ -12,19 +12,36 @@
 
 ## Channels
 
-| Push to | Release | Audience                  | Example            |
-| ------- | ------- | ------------------------- | ------------------ |
-| `dev`   | Beta    | Users who opt in to betas | `2026.11.2-beta.3` |
-| `main`  | Stable  | Everyone                  | `2026.11.2`        |
+| Push to | Release | GitHub pre-release flag | Audience                          |
+| ------- | ------- | ----------------------- | --------------------------------- |
+| `dev`   | Beta    | Set                     | Users who opt in to betas in HACS |
+| `main`  | Stable  | Not set                 | Everyone                          |
 
 - Every merge to `dev` publishes a beta.
 - `dev` is merged to `main` about weekly, after the release test.
 - The `next` branch is retired.
+- **A beta must never reach a user who has not opted in.** HACS offers a
+  release flagged as a pre-release only to users who have enabled pre-releases
+  for the card. The `dev` workflow therefore always sets the flag and never
+  marks its release as "latest". This is checked before the first beta ships
+  and is the one property of the release tooling that may not regress.
+- The docs site is built from `main`, so it describes the stable release. Beta
+  users read the PRs for what is new.
 
 ## Versioning
 
 CalVer, `YYYY.M.N`: the year, the month without zero-padding, and a counter
-that restarts each month. Tags are `v`-prefixed.
+that increases with every release in that month, beta or stable, and restarts
+the next month. Tags are `v`-prefixed. The day is not part of the version:
+three releases on one day are `2026.11.5`, `2026.11.6` and `2026.11.7`.
+
+Betas and stable releases share the one counter, so stable numbers skip:
+
+| Release                     | From   | Kind   |
+| --------------------------- | ------ | ------ |
+| `2026.11.4`                 | `main` | Stable |
+| `2026.11.5` to `2026.11.10` | `dev`  | Beta   |
+| `2026.11.11`                | `main` | Stable |
 
 ## Compatibility classes
 
@@ -98,8 +115,11 @@ default and maximum sizes and runs what it can itself.
 - **A failed check is fixed by rolling forward**, never by reverting. The fix
   goes to the front of the queue, merges to `dev`, and only the failed check is
   re-run. The stable release waits for it; betas continue.
-- A `regression` at `P0` is the exception to the weekly rhythm: it is verified
-  alone and released at once.
+- **Hotfix.** A `regression` at `P0` does not wait for the weekly release. Its
+  fix merges to `dev` as usual and is also put onto `main` by itself, so that
+  the unvalidated work on `dev` is not promoted with it. Its verification
+  class decides what must happen first: `AUTOMATED_FOR_RELEASE` needs nothing
+  more; `AUTOMATED_FOR_PRE_RELEASE` needs its one check run.
 
 ## Migration from semantic-release
 
@@ -110,14 +130,16 @@ One-off. Remove this section when done.
    chosen over a hand-written workflow; the semantic-release CalVer plugin was
    read and rejected as broken.
 2. **Dry run first**, to confirm what could not be confirmed by reading:
-   - beta prereleases from `dev` combined with CalVer versions;
-   - the first release, which must be given its version explicitly because the
-     plugin will not bump from `8.2.0`;
+   - Done: stable versions increment correctly. The plugin ignores release-it's
+     prerelease option, so betas are plain versions flagged as pre-releases
+     (see Channels). The plugin will not bump from `8.2.0`: the first CalVer
+     tag is created by hand, after which it continues correctly.
+   - that a release from `dev` is flagged as a pre-release and is not offered
+     by HACS to a user who has not opted in;
    - "resolved in version" comments on released issues and PRs;
-   - that HACS orders `2026.x` above `8.x` and treats the beta form as a
-     prerelease.
-3. If betas cannot be done with release-it, that returns to the maintainer as
-   a decision. It is not filled with custom code.
+   - that HACS orders `2026.x` above `8.x`.
+3. If release-it cannot meet the opt-in requirement, that returns to the
+   maintainer as a decision. It is not filled with custom code.
 4. Add the `config-upgrade`, `verify:pre-release` and `verify:manual` labels;
    narrow `breaking` to "manual changes required"; generate release notes from
    labels with the `Config impact` line first.
