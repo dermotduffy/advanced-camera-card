@@ -23,15 +23,15 @@ Every bug is investigated before anything is concluded about it. The agent
 tries to reproduce the problem from the reporter's config and diagnostics, as a
 unit or browser test.
 
-| Outcome                                              | Evidence                              | What happens                                      |
-| ---------------------------------------------------- | ------------------------------------- | ------------------------------------------------- |
-| Reproduced                                           | A failing test                        | Into the implement queue, with the test attached. |
-| Passes on `dev`, fails on the reported version       | The test run on both                  | Reply C, close.                                   |
-| Works as designed, and a config achieves the request | A config validated against the schema | Reply B.                                          |
-| Not reproducible, with a specific hypothesis         | The attempt                           | Reply F, label `waiting`.                         |
-| Not reproducible, no diagnostics                     | None                                  | Reply A, label `waiting`.                         |
-| Looks upstream                                       | The mechanism and where it belongs    | Recommendation to the maintainer.                 |
-| Needs hardware or a setup that cannot be simulated   | What was tried                        | Stays open, labeled, low priority.                |
+| Outcome                                              | Evidence                              | What happens                                               |
+| ---------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------- |
+| Reproduced                                           | A failing test                        | Reply G. Into the implement queue, with the test attached. |
+| Passes on `dev`, fails on the reported version       | The test run on both                  | Reply C, close.                                            |
+| Works as designed, and a config achieves the request | A config validated against the schema | Reply B.                                                   |
+| Not reproducible, with a specific hypothesis         | The attempt                           | Reply F, label `waiting`.                                  |
+| Not reproducible, no diagnostics                     | None                                  | Reply A, label `waiting`.                                  |
+| Looks upstream                                       | The mechanism and where it belongs    | Recommendation to the maintainer.                          |
+| Needs hardware or a setup that cannot be simulated   | What was tried                        | Stays open, labeled, low priority.                         |
 
 The existing backlog is drained the same way, in batches, starting with the ten
 most recent bugs to measure the cost and the split of outcomes.
@@ -50,6 +50,7 @@ replies are written is in [user-replies.md](user-replies.md).
 | D   | "Duplicate of #N", closing as duplicate                    | Same symptom and same cause as an open issue                   | The link and a one-line reason they match                                               |
 | E   | A request to open a new issue with diagnostics             | A comment raises an unrelated problem on an existing issue     | None                                                                                    |
 | F   | Up to three specific questions, optionally a config to try | Not reproducible, and there is a specific hypothesis           | Each question tied to the hypothesis; any config validates against the schema           |
+| G   | "Reproduced, and queued for a fix"                         | The investigation reproduced the bug                           | The failing test. No date is given.                                                     |
 
 Rules for F:
 
@@ -71,7 +72,7 @@ issue and passes it to the maintainer.
 - Saying something is an upstream problem.
 - Closing anything as not planned or stale.
 - Anything addressed to a contributor about their PR.
-- Any reply that is not A to F.
+- Any reply that is not A to G.
 
 Recommendations for these go in the daily digest, each with its evidence and a
 drafted reply written to [user-replies.md](user-replies.md).

@@ -51,6 +51,7 @@ maintainer.
 | "Fixed in version X"                                       | A test shows the problem on your version and not on the current one.         |
 | "Duplicate of #N"                                          | Another open issue has the same symptom and the same cause.                  |
 | A request to open a new issue                              | A comment raises an unrelated problem on an existing issue.                  |
+| "Reproduced, and queued for a fix"                         | The agent has reproduced the bug with a test. No date is promised.           |
 
 An agent asks questions on an issue at most twice. If the problem is still
 not understood after that, the issue goes to the maintainer with everything

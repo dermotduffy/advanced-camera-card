@@ -12,7 +12,7 @@ next step and leaves the issue lingering.
 
 Both start with the disclosure line from `INSTRUCTIONS.md`.
 
-|                  | Posted by an agent alone ([triage.md](triage.md) classes A to F)                | Drafted for the maintainer to approve                               |
+|                  | Posted by an agent alone ([triage.md](triage.md) classes A to G)                | Drafted for the maintainer to approve                               |
 | ---------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Speaks as        | The project. No "I".                                                            | The maintainer, in the first person. He has approved the words.     |
 | May say          | What was tested, what was found, what is being asked.                           | Decisions: yes, no, not now, not a card problem.                    |
@@ -25,19 +25,20 @@ An agent does not imitate the maintainer in a reply he has not approved.
 
 Before writing, pick the track and write toward its end state.
 
-| Track                  | End state                                                                              | Who posts  |
-| ---------------------- | -------------------------------------------------------------------------------------- | ---------- |
-| Needs diagnostics      | One line asking for them, with the docs link.                                          | Agent (A)  |
-| Needs information      | Bounded questions that isolate one variable, then stop.                                | Agent (F)  |
-| Already possible       | The config and the docs link.                                                          | Agent (B)  |
-| Already fixed          | The version that fixed it; closed, with "re-open if not".                              | Agent (C)  |
-| Duplicate              | The canonical issue linked; closed.                                                    | Agent (D)  |
-| Off-topic follow-up    | A request for a new issue. One problem per issue.                                      | Agent (E)  |
-| Bug, confirmed         | Owned plainly.                                                                         | Maintainer |
-| Works as intended      | Said to be expected, the reason given once, then closed or pointed at config.          | Maintainer |
-| Feature, will do       | Confirmed, the first version scoped, votes invited.                                    | Maintainer |
-| Feature, no or not now | Said so, with the reason.                                                              | Maintainer |
-| Not a card problem     | Where it actually lives (HA, the integration, the browser, HACS, Frigate), and closed. | Maintainer |
+| Track                            | End state                                                                              | Who posts  |
+| -------------------------------- | -------------------------------------------------------------------------------------- | ---------- |
+| Needs diagnostics                | One line asking for them, with the docs link.                                          | Agent (A)  |
+| Needs information                | Bounded questions that isolate one variable, then stop.                                | Agent (F)  |
+| Already possible                 | The config and the docs link.                                                          | Agent (B)  |
+| Already fixed                    | The version that fixed it; closed, with "re-open if not".                              | Agent (C)  |
+| Duplicate                        | The canonical issue linked; closed.                                                    | Agent (D)  |
+| Off-topic follow-up              | A request for a new issue. One problem per issue.                                      | Agent (E)  |
+| Bug, reproduced                  | "Reproduced, and queued for a fix." No date.                                           | Agent (G)  |
+| Bug, confirmed, anything further | Owned plainly.                                                                         | Maintainer |
+| Works as intended                | Said to be expected, the reason given once, then closed or pointed at config.          | Maintainer |
+| Feature, will do                 | Confirmed, the first version scoped, votes invited.                                    | Maintainer |
+| Feature, no or not now           | Said so, with the reason.                                                              | Maintainer |
+| Not a card problem               | Where it actually lives (HA, the integration, the browser, HACS, Frigate), and closed. | Maintainer |
 
 ## Closing
 
