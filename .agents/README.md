@@ -170,6 +170,14 @@ Both take the week's merged PRs as input and share the reserved slot.
 - **Testing** looks for weak or redundant tests, release-test checks that could
   become browser tests, and gaps exposed by the week's bugs.
 
+The testing role also owns the longer-term question of how to test the card
+with less of the maintainer's time, and advances it in small steps. Running
+the card against a real Home Assistant in a container is one candidate, not a
+commitment: the repository's dev container setup has not been used for years
+and may not work. Until something better exists, the safeguards are CI, the
+`dist` tests that check the built output loads, and the maintainer's own
+testing before each stable release.
+
 Each finding becomes, in order of preference: a mechanical check (lint rule,
 duplicate detector, boundary check); a PR through the implement loop; a new
 rubric line.
@@ -209,5 +217,3 @@ change code.
   activity as described above.
 - What each session costs in subscription usage. This is measured during the
   trial and is not expected to limit the plan.
-- How much of the release test can be automated against Home Assistant in a
-  container.

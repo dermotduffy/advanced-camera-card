@@ -61,10 +61,23 @@ Rules for F:
 - The daily run notices the reporter's answer and resumes the investigation.
 
 **Warm-up:** the first twenty or so replies are shown to the maintainer before
-posting. They are gathered into one digest per run, each with its evidence and
-the drafted reply, and the maintainer approves, edits or rejects each in that
-session. After the warm-up they post directly and appear in the daily digest.
-The first batch of ten backlog investigations falls inside the warm-up.
+posting. During the warm-up an agent makes no public change of any kind before
+the maintainer has approved it: no comment, no label, no pushed branch, no PR,
+and no commit message that mentions an issue number, since each of those shows
+on the issue. Everything stays inside the agent's session.
+
+- Each run ends with one digest in its session: per issue, the outcome, the
+  evidence (a failing test is shown as a diff, not pushed), and the reply
+  exactly as it would be posted.
+- The maintainer approves, edits or rejects each item there. Only approved
+  items are then posted, labeled or pushed.
+- The maintainer finds the digest in the Claude app's list of sessions awaiting
+  input. The `needs-maintainer` label is not used during the warm-up, because
+  it is public.
+
+After the warm-up, replies in the fixed classes post directly and appear in
+the daily digest. The first batch of ten backlog investigations falls inside
+the warm-up.
 
 **A reporter who asks for a human gets one.** The agent stops replying on that
 issue and passes it to the maintainer.
