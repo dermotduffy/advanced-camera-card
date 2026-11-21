@@ -466,29 +466,27 @@ describe('MediaUnavailableIssue', () => {
   });
 
   it('should keep retrying a camera that is still broken', async () => {
-    // Must use the real clock: fake time moves the card's timers instantly, so
-    // a request would never get a chance to answer between one retry and the
-    // next, and the card would call the attempt slow instead of failed.
-    vi.useRealTimers();
-
+    const retrySeconds = 1;
     const card = await mountCard({
       // A fixed interval rather than the default backoff, which jitters every
-      // delay by a random half. Backoff itself is tested in unittests. Short,
-      // because this is real time, but long enough that a failed request is
-      // reported before the next attempt replaces it.
-      //
-      // Caution: As this test must use the real clock, this directly adds to
-      // the test runtime.
-      view: { issues: { retry_seconds: 0.1 } },
+      // delay by a random half. Backoff itself is tested in unittests.
+      view: { issues: { retry_seconds: retrySeconds } },
       cameras: [
         createStillImageCameraConfig(CAMERA_ENTITY, createTemporarilyFailingMediaURL(2)),
       ],
     });
 
+    await card.events.waitForFirst('advanced-camera-card:issue:trigger');
+    await waitForIssueReported(card);
+
+    // The clock moves on only once the attempt before has failed, because a
+    // retry replaces an attempt that has not yet answered.
+    await card.advanceSeconds(retrySeconds);
+
     // Two failures: the first attempt, and a retry after it. Giving up after
     // one would leave a camera dark that was about to come back.
     await card.events.waitForCount('advanced-camera-card:issue:trigger', 2);
-    await waitForIssueReported(card);
+    await card.advanceSeconds(retrySeconds);
 
     // The third attempt is served. Clearing the issue is a render that follows
     // the media arriving rather than accompanying it, so it is waited for.
@@ -497,10 +495,8 @@ describe('MediaUnavailableIssue', () => {
 
     expect(isLiveMediaShowing(card.card)).toBe(true);
 
-    // Exactly the two attempts that failed, so the retry ran once rather than
-    // spinning until something happened to work. A refused request is reported
-    // as a server error rather than a slow load, which is what allows it to be
-    // retried without waiting.
+    // A refused request is reported as a server error rather than a slow load,
+    // which is what allows it to be retried without waiting out a grace period.
     expect(
       card.events
         .getEntries('advanced-camera-card:issue:trigger')
