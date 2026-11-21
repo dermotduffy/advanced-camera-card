@@ -258,9 +258,11 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     this._modeFormsController.setInput(MODE_REQUEST, input);
     return html`
       <div class="mode">
-        <advanced-camera-card-icon
-          .icon=${{ icon: 'mdi:tune' }}
-        ></advanced-camera-card-icon>
+        <span>
+          <advanced-camera-card-icon
+            .icon=${{ icon: 'mdi:tune' }}
+          ></advanced-camera-card-icon>
+        </span>
         ${renderForms(hass, this._modeFormsController.getContexts())}
       </div>
     `;

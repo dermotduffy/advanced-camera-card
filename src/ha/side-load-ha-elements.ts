@@ -21,7 +21,6 @@ export const SIDE_LOADED_ELEMENTS = [
   'ha-button',
   'ha-camera-stream',
   'ha-card',
-  'ha-combo-box',
   'ha-dropdown-item',
   'ha-dropdown',
   'ha-expansion-panel',
@@ -30,9 +29,6 @@ export const SIDE_LOADED_ELEMENTS = [
   'ha-icon-button-prev',
   'ha-icon-button',
   'ha-icon',
-  'ha-md-list-item',
-  'ha-md-list',
-  'ha-menu-button',
   'ha-selector',
   'ha-sortable',
   'ha-spinner',
@@ -41,7 +37,6 @@ export const SIDE_LOADED_ELEMENTS = [
 
   'hui-conditional-element',
 
-  'mwc-list-item',
   'state-badge',
 ];
 
