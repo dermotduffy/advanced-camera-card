@@ -89,7 +89,7 @@ Each role has a trigger and an output. None is a chat partner.
 | Architecture      | Weekly              | Refactor PRs, new lint rules or checks, a report.   |
 | Testing           | Weekly              | Test PRs, harness improvements, a report.           |
 | Triage            | Daily               | Labels and priorities; a digest of recommendations. |
-| Feature           | Fortnightly         | Ranked proposals.                                   |
+| Feature           | Weekly              | Ranked proposals.                                   |
 
 The design challenger and reviewer are fresh-context agents, separate from the
 implementer. They are given the plan or the diff and the rubric, never the
@@ -193,7 +193,8 @@ change code.
 
 1. These documents and `INSTRUCTIONS.md`.
 2. The implement loop, trialed on two or three well-specified bugs started by
-   hand.
+   hand, one at a time. One slot is the starting point so that mistakes in the
+   process have a small blast radius; slots are added once it works.
 3. Releases: CalVer, the beta channel, the release PR (see
    [releases.md](releases.md)).
 4. Orchestrator, and the board configured to reflect labels.
@@ -206,7 +207,7 @@ change code.
   other release-tooling points listed in [releases.md](releases.md).
 - That the existing project board can be configured to follow labels and PR
   activity as described above.
-- That the subscription's usage limits allow four concurrent sessions plus the
-  scheduled roles.
+- What each session costs in subscription usage. This is measured during the
+  trial and is not expected to limit the plan.
 - How much of the release test can be automated against Home Assistant in a
   container.

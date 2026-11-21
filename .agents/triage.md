@@ -61,7 +61,10 @@ Rules for F:
 - The daily run notices the reporter's answer and resumes the investigation.
 
 **Warm-up:** the first twenty or so replies are shown to the maintainer before
-posting. After that they post directly and appear in the daily digest.
+posting. They are gathered into one digest per run, each with its evidence and
+the drafted reply, and the maintainer approves, edits or rejects each in that
+session. After the warm-up they post directly and appear in the daily digest.
+The first batch of ten backlog investigations falls inside the warm-up.
 
 **A reporter who asks for a human gets one.** The agent stops replying on that
 issue and passes it to the maintainer.
