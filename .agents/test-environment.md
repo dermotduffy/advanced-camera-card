@@ -10,7 +10,7 @@ card supports. Agents use it to decide who can perform a release-test check
 | Frigate                                      | Yes        | Low          |
 | go2rtc                                       | Yes        | Low          |
 | Linux desktop: Chrome, Firefox               | Yes        | Low          |
-| macOS desktop: Safari                        | Yes        | Low          |
+| macOS desktop: Safari                        | Yes        | Medium       |
 | Android phone, HA Companion app              | Yes        | Low          |
 | PTZ camera                                   | Yes        | Low          |
 | Cameras: Amcrest, Dahua, Reolink, Tapo, Wyze | Yes        | Low          |
@@ -24,6 +24,7 @@ card supports. Agents use it to decide who can perform a release-test check
 Rules:
 
 - A check that needs a setup marked "No" can only be performed by a reporter.
-- A check that needs a "High" setup must say why nothing cheaper would do.
+- A check that needs a "Medium" or "High" setup must say why nothing cheaper
+  would do. "High" setups are avoided unless there is no other way.
 - Browser checks are written for the first browser in this order that can show
   the problem: Chrome, then Firefox, then Safari.
