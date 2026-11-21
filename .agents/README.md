@@ -47,7 +47,17 @@ Everything not in this list happens without the maintainer.
 | Standing rules                                                  | This directory                                |
 | Public GitHub                                                   | Labels, PRs, maintainer-approved replies only |
 
-Agents never debate each other, or the maintainer, in public issues or PRs.
+The maintainer never debates an agent in public. The only public exchange
+between agents is the cross-model review on a PR.
+
+**Every comment, reply, review or PR description an agent posts under the
+maintainer's name starts with this line, alone:**
+
+```
+_Posted by an AI agent on behalf of the maintainer._
+```
+
+This includes replies the maintainer approved before an agent posted them.
 
 Agent sessions run in the cloud: each gets its own clone, starts without
 maintainer setup, and receives its own PR's CI results. A session that needs

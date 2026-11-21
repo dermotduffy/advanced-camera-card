@@ -66,6 +66,10 @@ How agents work on this project, what they decide alone, and the full review sta
 - Preserve alphabetical ordering when inserting into sorted lists/sections.
 - Prefer structural CSS selectors (`.parent child-element`) over permanently-enabled classes.
 
+## Posting on GitHub
+
+Anything an agent posts under the maintainer's name -- a comment, reply, review or PR description -- starts with this line, alone: `_Posted by an AI agent on behalf of the maintainer._`
+
 ## Review guidelines
 
 For any agent reviewing a pull request in this repository:
