@@ -31,6 +31,10 @@ import {
   type ZoomSettingsObserved,
 } from './types';
 
+// Touch behavior while unzoomed: the browser may pan the page over unzoomed
+// media, but not zoom it.
+const UNZOOMED_TOUCH_ACTION = 'pan-x pan-y';
+
 interface TapPoint extends Point {
   time: number;
 }
@@ -227,10 +231,9 @@ export class ZoomController {
       // 'move' type cursor whether or not it is zoomed in).
       cursor: undefined,
 
-      // Disable automatic touchAction setting from Panzoom() as otherwise it
-      // effectively disables dashboard scrolling. See:
+      // Panzoom's default of `none` would stop the dashboard scrolling, see:
       // https://github.com/dermotduffy/advanced-camera-card/issues/1181
-      touchAction: '',
+      touchAction: UNZOOMED_TOUCH_ACTION,
 
       // Set the initial pan/zoom values to avoid an initial unzoomed view.
       ...(config && converted && { startX: converted.x }),
@@ -703,6 +706,6 @@ export class ZoomController {
   }
 
   private _setTouchAction(touchEnabled: boolean): void {
-    this._element.style.touchAction = touchEnabled ? '' : 'none';
+    this._element.style.touchAction = touchEnabled ? UNZOOMED_TOUCH_ACTION : 'none';
   }
 }
