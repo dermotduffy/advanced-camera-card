@@ -110,6 +110,9 @@ export const waitForTransition = (element: Element): Promise<void> =>
     element.addEventListener('transitionend', () => resolve(), { once: true }),
   );
 
+export const waitForFrame = async (): Promise<void> =>
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
 const waitForHold = async (): Promise<void> => {
   if (vi.isFakeTimers()) {
     await vi.advanceTimersByTimeAsync(HOLD_SECONDS * 1000);

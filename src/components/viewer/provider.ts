@@ -234,6 +234,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
                 : undefined,
             )}
             .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
+            .dimensionsConfig=${this._getRelevantCameraConfig()?.dimensions}
             @advanced-camera-card:zoom:zoomed=${async () =>
               (await this.getMediaPlayerController())?.setControls(false)}
             @advanced-camera-card:zoom:unzoomed=${async () =>

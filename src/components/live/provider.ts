@@ -114,6 +114,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   private _loadingImageLoaded = false;
 
   private _refProvider: Ref<MediaPlayerElement> = createRef();
+  private _refLiveImage: Ref<HTMLElement> = createRef();
 
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
@@ -134,6 +135,30 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         !this._streamLivenessController.getFailure(),
     });
   }
+
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    const root = super.createRenderRoot();
+    root.addEventListener(
+      'advanced-camera-card:media:loaded',
+      this._stopLoadingImageLoad,
+    );
+    return root;
+  }
+
+  // This provider's shadow root stops the loading image's media loaded event as
+  // late as possible: the image is still sized and zoomed, but never counted as
+  // loaded media by this provider or anything above it.
+  private _stopLoadingImageLoad = (ev: Event): void => {
+    const liveImage = this._refLiveImage.value;
+    if (
+      // With the image provider, the live image is the stream itself.
+      getResolvedLiveProvider(this.camera?.getConfig()) !== 'image' &&
+      liveImage &&
+      ev.composedPath().includes(liveImage)
+    ) {
+      ev.stopPropagation();
+    }
+  };
 
   // A note on dynamic imports:
   //
@@ -276,6 +301,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
           )}
           .settings=${this.zoomSettings}
           .zoom=${this.zoom}
+          .dimensionsConfig=${config?.dimensions}
           @advanced-camera-card:zoom:zoomed=${() => (this._zoomed = true)}
           @advanced-camera-card:zoom:unzoomed=${() => (this._zoomed = false)}
         >
@@ -378,6 +404,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       ${shouldShowImageDuringLoading || provider === 'image'
         ? html` <advanced-camera-card-live-image
             ${ref(this._refProvider)}
+            ${ref(this._refLiveImage)}
             .hass=${this.hass}
             .camera=${this.camera}
             .targetID=${this.targetID}
@@ -391,17 +418,11 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             @advanced-camera-card:media:loaded=${(
               ev: CustomEvent<MediaLoadedInfoEventDetail>,
             ) => {
-              // When the image is rendered as a placeholder behind another
-              // provider, suppress its load event so it doesn't reach the
-              // card-root listener and clobber the real provider's
-              // registration. The real provider's load event will arrive
-              // afterwards.
               if (provider !== 'image') {
                 this._loadingImageLoaded = true;
 
                 // Should the image unload, the provider returns to unsized.
                 onAbort(ev.detail.signal, () => (this._loadingImageLoaded = false));
-                ev.stopPropagation();
               }
             }}
           >
