@@ -24,6 +24,7 @@ import {
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import { PreservedFrameCaptureController } from '../../components-lib/preserved-frame-capture-controller.js';
+import { PreservedFrameHoldController } from '../../components-lib/preserved-frame-hold-controller.js';
 import type { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import type { LiveConfig } from '../../config/schema/live.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
@@ -44,6 +45,7 @@ import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 import '../icon.js';
 
 import { renderMediaNotification } from '../notification/media.js';
+import type { AdvancedCameraCardLiveImage } from './providers/image.js';
 
 import './../media-dimensions-container';
 
@@ -103,6 +105,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
     getTargetID: () => this.targetID ?? null,
+    callback: (info) => this._preservedFrameHoldController.setMedia(info),
   });
 
   private _streamLivenessController = new StreamLivenessController(this, {
@@ -119,6 +122,14 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   private _loadingImageLoaded = false;
 
   private _refProvider: Ref<MediaPlayerElement> = createRef();
+
+  private _refLoadingImage: Ref<AdvancedCameraCardLiveImage> = createRef();
+
+  private _preservedFrameHoldController = new PreservedFrameHoldController(this, {
+    isShowingPreservedFrame: () =>
+      getResolvedLiveProvider(this.camera?.getConfig()) !== 'image' &&
+      !!this._refLoadingImage.value?.isShowingPreservedFrame(),
+  });
 
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
@@ -353,6 +364,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     ) {
       // Nothing is drawn at all, so nothing is filling the frame.
       this.toggleAttribute('sized', false);
+      this.toggleAttribute('holding-preserved-frame', false);
       return;
     }
 
@@ -364,6 +376,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     const notification = this._getNotification(failure);
 
     const shouldShowImageDuringLoading = this._shouldShowImageDuringLoading();
+    const holdingPreservedFrame = this._preservedFrameHoldController.isHolding();
+    this.toggleAttribute('holding-preserved-frame', holdingPreservedFrame);
     const mediaLoaded = this._mediaLoadedInfoSinkController.has();
     const loadingImageLoaded = shouldShowImageDuringLoading && this._loadingImageLoaded;
 
@@ -392,9 +406,10 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     };
 
     return html`${this._renderContainer(html`
-      ${shouldShowImageDuringLoading || provider === 'image'
+      ${shouldShowImageDuringLoading || holdingPreservedFrame || provider === 'image'
         ? html` <advanced-camera-card-live-image
             ${ref(this._refProvider)}
+            ${ref(this._refLoadingImage)}
             .hass=${this.hass}
             .camera=${this.camera}
             .targetID=${this.targetID}
@@ -405,6 +420,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               // The image provider is providing the temporary loading image,
               // so it should not be hidden.
               hidden: false,
+              'over-media': holdingPreservedFrame,
             })}
             @advanced-camera-card:media:loaded=${(
               ev: CustomEvent<MediaLoadedInfoEventDetail>,

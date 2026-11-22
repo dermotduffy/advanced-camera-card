@@ -14,13 +14,11 @@ import type { PreservedFrameManager } from '../../../card-controller/preserved-f
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import type { HomeAssistant } from '../../../ha/types';
 import basicBlockStyle from '../../../scss/basic-block.scss?inline';
-import type {
-  MediaPlayer,
-  MediaPlayerController,
-  MediaPlayerElement,
-} from '../../../types.js';
+import type { MediaPlayer, MediaPlayerController } from '../../../types.js';
 
 import '../../image-updating-player.js';
+
+import type { AdvancedCameraCardImageUpdatingPlayer } from '../../image-updating-player.js';
 
 @customElement('advanced-camera-card-live-image')
 export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlayer {
@@ -41,7 +39,12 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
   @property({ attribute: false })
   public preservedFrameManager?: PreservedFrameManager;
 
-  private _refImage: Ref<MediaPlayerElement> = createRef();
+  private _refImage: Ref<AdvancedCameraCardImageUpdatingPlayer> = createRef();
+
+  /** Whether the image shows a preserved frame. */
+  public isShowingPreservedFrame(): boolean {
+    return !!this._refImage.value?.isShowingPreservedFrame();
+  }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
