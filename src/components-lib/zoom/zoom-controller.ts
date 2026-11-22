@@ -31,8 +31,8 @@ import {
   type ZoomSettingsObserved,
 } from './types';
 
-// Touch behavior while unzoomed: one-finger pans scroll the page; the browser's
-// own zoom gestures are disabled so the card's pinch zoom is the only zoom.
+// Touch behavior while unzoomed: the browser may pan the page over unzoomed
+// media, but not zoom it.
 const UNZOOMED_TOUCH_ACTION = 'pan-x pan-y';
 
 interface TapPoint extends Point {
@@ -231,10 +231,7 @@ export class ZoomController {
       // 'move' type cursor whether or not it is zoomed in).
       cursor: undefined,
 
-      // Keep one-finger dashboard scrolling but drop the browser's own zoom
-      // gestures on the media (e.g. Android Chrome's tap-then-drag zoom) while
-      // unzoomed; pinch zoom is handled by the card. `none` would disable
-      // dashboard scrolling, see:
+      // Panzoom's default of `none` would stop the dashboard scrolling, see:
       // https://github.com/dermotduffy/advanced-camera-card/issues/1181
       touchAction: UNZOOMED_TOUCH_ACTION,
 
