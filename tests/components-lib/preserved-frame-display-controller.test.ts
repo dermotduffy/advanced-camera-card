@@ -14,6 +14,7 @@ const createManager = (frame: PreservedFrame | null = createPreservedFrame()) =>
   const manager = mock<PreservedFrameManager>();
   manager.get.mockReturnValue(frame);
   manager.getSecondsUntilExpired.mockReturnValue(60);
+  manager.subscribe.mockReturnValue(vi.fn());
   return manager;
 };
 
@@ -31,14 +32,14 @@ const createController = (options?: Partial<ControllerState>) => {
     ...options,
   };
   const host = createLitElement();
-  const onShownFrameExpired = vi.fn();
+  const onShownFrameOutdated = vi.fn();
   const controller = new PreservedFrameDisplayController(host, {
     getCameraID: () => state.cameraID,
     getManager: () => state.manager,
     getShownURL: () => state.shownURL,
-    onShownFrameExpired,
+    onShownFrameOutdated,
   });
-  return { host, controller, state, onShownFrameExpired };
+  return { host, controller, state, onShownFrameOutdated };
 };
 
 // @vitest-environment jsdom
@@ -233,58 +234,108 @@ describe('PreservedFrameDisplayController', () => {
 
   describe('should tell the host when the shown frame expires', () => {
     it('should tell the host once the frame expires', () => {
-      const { controller, onShownFrameExpired } = createController();
+      const { controller, onShownFrameOutdated } = createController();
       controller.hostUpdated();
 
       vi.advanceTimersByTime(59 * 1000);
-      expect(onShownFrameExpired).not.toHaveBeenCalled();
+      expect(onShownFrameOutdated).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(1000);
-      expect(onShownFrameExpired).toHaveBeenCalledTimes(1);
+      expect(onShownFrameOutdated).toHaveBeenCalledTimes(1);
     });
 
     it('should tell the host at the new time when the expiry time of the frame changes', () => {
       const manager = createManager();
-      const { controller, onShownFrameExpired } = createController({ manager });
+      const { controller, onShownFrameOutdated } = createController({ manager });
       controller.hostUpdated();
 
       manager.getSecondsUntilExpired.mockReturnValue(10);
       controller.hostUpdated();
       vi.advanceTimersByTime(10 * 1000);
 
-      expect(onShownFrameExpired).toHaveBeenCalledTimes(1);
+      expect(onShownFrameOutdated).toHaveBeenCalledTimes(1);
     });
 
     it('should not tell the host when the host does not show the frame', () => {
-      const { controller, onShownFrameExpired } = createController({
+      const { controller, onShownFrameOutdated } = createController({
         shownURL: 'https://example.com/snapshot.jpg',
       });
       controller.hostUpdated();
 
       vi.advanceTimersByTime(60 * 1000);
 
-      expect(onShownFrameExpired).not.toHaveBeenCalled();
+      expect(onShownFrameOutdated).not.toHaveBeenCalled();
     });
 
     it('should not tell the host after the host stops showing the frame', () => {
-      const { controller, state, onShownFrameExpired } = createController();
+      const { controller, state, onShownFrameOutdated } = createController();
       controller.hostUpdated();
 
       state.shownURL = 'https://example.com/snapshot.jpg';
       controller.hostUpdated();
       vi.advanceTimersByTime(60 * 1000);
 
-      expect(onShownFrameExpired).not.toHaveBeenCalled();
+      expect(onShownFrameOutdated).not.toHaveBeenCalled();
     });
 
     it('should not tell the host after the host disconnects', () => {
-      const { controller, onShownFrameExpired } = createController();
+      const { controller, onShownFrameOutdated } = createController();
       controller.hostUpdated();
 
       controller.hostDisconnected();
       vi.advanceTimersByTime(60 * 1000);
 
-      expect(onShownFrameExpired).not.toHaveBeenCalled();
+      expect(onShownFrameOutdated).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('should tell the host when a new frame is preserved', () => {
+    it('should tell the host while it shows a frame of the camera', () => {
+      const manager = createManager();
+      const { controller, onShownFrameOutdated } = createController({ manager });
+      controller.hostUpdated();
+
+      expect(manager.subscribe).toHaveBeenCalledWith('camera-1', expect.any(Function));
+      manager.subscribe.mock.calls[0][1]();
+
+      expect(onShownFrameOutdated).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not listen while the host does not show the frame', () => {
+      const manager = createManager();
+      const { controller } = createController({
+        manager,
+        shownURL: 'https://example.com/snapshot.jpg',
+      });
+
+      controller.hostUpdated();
+
+      expect(manager.subscribe).not.toHaveBeenCalled();
+    });
+
+    it('should stop listening once the host stops showing the frame', () => {
+      const manager = createManager();
+      const unsubscribe = vi.fn();
+      manager.subscribe.mockReturnValue(unsubscribe);
+      const { controller, state } = createController({ manager });
+      controller.hostUpdated();
+
+      state.shownURL = 'https://example.com/snapshot.jpg';
+      controller.hostUpdated();
+
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('should stop listening once the host disconnects', () => {
+      const manager = createManager();
+      const unsubscribe = vi.fn();
+      manager.subscribe.mockReturnValue(unsubscribe);
+      const { controller } = createController({ manager });
+      controller.hostUpdated();
+
+      controller.hostDisconnected();
+
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 });

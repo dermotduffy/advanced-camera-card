@@ -1,6 +1,6 @@
 import { LRUCache } from '../cache/lru';
 import type { AdvancedCameraCardConfig } from '../config/schema/types';
-import type { DataURL } from '../types';
+import type { DataURL, UnsubscribeCallback } from '../types';
 
 export interface PreservedFrame {
   url: DataURL;
@@ -13,6 +13,8 @@ export interface PreservedFrameKey {
   cameraID: string;
 }
 
+type PreservedFrameStoreListener = (key: PreservedFrameKey) => void;
+
 // Arbitrary cap on how many frames to store. The LRU cache may hold up to twice
 // this, so 16 frames at 4K is roughly 16-32MB (each a 1-2 MB `data:` URL).
 const PRESERVED_FRAME_STORE_CAPACITY = 8;
@@ -24,6 +26,7 @@ const PRESERVED_FRAME_STORE_CAPACITY = 8;
  */
 export class PreservedFrameStore {
   private _frames = new LRUCache<string, PreservedFrame>(PRESERVED_FRAME_STORE_CAPACITY);
+  private _listeners = new Set<PreservedFrameStoreListener>();
 
   public get(key: PreservedFrameKey, maxAgeSeconds: number): PreservedFrame | null {
     const frame = this._frames.get(this._encodeKey(key));
@@ -38,7 +41,16 @@ export class PreservedFrameStore {
     const encodedKey = this._encodeKey(key);
     if (this._frames.get(encodedKey)?.url !== frame.url) {
       this._frames.set(encodedKey, frame);
+      this._listeners.forEach((listener) => listener(key));
     }
+  }
+
+  /** Call `listener` with the key of every frame stored from now on. */
+  public subscribe(listener: PreservedFrameStoreListener): UnsubscribeCallback {
+    this._listeners.add(listener);
+    return () => {
+      this._listeners.delete(listener);
+    };
   }
 
   private _encodeKey(key: PreservedFrameKey): string {

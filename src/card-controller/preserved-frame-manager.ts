@@ -1,4 +1,4 @@
-import type { MediaPlayerController } from '../types';
+import type { MediaPlayerController, UnsubscribeCallback } from '../types';
 import { onAbort } from '../utils/abort-signal';
 import {
   sharedPreservedFrameStore,
@@ -50,6 +50,19 @@ export class PreservedFrameManager {
     if (url) {
       this._store.set(this._getKey(cameraID), { url, date });
     }
+  }
+
+  /**
+   * Call `callback` whenever a new frame is preserved for the camera, including
+   * by another card that shares this card's frames.
+   */
+  public subscribe(cameraID: string, callback: () => void): UnsubscribeCallback {
+    return this._store.subscribe((key) => {
+      const ownKey = this._getKey(cameraID);
+      if (key.cardID === ownKey.cardID && key.cameraID === ownKey.cameraID) {
+        callback();
+      }
+    });
   }
 
   /** Record that a player is showing `frame` for the camera until `signal`

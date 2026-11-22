@@ -137,6 +137,40 @@ describe('PreservedFrameStore', () => {
     expect(store.get({ cameraID: 'camera-19' }, 60)).not.toBeNull();
   });
 
+  describe('should tell listeners of stored frames', () => {
+    it('should call a listener with the key of a stored frame', () => {
+      const store = new PreservedFrameStore();
+      const listener = vi.fn();
+      store.subscribe(listener);
+
+      store.set({ cardID: 'card-1', cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(listener).toHaveBeenCalledWith({ cardID: 'card-1', cameraID: 'camera-1' });
+    });
+
+    it('should not call a listener when the same frame is stored again', () => {
+      const store = new PreservedFrameStore();
+      const listener = vi.fn();
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+      store.subscribe(listener);
+
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should not call a listener once it unsubscribes', () => {
+      const store = new PreservedFrameStore();
+      const listener = vi.fn();
+      const unsubscribe = store.subscribe(listener);
+
+      unsubscribe();
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
   it('should share one store across the page', () => {
     expect(sharedPreservedFrameStore).toBeInstanceOf(PreservedFrameStore);
   });
