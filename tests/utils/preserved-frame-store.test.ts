@@ -78,6 +78,35 @@ describe('PreservedFrameStore', () => {
     expect(store.get({ cameraID: 'camera-1' }, 60)).toBe(frame);
   });
 
+  it('should not replace a frame with an older one', () => {
+    const store = new PreservedFrameStore();
+    const frame = createPreservedFrame();
+
+    store.set({ cameraID: 'camera-1' }, frame);
+    store.set(
+      { cameraID: 'camera-1' },
+      createPreservedFrame({
+        url: 'data:image/jpeg;base64,older',
+        date: new Date(date.getTime() - 1000),
+      }),
+    );
+
+    expect(store.get({ cameraID: 'camera-1' }, 60)).toBe(frame);
+  });
+
+  it('should replace a frame with another of the same date', () => {
+    const store = new PreservedFrameStore();
+    const replacement = createPreservedFrame({
+      url: 'data:image/jpeg;base64,replacement',
+      date,
+    });
+
+    store.set({ cameraID: 'camera-1' }, createPreservedFrame({ date }));
+    store.set({ cameraID: 'camera-1' }, replacement);
+
+    expect(store.get({ cameraID: 'camera-1' }, 60)).toBe(replacement);
+  });
+
   describe('should expire a frame', () => {
     it('should return a frame that is younger than the maximum age', () => {
       const store = new PreservedFrameStore();

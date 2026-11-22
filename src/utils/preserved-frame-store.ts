@@ -39,7 +39,16 @@ export class PreservedFrameStore {
 
   public set(key: PreservedFrameKey, frame: PreservedFrame): void {
     const encodedKey = this._encodeKey(key);
-    if (this._frames.get(encodedKey)?.url !== frame.url) {
+    const stored = this._frames.get(encodedKey);
+
+    // A frame never replaces a newer one, e.g. when its encoding finishes after
+    // that of a frame captured later. Should the wall clock step back, frames
+    // dated by it are kept out until it passes the stored frame's date again.
+    if (stored && stored.date > frame.date) {
+      return;
+    }
+
+    if (stored?.url !== frame.url) {
       this._frames.set(encodedKey, frame);
       this._listeners.forEach((listener) => listener(key));
     }
