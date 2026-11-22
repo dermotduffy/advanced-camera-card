@@ -17,6 +17,7 @@ import { mock, mockClear } from 'vitest-mock-extended';
 
 import type { PartialZoomSettings } from '../../../src/components-lib/zoom/types';
 import { ZoomController } from '../../../src/components-lib/zoom/zoom-controller';
+import type { CameraDimensionsConfig } from '../../../src/config/schema/cameras';
 import {
   DOUBLE_TAP_PIXELS,
   DOUBLE_TAP_SECONDS,
@@ -24,6 +25,8 @@ import {
   HOLD_SECONDS,
 } from '../../../src/const';
 import {
+  createMediaLoadedInfo,
+  createMediaLoadedInfoEvent,
   createTouch,
   createTouchEvent,
   requestAnimationFrameMock,
@@ -602,7 +605,6 @@ describe('ZoomController', () => {
       expect(Panzoom).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          contain: 'outside',
           cursor: undefined,
           maxScale: 10,
           minScale: 1,
@@ -613,6 +615,7 @@ describe('ZoomController', () => {
           startY: 63.6525,
         }),
       );
+      expect(vi.mocked(Panzoom).mock.calls[0][1]).not.toHaveProperty('contain');
     });
 
     it('should apply the default settings', () => {
@@ -1007,7 +1010,6 @@ describe('ZoomController', () => {
       expect(panzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
       expect(panzoom.pan).toHaveBeenCalledWith(115.62, 63.6525, {
         animate: true,
-        contain: undefined,
         duration: 100,
       });
     });
@@ -1396,160 +1398,74 @@ describe('ZoomController', () => {
       expect(home).not.toHaveBeenCalled();
     });
   });
+
   describe('with a picture that does not fill the element', () => {
-    // A 16:9 picture in a portrait fullscreen: 411x231.1875 inside 411x914.
-    const setElementToPortraitFullscreen = (element: HTMLElement): void => {
-      Object.defineProperty(element, 'offsetWidth', { configurable: true, value: 411 });
-      Object.defineProperty(element, 'offsetHeight', { configurable: true, value: 914 });
+    interface Size {
+      width: number;
+      height: number;
+    }
+
+    // A 16:9 picture in a portrait fullscreen is 411x231.1875 inside 411x914.
+    const PORTRAIT: Size = { width: 411, height: 914 };
+    const LANDSCAPE: Size = { width: 914, height: 411 };
+
+    const setElementSize = (element: HTMLElement, size: Size): void => {
+      Object.defineProperty(element, 'offsetWidth', {
+        configurable: true,
+        value: size.width,
+      });
+      Object.defineProperty(element, 'offsetHeight', {
+        configurable: true,
+        value: size.height,
+      });
     };
 
-    const createPictureZoom = (
-      ratio: number | null = 16 / 9,
-    ): { element: HTMLElement; panzoom: PanzoomObject; controller: ZoomController } => {
-      const panzoom = createMockPanZoom();
-      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
-      const element = createAttachedElement();
-      setElementToPortraitFullscreen(element);
-      const controller = createAndRegisterZoom(element);
-      controller.setPictureAspectRatio(ratio);
-      mockClear(panzoom);
-      return { element, panzoom, controller };
-    };
-
-    it('should pull a gesture back to the picture', () => {
-      const { element, panzoom } = createPictureZoom();
-
-      // At x2 the picture is 822 wide (102.75 of room either side) but only
-      // 462 high, so it stays centered vertically.
-      vi.mocked(panzoom.getScale).mockReturnValue(2);
-      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
-      element.dispatchEvent(new PointerEvent('pointerdown'));
-      element.dispatchEvent(new PointerEvent('pointermove'));
-
-      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 0, {
-        animate: false,
-        contain: undefined,
-      });
-    });
-
-    it('should allow a vertical pan once the picture is taller than the element', () => {
-      const { element, panzoom } = createPictureZoom();
-
-      vi.mocked(panzoom.getScale).mockReturnValue(5);
-      vi.mocked(panzoom.getPan).mockReturnValue({ x: -300, y: -100 });
-      element.dispatchEvent(new PointerEvent('pointerdown'));
-      element.dispatchEvent(new PointerEvent('pointermove'));
-
-      expect(panzoom.pan).toHaveBeenCalledWith(
-        expect.closeTo(-164.4),
-        expect.closeTo(-24.19375),
-        { animate: false, contain: undefined },
-      );
-    });
-
-    it('should leave a gesture within the picture alone', () => {
-      const { element, panzoom } = createPictureZoom();
-
-      vi.mocked(panzoom.getScale).mockReturnValue(2);
-      vi.mocked(panzoom.getPan).mockReturnValue({ x: 50, y: 0 });
-      element.dispatchEvent(new PointerEvent('pointerdown'));
-      element.dispatchEvent(new PointerEvent('pointermove'));
-
-      expect(panzoom.pan).not.toHaveBeenCalled();
-    });
-
-    it('should pull a wheel zoom back to the picture', () => {
-      const { element, panzoom } = createPictureZoom();
-
-      vi.mocked(panzoom.getScale).mockReturnValue(2);
-      vi.mocked(panzoom.getPan).mockReturnValue({ x: 0, y: -200 });
-      element.dispatchEvent(new WheelEvent('wheel', { deltaY: -120, ctrlKey: true }));
-
-      expect(panzoom.zoomWithWheel).toHaveBeenCalled();
-      expect(panzoom.pan).toHaveBeenCalledWith(0, 0, {
-        animate: false,
-        contain: undefined,
-      });
-    });
-
-    it('should center a wheel zoom back out to scale 1', () => {
-      const { element, panzoom } = createPictureZoom();
-
-      vi.mocked(panzoom.getScale).mockReturnValue(1);
-      vi.mocked(panzoom.getPan).mockReturnValue({ x: 3, y: 4 });
-      element.dispatchEvent(new WheelEvent('wheel', { deltaY: 120, ctrlKey: true }));
-
-      expect(panzoom.pan).toHaveBeenCalledWith(0, 0, {
-        animate: false,
-        contain: undefined,
-      });
-    });
-
-    it('should not pull back without a picture aspect ratio', () => {
-      const { element, panzoom } = createPictureZoom(null);
-
-      vi.mocked(panzoom.getScale).mockReturnValue(2);
-      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
-      element.dispatchEvent(new PointerEvent('pointerdown'));
-      element.dispatchEvent(new PointerEvent('pointermove'));
-
-      expect(panzoom.pan).not.toHaveBeenCalled();
-    });
-
-    it('should apply a configured pan within the picture', () => {
-      const { panzoom, controller } = createPictureZoom();
-
-      controller.setSettings({ zoom: 2, pan: { x: 0, y: 0 } });
-
-      expect(panzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
-      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 0, {
-        animate: true,
-        duration: 100,
-      });
-    });
-
-    it('should limit the pan to a picture with bars left and right', () => {
-      const panzoom = createMockPanZoom();
-      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
-      const element = createAttachedElement();
-      Object.defineProperty(element, 'offsetWidth', { configurable: true, value: 914 });
-      Object.defineProperty(element, 'offsetHeight', { configurable: true, value: 411 });
-      const controller = createAndRegisterZoom(element);
-
-      // A 4:3 picture: 548x411 inside 914x411.
-      controller.setPictureAspectRatio(4 / 3);
-      controller.setSettings({ zoom: 2, pan: { x: 0, y: 100 } });
-
-      expect(panzoom.pan).toHaveBeenCalledWith(
-        expect.closeTo(45.5),
-        expect.closeTo(-102.75),
-        { animate: true, duration: 100 },
-      );
-    });
-
-    it('should report a centered axis and clamp a pan past the limits', () => {
-      const { element } = createPictureZoom();
-      const changeHandler = vi.fn();
-      element.addEventListener('advanced-camera-card:zoom:change', changeHandler);
-
+    const dispatchMediaLoaded = (
+      element: HTMLElement,
+      size: Size,
+      signal?: AbortSignal,
+    ): void => {
       element.dispatchEvent(
-        new CustomEvent<PanzoomEventDetail>('panzoomchange', {
-          detail: {
-            x: 200,
-            y: 10,
-            scale: 2,
-            isSVG: false,
-            originalEvent: new PointerEvent('pointermove'),
-          },
-        }),
+        createMediaLoadedInfoEvent({ info: createMediaLoadedInfo(size), signal }),
       );
+    };
 
-      expect(changeHandler).toHaveBeenCalledWith(
-        expect.objectContaining({
-          detail: expect.objectContaining({ pan: { x: 0, y: 50 } }),
-        }),
-      );
-    });
+    const createPictureZoom = (options?: {
+      elementSize?: Size;
+      mediaSize?: Size | null;
+      dimensionsConfig?: CameraDimensionsConfig;
+    }): {
+      element: HTMLElement;
+      panzoom: PanzoomObject;
+      controller: ZoomController;
+      media: AbortController;
+    } => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+      const element = createAttachedElement();
+      setElementSize(element, options?.elementSize ?? PORTRAIT);
+      const controller = createAndRegisterZoom(element);
+      if (options?.dimensionsConfig) {
+        controller.setDimensionsConfig(options.dimensionsConfig);
+      }
+
+      const media = new AbortController();
+      const mediaSize =
+        options?.mediaSize === undefined
+          ? { width: 1600, height: 900 }
+          : options.mediaSize;
+      if (mediaSize) {
+        dispatchMediaLoaded(element, mediaSize, media.signal);
+      }
+
+      mockClear(panzoom);
+      return { element, panzoom, controller, media };
+    };
+
+    const drag = (element: HTMLElement): void => {
+      element.dispatchEvent(new PointerEvent('pointerdown'));
+      element.dispatchEvent(new PointerEvent('pointermove'));
+    };
 
     const gesture = (
       element: HTMLElement,
@@ -1569,6 +1485,198 @@ describe('ZoomController', () => {
         }),
       );
     };
+
+    it('should pull a gesture back to the picture', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      // At x2 the picture is 822 wide (102.75 of room either side) but only
+      // 462 high, so it stays centered vertically.
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
+      drag(element);
+
+      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 0, {
+        animate: false,
+        silent: true,
+      });
+    });
+
+    it('should allow a vertical pan once the picture is taller than the element', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(5);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: -300, y: -100 });
+      drag(element);
+
+      expect(panzoom.pan).toHaveBeenCalledWith(
+        expect.closeTo(-164.4),
+        expect.closeTo(-24.19375),
+        { animate: false, silent: true },
+      );
+    });
+
+    it('should leave a gesture within the picture alone', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 50, y: 0 });
+      drag(element);
+
+      expect(panzoom.pan).not.toHaveBeenCalled();
+    });
+
+    it('should pull a wheel zoom back to the picture', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 0, y: -200 });
+      element.dispatchEvent(new WheelEvent('wheel', { deltaY: -120, ctrlKey: true }));
+
+      expect(panzoom.zoomWithWheel).toHaveBeenCalled();
+      expect(panzoom.pan).toHaveBeenCalledWith(0, 0, {
+        animate: false,
+        silent: true,
+      });
+    });
+
+    it('should center a wheel zoom back out to scale 1', () => {
+      const { element, panzoom } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(1);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 3, y: 4 });
+      element.dispatchEvent(new WheelEvent('wheel', { deltaY: 120, ctrlKey: true }));
+
+      expect(panzoom.pan).toHaveBeenCalledWith(0, 0, {
+        animate: false,
+        silent: true,
+      });
+    });
+
+    it('should limit a gesture to the element without the media size', () => {
+      const { element, panzoom } = createPictureZoom({ mediaSize: null });
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
+      drag(element);
+
+      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 150, {
+        animate: false,
+        silent: true,
+      });
+    });
+
+    it('should limit a gesture to the element for media without a size', () => {
+      const { element, panzoom } = createPictureZoom({
+        mediaSize: { width: 0, height: 0 },
+      });
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
+      drag(element);
+
+      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 150, {
+        animate: false,
+        silent: true,
+      });
+    });
+
+    it('should limit a gesture to the element when the layout covers it', () => {
+      const { element, panzoom } = createPictureZoom({
+        dimensionsConfig: { layout: { fit: 'cover' } },
+      });
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
+      drag(element);
+
+      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 150, {
+        animate: false,
+        silent: true,
+      });
+    });
+
+    it('should stop following media loads once deactivated', () => {
+      const { element, controller } = createPictureZoom({ mediaSize: null });
+
+      controller.deactivate();
+      dispatchMediaLoaded(element, { width: 1600, height: 900 });
+
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+      controller.activate();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 200, y: 150 });
+      drag(element);
+
+      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 150, {
+        animate: false,
+        silent: true,
+      });
+    });
+
+    it('should apply a configured pan within the picture', () => {
+      const { panzoom, controller } = createPictureZoom();
+
+      controller.setSettings({ zoom: 2, pan: { x: 0, y: 0 } });
+
+      expect(panzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
+      expect(panzoom.pan).toHaveBeenCalledWith(102.75, 0, {
+        animate: true,
+        duration: 100,
+      });
+    });
+
+    it('should keep the pan within the picture as a configured zoom is applied', () => {
+      const { panzoom, controller } = createPictureZoom();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 300, y: 100 });
+      controller.setSettings({ zoom: 2, pan: { x: 50, y: 50 } });
+
+      expect(panzoom.pan).toHaveBeenNthCalledWith(1, 102.75, 0, {
+        animate: false,
+        silent: true,
+      });
+      expect(panzoom.pan).toHaveBeenNthCalledWith(2, 0, 0, {
+        animate: true,
+        duration: 100,
+      });
+    });
+
+    it('should limit the pan to a picture with bars left and right', () => {
+      // A 4:3 picture is 548x411 inside 914x411.
+      const { panzoom, controller } = createPictureZoom({
+        elementSize: LANDSCAPE,
+        mediaSize: { width: 1600, height: 1200 },
+      });
+
+      controller.setSettings({ zoom: 2, pan: { x: 0, y: 100 } });
+
+      expect(panzoom.pan).toHaveBeenCalledWith(
+        expect.closeTo(45.5),
+        expect.closeTo(-102.75),
+        { animate: true, duration: 100 },
+      );
+    });
+
+    it('should report a pan past the limits as the limit it is kept to', () => {
+      const { element, controller } = createPictureZoom();
+      controller.setDefaultSettings({ zoom: 2, pan: { x: 0, y: 50 } });
+      const changeHandler = vi.fn();
+      element.addEventListener('advanced-camera-card:zoom:change', changeHandler);
+
+      gesture(element, 200, 10, 2);
+
+      expect(changeHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({
+            pan: { x: 0, y: 50 },
+            isDefault: true,
+          }),
+        }),
+      );
+    });
 
     it('should keep the earlier pan on an axis without room', () => {
       const { element, panzoom } = createPictureZoom();
@@ -1592,16 +1700,9 @@ describe('ZoomController', () => {
     });
 
     it('should keep the earlier sideways pan with bars left and right', () => {
-      const panzoom = createMockPanZoom();
-      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
-      const element = createAttachedElement();
-      Object.defineProperty(element, 'offsetWidth', { configurable: true, value: 914 });
-      Object.defineProperty(element, 'offsetHeight', { configurable: true, value: 411 });
-      const controller = createAndRegisterZoom(element);
-
-      // A 16:9 picture: 730.7x411 inside 914x411. At x3 it is wider than the
+      // A 16:9 picture is 730.7x411 inside 914x411. At x3 it is wider than the
       // element: a pan towards the left. At x1.2 it fits the width.
-      controller.setPictureAspectRatio(16 / 9);
+      const { element, panzoom } = createPictureZoom({ elementSize: LANDSCAPE });
       gesture(element, -100, 0, 3);
       gesture(element, 0, -20, 1.2);
 
@@ -1628,12 +1729,8 @@ describe('ZoomController', () => {
       });
     });
 
-    it('should re-derive the pan when the aspect ratio changes', () => {
-      const panzoom = createMockPanZoom();
-      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
-      const element = createAttachedElement();
-      setElementToPortraitFullscreen(element);
-      const controller = createAndRegisterZoom(element);
+    it('should re-derive the pan when the media size arrives', () => {
+      const { element, panzoom, controller } = createPictureZoom({ mediaSize: null });
 
       // Without the picture's shape the element bounds the pan.
       controller.setSettings({ zoom: 2, pan: { x: 0, y: 0 } });
@@ -1644,16 +1741,63 @@ describe('ZoomController', () => {
       vi.mocked(panzoom.getScale).mockReturnValue(2);
       vi.mocked(panzoom.getPan).mockReturnValue({ x: 102.75, y: 228.5 });
 
-      controller.setPictureAspectRatio(16 / 9);
+      dispatchMediaLoaded(element, { width: 1600, height: 900 });
       expect(panzoom.pan).toHaveBeenLastCalledWith(102.75, 0, {
         animate: true,
         duration: 100,
       });
-      expect(panzoom.pan).toHaveBeenCalledTimes(2);
+      const calls = vi.mocked(panzoom.pan).mock.calls.length;
 
-      // The same ratio again changes nothing.
-      controller.setPictureAspectRatio(16 / 9);
-      expect(panzoom.pan).toHaveBeenCalledTimes(2);
+      // The same shape again changes nothing.
+      dispatchMediaLoaded(element, { width: 1600, height: 900 });
+      expect(panzoom.pan).toHaveBeenCalledTimes(calls);
+    });
+
+    it('should return to the element limits when the media unloads', () => {
+      const { panzoom, controller, media } = createPictureZoom();
+
+      controller.setSettings({ zoom: 2, pan: { x: 0, y: 0 } });
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 102.75, y: 0 });
+
+      media.abort();
+
+      expect(panzoom.pan).toHaveBeenLastCalledWith(102.75, 228.5, {
+        animate: true,
+        duration: 100,
+      });
+    });
+
+    it('should ignore the unload of media that a later load replaced', () => {
+      const { element, panzoom, media } = createPictureZoom();
+
+      // A 3:4 picture is 411x548, so at x2 it has 45.5 of room vertically.
+      dispatchMediaLoaded(element, { width: 900, height: 1200 });
+      media.abort();
+
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 0, y: 150 });
+      drag(element);
+
+      expect(panzoom.pan).toHaveBeenLastCalledWith(0, 45.5, {
+        animate: false,
+        silent: true,
+      });
+    });
+
+    it('should return to the element limits for a layout that covers it', () => {
+      const { panzoom, controller } = createPictureZoom();
+
+      controller.setSettings({ zoom: 2, pan: { x: 0, y: 0 } });
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: 102.75, y: 0 });
+
+      controller.setDimensionsConfig({ layout: { fit: 'cover' } });
+
+      expect(panzoom.pan).toHaveBeenLastCalledWith(102.75, 228.5, {
+        animate: true,
+        duration: 100,
+      });
     });
   });
 });

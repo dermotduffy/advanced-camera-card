@@ -1,5 +1,6 @@
 import type { MediaLayoutConfig } from '../config/schema/camera/media-layout';
-import { setOrRemoveStyleProperty } from './basic';
+import type { CameraDimensionsConfig } from '../config/schema/cameras';
+import { isValidAspectRatio, setOrRemoveStyleProperty } from './basic';
 
 const POSITION_DIMENSIONS: (keyof NonNullable<MediaLayoutConfig['position']>)[] = [
   'x',
@@ -31,7 +32,7 @@ export const updateElementStyleFromMediaLayoutConfig = (
   for (const dimension of POSITION_DIMENSIONS) {
     setOrRemoveStyleProperty(
       element,
-      !!mediaLayoutConfig?.position?.[dimension],
+      mediaLayoutConfig?.position?.[dimension] !== undefined,
       `--advanced-camera-card-media-layout-position-${dimension}`,
       `${mediaLayoutConfig?.position?.[dimension]}%`,
     );
@@ -45,4 +46,24 @@ export const updateElementStyleFromMediaLayoutConfig = (
       `${mediaLayoutConfig?.view_box?.[dimension]}%`,
     );
   }
+};
+
+/**
+ * Whether media is drawn at its own aspect ratio, contained and centered within
+ * its container.
+ * @param dimensions The camera dimensions the media is laid out with.
+ */
+export const isMediaContainedAndCentered = (
+  dimensions: CameraDimensionsConfig | null,
+): boolean => {
+  const layout = dimensions?.layout;
+  return (
+    !isValidAspectRatio(dimensions?.aspect_ratio) &&
+    !dimensions?.rotation &&
+    (layout?.fit ?? 'contain') === 'contain' &&
+    POSITION_DIMENSIONS.every(
+      (dimension) => (layout?.position?.[dimension] ?? 50) === 50,
+    ) &&
+    !VIEW_BOX_EDGES.some((edge) => !!layout?.view_box?.[edge])
+  );
 };

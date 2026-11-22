@@ -111,9 +111,11 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       imageConfig: this.imageConfig,
       cameraConfig: this.cameraConfig,
     });
+    const dimensionsConfig =
+      mode === 'camera' ? this.cameraConfig?.dimensions : undefined;
 
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
-      .dimensionsConfig=${mode === 'camera' ? this.cameraConfig?.dimensions : undefined}
+      .dimensionsConfig=${dimensionsConfig}
     >
       ${template}
     </advanced-camera-card-media-dimensions-container>`;
@@ -131,9 +133,7 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
                 : undefined,
           )}
           .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
-          .dimensionsConfig=${mode === 'camera'
-            ? this.cameraConfig?.dimensions
-            : undefined}
+          .dimensionsConfig=${dimensionsConfig}
           @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
             handleZoomSettingsObservedEvent(
               ev,

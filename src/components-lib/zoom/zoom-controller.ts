@@ -4,12 +4,15 @@ import Panzoom, {
 } from '@dermotduffy/panzoom';
 import { round, throttle } from 'lodash-es';
 
+import type { CameraDimensionsConfig } from '../../config/schema/cameras';
 import {
   DOUBLE_TAP_PIXELS,
   DOUBLE_TAP_SECONDS,
   DRAG_THRESHOLD_PIXELS,
   HOLD_SECONDS,
 } from '../../const';
+import type { MediaLoadedInfoEventDetail } from '../../types';
+import { onAbort } from '../../utils/abort-signal';
 import {
   arefloatsApproximatelyEqual,
   getDistance,
@@ -17,6 +20,7 @@ import {
   type Point,
 } from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
+import { isMediaContainedAndCentered } from '../../utils/media-layout';
 import {
   isZoomEmpty,
   ZOOM_DEFAULT_PAN_X,
@@ -69,9 +73,14 @@ export class ZoomController {
   // Unset at scale 1, where there is nothing to pan.
   private _userPan: Point | null = null;
 
-  // The width/height ratio of the picture inside the element, when it is
-  // fitted with `object-fit: contain` and centered. Null when the picture fills
-  // the element (or its shape is unknown), so the element bounds the pan.
+  // The width/height ratio of the loaded media, and the signal that retires it.
+  private _mediaAspectRatio: number | null = null;
+  private _mediaSignal: AbortSignal | null = null;
+
+  private _dimensionsConfig: CameraDimensionsConfig | null = null;
+
+  // The width/height ratio of the picture contained and centered within the
+  // element, or null when the element itself bounds the pan.
   private _pictureAspectRatio: number | null = null;
 
   private _defaultSettings: PartialZoomSettings | null;
@@ -83,9 +92,9 @@ export class ZoomController {
   private _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
   private _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
 
-  // A resize changes the element size that pan percentages are measured
-  // against, so the pan is re-derived at the new size (from the card's
-  // percentages or the user's depending on who moved last).
+  // A resize, or a new picture shape, changes the size that pan percentages
+  // are measured against, so the pan is re-derived at the new size (from the
+  // card's percentages or the user's depending on who moved last).
   private _debouncedResizeUpdater = throttle(() => {
     const panzoom = this._panzoom;
     if (!panzoom) {
@@ -139,9 +148,10 @@ export class ZoomController {
   };
 
   private _moveHandler = (ev: Event) => {
-    if (this._shouldZoomOrPan(ev)) {
-      this._panzoom?.handleMove(ev as PointerEvent);
-      this._containToPicture();
+    const panzoom = this._panzoom;
+    if (panzoom && this._shouldZoomOrPan(ev)) {
+      panzoom.handleMove(ev as PointerEvent);
+      this._contain(panzoom);
       ev.stopPropagation();
     }
   };
@@ -155,11 +165,27 @@ export class ZoomController {
   };
 
   private _wheelHandler = (ev: Event) => {
-    if (ev instanceof WheelEvent && this._shouldZoomOrPan(ev)) {
-      this._panzoom?.zoomWithWheel(ev);
-      this._containToPicture();
+    const panzoom = this._panzoom;
+    if (panzoom && ev instanceof WheelEvent && this._shouldZoomOrPan(ev)) {
+      panzoom.zoomWithWheel(ev);
+      this._contain(panzoom);
       ev.stopPropagation();
     }
+  };
+
+  private _mediaLoadedHandler = (ev: CustomEvent<MediaLoadedInfoEventDetail>): void => {
+    const { info, signal } = ev.detail;
+    this._mediaAspectRatio = info.width && info.height ? info.width / info.height : null;
+    this._mediaSignal = signal;
+    onAbort(signal, () => {
+      // A later load may already have replaced this one.
+      if (this._mediaSignal === signal) {
+        this._mediaAspectRatio = null;
+        this._mediaSignal = null;
+        this._updatePictureAspectRatio();
+      }
+    });
+    this._updatePictureAspectRatio();
   };
 
   constructor(
@@ -190,8 +216,10 @@ export class ZoomController {
 
     const startScale = config?.zoom ?? ZOOM_DEFAULT_SCALE;
 
+    // Panzoom's own containment ('contain' parameter) is turned off: it can
+    // only keep the pan within the element, not within the picture inside it
+    // (see `_contain`).
     this._panzoom = Panzoom(this._element, {
-      contain: 'outside',
       maxScale: 10,
       minScale: 1,
       noBind: true,
@@ -225,6 +253,10 @@ export class ZoomController {
     registerListeners(this._events['up'], this._upHandler, { capture: true });
     registerListeners(['wheel'], this._wheelHandler);
     registerListeners(['click'], this._clickHandler, { capture: true });
+    this._element.addEventListener(
+      'advanced-camera-card:media:loaded',
+      this._mediaLoadedHandler,
+    );
 
     this._resizeObserver.observe(this._element);
     this._element.addEventListener('panzoomchange', this._debouncedChangeHandler);
@@ -246,6 +278,10 @@ export class ZoomController {
     unregisterListener(this._events['up'], this._upHandler, { capture: true });
     unregisterListener(['wheel'], this._wheelHandler);
     unregisterListener(['click'], this._clickHandler, { capture: true });
+    this._element.removeEventListener(
+      'advanced-camera-card:media:loaded',
+      this._mediaLoadedHandler,
+    );
 
     this._resizeObserver.disconnect();
     this._element.removeEventListener('panzoomchange', this._debouncedChangeHandler);
@@ -266,14 +302,9 @@ export class ZoomController {
     this._debouncedUpdater();
   }
 
-  public setPictureAspectRatio(ratio: number | null): void {
-    if (ratio === this._pictureAspectRatio) {
-      return;
-    }
-    this._pictureAspectRatio = ratio;
-
-    // The pan limits changed, so re-derive the pan within them.
-    this._debouncedResizeUpdater();
+  public setDimensionsConfig(dimensionsConfig: CameraDimensionsConfig | null): void {
+    this._dimensionsConfig = dimensionsConfig;
+    this._updatePictureAspectRatio();
   }
 
   public isActivated(): boolean {
@@ -300,17 +331,16 @@ export class ZoomController {
       fireAdvancedCameraCardEvent(this._element, 'zoom:zoomed');
     }
 
-    const converted = this._convertXYPanToPercent(pz.x, pz.y, pz.scale);
+    // Panzoom reports a gesture step before `_contain` keeps it within limits.
+    const pan = this._clampPan({ x: pz.x, y: pz.y }, pz.scale);
+    const converted = this._convertXYPanToPercent(pan.x, pan.y, pz.scale);
 
     // Panzoom sets originalEvent only for a change that a gesture drove.
     if (pz.originalEvent) {
       this._userAdjusted = true;
 
-      // On an axis without room to pan, a gesture cannot move the picture, so
-      // the pan the user chose before on that axis is kept rather than
-      // replaced by the center. For example a pan towards the top in the card,
-      // then a sideways pan in fullscreen where the picture fits the height:
-      // back in the card the picture is still towards the top.
+      // A gesture cannot move the picture along an axis without room, so the
+      // user's earlier pan on that axis is kept.
       const minMax = this._getTransformMinMax(pz.scale);
       if (converted && minMax) {
         const previous = this._userPan ?? converted;
@@ -327,7 +357,7 @@ export class ZoomController {
         y: converted?.y ?? ZOOM_DEFAULT_PAN_Y,
       },
       zoom: pz.scale,
-      isDefault: this._isAtDefaultZoomAndPan(pz.x, pz.y, pz.scale),
+      isDefault: this._isAtDefaultZoomAndPan(pan.x, pan.y, pz.scale),
       unzoomed: unzoomed,
     };
 
@@ -433,14 +463,12 @@ export class ZoomController {
       // delayed until after the zoom is complete.
       animate: false,
     });
+    this._contain(panzoom);
 
-    // Panzoom must allow the browser to paint the zoomed image in order to
-    // "contain" the pan within the parent, this creates somewhat of an async
-    // situation where we need to ensure the zoom completes first. Using
-    // `requestAnimationFrame` appears to reliably allow the zoom to finish
-    // rendering first, before the pan is applied.
-    //
-    // See: https://github.com/timmywil/panzoom?tab=readme-ov-file#a-note-on-the-async-nature-of-panzoom
+    // The controller requests the pan a frame later so that the zoom steps
+    // rather than animates: Panzoom writes each change on the next animation
+    // frame, and the browser animates a zoom written in the same frame as an
+    // animated pan.
     window.requestAnimationFrame(() => {
       // Protect against deactivation.
       if (this._panzoom !== panzoom) {
@@ -450,15 +478,6 @@ export class ZoomController {
       panzoom.pan(x, y, {
         animate: true,
         duration: 100,
-
-        // An explicit undefined overrides the `contain: 'outside'` the instance
-        // was constructed with, turning containment off for just this one pan.
-        // Panzoom measures the element to decide how far it may pan, and on a
-        // slow device the browser may not have applied the zoom transform yet,
-        // so it would measure the unzoomed box and clamp this pan back toward
-        // center. `_convertPercentToXYPan` already keeps these coordinates
-        // within the range the desired scale allows, so nothing is lost.
-        contain: undefined,
       });
     });
   }
@@ -489,12 +508,9 @@ export class ZoomController {
       return null;
     }
 
-    // An axis without room to pan is centered. A gesture can briefly report a
-    // pan past the limits before `_containToPicture` pulls it back.
+    // An axis without room to pan is centered.
     const toPercent = (value: number, min: number): number =>
-      arefloatsApproximatelyEqual(min, 0)
-        ? 50
-        : Math.min(100, Math.max(0, ((-value + min) / (2 * min)) * 100));
+      arefloatsApproximatelyEqual(min, 0) ? 50 : ((-value + min) / (2 * min)) * 100;
 
     return {
       x: toPercent(x, minMax.minX),
@@ -502,8 +518,18 @@ export class ZoomController {
     };
   }
 
-  // The size of the picture at scale 1: the element itself, or the picture
-  // fitted inside it at its aspect ratio.
+  private _updatePictureAspectRatio(): void {
+    const ratio = isMediaContainedAndCentered(this._dimensionsConfig)
+      ? this._mediaAspectRatio
+      : null;
+    if (ratio === this._pictureAspectRatio) {
+      return;
+    }
+    this._pictureAspectRatio = ratio;
+    this._debouncedResizeUpdater();
+  }
+
+  // The picture's size at scale 1, contained within the element.
   private _getPictureSize(): { width: number; height: number } {
     const size = this._getLayoutSize();
     const ratio = this._pictureAspectRatio;
@@ -515,30 +541,27 @@ export class ZoomController {
       : { width: size.width, height: size.width / ratio };
   }
 
-  // Panzoom contains a gesture within the element, which is larger than the
-  // picture when the picture does not fill it (e.g. a 16:9 camera in portrait
-  // fullscreen), so the picture could be panned into the bars and off screen.
-  // Pull the pan back right after the gesture moved it. This runs in the same
-  // task, so only the contained pan is painted, and a gesture does not drift:
-  // Panzoom derives each drag step from where the gesture started, and each
-  // pinch step from the current (already pulled back) pan, as its own
-  // containment does.
-  private _containToPicture(): void {
-    const panzoom = this._panzoom;
-    if (!panzoom || !this._pictureAspectRatio) {
-      return;
-    }
+  private _clampPan(pan: Point, scale: number): Point {
+    const minMax = this._getTransformMinMax(scale);
 
-    const pan = panzoom.getPan();
-    const minMax = this._getTransformMinMax(panzoom.getScale());
     // An axis without room is centered (0, never -0).
     const clamp = (value: number, limit: number): number =>
       limit ? Math.min(limit, Math.max(-limit, value)) : 0;
-    const x = minMax ? clamp(pan.x, minMax.minX) : 0;
-    const y = minMax ? clamp(pan.y, minMax.minY) : 0;
 
-    if (x !== pan.x || y !== pan.y) {
-      panzoom.pan(x, y, { animate: false, contain: undefined });
+    return minMax
+      ? { x: clamp(pan.x, minMax.minX), y: clamp(pan.y, minMax.minY) }
+      : { x: 0, y: 0 };
+  }
+
+  // Keeps the pan that Panzoom just set within the limits. Called after every
+  // Panzoom call that can move the pan.
+  private _contain(panzoom: PanzoomObject): void {
+    const pan = panzoom.getPan();
+    const contained = this._clampPan(pan, panzoom.getScale());
+    if (contained.x !== pan.x || contained.y !== pan.y) {
+      // Silent, so that Panzoom's report of the step itself, which carries the
+      // gesture that drove it, is the last report of that step.
+      panzoom.pan(contained.x, contained.y, { animate: false, silent: true });
     }
   }
 
@@ -552,12 +575,8 @@ export class ZoomController {
       return null;
     }
 
-    // The picture's edges may not come inside the element's edges, so the
-    // room to pan on each axis is how far the scaled picture overhangs the
-    // element (in Panzoom's unscaled coordinates). Where the picture is the
-    // element this is `size * (scale - 1) / scale / 2`. Where the scaled
-    // picture is smaller than the element, there is no room and it stays
-    // centered on that axis.
+    // The room to pan on each axis is how far the scaled picture overhangs the
+    // element, in Panzoom's unscaled coordinates.
     const size = this._getLayoutSize();
     const picture = this._getPictureSize();
 
