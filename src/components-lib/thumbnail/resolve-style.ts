@@ -3,6 +3,7 @@ import type {
   ThumbnailStyle,
 } from '../../config/schema/common/controls/thumbnails';
 import { isHoverableDevice } from '../../utils/basic';
+import { getThumbnailDimensions } from './dimensions';
 
 export type ResolvedThumbnailStyle = Exclude<ThumbnailStyle, 'auto'>;
 
@@ -28,7 +29,7 @@ const resolveAutoThumbnailStyle = (
 ): ResolvedThumbnailStyle => {
   if (
     context.availableWidth !== undefined &&
-    context.availableWidth < config.size + DETAILS_PANEL_WIDTH
+    context.availableWidth < getThumbnailDimensions(config).width + DETAILS_PANEL_WIDTH
   ) {
     return 'overlay';
   }

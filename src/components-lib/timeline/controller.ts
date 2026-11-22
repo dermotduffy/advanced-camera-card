@@ -38,6 +38,10 @@ import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 import { mergeViewContext } from '../../view/view';
+import {
+  getThumbnailTierSize,
+  setThumbnailDimensionsStyle,
+} from '../thumbnail/dimensions';
 import { resolveThumbnailStyle } from '../thumbnail/resolve-style';
 import {
   canMediaBeShownAsTimelineItem,
@@ -172,14 +176,7 @@ export class TimelineController {
     }
 
     if (this._thumbnailConfig !== (options.thumbnailConfig ?? null)) {
-      if (options.thumbnailConfig) {
-        this._host.style.setProperty(
-          '--advanced-camera-card-thumbnail-size',
-          `${options?.thumbnailConfig.size}px`,
-        );
-      } else {
-        this._host.style.removeProperty('--advanced-camera-card-thumbnail-size');
-      }
+      setThumbnailDimensionsStyle(this._host, options.thumbnailConfig ?? null);
     }
 
     if (this._timelineConfig !== (options.timelineConfig ?? null)) {
@@ -222,7 +219,9 @@ export class TimelineController {
     request.detail.viewItemManager = this._viewItemManager ?? undefined;
     request.detail.media = media;
     request.detail.viewManagerEpoch = this._viewManagerEpoch ?? undefined;
-    request.detail.size = this._thumbnailConfig?.size;
+    request.detail.size = this._thumbnailConfig
+      ? getThumbnailTierSize(this._thumbnailConfig)
+      : undefined;
   };
 
   public getEffectivePanMode(): TimelinePanMode {

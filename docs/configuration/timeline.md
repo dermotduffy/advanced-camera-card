@@ -64,6 +64,7 @@ timeline:
 
 | Option                  | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aspect_ratio`          | `1:1`   | The aspect ratio of the thumbnails, e.g. `16:9`. The longer side of a thumbnail is drawn at `size`. A thumbnail image of a different aspect ratio is cropped to fill the thumbnail.                                                                                                                                                                                                                              |
 | `style`                 | `auto`  | How details are presented for each thumbnail. `auto` chooses from the configuration and the available width. `plain` shows just the thumbnail without details. `overlay` shows the details over the thumbnail, `hover` shows those same details only while the pointer is over the thumbnail, and `panel` shows a details panel beside the thumbnail. `hover` is rendered as `overlay` when there is no pointer. |
 | `mode`                  | `right` | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`). With `style: auto`, a `left` or `right` drawer shows a details panel beside each thumbnail, while `above` and `below` show the details on hover instead, or as a permanent overlay on touch devices without a pointer.                           |
 | `show_download_control` | `false` | Whether to show the download control on each thumbnail.                                                                                                                                                                                                                                                                                                                                                          |
@@ -96,6 +97,7 @@ timeline:
   controls:
     thumbnails:
       mode: right
+      aspect_ratio: '1:1'
       size: 100
       style: auto
       show_download_control: false

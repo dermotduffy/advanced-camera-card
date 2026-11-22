@@ -2,7 +2,7 @@
   display: flex;
   overflow: hidden;
 
-  aspect-ratio: 1 / 1;
+  aspect-ratio: var(--advanced-camera-card-thumbnail-aspect-ratio, 1 / 1);
 
   justify-content: center;
   align-items: center;
@@ -26,9 +26,9 @@ img {
   object-fit: cover;
 }
 
-// A placeholder (a brand logo) is shown whole, not cropped. Dropping
-// aspect-ratio: 1/1 lets the container stay rectangular so wide logos
-// fill its width.
+// A placeholder (a brand logo) is shown whole, not cropped. Dropping the
+// thumbnail aspect ratio lets the container take the placeholder's own shape
+// so wide logos fill its width.
 :host(.placeholder) {
   aspect-ratio: auto;
 }

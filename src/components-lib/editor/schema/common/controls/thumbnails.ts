@@ -24,6 +24,12 @@ export const getThumbnailsSchema = (options?: {
     }),
   };
 
+  const aspectRatioField: HAFormSchema = {
+    name: 'aspect_ratio',
+    label: localize('config.common.controls.thumbnails.aspect_ratio'),
+    selector: { text: {} },
+  };
+
   const thumbnailStyleField: HAFormSchema = {
     name: 'style',
     label: localize('config.common.controls.thumbnails.style'),
@@ -89,7 +95,7 @@ export const getThumbnailsSchema = (options?: {
   } else {
     schema.push(sizeField);
   }
-  schema.push(thumbnailStyleField);
+  schema.push(createGrid([thumbnailStyleField, aspectRatioField]));
   schema.push(
     createGrid([
       {

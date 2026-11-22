@@ -3,7 +3,7 @@ import type { LitElement, ReactiveController } from 'lit';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
 import {
-  THUMBNAIL_SIZE_DEFAULT,
+  thumbnailsControlBaseDefaults,
   type ThumbnailsControlBaseConfig,
 } from '../../config/schema/common/controls/thumbnails';
 import { errorToConsole } from '../../utils/basic';
@@ -13,6 +13,11 @@ import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import type { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import type { View } from '../../view/view';
+import {
+  getThumbnailDimensions,
+  getThumbnailTierSize,
+  setThumbnailDimensionsStyle,
+} from '../thumbnail/dimensions';
 import {
   DETAILS_PANEL_WIDTH,
   resolveThumbnailStyle,
@@ -118,9 +123,9 @@ export class GalleryController implements ReactiveController {
     this._thumbnailConfig = thumbnailConfig ?? null;
     this._setResolvedStyle();
 
-    this._host.style.setProperty(
-      '--advanced-camera-card-thumbnail-size',
-      `${thumbnailConfig?.size ?? THUMBNAIL_SIZE_DEFAULT}px`,
+    setThumbnailDimensionsStyle(
+      this._host,
+      thumbnailConfig ?? thumbnailsControlBaseDefaults,
     );
   }
 
@@ -129,14 +134,20 @@ export class GalleryController implements ReactiveController {
   }
 
   public getColumnWidth(): number {
-    const size = this._thumbnailConfig?.size ?? THUMBNAIL_SIZE_DEFAULT;
+    const { width } = getThumbnailDimensions(
+      this._thumbnailConfig ?? thumbnailsControlBaseDefaults,
+    );
     if (this._resolvedStyle !== 'panel') {
-      return size;
+      return width;
     }
 
     return this._foldersOnly
-      ? size + FOLDER_DETAILS_PANEL_WIDTH
-      : Math.max(MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN, size + DETAILS_PANEL_WIDTH);
+      ? width + FOLDER_DETAILS_PANEL_WIDTH
+      : Math.max(MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN, width + DETAILS_PANEL_WIDTH);
+  }
+
+  public getThumbnailTierSize(): number {
+    return getThumbnailTierSize(this._thumbnailConfig ?? thumbnailsControlBaseDefaults);
   }
 
   public getColumnCountRoundMethod(): GalleryColumnCountRoundMethod {

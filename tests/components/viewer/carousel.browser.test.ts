@@ -137,6 +137,28 @@ describe('AdvancedCameraCardViewerCarousel', () => {
     expect(getSelectedThumbnail(card.card)).toBe(getThumbnails(card.card)[0]);
   });
 
+  it('should draw the carousel thumbnails at the configured aspect ratio', async () => {
+    const card = await mountViewer(EVENTS, {
+      config: {
+        media_viewer: {
+          controls: {
+            thumbnails: {
+              mode: 'below',
+              size: 160,
+              aspect_ratio: [16, 9],
+              style: 'plain',
+            },
+          },
+        },
+      },
+    });
+
+    const rect = getThumbnails(card.card)[0].getBoundingClientRect();
+
+    expect(Math.abs(rect.width - 160)).toBeLessThanOrEqual(1);
+    expect(Math.abs(rect.height - 90)).toBeLessThanOrEqual(1);
+  });
+
   it('should name the media being viewed in the status bar', async () => {
     const card = await mountViewer(
       [

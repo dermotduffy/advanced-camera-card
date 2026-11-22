@@ -42,6 +42,7 @@ import {
 const createThumbnailConfig = (
   config?: Partial<ThumbnailsControlBaseConfig>,
 ): ThumbnailsControlBaseConfig => ({
+  aspect_ratio: [1, 1],
   size: THUMBNAIL_SIZE_DEFAULT,
   style: 'panel',
   show_favorite_control: true,
@@ -155,6 +156,35 @@ describe('GalleryController', () => {
     );
   });
 
+  it('should set thumbnail aspect ratio', () => {
+    const host = createLitElement();
+    const controller = new GalleryController(host);
+
+    controller.setThumbnailConfig(
+      createThumbnailConfig({ aspect_ratio: [16, 9], size: 160 }),
+    );
+    expect(
+      host.style.getPropertyValue('--advanced-camera-card-thumbnail-aspect-ratio'),
+    ).toBe('160 / 90');
+  });
+
+  describe('getThumbnailTierSize', () => {
+    it('should return the default size if no config', () => {
+      const controller = new GalleryController(createLitElement());
+      expect(controller.getThumbnailTierSize()).toBe(THUMBNAIL_SIZE_DEFAULT);
+    });
+
+    it('should return the shorter side of a wide thumbnail', () => {
+      const controller = new GalleryController(createLitElement());
+
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ aspect_ratio: [16, 9], size: 160 }),
+      );
+
+      expect(controller.getThumbnailTierSize()).toBe(90);
+    });
+  });
+
   describe('getColumnWidth', () => {
     it('should return default width if no config', () => {
       const controller = new GalleryController(createLitElement());
@@ -169,6 +199,26 @@ describe('GalleryController', () => {
       );
 
       expect(controller.getColumnWidth()).toBe(123);
+    });
+
+    it('should return the thumbnail width for a tall aspect ratio', () => {
+      const controller = new GalleryController(createLitElement());
+
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ aspect_ratio: [9, 16], size: 160, style: 'plain' }),
+      );
+
+      expect(controller.getColumnWidth()).toBe(90);
+    });
+
+    it('should return the size for a wide aspect ratio', () => {
+      const controller = new GalleryController(createLitElement());
+
+      controller.setThumbnailConfig(
+        createThumbnailConfig({ aspect_ratio: [16, 9], size: 160, style: 'plain' }),
+      );
+
+      expect(controller.getColumnWidth()).toBe(160);
     });
 
     it('should return gallery width if details are shown and items are not all folders', () => {

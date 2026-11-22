@@ -66,6 +66,15 @@ describe('resolveThumbnailStyle', () => {
       ).toBe('panel');
     });
 
+    it('should fit a panel beside a narrow image', () => {
+      expect(
+        resolveThumbnailStyle(
+          createConfig({ style: 'auto', size: 200, aspect_ratio: [9, 16] }),
+          createContext({ placement: 'surround-vertical', availableWidth: 300 }),
+        ),
+      ).toBe('panel');
+    });
+
     it('should use a panel in a popup', () => {
       expect(
         resolveThumbnailStyle(
