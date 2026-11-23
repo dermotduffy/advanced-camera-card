@@ -680,8 +680,8 @@ describe('state condition', () => {
       ).toBeFalsy();
     });
 
-    describe('should signal when the duration elapses', () => {
-      const createForEvaluator = (options?: { match?: 'any' }) =>
+    describe('should report when the for duration completes', () => {
+      const createForEvaluator = (options?: { match?: 'any'; for?: number }) =>
         createConditionEvaluator(
           {
             condition: 'state' as const,
@@ -708,91 +708,82 @@ describe('state condition', () => {
       // Held 2s of 5s when evaluated (now is 22:56:56).
       const pending = { state: 'on', last_changed: '2026-06-05T22:56:54Z' };
 
-      it('should have no external sources without for', () => {
-        const evaluator = createConditionEvaluator(
-          { condition: 'state' as const, entity_id: 'binary_sensor.foo', state: 'on' },
-          createEvaluatorContext(),
-        );
-        expect(evaluator.externalSources ?? []).toHaveLength(0);
-      });
-
-      it('should call the subscriber once the duration has elapsed', () => {
+      it('should report the first millisecond past the duration', () => {
         const evaluator = createForEvaluator();
-        const callback = vi.fn();
-        evaluator.externalSources?.[0].subscribe(callback);
-
         const state = createState(pending);
-        expect(evaluator.evaluate(state).result).toBeFalsy();
 
-        // Held exactly 5s is not yet a match, so nothing is signalled.
-        vi.advanceTimersByTime(3000);
-        expect(callback).not.toHaveBeenCalled();
+        expect(evaluator.evaluate(state)).toEqual({
+          result: false,
+          validUntil: new Date('2026-06-05T22:56:59.001Z'),
+        });
 
-        vi.advanceTimersByTime(1);
-        expect(callback).toHaveBeenCalledTimes(1);
-        expect(evaluator.evaluate(state).result).toBeTruthy();
-
-        // Once matched, nothing more is pending.
-        vi.advanceTimersByTime(60000);
-        expect(callback).toHaveBeenCalledTimes(1);
+        vi.setSystemTime(new Date('2026-06-05T22:56:59.001Z'));
+        expect(evaluator.evaluate(state)).toEqual({ result: true });
       });
 
-      it('should signal for the earliest pending entity', () => {
+      it('should report one millisecond ahead when held for exactly the duration', () => {
+        const evaluator = createForEvaluator();
+
+        expect(
+          evaluator.evaluate(
+            createState({ state: 'on', last_changed: '2026-06-05T22:56:51Z' }),
+          ),
+        ).toEqual({
+          result: false,
+          validUntil: new Date('2026-06-05T22:56:56.001Z'),
+        });
+      });
+
+      it('should round a fractional duration up to a whole millisecond', () => {
+        const evaluator = createForEvaluator({ for: 2.0005 });
+        const state = createState({ state: 'on', last_changed: '2026-06-05T22:56:56Z' });
+
+        vi.setSystemTime(new Date('2026-06-05T22:56:58Z'));
+        expect(evaluator.evaluate(state)).toEqual({
+          result: false,
+          validUntil: new Date('2026-06-05T22:56:58.001Z'),
+        });
+
+        vi.setSystemTime(new Date('2026-06-05T22:56:58.001Z'));
+        expect(evaluator.evaluate(state)).toEqual({ result: true });
+      });
+
+      it('should report the earliest pending entity', () => {
         const evaluator = createForEvaluator({ match: 'any' });
-        const callback = vi.fn();
-        evaluator.externalSources?.[0].subscribe(callback);
 
         // foo is due in 3s, bar (held 4s) is due in 1s.
-        evaluator.evaluate(
-          createState(pending, { state: 'on', last_changed: '2026-06-05T22:56:52Z' }),
-        );
-
-        vi.advanceTimersByTime(1001);
-        expect(callback).toHaveBeenCalledTimes(1);
+        expect(
+          evaluator.evaluate(
+            createState(pending, { state: 'on', last_changed: '2026-06-05T22:56:52Z' }),
+          ),
+        ).toEqual({
+          result: false,
+          validUntil: new Date('2026-06-05T22:56:57.001Z'),
+        });
       });
 
-      it('should not signal once the state no longer matches', () => {
-        const evaluator = createForEvaluator();
-        const callback = vi.fn();
-        evaluator.externalSources?.[0].subscribe(callback);
+      it('should report no time once another entity matches', () => {
+        const evaluator = createForEvaluator({ match: 'any' });
 
-        evaluator.evaluate(createState(pending));
-        evaluator.evaluate(
-          createState({ state: 'off', last_changed: '2026-06-05T22:56:56Z' }),
-        );
-
-        vi.advanceTimersByTime(60000);
-        expect(callback).not.toHaveBeenCalled();
+        expect(evaluator.evaluate(createState(pending))).toEqual({ result: true });
       });
 
-      it('should not signal after unsubscribing', () => {
+      it('should report no time when the state does not match', () => {
         const evaluator = createForEvaluator();
-        const callback = vi.fn();
-        const unsubscribe = evaluator.externalSources?.[0].subscribe(callback);
 
-        evaluator.evaluate(createState(pending));
-        unsubscribe?.();
-
-        expect(vi.getTimerCount()).toBe(0);
-        vi.advanceTimersByTime(60000);
-        expect(callback).not.toHaveBeenCalled();
+        expect(
+          evaluator.evaluate(
+            createState({ state: 'off', last_changed: '2026-06-05T22:56:56Z' }),
+          ),
+        ).toEqual({ result: false });
       });
 
-      it('should not start a timer without a subscriber', () => {
+      it('should report no time when last_changed is invalid', () => {
         const evaluator = createForEvaluator();
 
-        evaluator.evaluate(createState(pending));
-
-        expect(vi.getTimerCount()).toBe(0);
-      });
-
-      it('should not start a timer when last_changed is invalid', () => {
-        const evaluator = createForEvaluator();
-        evaluator.externalSources?.[0].subscribe(vi.fn());
-
-        evaluator.evaluate(createState({ state: 'on', last_changed: 'never' }));
-
-        expect(vi.getTimerCount()).toBe(0);
+        expect(
+          evaluator.evaluate(createState({ state: 'on', last_changed: 'never' })),
+        ).toEqual({ result: false });
       });
     });
   });

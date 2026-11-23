@@ -1,14 +1,17 @@
 import { haEqual } from '../../../ha/event-match';
-import type { UnsubscribeCallback } from '../../../types';
-import { arrayify, arrayifyWithFalsy } from '../../../utils/basic';
-import { Timer } from '../../../utils/timer';
+import {
+  arrayify,
+  arrayifyWithFalsy,
+  getEarliestDate,
+  isValidDate,
+} from '../../../utils/basic';
 import { renderTimePeriodToSeconds } from '../../common/time-period';
-import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionState } from '../types';
 import type {
   ConditionEvaluator,
+  ConditionEvaluatorResult,
   ConditionOfType,
   EvaluatorContext,
-  ExternalInvalidationSource,
 } from './types';
 
 // Home Assistant resolves an expected value that names an `input_*` helper to
@@ -32,48 +35,19 @@ const isInputHelperName = (value: unknown): value is string =>
 const resolveExpectedValue = (expected: unknown, state?: ConditionState): unknown =>
   isInputHelperName(expected) ? state?.hass?.states?.[expected]?.state : expected;
 
-// Nothing in `ConditionState` changes when a `for` hold elapses, so a reactive
-// consumer would otherwise only see the match at some later, unrelated state
-// update. This fires once the hold is due. The timer is only armed while
-// subscribed, so a one-off (pull) evaluation never starts one.
-class ForElapsedSource implements ExternalInvalidationSource {
-  private _timer = new Timer();
-  private _callback: (() => void) | null = null;
-
-  public subscribe(callback: () => void): UnsubscribeCallback {
-    this._callback = callback;
-    return (): void => {
-      this._timer.stop();
-      this._callback = null;
-    };
-  }
-
-  public schedule(seconds: number | null): void {
-    this._timer.stop();
-    if (seconds !== null && this._callback) {
-      this._timer.start(seconds, this._callback);
-    }
-  }
-}
-
 export class StateConditionEvaluator implements ConditionEvaluator {
   private _condition: ConditionOfType<'state'>;
   private _context: EvaluatorContext;
-  private _forElapsed = new ForElapsedSource();
 
   constructor(condition: ConditionOfType<'state'>, context: EvaluatorContext) {
     this._condition = condition;
     this._context = context;
   }
 
-  public get externalSources(): ExternalInvalidationSource[] {
-    return this._condition.for === undefined ? [] : [this._forElapsed];
-  }
-
   public evaluate(
     newState?: ConditionState,
     oldState?: ConditionState,
-  ): ConditionsEvaluationResult {
+  ): ConditionEvaluatorResult {
     const condition = this._condition;
     const attribute = condition.attribute;
 
@@ -122,8 +96,8 @@ export class StateConditionEvaluator implements ConditionEvaluator {
       return false;
     };
 
-    // Seconds until the earliest pending `for` hold is due, if any.
-    let secondsUntilHeld: number | null = null;
+    // The earliest time at which a matching entity's `for` duration completes.
+    let validUntil: Date | null = null;
 
     const matchesEntity = (entityID: string): boolean => {
       const fromValue = readValue(entityID, oldState);
@@ -154,15 +128,18 @@ export class StateConditionEvaluator implements ConditionEvaluator {
           newState,
         );
         const lastChanged = newState?.hass?.states?.[entityID]?.last_changed;
-        if (forSeconds === null || !lastChanged) {
+        const lastChangedDate = lastChanged ? new Date(lastChanged) : null;
+        if (forSeconds === null || !lastChangedDate || !isValidDate(lastChangedDate)) {
           result = false;
         } else {
-          const heldMS = new Date().getTime() - new Date(lastChanged).getTime();
-          result = heldMS > forSeconds * 1000;
-          if (!result && !isNaN(heldMS)) {
-            // Due 1ms after the duration, since held == for does not match.
-            const dueSeconds = (Math.floor(forSeconds * 1000 - heldMS) + 1) / 1000;
-            secondsUntilHeld = Math.min(secondsUntilHeld ?? dueSeconds, dueSeconds);
+          // Dates count whole milliseconds and the match must last longer than
+          // `for`, so this is the first instant at which `for` completes.
+          const forCompletesAt = new Date(
+            lastChangedDate.getTime() + Math.floor(forSeconds * 1000) + 1,
+          );
+          result = new Date() >= forCompletesAt;
+          if (!result) {
+            validUntil = getEarliestDate(validUntil, forCompletesAt);
           }
         }
       }
@@ -175,7 +152,7 @@ export class StateConditionEvaluator implements ConditionEvaluator {
         ? entityIDs.some(matchesEntity)
         : entityIDs.every(matchesEntity);
 
-    this._forElapsed.schedule(secondsUntilHeld);
-    return { result };
+    // Only a state change can end a match, so a match carries no `validUntil`.
+    return !result && validUntil ? { result, validUntil } : { result };
   }
 }

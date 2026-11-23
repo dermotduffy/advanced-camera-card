@@ -1,6 +1,8 @@
 import type { TemplateRenderer } from '../../card-controller/templates';
 import type { Condition } from '../../config/schema/condition-trigger/conditions/types';
 import type { UnsubscribeCallback } from '../../types';
+import { getEarliestDate } from '../../utils/basic';
+import { Timer } from '../../utils/timer';
 import { isEnabled } from '../common/is-enabled';
 import type { ConditionEvaluator } from './conditions/types';
 import { createConditionEvaluator } from './factory';
@@ -31,6 +33,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
   private _listeners: ConditionsListener[] = [];
   private _evaluation: ConditionsEvaluationResult = { result: false };
   private _unsubscribeCallbacks: UnsubscribeCallback[] = [];
+  private _reevaluateTimer = new Timer();
 
   constructor(
     conditions: Condition[],
@@ -69,6 +72,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
     this._unsubscribeCallbacks.forEach((unsubscribe) => unsubscribe());
     this._unsubscribeCallbacks = [];
+    this._reevaluateTimer.stop();
     this._conditions = [];
   }
 
@@ -98,15 +102,23 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
     let result = true;
 
+    // As in an `and` condition, conditions after the first failing one cannot
+    // change the result until it does, so only the evaluated ones' times count.
+    let validUntil: Date | null = null;
+
     for (const { config, evaluator } of this._conditions) {
       if (!isEnabled(this._templateRenderer, config.enabled, state)) {
         continue;
       }
-      if (!evaluator.evaluate(state, options?.stateChange?.old).result) {
+      const conditionEvaluation = evaluator.evaluate(state, options?.stateChange?.old);
+      validUntil = getEarliestDate(validUntil, conditionEvaluation.validUntil);
+      if (!conditionEvaluation.result) {
         result = false;
         break;
       }
     }
+
+    this._scheduleReevaluation(validUntil);
 
     const evaluation: ConditionsEvaluationResult = { result };
 
@@ -118,5 +130,16 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
         );
       }
     }
+  }
+
+  private _scheduleReevaluation(validUntil: Date | null): void {
+    if (!validUntil) {
+      this._reevaluateTimer.stop();
+      return;
+    }
+    this._reevaluateTimer.start(
+      (validUntil.getTime() - new Date().getTime()) / 1000,
+      () => this._evaluate(),
+    );
   }
 }

@@ -241,6 +241,16 @@ export const isValidDate = (date: Date): boolean => {
   return !isNaN(date.getTime());
 };
 
+export const getEarliestDate = (...dates: (Date | null | undefined)[]): Date | null => {
+  let earliest: Date | null = null;
+  for (const date of dates) {
+    if (date && (!earliest || date < earliest)) {
+      earliest = date;
+    }
+  }
+  return earliest;
+};
+
 /**
  * Determine whether a 'YYYY-MM-DD' string names a day that exists.
  */

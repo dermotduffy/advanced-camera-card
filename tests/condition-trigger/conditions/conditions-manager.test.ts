@@ -3,6 +3,8 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { TemplateManager } from '../../../src/card-controller/templates';
 import { ConditionsManager } from '../../../src/condition-trigger/conditions/conditions-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
+import type { ConditionState } from '../../../src/condition-trigger/conditions/types';
+import type { Condition } from '../../../src/config/schema/condition-trigger/conditions/types';
 import {
   createHASS,
   createMockTemplateRenderer,
@@ -110,26 +112,31 @@ describe('ConditionsManager', () => {
       vi.useRealTimers();
     });
 
-    // The door has just opened, so the 5s hold is still pending.
-    const createManager = (): ConditionsManager => {
-      const stateManager = new ConditionStateManager();
-      stateManager.setState({
-        hass: createHASS({
-          'binary_sensor.door': createStateEntity({
-            state: 'on',
-            last_changed: '2026-06-05T22:56:56Z',
-          }),
+    const doorOpenFor5s = {
+      condition: 'state' as const,
+      entity: 'binary_sensor.door',
+      state: 'on',
+      for: '00:00:05',
+    };
+
+    const createDoorState = (state: string): ConditionState => ({
+      hass: createHASS({
+        'binary_sensor.door': createStateEntity({
+          state,
+          last_changed: '2026-06-05T22:56:56Z',
         }),
-      });
+      }),
+    });
+
+    // The door has just opened, so its 5s `for` duration has not yet passed.
+    const createManager = (options?: {
+      conditions?: Condition[];
+      stateManager?: ConditionStateManager;
+    }): ConditionsManager => {
+      const stateManager = options?.stateManager ?? new ConditionStateManager();
+      stateManager.setState(createDoorState('on'));
       return new ConditionsManager(
-        [
-          {
-            condition: 'state' as const,
-            entity: 'binary_sensor.door',
-            state: 'on',
-            for: '00:00:05',
-          },
-        ],
+        options?.conditions ?? [doorOpenFor5s],
         templateManager,
         stateManager,
       );
@@ -141,10 +148,53 @@ describe('ConditionsManager', () => {
       manager.addListener(listener);
       expect(manager.getEvaluation()).toEqual({ result: false });
 
-      vi.advanceTimersByTime(5001);
+      vi.advanceTimersByTime(5000);
+      expect(listener).not.toHaveBeenCalled();
 
+      vi.advanceTimersByTime(1);
       expect(manager.getEvaluation()).toEqual({ result: true });
       expect(listener).toHaveBeenCalledWith({ result: true }, undefined);
+    });
+
+    it('should stop re-evaluating once the for duration completes', () => {
+      createManager();
+      expect(vi.getTimerCount()).toBe(1);
+
+      vi.advanceTimersByTime(5001);
+
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('should stop re-evaluating when the state stops matching', () => {
+      const stateManager = new ConditionStateManager();
+      const manager = createManager({ stateManager });
+      const listener = vi.fn();
+      manager.addListener(listener);
+      expect(vi.getTimerCount()).toBe(1);
+
+      stateManager.setState(createDoorState('off'));
+      expect(vi.getTimerCount()).toBe(0);
+
+      vi.advanceTimersByTime(10000);
+      expect(manager.getEvaluation()).toEqual({ result: false });
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should not re-evaluate for a disabled condition', () => {
+      createManager({ conditions: [{ ...doorOpenFor5s, enabled: false }] });
+
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('should not re-evaluate for a condition after a failing one', () => {
+      createManager({
+        conditions: [
+          { condition: 'fullscreen' as const, fullscreen: true },
+          doorOpenFor5s,
+        ],
+      });
+
+      expect(vi.getTimerCount()).toBe(0);
     });
 
     it('should not leave a timer behind when destroyed', () => {
