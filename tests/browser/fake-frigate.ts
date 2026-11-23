@@ -24,6 +24,7 @@ import {
   CAMERA_ENTITY,
   createCameraHASS,
   createStillImageCardConfig,
+  type CameraHASSOptions,
   type FakeCameraDescription,
 } from './test-utils';
 
@@ -106,8 +107,9 @@ export const mountCardWithFrigate = async (
   config?: PartialAdvancedCameraCardConfig,
   reviews?: FrigateReview[],
   options?: MountOptions,
+  hassOptions?: CameraHASSOptions,
 ): Promise<CardWithFrigate> => {
-  const hass = createCameraHASS([createFrigateCameraDescription()]);
+  const hass = createCameraHASS([createFrigateCameraDescription()], hassOptions);
   const frigate = new FakeFrigate(hass);
   frigate.setEvents(events);
   frigate.setReviews(reviews ?? []);

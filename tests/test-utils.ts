@@ -92,6 +92,11 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   }
   hass.config.components = [];
 
+  // Home Assistant's default date and time settings, rather than a mock whose
+  // fields are all undefined, so that a test handing this to the card leaves
+  // dates and times in a known format for the tests after it.
+  hass.locale = createLocaleHASS().locale;
+
   // Most Home Assistant instances share the browser's timezone.
   hass.config.time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -111,6 +116,21 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   hass.connection.sendMessagePromise = vi.fn().mockResolvedValue([]);
   return hass;
 };
+
+// A Home Assistant with only a locale, for dates and times. The locale's type
+// uses ambient enums that have no runtime value, so plain strings stand in for
+// their members.
+export const createLocaleHASS = (options?: {
+  language?: string;
+  time_format?: string;
+}): HomeAssistant =>
+  ({
+    locale: {
+      language: options?.language ?? 'en',
+      number_format: 'language',
+      time_format: options?.time_format ?? 'language',
+    },
+  }) as unknown as HomeAssistant;
 
 /**
  * Build a driveable HASSSource backed by a single `hass` value. The

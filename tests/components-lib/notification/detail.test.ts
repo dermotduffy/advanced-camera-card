@@ -1,16 +1,24 @@
-import { format } from 'date-fns';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   getMediaHeading,
   getMediaSeekDetail,
   getNotificationDetails,
 } from '../../../src/components-lib/notification/detail';
-import { formatDateAndTime } from '../../../src/utils/basic';
+import { setDateTimeLocale } from '../../../src/utils/format-date-time';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../camera-manager/test-utils';
-import { createFolder } from '../../test-utils';
+import { createFolder, createLocaleHASS } from '../../test-utils';
 import { TestViewMedia } from '../../view/test-utils';
+
+// Shown as in British English with 24-hour times.
+beforeEach(() => {
+  setDateTimeLocale(createLocaleHASS({ language: 'en-GB', time_format: '24' }));
+});
+
+afterEach(() => {
+  setDateTimeLocale(null);
+});
 
 describe('getMediaHeading', () => {
   it('should head an event with what it detected and the score', () => {
@@ -131,11 +139,12 @@ describe('getMediaHeading', () => {
 
 describe('getNotificationDetails', () => {
   it('should have the start time', () => {
-    const startTime = new Date('2025-05-18T17:03:00Z');
+    // In the browser's time zone.
+    const startTime = new Date('2025-05-18T17:03:00');
     const item = new TestViewMedia({ startTime });
 
     expect(getNotificationDetails({ item })).toContainEqual({
-      text: formatDateAndTime(startTime, true),
+      text: expect.stringMatching(/^18 May 2025,? 17:03:00$/),
       tooltip: 'Start',
       icon: 'mdi:calendar-clock-outline',
     });
@@ -246,10 +255,10 @@ describe('getNotificationDetails', () => {
 
 describe('getMediaSeekDetail', () => {
   it('should have a detail for a seek time', () => {
-    const seek = new Date('2025-05-20T07:14:57Z');
+    const seek = new Date('2025-05-20T07:14:57');
 
     expect(getMediaSeekDetail(seek)).toEqual({
-      text: format(seek, 'HH:mm:ss'),
+      text: '07:14:57',
       tooltip: 'Seek',
       icon: 'mdi:clock-fast',
     });

@@ -1,7 +1,6 @@
-import { format } from 'date-fns';
-
 import type { CameraManager } from '../../../camera-manager/manager';
 import { isTruthy } from '../../../utils/basic';
+import { formatTime, formatTimeParts } from '../../../utils/format-date-time';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import {
@@ -111,11 +110,12 @@ export class ThumbnailDetailsOverlayController {
       return null;
     }
 
-    const hoursMinutesSeconds = format(this._startTime, 'HH:mm:ss');
-    const showSeconds = !this.isOneLineHeadline();
+    const hoursMinutesSeconds = formatTime(this._startTime, { seconds: true });
     return {
-      hoursMinutes: hoursMinutesSeconds.slice(0, 5),
-      ...(showSeconds && { seconds: hoursMinutesSeconds.slice(5) }),
+      // A time without its seconds keeps everything else, such as AM/PM.
+      ...(this.isOneLineHeadline()
+        ? { hoursMinutes: formatTime(this._startTime) }
+        : formatTimeParts(this._startTime)),
       hoursMinutesSeconds,
     };
   }

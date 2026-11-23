@@ -17,6 +17,7 @@ import {
   createStillImageCameraConfig,
   waitForThumbnails,
 } from '../../browser/test-utils';
+import { createLocaleHASS } from '../../test-utils';
 
 const mountGalleryWithThumbnailSize = async (
   size: number,
@@ -30,6 +31,8 @@ const mountGalleryWithThumbnailSize = async (
     },
     [],
     width ? { width } : undefined,
+    // American English with 24-hour times, whatever the browser's own.
+    { locale: createLocaleHASS({ language: 'en-US', time_format: '24' }).locale },
   );
   await waitForThumbnails(card, 1);
   return card;

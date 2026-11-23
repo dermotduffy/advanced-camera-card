@@ -10,6 +10,7 @@ import type {
   RawAdvancedCameraCardConfig,
 } from '../../src/config/types';
 import type { Entity } from '../../src/ha/registry/entity/types';
+import type { HomeAssistant } from '../../src/ha/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { isRecord, isTruthy } from '../../src/utils/basic';
@@ -70,6 +71,9 @@ export interface CameraHASSOptions {
 
   // The language Home Assistant is set to for translation tests.
   language?: string;
+
+  // The user's date and time settings, for tests that read a date or time.
+  locale?: HomeAssistant['locale'];
 }
 
 /**
@@ -89,6 +93,7 @@ export const createCameraHASS = (
       cameras.map((camera) => [camera.entityID, camera.registry]),
     ),
     ...(options?.language && { language: options.language }),
+    ...(options?.locale && { locale: options.locale }),
   });
 
 export interface GenericCameraHASSOptions extends CameraHASSOptions {

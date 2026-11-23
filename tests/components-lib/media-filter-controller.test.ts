@@ -7,6 +7,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi,
 } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
@@ -31,10 +32,11 @@ import {
 } from '../../src/components-lib/media-filter-controller';
 import { QuerySource } from '../../src/query-source';
 import type { Severity } from '../../src/severity';
+import { setDateTimeLocale } from '../../src/utils/format-date-time';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import { createCameraManager, createStore } from '../camera-manager/test-utils';
 import { createCameraConfig, createPerformanceConfig } from '../config/test-utils';
-import { createLitElement } from '../test-utils';
+import { createLitElement, createLocaleHASS } from '../test-utils';
 import { createView } from '../view/test-utils';
 
 const createCameraStore = (options?: { capabilities: Capabilities }) => {
@@ -515,6 +517,9 @@ describe('MediaFilterController', () => {
       });
 
       it('with metadata for days', async () => {
+        setDateTimeLocale(createLocaleHASS({ language: 'en' }));
+        onTestFinished(() => setDateTimeLocale(null));
+
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getMediaMetadata).mockResolvedValue({
           days: new Set(['2024-02-04', '2024-02-05']),

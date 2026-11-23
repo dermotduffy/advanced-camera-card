@@ -1,15 +1,16 @@
 import { format } from 'date-fns';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   BrowseMediaEventViewMedia,
   BrowseMediaViewFolder,
 } from '../../../src/ha/browse-media/item';
-import { formatDateAndTime } from '../../../src/utils/basic';
+import { setDateTimeLocale } from '../../../src/utils/format-date-time';
 import { ViewMediaType } from '../../../src/view/item';
 import {
   createBrowseMedia,
   createFolder,
+  createLocaleHASS,
   createRichBrowseMedia,
 } from '../../test-utils';
 
@@ -114,20 +115,24 @@ describe('BrowseMediaEventViewMedia', () => {
   });
 
   describe('should get title', () => {
+    afterEach(() => {
+      setDateTimeLocale(null);
+    });
+
     it('should get title from metadata start time', () => {
-      const startDate = new Date('2025-05-05T07:46:00Z');
+      setDateTimeLocale(createLocaleHASS({ language: 'en-GB', time_format: '24' }));
       const browseMedia = createRichBrowseMedia({
         _metadata: {
-          startDate: startDate,
-          endDate: new Date('2025-05-05T07:48:00Z'),
+          // In the browser's time zone.
+          startDate: new Date('2025-05-05T07:46:00'),
+          endDate: new Date('2025-05-05T07:48:00'),
           cameraID: 'camera.office',
         },
       });
 
       const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
 
-      // The title is formatted using local time via formatDateAndTime
-      expect(viewMedia.getTitle()).toEqual(formatDateAndTime(startDate));
+      expect(viewMedia.getTitle()).toBe('5 May 2025, 07:46');
     });
 
     it('should get title without metadata', () => {

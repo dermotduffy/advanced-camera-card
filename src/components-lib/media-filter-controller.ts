@@ -3,7 +3,6 @@ import {
   endOfMonth,
   endOfToday,
   endOfYesterday,
-  format,
   parse,
   startOfDay,
   startOfToday,
@@ -34,6 +33,7 @@ import {
   getUnanimousValue,
   prettifyTitle,
 } from '../utils/basic';
+import { formatMonth } from '../utils/format-date-time';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder';
 
 export interface MediaFilterCoreDefaults {
@@ -438,7 +438,7 @@ export class MediaFilterController {
         (date) => date.getTime(),
         'desc',
       ).map((monthStart) => ({
-        label: format(monthStart, 'MMMM yyyy'),
+        label: formatMonth(monthStart),
         value: this._dateRangeToString({
           start: monthStart,
           end: endOfMonth(monthStart),

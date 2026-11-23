@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { ThumbnailDetailsOverlayController } from '../../../../src/components-lib/thumbnail/details-overlay/controller';
 import type { ResolvedThumbnailStyle } from '../../../../src/components-lib/thumbnail/resolve-style';
+import { setDateTimeLocale } from '../../../../src/utils/format-date-time';
 import { ViewFolder, ViewMediaType } from '../../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../../camera-manager/test-utils';
-import { createFolder } from '../../../test-utils';
+import { createFolder, createLocaleHASS } from '../../../test-utils';
 import { TestViewMedia } from '../../../view/test-utils';
 
 const createEvent = (): TestViewMedia =>
@@ -134,6 +135,14 @@ describe('ThumbnailDetailsOverlayController', () => {
   });
 
   describe('should show the time', () => {
+    beforeEach(() => {
+      setDateTimeLocale(createLocaleHASS({ language: 'en-US', time_format: '24' }));
+    });
+
+    afterEach(() => {
+      setDateTimeLocale(null);
+    });
+
     it.each([[75], [100]])(
       'should omit the seconds where the line is shared at size %s',
       (size) => {
@@ -150,6 +159,23 @@ describe('ThumbnailDetailsOverlayController', () => {
         seconds: ':47',
         hoursMinutesSeconds: '16:55:47',
       });
+    });
+
+    it('should keep AM/PM where the seconds are omitted', () => {
+      setDateTimeLocale(createLocaleHASS({ language: 'en-US', time_format: '12' }));
+
+      const time = createController('overlay', 75).getTime();
+      expect(time?.hoursMinutes).toMatch(/^4:55\sPM$/);
+      expect(time?.seconds).toBeUndefined();
+    });
+
+    it('should show AM/PM after the seconds where there is room', () => {
+      setDateTimeLocale(createLocaleHASS({ language: 'en-US', time_format: '12' }));
+
+      const time = createController('overlay', 175).getTime();
+      expect(time?.hoursMinutes).toBe('4:55');
+      expect(time?.seconds).toMatch(/^:47\sPM$/);
+      expect(time?.hoursMinutesSeconds).toMatch(/^4:55:47\sPM$/);
     });
 
     it('should show no seconds at the smallest hover size', () => {

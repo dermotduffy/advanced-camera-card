@@ -4,6 +4,7 @@ import type { HASSListener } from '../../ha/source';
 import type { HomeAssistant } from '../../ha/types';
 import type { UnsubscribeCallback } from '../../types';
 import { log } from '../../utils/debug';
+import { setDateTimeLocale } from '../../utils/format-date-time';
 import { InitializationAspect } from '../initialization/initialization-manager';
 import type { CardHASSAPI } from '../types';
 import { EventWatcher, type EventWatcherSubscriptionInterface } from './event-watcher';
@@ -120,6 +121,10 @@ export class HASSManager implements HASSManagerReadonlyInterface {
 
       void this._api.getCameraManager().destroy();
     }
+
+    // Before the listeners, so that whatever they render shows the new
+    // settings.
+    setDateTimeLocale(hass);
 
     const oldHass = this._hass;
     this._hass = hass;
