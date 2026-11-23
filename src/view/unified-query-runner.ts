@@ -53,9 +53,6 @@ export class UnifiedQueryRunner {
       allItems.push(...(items ?? []));
     }
 
-    // Each source sorts its own results, so they must be sorted again once
-    // combined (otherwise the last source, not the most recent media, ends up
-    // last).
     return sortItems(allItems);
   }
 
