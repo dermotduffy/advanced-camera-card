@@ -1,10 +1,12 @@
+import { AdvancedCameraCardError } from '../../../types';
+
 export type BackchannelFailureReason =
   | 'no_two_way_audio'
   | 'no_microphone'
-  | 'failed'
-  | 'abandoned';
+  | 'disconnected'
+  | 'failed';
 
-export class BackchannelError extends Error {
+export class BackchannelError extends AdvancedCameraCardError {
   public readonly reason: BackchannelFailureReason;
   public readonly description: string | null;
 
@@ -12,6 +14,14 @@ export class BackchannelError extends Error {
     super(description ?? reason);
     this.reason = reason;
     this.description = description ?? null;
+  }
+}
+
+// Rejects a `start()` that `stop()` or a newer `start()` cut short. Nothing
+// failed, so there is no reason to report.
+export class BackchannelAbandonedError extends AdvancedCameraCardError {
+  constructor() {
+    super('Backchannel abandoned');
   }
 }
 

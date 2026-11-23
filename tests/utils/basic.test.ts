@@ -16,7 +16,9 @@ import {
   formatDateAndTime,
   generateFloatApproximatelyEqualsCustomizer,
   getChildrenFromElement,
+  getDistance,
   getDurationString,
+  getEarliestDate,
   getErrorDescription,
   getUnanimousValue,
   ignoreFunctionIdentity,
@@ -181,6 +183,12 @@ describe('errorToConsole', () => {
   });
 });
 
+describe('getDistance', () => {
+  it('should measure the straight-line distance between two points', () => {
+    expect(getDistance({ x: 1, y: 2 }, { x: 4, y: 6 })).toBe(5);
+  });
+});
+
 describe('isPointInBox', () => {
   const box = { left: 10, right: 110, top: 20, bottom: 70 };
 
@@ -302,6 +310,27 @@ describe('isValidDate', () => {
   });
   it('should be invalid date', () => {
     expect(isValidDate(new Date('moo'))).toBeFalsy();
+  });
+});
+
+describe('getEarliestDate', () => {
+  it('should return the earliest date', () => {
+    const earliest = new Date('2026-06-05T22:56:56Z');
+    expect(
+      getEarliestDate(
+        new Date('2026-06-05T22:57:00Z'),
+        earliest,
+        new Date('2026-06-06'),
+      ),
+    ).toBe(earliest);
+  });
+  it('should skip absent dates', () => {
+    const date = new Date('2026-06-05T22:56:56Z');
+    expect(getEarliestDate(null, date, undefined)).toBe(date);
+  });
+  it('should return null without dates', () => {
+    expect(getEarliestDate()).toBeNull();
+    expect(getEarliestDate(null, undefined)).toBeNull();
   });
 });
 

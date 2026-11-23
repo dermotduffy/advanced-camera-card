@@ -6,7 +6,7 @@ import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
 import { errorToConsole } from '../../utils/basic';
 import { downloadURL } from '../../utils/download';
-import type { ViewItem } from '../../view/item';
+import type { ViewItem, ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../view/types';
 import type { CardViewAPI } from '../types';
@@ -62,6 +62,17 @@ export class ViewItemManager {
     if (source === ViewMediaSource.Folder) {
       return this._api.getFoldersManager().favorite(item, favorite);
     }
+  }
+
+  public async getMediaSeekTime(media: ViewMedia, target: Date): Promise<number | null> {
+    const source = this._getMediaSource(media);
+    if (source === ViewMediaSource.Camera) {
+      return await this._api.getCameraManager().getMediaSeekTime(media, target);
+    }
+    if (source === ViewMediaSource.Folder) {
+      return this._api.getFoldersManager().getMediaSeekTime(media, target);
+    }
+    return null;
   }
 
   public async reviewMedia(item: ViewItem, reviewed: boolean): Promise<void> {

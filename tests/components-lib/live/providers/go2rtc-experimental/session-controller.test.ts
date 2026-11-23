@@ -3,6 +3,7 @@ import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import {
   Go2RTCSessionController,
+  RECONNECT_INTERVAL_SECONDS,
   type SessionSurfaces,
 } from '../../../../../src/components-lib/live/providers/go2rtc-experimental/session-controller';
 import type {
@@ -21,12 +22,15 @@ import type {
 import { GO2RTC_MODES, type Go2RTCMode } from '../../../../../src/config/schema/cameras';
 import type { CardWideConfig } from '../../../../../src/config/schema/types';
 import type { MediaPlayerController } from '../../../../../src/types';
+import { MEDIA_LOAD_CONTROLS_HIDE_SECONDS } from '../../../../../src/utils/controls';
 import {
   FakeMediaStream,
   FakeMediaStreamTrack,
   FakeRTCPeerConnection,
   FakeWebSocket,
 } from '../../../../go2rtc/test-utils';
+
+const ICE_SERVERS = [{ urls: 'stun:stun.example.com:3478' }];
 
 const H264_PROFILE: StreamProfile = {
   hasVideo: true,
@@ -139,13 +143,16 @@ describe('Go2RTCSessionController', () => {
     const webRTCSources: MockProxy<WebRTCStreamSource>[] = [];
     const webRTCContexts: StreamSourceContext<VideoStreamTarget>[] = [];
     const webRTCOptions: (CreateWebRTCSourceOptions | undefined)[] = [];
+    const webRTCGetICEServers: (() => Promise<RTCIceServer[]>)[] = [];
 
     const createWebRTCSource = vi.fn(
       (
         context: StreamSourceContext<VideoStreamTarget>,
+        getICEServers: () => Promise<RTCIceServer[]>,
         sourceOptions?: CreateWebRTCSourceOptions,
       ) => {
         webRTCContexts.push(context);
+        webRTCGetICEServers.push(getICEServers);
         webRTCOptions.push(sourceOptions);
 
         const source = mock<WebRTCStreamSource>();
@@ -172,7 +179,9 @@ describe('Go2RTCSessionController', () => {
     });
 
     const getControls = vi.fn(() => options?.controls ?? false);
+    const getICEServers = vi.fn(async () => ICE_SERVERS);
     const mediaLoadedCallback = vi.fn();
+    const mediaUnloadedCallback = vi.fn();
     const surfaceCommittedCallback = vi.fn();
     const streamErrorCallback = vi.fn();
 
@@ -180,7 +189,9 @@ describe('Go2RTCSessionController', () => {
       {
         getControls,
         getCardWideConfig: () => options?.cardWideConfig ?? null,
+        getICEServers,
         mediaLoadedCallback,
+        mediaUnloadedCallback,
         surfaceCommittedCallback,
         streamErrorCallback,
       },
@@ -197,12 +208,15 @@ describe('Go2RTCSessionController', () => {
       createBinarySource,
       createWebRTCSource,
       createWebSocket,
+      getICEServers,
       streamErrorCallback,
       mediaLoadedCallback,
+      mediaUnloadedCallback,
       offscreenVideos,
       session,
       surfaceCommittedCallback,
       webRTCContexts,
+      webRTCGetICEServers,
       webRTCOptions,
       webRTCSources,
       webRTCStream,
@@ -276,7 +290,9 @@ describe('Go2RTCSessionController', () => {
         getControls: () => false,
         surfaceCommittedCallback: vi.fn(),
         getCardWideConfig: () => null,
+        getICEServers: async () => ICE_SERVERS,
         mediaLoadedCallback: vi.fn(),
+        mediaUnloadedCallback: vi.fn(),
         streamErrorCallback: vi.fn(),
       });
       session.connect('ws://localhost:1/api/ws', createSurfaces().surfaces, ['mse']);
@@ -291,6 +307,15 @@ describe('Go2RTCSessionController', () => {
 
       expect(createBinarySource).toHaveBeenCalledTimes(1);
       expect(createWebRTCSource).toHaveBeenCalledTimes(1);
+    });
+
+    it('should hand the WebRTC source the ICE servers callback', () => {
+      const { session, surfaces, websockets, getICEServers, webRTCGetICEServers } =
+        setup();
+      session.connect('http://host/api/ws?src=camera', surfaces, ['webrtc']);
+      websockets[0].fireOpen();
+
+      expect(webRTCGetICEServers).toEqual([getICEServers]);
     });
 
     it('should keep the channel open when the binary lane drains synchronously while WebRTC is configured', () => {
@@ -308,7 +333,7 @@ describe('Go2RTCSessionController', () => {
       expect(createWebRTCSource).toHaveBeenCalledTimes(1);
       expect(websockets[0].close).not.toHaveBeenCalled();
 
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(1);
     });
   });
@@ -353,7 +378,7 @@ describe('Go2RTCSessionController', () => {
       expect(binarySources[0].stop).toHaveBeenCalled();
       expect(websockets[0].close).toHaveBeenCalled();
 
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(2);
     });
 
@@ -382,7 +407,7 @@ describe('Go2RTCSessionController', () => {
       // The last binary mode failing reconnects.
       binaryContexts[2].callbacks.failedCallback('media_error');
       expect(websockets[0].close).toHaveBeenCalled();
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(2);
     });
 
@@ -394,7 +419,7 @@ describe('Go2RTCSessionController', () => {
       websockets[0].fireOpen();
 
       expect(websockets[0].close).toHaveBeenCalled();
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(2);
     });
 
@@ -440,7 +465,7 @@ describe('Go2RTCSessionController', () => {
       binaryContexts[0].callbacks.loadedCallback();
 
       expect(video.controls).toBe(false);
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(MEDIA_LOAD_CONTROLS_HIDE_SECONDS * 1000);
       expect(video.controls).toBe(true);
     });
 
@@ -516,7 +541,7 @@ describe('Go2RTCSessionController', () => {
       webRTCContexts[0].callbacks.failedCallback('media_error');
 
       expect(video.srcObject).toBeNull();
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(2);
     });
 
@@ -617,7 +642,7 @@ describe('Go2RTCSessionController', () => {
       setupResult.webRTCContexts[0].callbacks.failedCallback('connect_timeout');
 
       expect(setupResult.websockets[0].close).toHaveBeenCalled();
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(setupResult.createWebSocket).toHaveBeenCalledTimes(2);
     });
 
@@ -809,7 +834,7 @@ describe('Go2RTCSessionController', () => {
 
       // Re-attached in time for the retry, which then reconnects normally.
       setVideoElement(video);
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(2);
     });
   });
@@ -822,7 +847,7 @@ describe('Go2RTCSessionController', () => {
       websockets[0].fireClose();
 
       expect(binarySources[0].stop).toHaveBeenCalled();
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(2);
     });
 
@@ -837,7 +862,7 @@ describe('Go2RTCSessionController', () => {
       for (let attempt = 0; attempt < 3; attempt++) {
         websockets[attempt].fireOpen();
         websockets[attempt].fireClose();
-        vi.advanceTimersByTime(2 * 1000);
+        vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       }
       websockets[3].fireOpen();
       websockets[3].fireClose();
@@ -847,7 +872,7 @@ describe('Go2RTCSessionController', () => {
 
       // The socket dropped with no source reporting a cause.
       expect(streamErrorCallback).toHaveBeenCalledWith(null);
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(4);
     });
 
@@ -862,7 +887,7 @@ describe('Go2RTCSessionController', () => {
       for (let attempt = 0; attempt < 3; attempt++) {
         websockets[attempt].fireOpen();
         binaryContexts[attempt].callbacks.failedCallback('unsupported');
-        vi.advanceTimersByTime(2 * 1000);
+        vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       }
       websockets[3].fireOpen();
       binaryContexts[3].callbacks.failedCallback('unsupported');
@@ -885,7 +910,7 @@ describe('Go2RTCSessionController', () => {
       for (let attempt = 0; attempt < 2; attempt++) {
         websockets[attempt].fireOpen();
         websockets[attempt].fireClose();
-        vi.advanceTimersByTime(2 * 1000);
+        vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       }
 
       // A successful load restores the full reconnect budget.
@@ -895,7 +920,7 @@ describe('Go2RTCSessionController', () => {
       // Three further failures are absorbed before escalation.
       for (let attempt = 2; attempt < 5; attempt++) {
         websockets[attempt].fireClose();
-        vi.advanceTimersByTime(2 * 1000);
+        vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
         websockets[attempt + 1].fireOpen();
       }
 
@@ -920,7 +945,7 @@ describe('Go2RTCSessionController', () => {
       websockets[0].fireOpen();
       websockets[0].fireClose();
       session.reset();
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
 
       expect(createWebSocket).toHaveBeenCalledTimes(1);
     });
@@ -935,6 +960,111 @@ describe('Go2RTCSessionController', () => {
     });
   });
 
+  describe('media loss', () => {
+    const connectAndLoadMSE = (setupResult: SetupResult): void => {
+      setupResult.session.connect(
+        'http://host/api/ws?src=camera',
+        setupResult.surfaces,
+        ['mse'],
+      );
+      setupResult.websockets[0].fireOpen();
+      setupResult.binaryContexts[0].callbacks.loadedCallback();
+    };
+
+    it('should report lost media when the committed binary source fails', () => {
+      const setupResult = setup();
+      connectAndLoadMSE(setupResult);
+      setupResult.binaryContexts[0].callbacks.failedCallback('media_error');
+
+      expect(setupResult.mediaUnloadedCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should report lost media when the committed WebRTC stream fails', () => {
+      const { session, surfaces, websockets, webRTCContexts, mediaUnloadedCallback } =
+        setup();
+      session.connect('http://host/api/ws?src=camera', surfaces, ['webrtc']);
+      websockets[0].fireOpen();
+      webRTCContexts[0].callbacks.loadedCallback();
+      webRTCContexts[0].callbacks.failedCallback('media_error');
+
+      expect(mediaUnloadedCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should report lost media when the socket drops after a load', () => {
+      const setupResult = setup();
+      connectAndLoadMSE(setupResult);
+      setupResult.websockets[0].fireClose();
+
+      expect(setupResult.mediaUnloadedCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should report lost media when connecting to a new URL after a load', () => {
+      const setupResult = setup();
+      connectAndLoadMSE(setupResult);
+      setupResult.session.connect('http://host/api/ws?src=other', setupResult.surfaces, [
+        'mse',
+      ]);
+
+      expect(setupResult.mediaUnloadedCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should report lost media when reset after a load', () => {
+      const setupResult = setup();
+      connectAndLoadMSE(setupResult);
+      setupResult.session.reset();
+
+      expect(setupResult.mediaUnloadedCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not report already lost media again on reset', () => {
+      const setupResult = setup();
+      connectAndLoadMSE(setupResult);
+      setupResult.binaryContexts[0].callbacks.failedCallback('media_error');
+      setupResult.session.reset();
+
+      expect(setupResult.mediaUnloadedCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not report lost media when nothing has loaded', () => {
+      const { session, surfaces, websockets, mediaUnloadedCallback } = setup();
+      session.connect('http://host/api/ws?src=camera', surfaces, ['mse']);
+      websockets[0].fireOpen();
+      websockets[0].fireClose();
+      session.reset();
+
+      expect(mediaUnloadedCallback).not.toHaveBeenCalled();
+    });
+
+    it('should not report lost media when a racing source fails while another is committed', () => {
+      const setupResult = setup();
+      startSourceRace(setupResult);
+      setupResult.binaryContexts[0].callbacks.loadedCallback();
+      setupResult.webRTCContexts[0].callbacks.failedCallback('connect_timeout');
+
+      expect(setupResult.mediaUnloadedCallback).not.toHaveBeenCalled();
+    });
+
+    it('should not report lost media when the same source reloads', () => {
+      const setupResult = setup();
+      connectAndLoadMSE(setupResult);
+      setupResult.binaryContexts[0].callbacks.loadedCallback();
+
+      expect(setupResult.mediaUnloadedCallback).not.toHaveBeenCalled();
+    });
+
+    it('should not report lost media when WebRTC takes over from a loaded binary stream', () => {
+      const setupResult = setup({
+        binaryProfile: H264_PROFILE,
+        webRTCProfile: H265_PROFILE,
+      });
+      startSourceRace(setupResult);
+      setupResult.binaryContexts[0].callbacks.loadedCallback();
+      setupResult.webRTCContexts[0].callbacks.loadedCallback();
+
+      expect(setupResult.mediaUnloadedCallback).not.toHaveBeenCalled();
+    });
+  });
+
   describe('edge cases', () => {
     it('should reconnect when a committed binary source later fails', () => {
       const { session, surfaces, websockets, binaryContexts, createWebSocket } = setup();
@@ -943,7 +1073,7 @@ describe('Go2RTCSessionController', () => {
       binaryContexts[0].callbacks.loadedCallback();
       binaryContexts[0].callbacks.failedCallback('media_error');
 
-      vi.advanceTimersByTime(2 * 1000);
+      vi.advanceTimersByTime(RECONNECT_INTERVAL_SECONDS * 1000);
       expect(createWebSocket).toHaveBeenCalledTimes(2);
     });
 
@@ -1036,7 +1166,9 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback,
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket, createBinarySource },
@@ -1070,7 +1202,9 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback,
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket, createWebRTCSource },
@@ -1096,7 +1230,9 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket },
@@ -1127,7 +1263,9 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket },
@@ -1167,7 +1305,9 @@ describe('Go2RTCSessionController', () => {
           getControls: () => false,
           surfaceCommittedCallback: vi.fn(),
           getCardWideConfig: () => null,
+          getICEServers: async () => ICE_SERVERS,
           mediaLoadedCallback: vi.fn(),
+          mediaUnloadedCallback: vi.fn(),
           streamErrorCallback: vi.fn(),
         },
         { createWebSocket, createBinarySource, createWebRTCSource },

@@ -26,7 +26,11 @@
 // of which carries an icon.
 .mode {
   display: flex;
-  align-items: center;
+
+  // Home Assistant places the form's label at the top of its field in some
+  // versions and in the middle in others, so the icon follows the label's
+  // baseline rather than the field's center.
+  align-items: baseline;
 
   margin-bottom: 8px;
   padding: 0 10px 8px;
@@ -36,14 +40,24 @@
 
 // Spaced and de-emphasized to match the icons on the sections below. The form
 // insets its own label, so the gap here is the remainder of that spacing.
+//
+// The icon contains no text, so it has no baseline to align with the label's.
+// The `span` around it supplies one: a line of text the icon is centered on.
 .mode advanced-camera-card-icon {
+  display: inline-block;
+  vertical-align: middle;
+
   margin-right: 8px;
 
   color: var(--advanced-camera-card-editor-secondary-text-color);
 }
 
+// Home Assistant reserves more height for the field than its label and switch
+// use, and leaves the spare height below them. The form takes no height in the
+// row, so the row is only as tall as the icon's line, which the label aligns to.
 .mode ha-form {
   flex: 1;
+  height: 0;
 }
 
 // The simple editor's settings that are not in a section. They are inset to

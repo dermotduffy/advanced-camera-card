@@ -6,7 +6,7 @@ import { localize } from '../../localize/localize';
 import { hasUnsupportedFilters } from '../../query-source.js';
 import type { Endpoint } from '../../types';
 import { getFolderID } from '../../utils/folder';
-import type { ViewFolder, ViewItem } from '../../view/item';
+import type { ViewFolder, ViewItem, ViewMedia } from '../../view/item';
 import type { ViewItemCapabilities } from '../../view/types';
 import type { CardFoldersAPI } from '../types';
 import { FoldersExecutor } from './executor';
@@ -116,5 +116,9 @@ export class FoldersManager {
       item,
       favorite,
     );
+  }
+
+  public getMediaSeekTime(media: ViewMedia, target: Date): number | null {
+    return this._executor.getMediaSeekTime(media, target);
   }
 }

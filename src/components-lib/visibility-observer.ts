@@ -1,3 +1,9 @@
+import type { UnsubscribeCallback } from '../types';
+import {
+  sharedDocumentVisibility,
+  type DocumentVisibility,
+} from '../utils/document-visibility';
+
 type VisibilityChangeHandler = (visible: boolean) => Promise<void> | void;
 
 interface VisibilityObserverOptions {
@@ -11,7 +17,7 @@ interface VisibilityObserverOptions {
  * Observes a root element's visibility, emitting a single boolean whenever it
  * transitions. The element is "visible" only when both:
  *
- *  - The document's tab is visible (`document.visibilityState === 'visible'`).
+ *  - The document is visible (see `DocumentVisibility`).
  *  - The element is intersecting the viewport.
  *
  * Tab visibility alone is not sufficient: a preloaded element can remain in the
@@ -33,11 +39,20 @@ export class VisibilityObserver {
   );
   private _onChange: VisibilityChangeHandler;
   private _emitInitial: boolean;
+  private _documentVisibility: DocumentVisibility;
+  private _unsubscribeDocumentVisibility: UnsubscribeCallback;
 
-  constructor(onChange: VisibilityChangeHandler, options?: VisibilityObserverOptions) {
+  constructor(
+    onChange: VisibilityChangeHandler,
+    options?: VisibilityObserverOptions,
+    documentVisibility?: DocumentVisibility,
+  ) {
     this._onChange = onChange;
     this._emitInitial = options?.emitInitial ?? false;
-    document.addEventListener('visibilitychange', this._handleVisibility);
+    this._documentVisibility = documentVisibility ?? sharedDocumentVisibility;
+    this._unsubscribeDocumentVisibility = this._documentVisibility.subscribe(
+      this._handleVisibility,
+    );
   }
 
   public setRoot(root: HTMLElement): void {
@@ -58,7 +73,7 @@ export class VisibilityObserver {
     this._intersecting = null;
     this._lastEmitted = null;
     this._intersectionObserver.disconnect();
-    document.removeEventListener('visibilitychange', this._handleVisibility);
+    this._unsubscribeDocumentVisibility();
   }
 
   private async _handleIntersection(
@@ -81,7 +96,7 @@ export class VisibilityObserver {
       return;
     }
 
-    const visible = document.visibilityState === 'visible' && this._intersecting;
+    const visible = this._documentVisibility.isVisible() && this._intersecting;
 
     if (this._lastEmitted === null) {
       // First time we have an intersection value: this is the baseline. Record

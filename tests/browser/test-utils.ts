@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import type { ZoomSettingsObserved } from '../../src/components-lib/zoom/types';
 import type {
   AdvancedCameraCardSelect,
@@ -12,6 +14,7 @@ import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { isRecord, isTruthy } from '../../src/utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../src/utils/fire-advanced-camera-card-event';
+import { Timer } from '../../src/utils/timer';
 import { clickElement, deepQuery, deepQueryAll, holdElement } from './dom';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
@@ -350,3 +353,36 @@ export const getStatusBarStrings = (root: ParentNode): string[] =>
  */
 export const getStatusBarItem = (root: ParentNode, title: string): Element | null =>
   getStatusBarItems(root).find((item) => item.getAttribute('title') === title) ?? null;
+
+/**
+ * Wait until every pending promise callback has run: the browser runs a timer
+ * callback only once they all have.
+ *
+ * The `flushPromises` in `tests/test-utils.ts` waits on Node's
+ * `process.nextTick`, which the browser does not have.
+ */
+export const flushPromises = async (): Promise<void> => {
+  await new Promise<void>((resolve) => new Timer().start(0, resolve));
+};
+
+/**
+ * Record the configuration of every peer connection created from now on, until
+ * `vi.unstubAllGlobals()`.
+ *
+ * A peer connection with no reachable ICE server can fail, and be closed by its
+ * owner, as soon as it is created, so its configuration is captured on the way
+ * in rather than read back from the owner.
+ */
+export const captureRTCPeerConnectionConfigurations = (): RTCConfiguration[] => {
+  const configurations: RTCConfiguration[] = [];
+  vi.stubGlobal(
+    'RTCPeerConnection',
+    class extends RTCPeerConnection {
+      constructor(configuration?: RTCConfiguration) {
+        super(configuration);
+        configurations.push(configuration ?? {});
+      }
+    },
+  );
+  return configurations;
+};

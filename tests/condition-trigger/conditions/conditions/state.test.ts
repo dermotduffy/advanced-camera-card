@@ -679,6 +679,113 @@ describe('state condition', () => {
         }).result,
       ).toBeFalsy();
     });
+
+    describe('should report when the for duration completes', () => {
+      const createForEvaluator = (options?: { match?: 'any'; for?: number }) =>
+        createConditionEvaluator(
+          {
+            condition: 'state' as const,
+            entity_id: ['binary_sensor.foo', 'binary_sensor.bar'],
+            state: 'on',
+            for: '00:00:05',
+            ...options,
+          },
+          createEvaluatorContext(),
+        );
+
+      const createState = (
+        foo: { state: string; last_changed: string },
+        bar?: { state: string; last_changed: string },
+      ) => ({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity(foo),
+          'binary_sensor.bar': createStateEntity(
+            bar ?? { state: 'on', last_changed: '2026-06-05T22:50:00Z' },
+          ),
+        }),
+      });
+
+      // Held 2s of 5s when evaluated (now is 22:56:56).
+      const pending = { state: 'on', last_changed: '2026-06-05T22:56:54Z' };
+
+      it('should report the first millisecond past the duration', () => {
+        const evaluator = createForEvaluator();
+        const state = createState(pending);
+
+        expect(evaluator.evaluate(state)).toEqual({
+          result: false,
+          validUntil: new Date('2026-06-05T22:56:59.001Z'),
+        });
+
+        vi.setSystemTime(new Date('2026-06-05T22:56:59.001Z'));
+        expect(evaluator.evaluate(state)).toEqual({ result: true });
+      });
+
+      it('should report one millisecond ahead when held for exactly the duration', () => {
+        const evaluator = createForEvaluator();
+
+        expect(
+          evaluator.evaluate(
+            createState({ state: 'on', last_changed: '2026-06-05T22:56:51Z' }),
+          ),
+        ).toEqual({
+          result: false,
+          validUntil: new Date('2026-06-05T22:56:56.001Z'),
+        });
+      });
+
+      it('should round a fractional duration up to a whole millisecond', () => {
+        const evaluator = createForEvaluator({ for: 2.0005 });
+        const state = createState({ state: 'on', last_changed: '2026-06-05T22:56:56Z' });
+
+        vi.setSystemTime(new Date('2026-06-05T22:56:58Z'));
+        expect(evaluator.evaluate(state)).toEqual({
+          result: false,
+          validUntil: new Date('2026-06-05T22:56:58.001Z'),
+        });
+
+        vi.setSystemTime(new Date('2026-06-05T22:56:58.001Z'));
+        expect(evaluator.evaluate(state)).toEqual({ result: true });
+      });
+
+      it('should report the earliest pending entity', () => {
+        const evaluator = createForEvaluator({ match: 'any' });
+
+        // foo is due in 3s, bar (held 4s) is due in 1s.
+        expect(
+          evaluator.evaluate(
+            createState(pending, { state: 'on', last_changed: '2026-06-05T22:56:52Z' }),
+          ),
+        ).toEqual({
+          result: false,
+          validUntil: new Date('2026-06-05T22:56:57.001Z'),
+        });
+      });
+
+      it('should report no time once another entity matches', () => {
+        const evaluator = createForEvaluator({ match: 'any' });
+
+        expect(evaluator.evaluate(createState(pending))).toEqual({ result: true });
+      });
+
+      it('should report no time when the state does not match', () => {
+        const evaluator = createForEvaluator();
+
+        expect(
+          evaluator.evaluate(
+            createState({ state: 'off', last_changed: '2026-06-05T22:56:56Z' }),
+          ),
+        ).toEqual({ result: false });
+      });
+
+      it('should report no time when last_changed is invalid', () => {
+        const evaluator = createForEvaluator();
+
+        expect(
+          evaluator.evaluate(createState({ state: 'on', last_changed: 'never' })),
+        ).toEqual({ result: false });
+      });
+    });
   });
 
   it('should resolve an expected state that names another entity', () => {

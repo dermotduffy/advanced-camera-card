@@ -5,7 +5,7 @@ import type { HomeAssistant } from '../../ha/types';
 import type { BaseQuery, QueryFilters, QuerySource } from '../../query-source';
 import type { Endpoint } from '../../types';
 import { AdvancedCameraCardError } from '../../types.js';
-import type { ViewFolder, ViewItem } from '../../view/item';
+import type { ViewFolder, ViewItem, ViewMedia } from '../../view/item';
 import type { ViewItemCapabilities } from '../../view/types';
 
 // ====
@@ -66,6 +66,8 @@ export interface FoldersEngine {
   ): Promise<Endpoint | null>;
 
   favorite(hass: HomeAssistant | null, item: ViewItem, favorite: boolean): Promise<void>;
+
+  getMediaSeekTime(media: ViewMedia, target: Date): number | null;
 
   areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean;
 }

@@ -22,7 +22,10 @@ import { MediaHeightController } from '../../components-lib/media-height-control
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import { PTZDragController } from '../../components-lib/ptz/drag-controller.js';
 import type { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
-import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
+import {
+  handleDigitalZoomHomeEvent,
+  handleZoomSettingsObservedEvent,
+} from '../../components-lib/zoom/zoom-view-context.js';
 import {
   ptzControlsDefaults,
   type PTZControlType,
@@ -81,6 +84,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   @property({ attribute: false })
   public call?: CallSession;
+
+  @property({ attribute: false })
+  public callConnecting?: boolean;
 
   @property({ attribute: false })
   public locked?: boolean;
@@ -298,6 +304,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
                 this.viewManagerEpoch?.manager,
                 cameraID,
               )}
+            @advanced-camera-card:zoom:home=${() =>
+              handleDigitalZoomHomeEvent(this, cameraID)}
           >
           </advanced-camera-card-live-provider>`,
         )}
@@ -459,9 +467,11 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       <advanced-camera-card-call-controls
         .active=${isCallControlsActive}
         .answered=${this.call?.answered ?? true}
+        .connecting=${!!this.callConnecting}
         .microphoneState=${this.microphoneState}
         .muted=${callMediaPlayerController?.isMuted()}
         .buttonSize=${this.liveConfig.controls.call.button_size}
+        .buttonsConfig=${this.liveConfig.controls.call.buttons}
         @advanced-camera-card:call:mute-toggle=${() => this._toggleMute()}
       >
       </advanced-camera-card-call-controls>

@@ -1,7 +1,8 @@
-import { http, HttpResponse, ws } from 'msw';
+import { http, HttpResponse, ws, type WebSocketHandlerConnection } from 'msw';
 import { setupWorker } from 'msw/browser';
 import { afterAll, beforeAll } from 'vitest';
 
+import type { Go2RTCMode } from '../../src/config/schema/cameras';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 
 const FAKE_GO2RTC_URL = 'http://localhost:1984';
@@ -13,8 +14,9 @@ const FAKE_GO2RTC_URL = 'http://localhost:1984';
  */
 export const createFakeGo2RTCCameraConfig = (
   stream: string,
+  modes: Go2RTCMode[] = ['mjpeg'],
 ): RawAdvancedCameraCardConfig => ({
-  go2rtc: { url: FAKE_GO2RTC_URL, stream, modes: ['mjpeg'] },
+  go2rtc: { url: FAKE_GO2RTC_URL, stream, modes },
   proxy: { live: false },
 });
 
@@ -31,12 +33,14 @@ const createJPEGFrame = async (): Promise<ArrayBuffer> => {
   return await blob.arrayBuffer();
 };
 
+type Go2RTCClient = WebSocketHandlerConnection['client'];
+
 /**
- * A go2rtc server that answers each MJPEG request with one frame, and counts
+ * A go2rtc server that answers each MJPEG request with one frame, and tracks
  * the connections the card holds open to each stream.
  */
 export class FakeGo2RTC {
-  private _openConnectionCounts = new Map<string, number>();
+  private _openConnections = new Map<string, Set<Go2RTCClient>>();
 
   private _worker = setupWorker(
     http.get(`${FAKE_GO2RTC_URL}/api/streams`, () => HttpResponse.json({})),
@@ -44,10 +48,10 @@ export class FakeGo2RTC {
       .link(`${FAKE_GO2RTC_URL.replace(/^http/, 'ws')}/api/ws`)
       .addEventListener('connection', ({ client }) => {
         const stream = client.url.searchParams.get('src') ?? '';
-        this._changeOpenConnectionCount(stream, 1);
-        client.addEventListener('close', () =>
-          this._changeOpenConnectionCount(stream, -1),
-        );
+        const connections = this._openConnections.get(stream) ?? new Set();
+        connections.add(client);
+        this._openConnections.set(stream, connections);
+        client.addEventListener('close', () => connections.delete(client));
 
         client.addEventListener('message', async (event) => {
           if (event.data === JSON.stringify({ type: 'mjpeg' })) {
@@ -66,11 +70,26 @@ export class FakeGo2RTC {
   }
 
   public getOpenConnectionCount(stream: string): number {
-    return this._openConnectionCounts.get(stream) ?? 0;
+    return this._openConnections.get(stream)?.size ?? 0;
   }
 
-  private _changeOpenConnectionCount(stream: string, delta: number): void {
-    this._openConnectionCounts.set(stream, this.getOpenConnectionCount(stream) + delta);
+  /**
+   * Close the stream's open connections from the server side, as a go2rtc
+   * restart or a network drop would.
+   */
+  public dropConnections(stream: string): void {
+    this._openConnections.get(stream)?.forEach((client) => client.close());
+  }
+
+  /**
+   * Tell the stream's open connections that the server failed to serve a mode.
+   */
+  public sendModeError(stream: string, mode: Go2RTCMode): void {
+    this._openConnections
+      .get(stream)
+      ?.forEach((client) =>
+        client.send(JSON.stringify({ type: 'error', value: `${mode}: stream failed` })),
+      );
   }
 }
 

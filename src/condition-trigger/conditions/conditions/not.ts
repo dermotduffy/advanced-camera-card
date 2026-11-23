@@ -1,17 +1,6 @@
-import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import { CompositeConditionEvaluator } from './composite';
 
 export class NotConditionEvaluator extends CompositeConditionEvaluator {
-  // "Not" is an inverted `or` (NOR): true when no child matches.
-  public evaluate(
-    newState?: ConditionState,
-    oldState?: ConditionState,
-  ): ConditionsEvaluationResult {
-    for (const child of this._children) {
-      if (child.evaluate(newState, oldState).result) {
-        return { result: false };
-      }
-    }
-    return { result: true };
-  }
+  // "Not" is an inverted `or` (NOR): it fails at the first child that passes.
+  protected readonly _determinant = { childResult: true, compositeResult: false };
 }

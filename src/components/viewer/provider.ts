@@ -12,6 +12,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
+import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
@@ -22,7 +23,10 @@ import {
   SignedURLController,
 } from '../../components-lib/signed-url-controller.js';
 import type { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
-import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
+import {
+  handleDigitalZoomHomeEvent,
+  handleZoomSettingsObservedEvent,
+} from '../../components-lib/zoom/zoom-view-context.js';
 import type { CameraConfig } from '../../config/schema/cameras.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { ViewerConfig } from '../../config/schema/viewer.js';
@@ -75,6 +79,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
+
   // Whether to force this slide to behave as if it is selected and
   // intersecting. Set by the carousel on its currently-selected slide. This is
   // necessary: `render` below draws nothing until the slide has loaded, and a
@@ -118,7 +125,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   // Only HLS media is given a start position: the HLS player is the one that
   // can start loading part way through.
   private _mediaStartPositionController = new MediaStartPositionController(this, () => ({
-    cameraManager: this.cameraManager,
+    viewItemManager: this.viewItemManager,
     view: this.viewManagerEpoch?.manager.getView() ?? undefined,
     media: this._shouldLoad() && this._classifyMedia().isHLS ? this.media : undefined,
   }));
@@ -227,6 +234,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
                 : undefined,
             )}
             .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
+            .dimensionsConfig=${this._getRelevantCameraConfig()?.dimensions}
             @advanced-camera-card:zoom:zoomed=${async () =>
               (await this.getMediaPlayerController())?.setControls(false)}
             @advanced-camera-card:zoom:unzoomed=${async () =>
@@ -239,6 +247,8 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
                 this.viewManagerEpoch?.manager,
                 mediaID,
               )}
+            @advanced-camera-card:zoom:home=${() =>
+              handleDigitalZoomHomeEvent(this, mediaID)}
           >
             ${intermediateTemplate}
           </advanced-camera-card-zoomer>`

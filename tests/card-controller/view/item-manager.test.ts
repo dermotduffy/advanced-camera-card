@@ -53,6 +53,47 @@ describe('ViewItemManager', () => {
     });
   });
 
+  describe('getMediaSeekTime', () => {
+    it('should seek camera media through the camera manager', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getCameraManager().getMediaSeekTime).mockResolvedValue(30);
+      const manager = new ViewItemManager(api);
+      const media = new TestViewMedia({ cameraID: 'camera.office' });
+      const target = new Date();
+
+      expect(await manager.getMediaSeekTime(media, target)).toBe(30);
+      expect(api.getCameraManager().getMediaSeekTime).toHaveBeenCalledWith(
+        media,
+        target,
+      );
+    });
+
+    it('should seek folder media through the folders manager', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getFoldersManager().getMediaSeekTime).mockReturnValue(30);
+      const manager = new ViewItemManager(api);
+      const media = new TestViewMedia({ cameraID: null, folder: createFolder() });
+      const target = new Date();
+
+      expect(await manager.getMediaSeekTime(media, target)).toBe(30);
+      expect(api.getFoldersManager().getMediaSeekTime).toHaveBeenCalledWith(
+        media,
+        target,
+      );
+    });
+
+    it('should not seek media without a camera or folder', async () => {
+      const manager = new ViewItemManager(createCardAPI());
+
+      expect(
+        await manager.getMediaSeekTime(
+          new TestViewMedia({ cameraID: null }),
+          new Date(),
+        ),
+      ).toBeNull();
+    });
+  });
+
   describe('download', () => {
     beforeEach(() => {
       vi.mocked(homeAssistantGetSignedURLIfNecessary).mockImplementation(

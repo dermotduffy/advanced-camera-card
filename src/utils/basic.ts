@@ -134,6 +134,9 @@ export interface Point {
   y: number;
 }
 
+export const getDistance = (a: Point, b: Point): number =>
+  Math.hypot(a.x - b.x, a.y - b.y);
+
 interface Box {
   left: number;
   right: number;
@@ -236,6 +239,16 @@ export const isSuperset = (superset: Set<unknown>, subset: Set<unknown>) => {
 
 export const isValidDate = (date: Date): boolean => {
   return !isNaN(date.getTime());
+};
+
+export const getEarliestDate = (...dates: (Date | null | undefined)[]): Date | null => {
+  let earliest: Date | null = null;
+  for (const date of dates) {
+    if (date && (!earliest || date < earliest)) {
+      earliest = date;
+    }
+  }
+  return earliest;
 };
 
 /**

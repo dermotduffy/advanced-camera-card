@@ -97,11 +97,12 @@ export class StyleManager {
   }
 
   private _setPerformance(): void {
-    const styles = this._api.getConfigManager().getCardWideConfig()?.performance?.style;
-    if (!styles) {
+    const performance = this._api.getConfigManager().getCardWideConfig()?.performance;
+    if (!performance) {
       return;
     }
 
+    const styles = performance.style;
     const element = this._api.getCardElementManager().getElement();
 
     setOrRemoveStyleProperty(
@@ -121,6 +122,12 @@ export class StyleManager {
       !styles.border_radius,
       '--advanced-camera-card-border-radius-override',
       '0px',
+    );
+    setOrRemoveStyleProperty(
+      element,
+      !performance.features.animated_progress_indicator,
+      '--advanced-camera-card-in-progress-animation-override',
+      'none',
     );
   }
 

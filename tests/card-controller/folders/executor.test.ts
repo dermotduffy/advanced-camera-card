@@ -194,6 +194,32 @@ describe('FoldersExecutor', () => {
     });
   });
 
+  describe('getMediaSeekTime', () => {
+    it('should not get seek time for non-existent folder engine', () => {
+      const folder: FolderConfig = {
+        type: 'UNKNOWN',
+      } as unknown as FolderConfig;
+      const item = new TestViewMedia({ folder });
+      const executor = new FoldersExecutor(templateManager);
+
+      expect(executor.getMediaSeekTime(item, new Date())).toBeNull();
+    });
+
+    it('should get seek time from HA folder engine', () => {
+      const haFolderEngine = mock<HAFoldersEngine>();
+      haFolderEngine.getMediaSeekTime.mockReturnValue(30);
+
+      const executor = new FoldersExecutor(templateManager, {
+        ha: haFolderEngine,
+      });
+      const item = new TestViewMedia({ folder: createFolder() });
+      const target = new Date();
+
+      expect(executor.getMediaSeekTime(item, target)).toBe(30);
+      expect(haFolderEngine.getMediaSeekTime).toHaveBeenCalledWith(item, target);
+    });
+  });
+
   describe('expandFolder', () => {
     it('should reject folders of the wrong type', async () => {
       const query = {

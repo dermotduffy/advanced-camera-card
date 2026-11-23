@@ -163,3 +163,24 @@ describe('thumbnail parser', () => {
     ).toBe(false);
   });
 });
+
+describe('enddate parser', () => {
+  const parseParser = (parser: unknown) =>
+    foldersConfigSchema.safeParse([
+      { type: 'ha', ha: { path: [{ parsers: [parser] }] } },
+    ]);
+
+  it('should accept an enddate parser', () => {
+    expect(
+      parseParser({
+        type: 'enddate',
+        regexp: '- (?<value>\\d{2}:\\d{2}:\\d{2})$',
+        format: 'HH:mm:ss',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('should reject an invalid enddate parser', () => {
+    expect(parseParser({ type: 'enddate', format: 42 }).success).toBe(false);
+  });
+});

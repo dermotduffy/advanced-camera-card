@@ -16,6 +16,7 @@ import {
   SignedURLController,
 } from '../../../../components-lib/signed-url-controller.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
+import { getICEServers } from '../../../../ha/webrtc.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../../../../types.js';
@@ -99,6 +100,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     this._playerSource = src;
     this._player.targetID = this.targetID ?? null;
     this._player.mediaPlayerController = this._mediaPlayerController;
+    this._player.getICEServers = () => getICEServers(this.hass);
     this._player.src = src;
     this._player.visibilityCheck = false;
     this._player.setControls(this.controls);
