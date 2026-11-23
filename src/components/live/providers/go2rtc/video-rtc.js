@@ -175,6 +175,9 @@ export class VideoRTC extends HTMLElement {
      */
     this._abortController = null;
 
+    // Retain the last load details while the same video is temporarily detached.
+    this._lastMediaLoadedInfo = null;
+
     /**
      * Whether to show or hide video controls for videos created *in future*.
      * @type {boolean}}
@@ -208,9 +211,11 @@ export class VideoRTC extends HTMLElement {
   }
 
   _dispatchMediaLoadedInfo(info) {
+    this._lastMediaLoadedInfo = info;
     if (!this.targetID) {
       return;
     }
+    this._abortController?.abort();
     this._abortController = new AbortController();
     this.dispatchEvent(
       new CustomEvent('advanced-camera-card:media:loaded', {
@@ -243,6 +248,7 @@ export class VideoRTC extends HTMLElement {
     }
     this._abortController?.abort();
     this._abortController = null;
+    this._lastMediaLoadedInfo = null;
     if (this.wsState !== WebSocket.CLOSED || this.pcState !== WebSocket.CLOSED) {
       this.ondisconnect();
     }
@@ -333,6 +339,12 @@ export class VideoRTC extends HTMLElement {
         this.video.currentTime = seek.end(seek.length - 1);
       }
       this.play();
+      // `loadeddata` does not fire again when an existing video is resumed.
+      // Re-register its still-live media after the disconnect aborted the
+      // previous registration, or the loading indicator can remain forever.
+      if (this._lastMediaLoadedInfo) {
+        this._dispatchMediaLoadedInfo(this._lastMediaLoadedInfo);
+      }
     } else {
       this.oninit();
     }
@@ -480,6 +492,9 @@ export class VideoRTC extends HTMLElement {
   }
 
   ondisconnect() {
+    this._abortController?.abort();
+    this._abortController = null;
+    this._lastMediaLoadedInfo = null;
     this.wsState = WebSocket.CLOSED;
     if (this.ws) {
       this.ws.close();
