@@ -54,7 +54,7 @@ const BINARY_MODE_PRECEDENCE: readonly Go2RTCMode[] = ['mse', 'mp4', 'mjpeg'];
 // recovery to the card's managed retry (which shows a reconnecting indicator,
 // backs off, and can give up) instead of looping here silently. The attempt cap
 // keeps a persistently-failing stream from hammering the server.
-const RECONNECT_INTERVAL_SECONDS = 2;
+export const RECONNECT_INTERVAL_SECONDS = 2;
 const RECONNECT_MAX_ATTEMPTS = 3;
 
 // The two render surfaces the session commits onto. The component owns the
@@ -88,6 +88,10 @@ interface Go2RTCSessionCallbacks {
   getCardWideConfig: () => CardWideConfig | null;
   getICEServers: () => Promise<RTCIceServer[]>;
   mediaLoadedCallback: (info: UntargetedMediaLoadedInfo) => void;
+
+  // The media reported through mediaLoadedCallback no longer exists (e.g. its
+  // source failed or the socket dropped).
+  mediaUnloadedCallback: () => void;
 
   // The lane that just committed is live on this surface (the component shows
   // it and hides the other).
@@ -156,21 +160,18 @@ export class Go2RTCSessionController {
   // WebRTC lane races a binary lane.
   private _offscreenVideo: OffscreenVideo;
 
-  // The committed lane: the one whose media is live (on the video or image
-  // surface) and has reported as loaded; null before anything loads or once the
-  // lanes are torn down. Failure handling reads it to distinguish a committed
-  // (live) stream dying from a losing racer being dropped.
-  private _committedLane: Lane | null = null;
-
-  // The surface currently showing committed media; null before anything commits
-  // or once torn down. On a surface switch (e.g. MSE falls back to MP4, or a
-  // WebRTC win over an MJPEG image) the outgoing surface is reset.
+  // The surface of the most recent commit; null before anything commits or once
+  // torn down. It outlives the loss of the committed media, so a later commit
+  // onto the other surface (e.g. MSE falls back to MP4, or a WebRTC win over an
+  // MJPEG image) still resets the outgoing one.
   private _committedSurface: SurfaceKind | null = null;
 
   // The source whose media is committed; null before anything commits or once
-  // torn down. A source can re-report loaded (e.g. a <video> re-fires
-  // loadeddata on a mid-stream resolution change), so this distinguishes a
-  // fresh commit from a repeated load.
+  // that media is lost. Failure handling reads it to distinguish the committed
+  // (live) source dying from a losing racer being dropped. A source can also
+  // re-report loaded (e.g. a <video> re-fires loadeddata on a mid-stream
+  // resolution change), so this distinguishes a fresh commit from a repeated
+  // load.
   private _committedSource: StreamSource | null = null;
 
   // Unsubscriber for the listener on the committed WebRTC stream's audio
@@ -251,9 +252,8 @@ export class Go2RTCSessionController {
   private _teardownLanes(): void {
     this._teardownBinaryLane();
     this._teardownWebRTCLane();
-    this._committedLane = null;
     this._committedSurface = null;
-    this._committedSource = null;
+    this._reportCommittedLoss();
   }
 
   // ===========================================================================
@@ -381,7 +381,6 @@ export class Go2RTCSessionController {
       return;
     }
 
-    this._committedLane = 'binary';
     this._reportCommittedLoad(context, binary.surface, source);
   }
 
@@ -393,8 +392,8 @@ export class Go2RTCSessionController {
     source.stop();
     this._binary = null;
 
-    if (this._committedLane === 'binary') {
-      this._committedLane = null;
+    if (source === this._committedSource) {
+      this._reportCommittedLoss();
     }
 
     this._startNextBinarySource(context);
@@ -521,19 +520,19 @@ export class Go2RTCSessionController {
       return;
     }
 
-    const wasCommitted = this._committedLane === 'webrtc';
+    const wasCommitted = source === this._committedSource;
     this._teardownWebRTCLane();
 
     if (wasCommitted) {
       // WebRTC was the committed (live) lane, so losing it leaves the view with
-      // nothing playing: clear the real video element and force a full
-      // reconnect (which restarts every configured mode, letting a binary lane
-      // take over) or escalate via the error callback.
-      this._committedLane = null;
+      // nothing playing: clear the real video element, report the loss, and
+      // force a full reconnect (which restarts every configured mode, letting a
+      // binary lane take over) or escalate via the error callback.
       const video = context.surfaces.video.getElement();
       if (video) {
         video.srcObject = null;
       }
+      this._reportCommittedLoss();
 
       this._closeChannelAndReconnect(context);
     } else {
@@ -548,8 +547,6 @@ export class Go2RTCSessionController {
     source: WebRTCStreamSource,
     dimensionsVideo: HTMLVideoElement,
   ): void {
-    this._committedLane = 'webrtc';
-
     // WebRTC now carries the media over the peer connection, so the socket is
     // done: signaling (offer/answer/ICE) is complete and any binary lane's
     // local consumer is torn down. go2rtc has no "stop" message, though --
@@ -633,8 +630,18 @@ export class Go2RTCSessionController {
   }
 
   // ===========================================================================
-  // Media-loaded reporting.
+  // Media load and loss reporting.
   // ===========================================================================
+
+  // The committed media no longer exists: forget it before telling the
+  // component, so the next commit is a fresh load rather than a repeat.
+  private _reportCommittedLoss(): void {
+    if (!this._committedSource) {
+      return;
+    }
+    this._committedSource = null;
+    this._callbacks.mediaUnloadedCallback();
+  }
 
   // A lane just committed with live media: the connection has proven healthy, so
   // reset the fast-reconnect budget, hand the newly live surface to the
