@@ -20,16 +20,9 @@ import {
   MutationObserverMock,
   ResizeObserverMock,
 } from '../test-utils';
+import { setLayoutSize } from './test-utils';
 
 const cap = (px: number): string => `var(${FULLSCREEN_MAX_HEIGHT_PROPERTY}, ${px}px)`;
-
-// jsdom performs no layout, so the layout height is supplied explicitly.
-const setLayoutHeight = (element: HTMLElement, height: number): void => {
-  Object.defineProperty(element, 'offsetHeight', {
-    configurable: true,
-    value: height,
-  });
-};
 
 // @vitest-environment jsdom
 describe('MediaHeightController', () => {
@@ -58,7 +51,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      setLayoutHeight(child, 600);
+      setLayoutSize(child, { height: 600 });
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -79,10 +72,9 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      setLayoutHeight(child, 600);
-      // E.g. the card is inside an SVG <foreignObject> that is scaled down: the
-      // bounding rect reports the scaled height, but max-height is applied in
-      // untransformed pixels.
+      setLayoutSize(child, { height: 600 });
+      // A scaled-down ancestor shrinks the bounding rect but not the layout
+      // height.
       child.getBoundingClientRect = vi.fn().mockReturnValue({
         height: 300,
       });
@@ -122,7 +114,7 @@ describe('MediaHeightController', () => {
       controller.setRoot(root);
       controller.setSelected(0);
 
-      setLayoutHeight(child, 800);
+      setLayoutSize(child, { height: 800 });
 
       callResizeHandler([
         {
@@ -147,7 +139,7 @@ describe('MediaHeightController', () => {
 
       controller.setRoot(root);
 
-      setLayoutHeight(child, 800);
+      setLayoutSize(child, { height: 800 });
 
       callResizeHandler([
         {
@@ -168,13 +160,13 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child_0 = document.createElement('div');
-      setLayoutHeight(child_0, 100);
+      setLayoutSize(child_0, { height: 100 });
       root.appendChild(child_0);
 
       controller.setRoot(root);
 
       const child_1 = document.createElement('div');
-      setLayoutHeight(child_1, 200);
+      setLayoutSize(child_1, { height: 200 });
       root.appendChild(child_1);
 
       callMutationHandler();
@@ -192,7 +184,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      setLayoutHeight(child, 700);
+      setLayoutSize(child, { height: 700 });
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -202,7 +194,7 @@ describe('MediaHeightController', () => {
 
       expect(host.style.maxHeight).toBe(cap(700));
 
-      setLayoutHeight(child, 900);
+      setLayoutSize(child, { height: 900 });
 
       controller.recalculate();
 
@@ -217,7 +209,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      setLayoutHeight(child, 0);
+      setLayoutSize(child, { height: 0 });
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -234,9 +226,9 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child_0 = document.createElement('div');
-      setLayoutHeight(child_0, 750);
+      setLayoutSize(child_0, { height: 750 });
       const child_1 = document.createElement('div');
-      setLayoutHeight(child_1, 562);
+      setLayoutSize(child_1, { height: 562 });
       root.appendChild(child_0);
       root.appendChild(child_1);
 
