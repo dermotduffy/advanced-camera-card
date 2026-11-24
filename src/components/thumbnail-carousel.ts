@@ -22,6 +22,7 @@ import {
   navigateUp,
   type FolderNavigationParamaters,
 } from '../components-lib/navigation.js';
+import { setThumbnailDimensionsStyle } from '../components-lib/thumbnail/dimensions.js';
 import {
   resolveThumbnailStyle,
   type ResolvedThumbnailStyle,
@@ -99,12 +100,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     }
 
     if (changedProps.has('config')) {
-      if (this.config?.size) {
-        this.style.setProperty(
-          '--advanced-camera-card-thumbnail-size',
-          `${this.config.size}px`,
-        );
-      }
+      setThumbnailDimensionsStyle(this, this.config ?? null);
       const direction = this._getDirection();
       if (direction) {
         this.setAttribute('direction', direction);
@@ -185,6 +181,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
         : undefined}
       .thumbnailStyle=${this._getResolvedThumbnailStyle() ?? undefined}
       .size=${this.config?.size}
+      .aspectRatio=${this.config?.aspect_ratio}
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}
       ?show_download_control=${this.config?.show_download_control}

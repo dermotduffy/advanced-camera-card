@@ -5,6 +5,7 @@ import type {
 } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import { capabilityKeys } from '../../../types';
+import { createAspectRatioField } from './common/aspect-ratio';
 import { createGrid } from './common/grid';
 import { getImageFieldsSchema } from './common/image';
 import { getProxySchema } from './common/proxy';
@@ -211,7 +212,7 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
       icon: 'mdi:aspect-ratio',
       schema: [
         createGrid([
-          { name: 'aspect_ratio', selector: { text: {} } },
+          createAspectRatioField(),
           {
             name: 'rotation',
             selector: createSelectSelector([

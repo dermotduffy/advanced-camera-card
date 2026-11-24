@@ -89,7 +89,8 @@ const readBoundFieldValue = (
 /**
  * Compute the data object a form displays: the raw configuration values, with
  * each absent field filled in from the (profile-adjusted) configuration
- * defaults, so the form shows the effective value of every field.
+ * defaults, so the form shows the effective value of every field. A field that
+ * formats its value for display shows the formatted value.
  * @param form The form.
  * @param config The whole raw (possibly invalid) configuration.
  * @param defaults The whole configuration defaults.
@@ -107,7 +108,7 @@ export const computeDisplayedData = (
 
   const data: RawAdvancedCameraCardConfig = isRecord(raw) ? copyConfig(raw) : {};
 
-  forEachFieldRecursively(form.schema, (path) => {
+  forEachFieldRecursively(form.schema, (path, field) => {
     const binding = findBinding(form, path);
     if (binding) {
       // A bound field is stored elsewhere in the configuration, so anything
@@ -115,20 +116,21 @@ export const computeDisplayedData = (
       // is replaced.
       const value = readBoundFieldValue(binding, config, defaults);
       setConfigValue(data, path, value === undefined ? undefined : copyConfig(value));
-      return;
+    } else if (getConfigValue(data, path) === undefined) {
+      // The configuration does not set this field, so show its default (looked
+      // up by path since the defaults object mirrors the configuration shape).
+      const defaultValue = isRecord(formDefaults)
+        ? getConfigValue(formDefaults, path)
+        : undefined;
+      if (defaultValue !== undefined) {
+        // Copied so no mutation of the data can reach into the defaults.
+        setConfigValue(data, path, copyConfig(defaultValue));
+      }
     }
 
-    if (getConfigValue(data, path) !== undefined) {
-      return;
-    }
-    // The configuration does not set this field, so show its default (looked
-    // up by path since the defaults object mirrors the configuration shape).
-    const defaultValue = isRecord(formDefaults)
-      ? getConfigValue(formDefaults, path)
-      : undefined;
-    if (defaultValue !== undefined) {
-      // Copied so no mutation of the data can reach into the defaults.
-      setConfigValue(data, path, copyConfig(defaultValue));
+    const value = getConfigValue(data, path);
+    if (field.formatDisplayed && value !== undefined) {
+      setConfigValue(data, path, field.formatDisplayed(value));
     }
   });
   return data;

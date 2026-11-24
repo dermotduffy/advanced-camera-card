@@ -38,6 +38,7 @@ import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
+import { setThumbnailDimensionsStyle } from '../thumbnail/dimensions';
 import { resolveThumbnailStyle } from '../thumbnail/resolve-style';
 import {
   canMediaBeShownAsTimelineItem,
@@ -172,14 +173,7 @@ export class TimelineController {
     }
 
     if (this._thumbnailConfig !== (options.thumbnailConfig ?? null)) {
-      if (options.thumbnailConfig) {
-        this._host.style.setProperty(
-          '--advanced-camera-card-thumbnail-size',
-          `${options?.thumbnailConfig.size}px`,
-        );
-      } else {
-        this._host.style.removeProperty('--advanced-camera-card-thumbnail-size');
-      }
+      setThumbnailDimensionsStyle(this._host, options.thumbnailConfig ?? null);
     }
 
     if (this._timelineConfig !== (options.timelineConfig ?? null)) {
@@ -223,6 +217,7 @@ export class TimelineController {
     request.detail.media = media;
     request.detail.viewManagerEpoch = this._viewManagerEpoch ?? undefined;
     request.detail.size = this._thumbnailConfig?.size;
+    request.detail.aspectRatio = this._thumbnailConfig?.aspect_ratio;
   };
 
   public getEffectivePanMode(): TimelinePanMode {

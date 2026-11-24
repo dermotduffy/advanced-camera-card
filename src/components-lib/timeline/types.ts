@@ -18,6 +18,7 @@ export interface ThumbnailDataRequest {
   viewManagerEpoch?: ViewManagerEpoch;
   viewItemManager?: ViewItemManager;
   size?: number;
+  aspectRatio?: number[];
 }
 
 export class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}

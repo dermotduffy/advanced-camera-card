@@ -55,11 +55,14 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
 
   static styles = css`
     advanced-camera-card-thumbnail {
-      height: var(--advanced-camera-card-thumbnail-size);
-      width: var(--advanced-camera-card-thumbnail-size);
+      height: var(--advanced-camera-card-thumbnail-height);
+      width: var(--advanced-camera-card-thumbnail-width);
     }
     advanced-camera-card-thumbnail[thumbnail-style='panel'] {
       width: var(--advanced-camera-card-thumbnail-with-details-panel-width);
+
+      /* Keep the full size height so the details fit beside a wide image. */
+      height: var(--advanced-camera-card-thumbnail-size);
     }
   `;
 
@@ -114,6 +117,7 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
       .viewManagerEpoch=${dataRequest.viewManagerEpoch}
       .thumbnailStyle=${this.thumbnailStyle}
       .size=${dataRequest.size}
+      .aspectRatio=${dataRequest.aspectRatio}
     >
     </advanced-camera-card-thumbnail>`;
   }
