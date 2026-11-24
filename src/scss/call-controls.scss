@@ -1,5 +1,6 @@
 @use './z-index.scss' as *;
 @use './pop-animation.scss' as *;
+@use './button-in-progress.scss';
 
 :host {
   position: absolute;

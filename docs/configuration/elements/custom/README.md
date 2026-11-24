@@ -39,6 +39,8 @@ Configuration is similar to a stock [Picture Elements Icon](https://www.home-ass
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
 | `icon`                                                                   |            | An required icon to display, e.g. `mdi:car`. See also [custom icons](../../../usage/custom-icons.md).                                                                                                                                                                                                                        |
+| `in_progress`                                                            | `false`    | Whether an "in progress ring" is shown around the button (e.g. while something it depends on is loading/waiting). See [example](../../../examples.md?id=show-a-menu-button-as-in-progress).                                                                                                                                  |
+| `inert`                                                                  | `false`    | If `true` the button is shown but rendered as inert (grayed out, non-interactive). Differs from `enabled: false`, which removes the button entirely.                                                                                                                                                                         |
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
 | `style`                                                                  |            | CSS to style the menu button with, e.g. `color: green`. See [button styling](../../menu.md?id=button-styling).                                                                                                                                                                                                               |
@@ -62,6 +64,8 @@ elements:
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
 | `icon`                                                                   |            | An required icon to display, e.g. `mdi:car`. See also [custom icons](../../../usage/custom-icons.md).                                                                                                                                                                                                                        |
+| `in_progress`                                                            | `false`    | Whether an "in progress ring" is shown around the button (e.g. while something it depends on is loading/waiting). See [example](../../../examples.md?id=show-a-menu-button-as-in-progress).                                                                                                                                  |
+| `inert`                                                                  | `false`    | If `true` the button is shown but rendered as inert (grayed out, non-interactive). Differs from `enabled: false`, which removes the button entirely.                                                                                                                                                                         |
 | `items`                                                                  |            | A list of menu items, as described [below](#submenu-items).                                                                                                                                                                                                                                                                  |
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
@@ -100,6 +104,8 @@ elements:
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
 | `icon`                                                                   |            | An required icon to display, e.g. `mdi:car`. See also [custom icons](../../../usage/custom-icons.md).                                                                                                                                                                                                                        |
+| `in_progress`                                                            | `false`    | Whether an "in progress ring" is shown around the button (e.g. while something it depends on is loading/waiting). See [example](../../../examples.md?id=show-a-menu-button-as-in-progress).                                                                                                                                  |
+| `inert`                                                                  | `false`    | If `true` the button is shown but rendered as inert (grayed out, non-interactive). Differs from `enabled: false`, which removes the button entirely.                                                                                                                                                                         |
 | `options`                                                                |            | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](./README.md?id=submenu-items) above.                                           |
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
@@ -128,6 +134,8 @@ Configuration is similar to a stock [Picture Elements State Icon](https://www.ho
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
 | `icon`                                                                   |            | An required icon to display, e.g. `mdi:car`. See also [custom icons](../../../usage/custom-icons.md).                                                                                                                                                                                                                        |
+| `in_progress`                                                            | `false`    | Whether an "in progress ring" is shown around the button (e.g. while something it depends on is loading/waiting). See [example](../../../examples.md?id=show-a-menu-button-as-in-progress).                                                                                                                                  |
+| `inert`                                                                  | `false`    | If `true` the button is shown but rendered as inert (grayed out, non-interactive). Differs from `enabled: false`, which removes the button entirely.                                                                                                                                                                         |
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |            | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                                                                            |
@@ -219,6 +227,8 @@ elements:
     enabled: true
     entity: light.office_main_lights
     icon: mdi:car
+    in_progress: false
+    inert: false
     permanent: false
     priority: 50
     style:
@@ -229,6 +239,8 @@ elements:
     enabled: true
     entity: light.office_main_lights
     icon: mdi:chair-rolling
+    in_progress: false
+    inert: false
     permanent: false
     priority: 50
     state_color: true
@@ -240,6 +252,8 @@ elements:
     enabled: true
     entity: light.office_main_lights
     icon: mdi:menu
+    in_progress: false
+    inert: false
     items:
       - enabled: true
         entity: light.office_main_lights
@@ -271,6 +285,8 @@ elements:
     enabled: true
     entity: input_select.kitchen_scene
     icon: mdi:lamps
+    in_progress: false
+    inert: false
     options:
       scene.kitchen_cooking_scene:
         enabled: true

@@ -4,12 +4,25 @@ import Panzoom, {
 } from '@dermotduffy/panzoom';
 import { round, throttle } from 'lodash-es';
 
+import type { CameraDimensionsConfig } from '../../config/schema/cameras';
+import {
+  DOUBLE_TAP_PIXELS,
+  DOUBLE_TAP_SECONDS,
+  DRAG_THRESHOLD_PIXELS,
+  HOLD_SECONDS,
+} from '../../const';
+import type { MediaLoadedInfoEventDetail } from '../../types';
+import { onAbort } from '../../utils/abort-signal';
 import {
   arefloatsApproximatelyEqual,
+  getDistance,
+  getLayoutSize,
   isHoverableDevice,
   type Point,
+  type Size,
 } from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
+import { isMediaContainedAndCentered } from '../../utils/media-layout';
 import {
   isZoomEmpty,
   ZOOM_DEFAULT_PAN_X,
@@ -20,6 +33,24 @@ import {
   type ZoomSettingsObserved,
 } from './types';
 
+// Touch behavior while unzoomed: the browser may pan the page over unzoomed
+// media, but not zoom it.
+const UNZOOMED_TOUCH_ACTION = 'pan-x pan-y';
+
+interface TapPoint extends Point {
+  time: number;
+}
+
+// A tap is one pointer going down and up again before it becomes a hold,
+// without moving far enough to become a drag.
+const isTap = (start: TapPoint, end: TapPoint): boolean =>
+  end.time - start.time < HOLD_SECONDS * 1000 &&
+  getDistance(start, end) <= DRAG_THRESHOLD_PIXELS;
+
+const isDoubleTap = (first: TapPoint, second: TapPoint): boolean =>
+  second.time - first.time <= DOUBLE_TAP_SECONDS * 1000 &&
+  getDistance(first, second) <= DOUBLE_TAP_PIXELS;
+
 export class ZoomController {
   private _element: HTMLElement;
   private _panzoom: PanzoomObject | null = null;
@@ -29,6 +60,10 @@ export class ZoomController {
 
   // Should clicks be allowed to propagate, or consumed as a pan/zoom action?
   private _allowClick = true;
+
+  // The pointer that went down and may become a tap, and the last tap.
+  private _tapStart: TapPoint | null = null;
+  private _lastTap: TapPoint | null = null;
 
   // Whether zoom/pan gestures are active. When `false`, all gesture events pass
   // through untouched (used to yield to PTZ gesture mode).
@@ -44,6 +79,16 @@ export class ZoomController {
   // Unset at scale 1, where there is nothing to pan.
   private _userPan: Point | null = null;
 
+  // The width/height ratio of the loaded media, and the signal that retires it.
+  private _mediaAspectRatio: number | null = null;
+  private _mediaSignal: AbortSignal | null = null;
+
+  private _dimensionsConfig: CameraDimensionsConfig | null = null;
+
+  // The width/height ratio of the picture contained and centered within the
+  // element, or null when the element itself bounds the pan.
+  private _pictureAspectRatio: number | null = null;
+
   private _defaultSettings: PartialZoomSettings | null;
   private _settings: PartialZoomSettings | null;
 
@@ -53,9 +98,9 @@ export class ZoomController {
   private _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
   private _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
 
-  // A resize changes the element size that pan percentages are measured
-  // against, so the pan is re-derived at the new size (from the card's
-  // percentages or the user's depending on who moved last).
+  // A resize, or a new picture shape, changes the size that pan percentages
+  // are measured against, so the pan is re-derived at the new size (from the
+  // card's percentages or the user's depending on who moved last).
   private _debouncedResizeUpdater = throttle(() => {
     const panzoom = this._panzoom;
     if (!panzoom) {
@@ -85,6 +130,7 @@ export class ZoomController {
 
   private _downHandler = (ev: Event) => {
     if (this._shouldZoomOrPan(ev)) {
+      this._tapStart = this._getTapPoint(ev);
       this._panzoom?.handleDown(ev as PointerEvent);
       ev.stopPropagation();
 
@@ -108,8 +154,10 @@ export class ZoomController {
   };
 
   private _moveHandler = (ev: Event) => {
-    if (this._shouldZoomOrPan(ev)) {
-      this._panzoom?.handleMove(ev as PointerEvent);
+    const panzoom = this._panzoom;
+    if (panzoom && this._shouldZoomOrPan(ev)) {
+      panzoom.handleMove(ev as PointerEvent);
+      this._contain(panzoom);
       ev.stopPropagation();
     }
   };
@@ -118,14 +166,32 @@ export class ZoomController {
     if (this._shouldZoomOrPan(ev)) {
       this._panzoom?.handleUp(ev as PointerEvent);
       ev.stopPropagation();
+      this._handleTap(ev);
     }
   };
 
   private _wheelHandler = (ev: Event) => {
-    if (ev instanceof WheelEvent && this._shouldZoomOrPan(ev)) {
-      this._panzoom?.zoomWithWheel(ev);
+    const panzoom = this._panzoom;
+    if (panzoom && ev instanceof WheelEvent && this._shouldZoomOrPan(ev)) {
+      panzoom.zoomWithWheel(ev);
+      this._contain(panzoom);
       ev.stopPropagation();
     }
+  };
+
+  private _mediaLoadedHandler = (ev: CustomEvent<MediaLoadedInfoEventDetail>): void => {
+    const { info, signal } = ev.detail;
+    this._mediaAspectRatio = info.width && info.height ? info.width / info.height : null;
+    this._mediaSignal = signal;
+    onAbort(signal, () => {
+      // A later load may already have replaced this one.
+      if (this._mediaSignal === signal) {
+        this._mediaAspectRatio = null;
+        this._mediaSignal = null;
+        this._updatePictureAspectRatio();
+      }
+    });
+    this._updatePictureAspectRatio();
   };
 
   constructor(
@@ -156,8 +222,10 @@ export class ZoomController {
 
     const startScale = config?.zoom ?? ZOOM_DEFAULT_SCALE;
 
+    // Panzoom's own containment ('contain' parameter) is turned off: it can
+    // only keep the pan within the element, not within the picture inside it
+    // (see `_contain`).
     this._panzoom = Panzoom(this._element, {
-      contain: 'outside',
       maxScale: 10,
       minScale: 1,
       noBind: true,
@@ -165,10 +233,9 @@ export class ZoomController {
       // 'move' type cursor whether or not it is zoomed in).
       cursor: undefined,
 
-      // Disable automatic touchAction setting from Panzoom() as otherwise it
-      // effectively disables dashboard scrolling. See:
+      // Panzoom's default of `none` would stop the dashboard scrolling, see:
       // https://github.com/dermotduffy/advanced-camera-card/issues/1181
-      touchAction: '',
+      touchAction: UNZOOMED_TOUCH_ACTION,
 
       // Set the initial pan/zoom values to avoid an initial unzoomed view.
       ...(config && converted && { startX: converted.x }),
@@ -191,6 +258,10 @@ export class ZoomController {
     registerListeners(this._events['up'], this._upHandler, { capture: true });
     registerListeners(['wheel'], this._wheelHandler);
     registerListeners(['click'], this._clickHandler, { capture: true });
+    this._element.addEventListener(
+      'advanced-camera-card:media:loaded',
+      this._mediaLoadedHandler,
+    );
 
     this._resizeObserver.observe(this._element);
     this._element.addEventListener('panzoomchange', this._debouncedChangeHandler);
@@ -212,6 +283,10 @@ export class ZoomController {
     unregisterListener(this._events['up'], this._upHandler, { capture: true });
     unregisterListener(['wheel'], this._wheelHandler);
     unregisterListener(['click'], this._clickHandler, { capture: true });
+    this._element.removeEventListener(
+      'advanced-camera-card:media:loaded',
+      this._mediaLoadedHandler,
+    );
 
     this._resizeObserver.disconnect();
     this._element.removeEventListener('panzoomchange', this._debouncedChangeHandler);
@@ -230,6 +305,11 @@ export class ZoomController {
     this._settings = config;
     this._clearUserAdjustment();
     this._debouncedUpdater();
+  }
+
+  public setDimensionsConfig(dimensionsConfig: CameraDimensionsConfig | null): void {
+    this._dimensionsConfig = dimensionsConfig;
+    this._updatePictureAspectRatio();
   }
 
   public isActivated(): boolean {
@@ -256,14 +336,23 @@ export class ZoomController {
       fireAdvancedCameraCardEvent(this._element, 'zoom:zoomed');
     }
 
-    const converted = this._convertXYPanToPercent(pz.x, pz.y, pz.scale);
+    // Panzoom reports a gesture step before `_contain` keeps it within limits.
+    const pan = this._clampPan({ x: pz.x, y: pz.y }, pz.scale);
+    const converted = this._convertXYPanToPercent(pan.x, pan.y, pz.scale);
 
     // Panzoom sets originalEvent only for a change that a gesture drove.
     if (pz.originalEvent) {
       this._userAdjusted = true;
 
-      if (converted) {
-        this._userPan = converted;
+      // A gesture cannot move the picture along an axis without room, so the
+      // user's earlier pan on that axis is kept.
+      const minMax = this._getTransformMinMax(pz.scale);
+      if (converted && minMax) {
+        const previous = this._userPan ?? converted;
+        this._userPan = {
+          x: arefloatsApproximatelyEqual(minMax.minX, 0) ? previous.x : converted.x,
+          y: arefloatsApproximatelyEqual(minMax.minY, 0) ? previous.y : converted.y,
+        };
       }
     }
 
@@ -273,7 +362,7 @@ export class ZoomController {
         y: converted?.y ?? ZOOM_DEFAULT_PAN_Y,
       },
       zoom: pz.scale,
-      isDefault: this._isAtDefaultZoomAndPan(pz.x, pz.y, pz.scale),
+      isDefault: this._isAtDefaultZoomAndPan(pan.x, pan.y, pz.scale),
       unzoomed: unzoomed,
     };
 
@@ -281,8 +370,6 @@ export class ZoomController {
   }
 
   private _isZoomEqual(a: PartialZoomSettings, b: PartialZoomSettings): boolean {
-    // The ?? clauses below cannot be reached since this function is only ever
-    // used fully specified by this object. It's kept as-is for completeness.
     return (
       arefloatsApproximatelyEqual(
         a.zoom ?? ZOOM_DEFAULT_SCALE,
@@ -294,10 +381,12 @@ export class ZoomController {
         b.pan?.x ?? ZOOM_DEFAULT_PAN_X,
         ZOOM_PRECISION,
       ) &&
+      // The ?? clauses below cannot be reached since this function is only ever
+      // used fully specified by this object. It's kept as-is for completeness.
       arefloatsApproximatelyEqual(
-        /* v8 ignore next @preserve */
+        /* v8 ignore next: the fallback cannot be reached, see above -- @preserve */
         a.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
-        /* v8 ignore next @preserve */
+        /* v8 ignore next: the fallback cannot be reached, see above -- @preserve */
         b.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
         ZOOM_PRECISION,
       )
@@ -379,14 +468,12 @@ export class ZoomController {
       // delayed until after the zoom is complete.
       animate: false,
     });
+    this._contain(panzoom);
 
-    // Panzoom must allow the browser to paint the zoomed image in order to
-    // "contain" the pan within the parent, this creates somewhat of an async
-    // situation where we need to ensure the zoom completes first. Using
-    // `requestAnimationFrame` appears to reliably allow the zoom to finish
-    // rendering first, before the pan is applied.
-    //
-    // See: https://github.com/timmywil/panzoom?tab=readme-ov-file#a-note-on-the-async-nature-of-panzoom
+    // The controller requests the pan a frame later so that the zoom steps
+    // rather than animates: Panzoom writes each change on the next animation
+    // frame, and the browser animates a zoom written in the same frame as an
+    // animated pan.
     window.requestAnimationFrame(() => {
       // Protect against deactivation.
       if (this._panzoom !== panzoom) {
@@ -396,15 +483,6 @@ export class ZoomController {
       panzoom.pan(x, y, {
         animate: true,
         duration: 100,
-
-        // An explicit undefined overrides the `contain: 'outside'` the instance
-        // was constructed with, turning containment off for just this one pan.
-        // Panzoom measures the element to decide how far it may pan, and on a
-        // slow device the browser may not have applied the zoom transform yet,
-        // so it would measure the unzoomed box and clamp this pan back toward
-        // center. `_convertPercentToXYPan` already keeps these coordinates
-        // within the range the desired scale allows, so nothing is lost.
-        contain: undefined,
       });
     });
   }
@@ -435,16 +513,61 @@ export class ZoomController {
       return null;
     }
 
+    // An axis without room to pan is centered.
+    const toPercent = (value: number, min: number): number =>
+      arefloatsApproximatelyEqual(min, 0) ? 50 : ((-value + min) / (2 * min)) * 100;
+
     return {
-      x:
-        ((-x + Math.abs(minMax.minX)) /
-          (Math.abs(minMax.maxX) + Math.abs(minMax.minX))) *
-        100,
-      y:
-        ((-y + Math.abs(minMax.minY)) /
-          (Math.abs(minMax.maxY) + Math.abs(minMax.minY))) *
-        100,
+      x: toPercent(x, minMax.minX),
+      y: toPercent(y, minMax.minY),
     };
+  }
+
+  private _updatePictureAspectRatio(): void {
+    const ratio = isMediaContainedAndCentered(this._dimensionsConfig)
+      ? this._mediaAspectRatio
+      : null;
+    if (ratio === this._pictureAspectRatio) {
+      return;
+    }
+    this._pictureAspectRatio = ratio;
+    this._debouncedResizeUpdater();
+  }
+
+  // The picture's size at scale 1, contained within the element.
+  private _getPictureSize(): Size {
+    const size = getLayoutSize(this._element);
+    const ratio = this._pictureAspectRatio;
+    if (!ratio) {
+      return size;
+    }
+    return size.width / size.height > ratio
+      ? { width: size.height * ratio, height: size.height }
+      : { width: size.width, height: size.width / ratio };
+  }
+
+  private _clampPan(pan: Point, scale: number): Point {
+    const minMax = this._getTransformMinMax(scale);
+
+    // An axis without room is centered (0, never -0).
+    const clamp = (value: number, limit: number): number =>
+      limit ? Math.min(limit, Math.max(-limit, value)) : 0;
+
+    return minMax
+      ? { x: clamp(pan.x, minMax.minX), y: clamp(pan.y, minMax.minY) }
+      : { x: 0, y: 0 };
+  }
+
+  // Keeps the pan that Panzoom just set within the limits. Called after every
+  // Panzoom call that can move the pan.
+  private _contain(panzoom: PanzoomObject): void {
+    const pan = panzoom.getPan();
+    const contained = this._clampPan(pan, panzoom.getScale());
+    if (contained.x !== pan.x || contained.y !== pan.y) {
+      // Silent, so that Panzoom's report of the step itself, which carries the
+      // gesture that drove it, is the last report of that step.
+      panzoom.pan(contained.x, contained.y, { animate: false, silent: true });
+    }
   }
 
   private _getTransformMinMax(scale: number): {
@@ -457,12 +580,15 @@ export class ZoomController {
       return null;
     }
 
-    const size = this._getLayoutSize();
+    // The room to pan on each axis is how far the scaled picture overhangs the
+    // element, in Panzoom's unscaled coordinates.
+    const size = getLayoutSize(this._element);
+    const picture = this._getPictureSize();
 
-    const minX = (size.width * (scale - 1)) / scale / 2;
-    const minY = (size.height * (scale - 1)) / scale / 2;
+    const minX = Math.max(0, (picture.width - size.width / scale) / 2);
+    const minY = Math.max(0, (picture.height - size.height / scale) / 2);
 
-    if (arefloatsApproximatelyEqual(minX, 0) || arefloatsApproximatelyEqual(minY, 0)) {
+    if (arefloatsApproximatelyEqual(minX, 0) && arefloatsApproximatelyEqual(minY, 0)) {
       return null;
     }
 
@@ -475,18 +601,8 @@ export class ZoomController {
   }
 
   private _hasSize(): boolean {
-    const size = this._getLayoutSize();
+    const size = getLayoutSize(this._element);
     return !!size.width && !!size.height;
-  }
-
-  // The element's size excluding any transform (`getBoundingClientRect()`
-  // includes the Panzoom transform).
-  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2223
-  private _getLayoutSize(): { width: number; height: number } {
-    return {
-      width: this._element.offsetWidth,
-      height: this._element.offsetHeight,
-    };
   }
 
   private _isUnzoomed(scale?: number): boolean {
@@ -494,30 +610,78 @@ export class ZoomController {
   }
 
   private _isAtDefaultZoomAndPan(x: number, y: number, scale: number): boolean {
-    if (!this._defaultSettings) {
+    const defaultScale = this._defaultSettings?.zoom ?? ZOOM_DEFAULT_SCALE;
+
+    // An unzoomed default has nothing to pan, so only the scale matters.
+    if (this._isUnzoomed(defaultScale)) {
       return this._isUnzoomed(scale);
     }
 
     const convertedDefault = this._convertPercentToXYPan(
-      this._defaultSettings.pan?.x ?? ZOOM_DEFAULT_PAN_X,
-      this._defaultSettings.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
-      this._defaultSettings.zoom ?? ZOOM_DEFAULT_SCALE,
+      this._defaultSettings?.pan?.x ?? ZOOM_DEFAULT_PAN_X,
+      this._defaultSettings?.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
+      defaultScale,
     );
-    if (!convertedDefault) {
-      return true;
-    }
 
-    // The ZOOM_DEFAULT_SCALE fallback cannot be reached: when
-    // this._defaultSettings.zoom is undefined, convertedDefault ends up null
-    // above and this function has already returned.
-    /* v8 ignore next @preserve */
-    const defaultScale = this._defaultSettings.zoom ?? ZOOM_DEFAULT_SCALE;
+    // Without a size the pan cannot be compared, only the scale.
+    if (!convertedDefault) {
+      return arefloatsApproximatelyEqual(scale, defaultScale);
+    }
 
     return (
       arefloatsApproximatelyEqual(x, convertedDefault.x) &&
       arefloatsApproximatelyEqual(y, convertedDefault.y) &&
       arefloatsApproximatelyEqual(scale, defaultScale)
     );
+  }
+
+  /**
+   * Where and when a single pointer is, or null for none or more than one
+   * (a pinch is never a tap).
+   */
+  private _getTapPoint(ev: Event): TapPoint | null {
+    let point: { clientX: number; clientY: number } | null = null;
+    if (window.TouchEvent && ev instanceof TouchEvent) {
+      const touches = ev.type === 'touchstart' ? ev.touches : ev.changedTouches;
+      point = touches.length === 1 ? touches[0] : null;
+    } else if (ev instanceof PointerEvent) {
+      // A non-primary pointer is a second finger, which makes the gesture a
+      // pinch (which does not count as a tap).
+      point = ev.isPrimary ? ev : null;
+    }
+    return point ? { x: point.clientX, y: point.clientY, time: ev.timeStamp } : null;
+  }
+
+  // While zoomed, the controller consumes every gesture to pan, so the card's
+  // `double_tap_action` never sees a double tap. The controller reports one as
+  // `zoom:home` instead.
+  private _handleTap(ev: Event): void {
+    const start = this._tapStart;
+    this._tapStart = null;
+
+    if (!['pointerup', 'touchend'].includes(ev.type)) {
+      // A leave or cancel while a pointer is down ends the tap in progress, and
+      // any double tap with it. A touch on a hoverable device also fires
+      // pointerleave right after its pointerup, when no pointer is down, and
+      // that must not break a double tap.
+      if (start) {
+        this._lastTap = null;
+      }
+      return;
+    }
+
+    const end = this._getTapPoint(ev);
+    if (!start || !end || !isTap(start, end)) {
+      this._lastTap = null;
+      return;
+    }
+
+    if (this._lastTap && isDoubleTap(this._lastTap, end)) {
+      this._lastTap = null;
+      fireAdvancedCameraCardEvent(this._element, 'zoom:home');
+    } else {
+      this._lastTap = end;
+    }
   }
 
   private _shouldZoomOrPan(ev: Event): boolean {
@@ -534,6 +698,6 @@ export class ZoomController {
   }
 
   private _setTouchAction(touchEnabled: boolean): void {
-    this._element.style.touchAction = touchEnabled ? '' : 'none';
+    this._element.style.touchAction = touchEnabled ? UNZOOMED_TOUCH_ACTION : 'none';
   }
 }

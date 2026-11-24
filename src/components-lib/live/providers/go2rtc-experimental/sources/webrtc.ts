@@ -2,17 +2,17 @@ import {
   isServerErrorForMode,
   type Go2RTCMessage,
 } from '../../../../../go2rtc/messages';
-import {
-  createBrowserPeerConnection,
-  GO2RTC_PEER_CONNECTION_CONFIG,
-  type PeerConnectionFactory,
-} from '../../../../../go2rtc/peer-connection';
+import { GO2RTC_PEER_CONNECTION_CONFIG } from '../../../../../go2rtc/peer-connection';
 import type {
   MediaLoadedCapabilities,
   MediaTechnology,
   UnsubscribeCallback,
 } from '../../../../../types';
 import { hasAudio } from '../../../../../utils/audio';
+import {
+  createBrowserPeerConnection,
+  type PeerConnectionFactory,
+} from '../../../../../utils/peer-connection';
 import { Timer } from '../../../../../utils/timer';
 import type {
   StreamProfile,
@@ -50,6 +50,10 @@ export class WebRTCStreamSource implements StreamSource {
   private _stream: MediaStream | null = null;
   private _pc: RTCPeerConnection | null = null;
 
+  private _getICEServers: () => Promise<RTCIceServer[]>;
+
+  private _stopped = false;
+
   private _createPeerConnection: PeerConnectionFactory;
   private _createMediaStream: MediaStreamFactory;
 
@@ -64,9 +68,11 @@ export class WebRTCStreamSource implements StreamSource {
 
   constructor(
     context: StreamSourceContext<VideoStreamTarget>,
+    getICEServers: () => Promise<RTCIceServer[]>,
     options?: WebRTCStreamSourceOptions,
   ) {
     this._context = context;
+    this._getICEServers = getICEServers;
     this._createPeerConnection =
       options?.createPeerConnection ?? createBrowserPeerConnection;
     this._createMediaStream =
@@ -74,7 +80,23 @@ export class WebRTCStreamSource implements StreamSource {
   }
 
   public start(): void {
-    const pc = this._createPeerConnection(GO2RTC_PEER_CONNECTION_CONFIG);
+    this._start().catch(() => {
+      if (!this._stopped) {
+        this._context.callbacks.failedCallback('media_error');
+      }
+    });
+  }
+
+  private async _start(): Promise<void> {
+    const iceServers = await this._getICEServers();
+    if (this._stopped) {
+      return;
+    }
+
+    const pc = this._createPeerConnection({
+      ...GO2RTC_PEER_CONNECTION_CONFIG,
+      iceServers,
+    });
     this._pc = pc;
 
     pc.addTransceiver('video', { direction: 'recvonly' });
@@ -118,6 +140,7 @@ export class WebRTCStreamSource implements StreamSource {
   }
 
   public stop(): void {
+    this._stopped = true;
     this._connectTimer.stop();
 
     this._unsubscribeCallbacks.forEach((unsubscribe) => unsubscribe());

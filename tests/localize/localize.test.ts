@@ -192,6 +192,26 @@ describe('loadLanguages', () => {
     expect(localize('actions.abort')).toBe('Prerušená akcia');
   });
 
+  it('should load and use Serbian Cyrillic translations', async () => {
+    const { loadLanguages, localize } = await importFresh();
+    const hass = mock<HomeAssistant>();
+    hass.language = 'sr';
+
+    await loadLanguages(hass);
+
+    expect(localize('actions.abort')).toBe('Радња прекинута');
+  });
+
+  it('should load and use Serbian Latin translations', async () => {
+    const { loadLanguages, localize } = await importFresh();
+    const hass = mock<HomeAssistant>();
+    hass.language = 'sr-Latn';
+
+    await loadLanguages(hass);
+
+    expect(localize('actions.abort')).toBe('Radnja prekinuta');
+  });
+
   it('should load and use Hungarian translations', async () => {
     const { loadLanguages, localize } = await importFresh();
     const hass = mock<HomeAssistant>();

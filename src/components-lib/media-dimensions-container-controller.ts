@@ -5,8 +5,10 @@ import type { CameraDimensionsConfig } from '../config/schema/cameras';
 import type { MediaLoadedInfoEventDetail } from '../types';
 import {
   aspectRatioToString,
+  getLayoutSize,
   isValidAspectRatio,
   setOrRemoveStyleProperty,
+  type Size,
 } from '../utils/basic';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout';
 
@@ -257,8 +259,8 @@ export class MediaDimensionsContainerController implements ReactiveController {
     this._setMaxSize(this._outerContainer);
     this._setRotation(this._host, false);
 
-    const hostSize = this._host.getBoundingClientRect();
-    const innerContainerSize = this._innerContainer.getBoundingClientRect();
+    const hostSize = getLayoutSize(this._host);
+    const innerContainerSize = getLayoutSize(this._innerContainer);
 
     if (this._resizeDefaultIfInvalidSizes([hostSize, innerContainerSize])) {
       return;
@@ -275,11 +277,11 @@ export class MediaDimensionsContainerController implements ReactiveController {
     this._setVisible(this._innerContainer);
   }
 
-  private _hasValidSize(size: DOMRect): boolean {
+  private _hasValidSize(size: Size): boolean {
     return size.width > 0 && size.height > 0;
   }
 
-  private _resizeDefaultIfInvalidSizes(sizes: DOMRect[]): boolean {
+  private _resizeDefaultIfInvalidSizes(sizes: Size[]): boolean {
     if (sizes.some((size) => !this._hasValidSize(size))) {
       this._resizeDefault();
       return true;
@@ -305,8 +307,8 @@ export class MediaDimensionsContainerController implements ReactiveController {
     this._setMaxSize(this._outerContainer);
     this._setRotation(this._host, false);
 
-    let hostSize = this._host.getBoundingClientRect();
-    let innerContainerSize = this._innerContainer.getBoundingClientRect();
+    let hostSize = getLayoutSize(this._host);
+    let innerContainerSize = getLayoutSize(this._innerContainer);
 
     if (this._resizeDefaultIfInvalidSizes([hostSize, innerContainerSize])) {
       return;
@@ -328,16 +330,18 @@ export class MediaDimensionsContainerController implements ReactiveController {
     });
 
     // Refresh the sizes post rotation & initial sizing.
-    innerContainerSize = this._innerContainer.getBoundingClientRect();
-    hostSize = this._host.getBoundingClientRect();
+    innerContainerSize = getLayoutSize(this._innerContainer);
+    hostSize = getLayoutSize(this._host);
 
     if (this._resizeDefaultIfInvalidSizes([hostSize, innerContainerSize])) {
       return;
     }
 
     // As in `_resizeWithFixedAspectRatio` resize the media if the host was not
-    // able to expand to cover the size.
-    if (innerContainerSize.height > hostSize.height) {
+    // able to expand to cover the size. The layout size excludes the inner
+    // container's own 90 or 270 degree rotation, so its width is the height it
+    // occupies within the host.
+    if (innerContainerSize.width > hostSize.height) {
       this._setSize(this._innerContainer, {
         width: hostSize.height,
         height: hostSize.height / aspectRatio,

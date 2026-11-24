@@ -37,6 +37,9 @@ import { createHASS, createHASSManager, createRegistryEntity } from '../../test-
 import { createInitializedCamera, createStore } from '../test-utils';
 
 vi.mock('../../../src/ha/ws-request');
+vi.mock('../../../src/ha/camera-webrtc', () => ({
+  supportsHA2WayAudio: vi.fn().mockResolvedValue(false),
+}));
 
 const TEST_CAMERAS: BrowseMedia = {
   title: 'Reolink',

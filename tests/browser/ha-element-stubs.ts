@@ -2,6 +2,7 @@ import { css, html, LitElement, type TemplateResult } from 'lit';
 import { property } from 'lit/decorators.js';
 
 import { SIDE_LOADED_ELEMENTS } from '../../src/ha/side-load-ha-elements';
+import type { HaStream } from '../../src/patches/types';
 
 /**
  * The base the three `src/patches` classes subclass at runtime. Home
@@ -36,6 +37,12 @@ class HAPlayerStandIn extends LitElement {
 
   protected _cleanUp(): void {
     // Transport teardown, which this stand-in has none of.
+  }
+
+  protected _streams(): HaStream[] {
+    // The players a camera stream renders, of which this stand-in has none, so
+    // a camera stream built on it never loads.
+    return [];
   }
 }
 

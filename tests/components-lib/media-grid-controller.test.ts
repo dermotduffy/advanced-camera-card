@@ -13,6 +13,7 @@ import {
   MutationObserverMock,
   ResizeObserverMock,
 } from '../test-utils';
+import { setLayoutSize } from './test-utils';
 
 vi.mock('lodash-es', async () => ({
   ...(await vi.importActual('lodash-es')),
@@ -44,12 +45,6 @@ const createChildren = (childIDs?: string[], idAttribute?: string): HTMLElement[
   return children;
 };
 
-const setElementWidth = (element: HTMLElement, width: number): void => {
-  element.getBoundingClientRect = vi.fn().mockReturnValue({
-    width: width,
-  });
-};
-
 const createParent = (options?: {
   children?: HTMLElement[];
   width?: number;
@@ -59,7 +54,7 @@ const createParent = (options?: {
     host.append(...options.children);
   }
   // Default Lovelace card width is 492.
-  setElementWidth(host, options?.width ?? 492);
+  setLayoutSize(host, { width: options?.width ?? 492 });
   return host;
 };
 
@@ -691,7 +686,7 @@ describe('MediaGridController', () => {
     vi.mocked(masonry.option)?.mockClear();
 
     // Resize the host.
-    setElementWidth(parent, 3000);
+    setLayoutSize(parent, { width: 3000 });
     triggerResizeObserver('host');
 
     // Masonry should not be recreated, but column width should be updated

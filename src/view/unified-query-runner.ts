@@ -1,5 +1,6 @@
 import type { CameraManager } from '../camera-manager/manager';
 import type { FoldersManager } from '../card-controller/folders/manager';
+import { sortItems } from '../card-controller/view/sort';
 import type { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
 import type { ViewItem } from '../view/item';
 import { UnifiedQuery } from '../view/unified-query';
@@ -52,7 +53,7 @@ export class UnifiedQueryRunner {
       allItems.push(...(items ?? []));
     }
 
-    return allItems;
+    return sortItems(allItems);
   }
 
   public areResultsFresh(resultsTimestamp: Date, query: UnifiedQuery): boolean {

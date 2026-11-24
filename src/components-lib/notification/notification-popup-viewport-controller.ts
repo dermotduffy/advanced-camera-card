@@ -1,5 +1,6 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit';
 
+import { getLayoutSize, isHTMLElement } from '../../utils/basic.js';
 import { getShadowRootHost } from '../../utils/shadow-root.js';
 
 const INSET_TOP_PROPERTY = '--notification-popup-inset-top';
@@ -37,8 +38,9 @@ export class NotificationPopupViewportController implements ReactiveController {
     window.removeEventListener('resize', this._update);
   }
 
-  private _getContainer(): Element | null {
-    return getShadowRootHost(this._host);
+  private _getContainer(): HTMLElement | null {
+    const container = getShadowRootHost(this._host);
+    return isHTMLElement(container) ? container : null;
   }
 
   private _update = (): void => {
@@ -57,13 +59,17 @@ export class NotificationPopupViewportController implements ReactiveController {
       return;
     }
 
+    // The insets are measured on screen but applied in the container's own
+    // pixels, which differ when an ancestor transform scales the container.
+    const scale = containerBox.height / getLayoutSize(container).height;
+
     this._host.style.setProperty(
       INSET_TOP_PROPERTY,
-      `${visibleTop - containerBox.top}px`,
+      `${(visibleTop - containerBox.top) / scale}px`,
     );
     this._host.style.setProperty(
       INSET_BOTTOM_PROPERTY,
-      `${containerBox.bottom - visibleBottom}px`,
+      `${(containerBox.bottom - visibleBottom) / scale}px`,
     );
   };
 }

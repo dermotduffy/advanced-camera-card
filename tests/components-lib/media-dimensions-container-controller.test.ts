@@ -22,6 +22,7 @@ import {
   getResizeObserver,
   ResizeObserverMock,
 } from '../test-utils';
+import { setLayoutSize } from './test-utils';
 
 // @vitest-environment jsdom
 describe('MediaDimensionsContainerController', () => {
@@ -82,16 +83,10 @@ describe('MediaDimensionsContainerController', () => {
 
     it('should cancel a pending resize on disconnect', () => {
       const host = createLitElement();
-      host.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 200,
-        width: 200,
-      });
+      setLayoutSize(host, { width: 200, height: 200 });
 
       const innerContainer = document.createElement('div');
-      innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 90,
-        width: 160,
-      });
+      setLayoutSize(innerContainer, { width: 160, height: 90 });
       const outerContainer = document.createElement('div');
 
       const controller = new MediaDimensionsContainerController(host);
@@ -248,10 +243,7 @@ describe('MediaDimensionsContainerController', () => {
     it('should ignore without an aspect ratio or rotation', () => {
       const host = createLitElement();
 
-      host.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 600,
-        width: 300,
-      });
+      setLayoutSize(host, { width: 300, height: 600 });
 
       const controller = new MediaDimensionsContainerController(host);
 
@@ -325,10 +317,7 @@ describe('MediaDimensionsContainerController', () => {
           const outerContainer = document.createElement('div');
 
           const innerContainer = document.createElement('div');
-          innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 0,
-            width: 0,
-          });
+          setLayoutSize(innerContainer, { width: 0, height: 0 });
           innerContainer.style.width = '1px';
           innerContainer.style.height = '2px';
 
@@ -342,10 +331,7 @@ describe('MediaDimensionsContainerController', () => {
 
         it('should ignore without host size', () => {
           const host = createLitElement();
-          host.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 0,
-            width: 0,
-          });
+          setLayoutSize(host, { width: 0, height: 0 });
 
           const controller = new MediaDimensionsContainerController(host);
 
@@ -354,10 +340,7 @@ describe('MediaDimensionsContainerController', () => {
           const innerContainer = document.createElement('div');
           innerContainer.style.width = '100px';
           innerContainer.style.height = '200px';
-          innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 100,
-            width: 200,
-          });
+          setLayoutSize(innerContainer, { width: 200, height: 100 });
 
           controller.setContainers(innerContainer, document.createElement('div'));
 
@@ -378,10 +361,7 @@ describe('MediaDimensionsContainerController', () => {
           const outerContainer = document.createElement('div');
 
           const innerContainer = document.createElement('div');
-          innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 0,
-            width: 0,
-          });
+          setLayoutSize(innerContainer, { width: 0, height: 0 });
           innerContainer.style.width = '1px';
           innerContainer.style.height = '2px';
 
@@ -395,10 +375,7 @@ describe('MediaDimensionsContainerController', () => {
 
         it('should ignore without host size', () => {
           const host = createLitElement();
-          host.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 0,
-            width: 0,
-          });
+          setLayoutSize(host, { width: 0, height: 0 });
 
           const controller = new MediaDimensionsContainerController(host);
 
@@ -407,10 +384,7 @@ describe('MediaDimensionsContainerController', () => {
           const innerContainer = document.createElement('div');
           innerContainer.style.width = '100px';
           innerContainer.style.height = '200px';
-          innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 100,
-            width: 200,
-          });
+          setLayoutSize(innerContainer, { width: 200, height: 100 });
 
           controller.setContainers(innerContainer, document.createElement('div'));
 
@@ -422,10 +396,7 @@ describe('MediaDimensionsContainerController', () => {
 
         it('should ignore without inner container size during resize', () => {
           const host = createLitElement();
-          host.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 100,
-            width: 200,
-          });
+          setLayoutSize(host, { width: 200, height: 100 });
 
           const controller = new MediaDimensionsContainerController(host);
 
@@ -434,16 +405,11 @@ describe('MediaDimensionsContainerController', () => {
           const innerContainer = document.createElement('div');
           innerContainer.style.width = '100px';
           innerContainer.style.height = '200px';
-          innerContainer.getBoundingClientRect = vi
-            .fn()
-            .mockReturnValueOnce({
-              height: 100,
-              width: 200,
-            })
-            .mockReturnValueOnce({
-              height: 0,
-              width: 0,
-            });
+          setLayoutSize(
+            innerContainer,
+            { width: 200, height: 100 },
+            { width: 0, height: 0 },
+          );
 
           controller.setContainers(innerContainer, document.createElement('div'));
 
@@ -453,16 +419,7 @@ describe('MediaDimensionsContainerController', () => {
 
         it('should ignore without host size during resize', () => {
           const host = createLitElement();
-          host.getBoundingClientRect = vi
-            .fn()
-            .mockReturnValueOnce({
-              height: 100,
-              width: 200,
-            })
-            .mockReturnValueOnce({
-              height: 0,
-              width: 0,
-            });
+          setLayoutSize(host, { width: 200, height: 100 }, { width: 0, height: 0 });
 
           const controller = new MediaDimensionsContainerController(host);
 
@@ -471,10 +428,7 @@ describe('MediaDimensionsContainerController', () => {
           const innerContainer = document.createElement('div');
           innerContainer.style.width = '100px';
           innerContainer.style.height = '200px';
-          innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 100,
-            width: 200,
-          });
+          setLayoutSize(innerContainer, { width: 200, height: 100 });
 
           controller.setContainers(innerContainer, document.createElement('div'));
 
@@ -495,10 +449,7 @@ describe('MediaDimensionsContainerController', () => {
         'should rotate %s with rotation degrees %s',
         (shouldRotate: boolean, degrees?: Rotation) => {
           const host = createLitElement();
-          host.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 100,
-            width: 200,
-          });
+          setLayoutSize(host, { width: 200, height: 100 });
 
           const controller = new MediaDimensionsContainerController(host);
           controller.setConfig({
@@ -506,10 +457,7 @@ describe('MediaDimensionsContainerController', () => {
           });
 
           const innerContainer = document.createElement('div');
-          innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: 100,
-            width: 200,
-          });
+          setLayoutSize(innerContainer, { width: 200, height: 100 });
           controller.setContainers(innerContainer, document.createElement('div'));
 
           callResizeHandler();
@@ -528,16 +476,10 @@ describe('MediaDimensionsContainerController', () => {
     describe('should resize container with aspect-ratio', () => {
       it('should resize container to fit width-limited container', () => {
         const host = createLitElement();
-        host.getBoundingClientRect = vi.fn().mockReturnValue({
-          height: 200,
-          width: 200,
-        });
+        setLayoutSize(host, { width: 200, height: 200 });
 
         const innerContainer = document.createElement('div');
-        innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-          height: 90,
-          width: 160,
-        });
+        setLayoutSize(innerContainer, { width: 160, height: 90 });
         const outerContainer = document.createElement('div');
 
         const controller = new MediaDimensionsContainerController(host);
@@ -556,16 +498,10 @@ describe('MediaDimensionsContainerController', () => {
 
       it('should resize container to fit height-limited container', () => {
         const host = createLitElement();
-        host.getBoundingClientRect = vi.fn().mockReturnValue({
-          height: 100,
-          width: 400,
-        });
+        setLayoutSize(host, { width: 400, height: 100 });
 
         const innerContainer = document.createElement('div');
-        innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-          height: 200,
-          width: 160,
-        });
+        setLayoutSize(innerContainer, { width: 160, height: 200 });
         const outerContainer = document.createElement('div');
 
         const controller = new MediaDimensionsContainerController(host);
@@ -586,24 +522,17 @@ describe('MediaDimensionsContainerController', () => {
     describe('should resize container with rotation', () => {
       it('should resize container to fit width-limited container', () => {
         const host = createLitElement();
-        host.getBoundingClientRect = vi.fn().mockReturnValue({
-          width: 500,
-          height: 1000,
-        });
+        setLayoutSize(host, { width: 500, height: 1000 });
 
         const innerContainer = document.createElement('div');
-        innerContainer.getBoundingClientRect = vi
-          .fn()
-          .mockReturnValue({
-            // These are the pre-rotation dimensions.
-            width: 1000,
-            height: 2000,
-          })
-          .mockReturnValue({
-            // These are the post-rotation dimensions.
-            width: 500,
-            height: 1000,
-          });
+        // The media's natural 1000x2000 (ratio 0.5), then the 250x500 the
+        // controller sets from the 500 host width. Rotated, the 250 width fits
+        // within the 1000 host height.
+        setLayoutSize(
+          innerContainer,
+          { width: 1000, height: 2000 },
+          { width: 250, height: 500 },
+        );
         const outerContainer = document.createElement('div');
 
         const controller = new MediaDimensionsContainerController(host);
@@ -624,24 +553,17 @@ describe('MediaDimensionsContainerController', () => {
 
       it('should resize container to fit height-limited container', () => {
         const host = createLitElement();
-        host.getBoundingClientRect = vi.fn().mockReturnValue({
-          width: 500,
-          height: 1000,
-        });
+        setLayoutSize(host, { width: 500, height: 1000 });
 
         const innerContainer = document.createElement('div');
-        innerContainer.getBoundingClientRect = vi
-          .fn()
-          .mockReturnValue({
-            // These are the pre-rotation dimensions.
-            width: 1000,
-            height: 2000,
-          })
-          .mockReturnValue({
-            // These are the post-rotation dimensions.
-            width: 500,
-            height: 2000,
-          });
+        // The media's natural 2000x500 (ratio 4), then the 2000x500 the
+        // controller sets from the 500 host width. Rotated, the 2000 width
+        // overflows the 1000 host height.
+        setLayoutSize(
+          innerContainer,
+          { width: 2000, height: 500 },
+          { width: 2000, height: 500 },
+        );
         const outerContainer = document.createElement('div');
 
         const controller = new MediaDimensionsContainerController(host);
@@ -652,7 +574,7 @@ describe('MediaDimensionsContainerController', () => {
 
         // These are pre-rotation dimensions.
         expect(innerContainer.style.width).toBe('1000px');
-        expect(innerContainer.style.height).toBe('4000px');
+        expect(innerContainer.style.height).toBe('250px');
 
         expect(outerContainer.style.width).toBe('100%');
         expect(outerContainer.style.height).toBe('1000px');
@@ -665,16 +587,10 @@ describe('MediaDimensionsContainerController', () => {
   describe('should respond to slot changes', () => {
     it('should resize container on slotchange event', () => {
       const host = createLitElement();
-      host.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 200,
-        width: 200,
-      });
+      setLayoutSize(host, { width: 200, height: 200 });
 
       const innerContainer = document.createElement('div');
-      innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 90,
-        width: 160,
-      });
+      setLayoutSize(innerContainer, { width: 160, height: 90 });
       const outerContainer = document.createElement('div');
 
       const controller = new MediaDimensionsContainerController(host);
@@ -699,16 +615,10 @@ describe('MediaDimensionsContainerController', () => {
   describe('should respond to media load', () => {
     it('should resize container on media load', () => {
       const host = createLitElement();
-      host.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 200,
-        width: 200,
-      });
+      setLayoutSize(host, { width: 200, height: 200 });
 
       const innerContainer = document.createElement('div');
-      innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 90,
-        width: 160,
-      });
+      setLayoutSize(innerContainer, { width: 160, height: 90 });
       const outerContainer = document.createElement('div');
 
       const controller = new MediaDimensionsContainerController(host);
@@ -737,16 +647,10 @@ describe('MediaDimensionsContainerController', () => {
 
     it('should not resize container on media load to same size', () => {
       const host = createLitElement();
-      host.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 200,
-        width: 200,
-      });
+      setLayoutSize(host, { width: 200, height: 200 });
 
       const innerContainer = document.createElement('div');
-      innerContainer.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 90,
-        width: 160,
-      });
+      setLayoutSize(innerContainer, { width: 160, height: 90 });
       const outerContainer = document.createElement('div');
 
       const controller = new MediaDimensionsContainerController(host);

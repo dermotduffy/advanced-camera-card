@@ -16,6 +16,7 @@ import {
   getResizeObserver,
   ResizeObserverMock,
 } from '../../test-utils';
+import { setLayoutSize } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('NotificationPopupViewportController', () => {
@@ -32,17 +33,24 @@ describe('NotificationPopupViewportController', () => {
     document.body.replaceChildren();
   });
 
-  const create = (options?: { containerTop?: number; containerHeight?: number }) => {
+  const create = (options?: {
+    containerTop?: number;
+    containerHeight?: number;
+    scale?: number;
+  }) => {
     const container = document.createElement('div');
     document.body.appendChild(container);
 
     const containerTop = options?.containerTop ?? 0;
     const containerHeight = options?.containerHeight ?? 100;
+    const scale = options?.scale ?? 1;
     const setContainerBox = (top: number, height: number): void => {
       container.getBoundingClientRect = vi.fn().mockReturnValue({
         top: top,
         bottom: top + height,
+        height: height,
       });
+      setLayoutSize(container, { height: height / scale });
     };
     setContainerBox(containerTop, containerHeight);
 
@@ -93,6 +101,17 @@ describe('NotificationPopupViewportController', () => {
     controller.hostConnected();
 
     expect(getInsets(host)).toEqual({ top: '100px', bottom: '200px' });
+  });
+
+  it('should convert the inset to the container pixels when an ancestor scales it', () => {
+    const { host, controller } = create({
+      containerTop: -100,
+      containerHeight: window.innerHeight + 300,
+      scale: 0.5,
+    });
+    controller.hostConnected();
+
+    expect(getInsets(host)).toEqual({ top: '200px', bottom: '400px' });
   });
 
   it('should keep the last inset when the container is entirely out of view', () => {

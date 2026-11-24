@@ -16,7 +16,10 @@ import type { ViewManagerEpoch } from '../card-controller/view/types';
 import { MediaLoadWatchdogController } from '../components-lib/media-load-watchdog-controller';
 import { triggerMediaUnavailableIssue } from '../components-lib/media-unavailable-issue';
 import type { ZoomSettingsObserved } from '../components-lib/zoom/types';
-import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
+import {
+  handleDigitalZoomHomeEvent,
+  handleZoomSettingsObservedEvent,
+} from '../components-lib/zoom/zoom-view-context';
 import type { CameraConfig } from '../config/schema/cameras';
 import {
   resolveProxyConfig,
@@ -108,9 +111,11 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       imageConfig: this.imageConfig,
       cameraConfig: this.cameraConfig,
     });
+    const dimensionsConfig =
+      mode === 'camera' ? this.cameraConfig?.dimensions : undefined;
 
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
-      .dimensionsConfig=${mode === 'camera' ? this.cameraConfig?.dimensions : undefined}
+      .dimensionsConfig=${dimensionsConfig}
     >
       ${template}
     </advanced-camera-card-media-dimensions-container>`;
@@ -128,12 +133,15 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
                 : undefined,
           )}
           .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
+          .dimensionsConfig=${dimensionsConfig}
           @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
             handleZoomSettingsObservedEvent(
               ev,
               this.viewManagerEpoch?.manager,
               zoomTarget,
             )}
+          @advanced-camera-card:zoom:home=${() =>
+            handleDigitalZoomHomeEvent(this, zoomTarget)}
         >
           ${intermediateTemplate}
         </advanced-camera-card-zoomer>`

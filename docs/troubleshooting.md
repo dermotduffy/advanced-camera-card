@@ -176,7 +176,9 @@ releases](https://github.com/blakeblackshear/frigate-hass-integration/releases/t
 ### 2-way audio doesn't work
 
 There are many requirements for 2-way audio to work. See [Using 2-way
-audio](usage/2-way-audio.md) for more information about these. If your
+audio](usage/2-way-audio.md) for more information about these. If it only fails
+away from home, see [`go2rtc` WebRTC fails away from
+home](#go2rtc-webrtc-fails-away-from-home). If your
 microphone still does not work and you believe you meet all the requirements try
 eliminating the card from the picture by going directly to the `go2rtc` UI,
 navigating to `links` for your given stream, then to `webrtc.html` with a
@@ -339,6 +341,41 @@ To automatically proxy the connection via the Home Assistant process instead
 [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
 and your connection will be automatically proxied. See
 [proxying](./configuration/cameras/README.md?id=proxy).
+
+### `go2rtc` WebRTC fails away from home
+
+WebRTC sends media directly between your browser and `go2rtc`. On your home
+network that direct path is easy to find. Away from home, particularly on
+mobile data, the networks in between often block it, and only a TURN server
+relaying the media can connect them.
+
+Each side of the connection is configured separately.
+
+**Browser side:** the card uses the STUN/TURN servers configured for Home
+Assistant, for the `go2rtc` and `go2rtc-experimental` live providers and for
+2-way audio through `go2rtc`. To configure them:
+
+- Add your STUN/TURN servers in Home Assistant's
+  [configuration](https://www.home-assistant.io/integrations/homeassistant/#custom-stun-and-turn-servers),
+  then restart Home Assistant.
+- Or, with a Nabu Casa subscription, enable its TURN servers in Home Assistant
+  Cloud's settings.
+
+If Home Assistant does not provide ICE servers (for example, versions before
+`2026.1`), the card uses Home Assistant's public STUN server
+(`stun.home-assistant.io`) as a default.
+
+**`go2rtc` side:** `go2rtc` uses its own [WebRTC
+configuration](https://github.com/AlexxIT/go2rtc#module-webrtc). To configure
+it:
+
+- Add your STUN/TURN servers under `webrtc.ice_servers`.
+- Or, forward its WebRTC port (`8555` by default) and list your public address
+  under `webrtc.candidates`.
+
+If WebRTC cannot connect, the card falls back to other modes such as MSE,
+unless the camera's [`modes`](./configuration/cameras/live-provider.md?id=go2rtc)
+allow only `webrtc`.
 
 ### iOS App not updating after card version change
 

@@ -8,6 +8,7 @@ import {
   createMediaLoadedInfo,
   createMediaLoadedInfoEvent,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../../../../test-utils';
 
 const createPlayer = (): {
@@ -61,11 +62,7 @@ describe('MediaPlayerLivenessDetector', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   it('should start unknown', () => {

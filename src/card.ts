@@ -489,6 +489,7 @@ export class AdvancedCameraCard extends LitElement {
               .microphoneManager=${this._controller.getMicrophoneManager()}
               .microphoneState=${this._controller.getMicrophoneManager().getState()}
               .call=${this._controller.getCallManager().getCall() ?? undefined}
+              .callConnecting=${this._controller.getCallManager().isConnecting()}
               .locked=${this._controller.getLockManager().isLocked()}
               .drawerPinned=${!!this._controller
                 .getNotificationManager()

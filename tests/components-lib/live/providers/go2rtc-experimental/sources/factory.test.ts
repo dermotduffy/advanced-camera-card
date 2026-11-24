@@ -85,6 +85,8 @@ describe('createWebRTCSource', () => {
       callbacks: createCallbacks(),
     };
 
-    expect(createWebRTCSource(context)).toBeInstanceOf(WebRTCStreamSource);
+    expect(createWebRTCSource(context, async () => [])).toBeInstanceOf(
+      WebRTCStreamSource,
+    );
   });
 });

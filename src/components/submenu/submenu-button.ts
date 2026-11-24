@@ -1,11 +1,13 @@
 import {
   html,
   LitElement,
+  nothing,
   unsafeCSS,
   type CSSResultGroup,
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import { actionHandler } from '../../action-handler-directive.js';
@@ -40,7 +42,12 @@ export class AdvancedCameraCardSubmenuButton extends LitElement {
       .items=${this.submenu?.items}
       .lockManagerEpoch=${this.lockManagerEpoch}
     >
-      <ha-icon-button style="${style}" .label=${this.submenu.title || ''}>
+      <ha-icon-button
+        class=${classMap({ 'in-progress': !!this.submenu.in_progress })}
+        aria-busy=${this.submenu.in_progress ? 'true' : nothing}
+        style="${style}"
+        .label=${this.submenu.title || ''}
+      >
         <advanced-camera-card-icon
           ?allow-override-non-active-styles=${true}
           title=${this.submenu.title || ''}

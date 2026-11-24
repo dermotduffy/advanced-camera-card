@@ -31,6 +31,7 @@ import {
 } from '../../../../components-lib/signed-url-controller.js';
 import type { CardWideConfig } from '../../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
+import { getICEServers } from '../../../../ha/webrtc.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCExperimentalStyle from '../../../../scss/live-go2rtc-experimental.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../../../../types.js';
@@ -143,7 +144,9 @@ export class AdvancedCameraCardGo2RTCExperimental
   private _session = new Go2RTCSessionController({
     getControls: () => this.controls,
     getCardWideConfig: () => this.cardWideConfig ?? null,
+    getICEServers: () => getICEServers(this.hass),
     mediaLoadedCallback: (info) => this._mediaLoadedInfoSourceController.set(info),
+    mediaUnloadedCallback: () => this._mediaLoadedInfoSourceController.clear(),
 
     surfaceCommittedCallback: (surface) => {
       this._activeSurface = surface;
@@ -183,14 +186,11 @@ export class AdvancedCameraCardGo2RTCExperimental
     super.disconnectedCallback();
   }
 
-  // Drop the session and everything it was playing on. The surfaces keep their
-  // elements but the session has emptied them, so the media that was announced
-  // no longer exists and must stop being claimed -- otherwise a later reconnect
-  // would replay it and the card would believe a dead camera was loaded.
+  // Drop the session and everything it was playing on. The session reports the
+  // loss of any media it announced through mediaUnloadedCallback.
   private _destroyMedia(): void {
     this._session.reset();
     this._activeSurface = null;
-    this._mediaLoadedInfoSourceController.clear();
   }
 
   // Lit keeps updating a detached element, and every update re-signs the URL

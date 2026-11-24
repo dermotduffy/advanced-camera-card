@@ -2,6 +2,7 @@ import type { LitElement, ReactiveController } from 'lit';
 import { throttle } from 'lodash-es';
 
 import type { GalleryExtendEvent } from '../../components/gallery/types';
+import { getLayoutSize } from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { scrollIntoView } from '../../utils/scroll';
 import { sleep } from '../../utils/sleep';
@@ -247,7 +248,7 @@ export class GalleryCoreController implements ReactiveController {
         // Centering a thumbnail that is taller than the gallery would put its
         // top above the top of the view.
         const fitsInGallery =
-          firstSelected.getBoundingClientRect().height <= this._host.clientHeight;
+          getLayoutSize(firstSelected).height <= this._host.clientHeight;
 
         scrollIntoView(firstSelected, {
           boundary: this._host,

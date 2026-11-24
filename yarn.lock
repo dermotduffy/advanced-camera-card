@@ -2833,6 +2833,7 @@ __metadata:
     postcss: "npm:^8.5.26"
     postcss-scss: "npm:^4.0.9"
     prettier: "npm:^3.3.2"
+    prettier-plugin-sort-json: "npm:^4.2.0"
     propagating-hammerjs: "npm:^2.0.1"
     quick-lru: "npm:^6.1.2"
     rollup-plugin-visualizer: "npm:^5.12.0"
@@ -9400,6 +9401,15 @@ __metadata:
   version: 2.0.0
   resolution: "prepend-http@npm:2.0.0"
   checksum: 10c0/b023721ffd967728e3a25e3a80dd73827e9444e586800ab90a21b3a8e67f362d28023085406ad53a36db1e4d98cb10e43eb37d45c6b733140a9165ead18a0987
+  languageName: node
+  linkType: hard
+
+"prettier-plugin-sort-json@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "prettier-plugin-sort-json@npm:4.2.0"
+  peerDependencies:
+    prettier: ^3.0.0
+  checksum: 10c0/e1eea20998bd32da682d226c0eeb39f8a33548299f7092aa89c28caf1c171524a408d6b06773ef953b688f48577edaa3bfd7965e4b39a7e64c78dd9796216be3
   languageName: node
   linkType: hard
 

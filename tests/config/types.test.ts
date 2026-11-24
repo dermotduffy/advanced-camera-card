@@ -99,6 +99,7 @@ describe('config defaults', () => {
           builtin: true,
           call: {
             button_size: 40,
+            buttons: {},
             enabled: true,
             lock: true,
             ringtone: { type: 'chime', repeat: 0 },

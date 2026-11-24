@@ -19,8 +19,20 @@ export const TROUBLESHOOTING_MEDIA_URL =
 // Interaction Constants
 // ===========================================================================
 
-// How long a press must last to count as a hold rather than a tap.
-export const ACTION_HANDLER_HOLD_SECONDS = 0.4;
+// How close to the first tap the second must end for the two to make a double
+// tap.
+export const DOUBLE_TAP_PIXELS = 40;
+
+// How soon after the first tap the second must end for the two to make a double
+// tap.
+export const DOUBLE_TAP_SECONDS = 0.25;
+
+// How far a pointer must move to become a drag, which is neither a tap nor a
+// hold.
+export const DRAG_THRESHOLD_PIXELS = 10;
+
+// How long a pointer must stay down to become a hold.
+export const HOLD_SECONDS = 0.4;
 
 // ===========================================================================
 // Media Constants
