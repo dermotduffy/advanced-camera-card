@@ -319,8 +319,8 @@ describe('AdvancedCameraCardLiveProvider', () => {
   });
 
   it('should show a newer frame preserved while an older one is shown', async () => {
-    // As when a rebuilt card shows a frame before the encoding of a newer one,
-    // captured as the previous card went away, has finished.
+    // Stands in for a newer frame that finishes encoding after the card already
+    // shows an older one.
     const date = new Date();
     const olderURL = createPreservedFrameURL();
     sharedPreservedFrameStore.set(

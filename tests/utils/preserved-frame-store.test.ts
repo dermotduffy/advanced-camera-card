@@ -166,37 +166,65 @@ describe('PreservedFrameStore', () => {
     expect(store.get({ cameraID: 'camera-19' }, 60)).not.toBeNull();
   });
 
-  describe('should tell listeners of stored frames', () => {
-    it('should call a listener with the key of a stored frame', () => {
+  describe('should tell subscribers of stored frames', () => {
+    it('should call back when a frame is stored for the key', () => {
       const store = new PreservedFrameStore();
-      const listener = vi.fn();
-      store.subscribe(listener);
+      const callback = vi.fn();
+      store.subscribe({ cardID: 'card-1', cameraID: 'camera-1' }, callback);
 
       store.set({ cardID: 'card-1', cameraID: 'camera-1' }, createPreservedFrame());
 
-      expect(listener).toHaveBeenCalledWith({ cardID: 'card-1', cameraID: 'camera-1' });
+      expect(callback).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call a listener when the same frame is stored again', () => {
+    it('should not call back when a frame is stored for another key', () => {
       const store = new PreservedFrameStore();
-      const listener = vi.fn();
-      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
-      store.subscribe(listener);
+      const callback = vi.fn();
+      store.subscribe({ cardID: 'card-1', cameraID: 'camera-1' }, callback);
 
-      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+      store.set({ cardID: 'card-1', cameraID: 'camera-2' }, createPreservedFrame());
+      store.set({ cardID: 'card-2', cameraID: 'camera-1' }, createPreservedFrame());
 
-      expect(listener).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
-    it('should not call a listener once it unsubscribes', () => {
+    it('should not call back when the same frame is stored again', () => {
       const store = new PreservedFrameStore();
-      const listener = vi.fn();
-      const unsubscribe = store.subscribe(listener);
+      const callback = vi.fn();
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+      store.subscribe({ cameraID: 'camera-1' }, callback);
+
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should not call back when an older frame is ignored', () => {
+      const store = new PreservedFrameStore();
+      const callback = vi.fn();
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+      store.subscribe({ cameraID: 'camera-1' }, callback);
+
+      store.set(
+        { cameraID: 'camera-1' },
+        createPreservedFrame({
+          url: 'data:image/jpeg;base64,older',
+          date: new Date(date.getTime() - 1000),
+        }),
+      );
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should not call back once unsubscribed', () => {
+      const store = new PreservedFrameStore();
+      const callback = vi.fn();
+      const unsubscribe = store.subscribe({ cameraID: 'camera-1' }, callback);
 
       unsubscribe();
       store.set({ cameraID: 'camera-1' }, createPreservedFrame());
 
-      expect(listener).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 

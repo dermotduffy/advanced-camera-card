@@ -3,6 +3,7 @@ import { onAbort } from '../utils/abort-signal';
 import {
   sharedPreservedFrameStore,
   type PreservedFrame,
+  type PreservedFrameCallback,
   type PreservedFrameKey,
   type PreservedFrameStore,
 } from '../utils/preserved-frame-store';
@@ -56,13 +57,11 @@ export class PreservedFrameManager {
    * Call `callback` whenever a new frame is preserved for the camera, including
    * by another card that shares this card's frames.
    */
-  public subscribe(cameraID: string, callback: () => void): UnsubscribeCallback {
-    return this._store.subscribe((key) => {
-      const ownKey = this._getKey(cameraID);
-      if (key.cardID === ownKey.cardID && key.cameraID === ownKey.cameraID) {
-        callback();
-      }
-    });
+  public subscribe(
+    cameraID: string,
+    callback: PreservedFrameCallback,
+  ): UnsubscribeCallback {
+    return this._store.subscribe(this._getKey(cameraID), callback);
   }
 
   /** Record that a player is showing `frame` for the camera until `signal`
