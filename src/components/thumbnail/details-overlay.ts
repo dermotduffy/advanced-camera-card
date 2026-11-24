@@ -5,7 +5,7 @@ import type { CameraManager } from '../../camera-manager/manager';
 import { isMediaReviewed } from '../../components-lib/media/format';
 import { ThumbnailDetailsOverlayController } from '../../components-lib/thumbnail/details-overlay/controller';
 import type { ResolvedThumbnailStyle } from '../../components-lib/thumbnail/resolve-style';
-import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails';
+import type { ThumbnailTier } from '../../components-lib/thumbnail/tier';
 import { localize } from '../../localize/localize';
 import thumbnailDetailsOverlayStyle from '../../scss/thumbnail-details-overlay.scss?inline';
 import { setOrRemoveAttribute } from '../../utils/basic';
@@ -25,7 +25,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
   public thumbnailStyle?: ResolvedThumbnailStyle;
 
   @property({ attribute: false })
-  public size: number = THUMBNAIL_SIZE_DEFAULT;
+  public tier?: ThumbnailTier;
 
   private _controller = new ThumbnailDetailsOverlayController();
 
@@ -34,7 +34,7 @@ export class AdvancedCameraCardThumbnailDetailsOverlay extends LitElement {
       cameraManager: this.cameraManager,
       item: this.item,
       thumbnailStyle: this.thumbnailStyle,
-      size: this.size,
+      tier: this.tier,
     });
     this.setAttribute('tier', this._controller.getTier());
     this.toggleAttribute('hover', this._controller.isHover());

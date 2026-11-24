@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { RECONNECT_INTERVAL_SECONDS } from '../../../../src/components-lib/live/providers/go2rtc-experimental/session-controller';
 import type { Go2RTCMode } from '../../../../src/config/schema/cameras';
 import {
   createFakeGo2RTCCameraConfig,
@@ -63,6 +64,41 @@ describe('AdvancedCameraCardGo2RTCExperimental', () => {
 
     expect(go2rtc.getOpenConnectionCount('garage')).toBe(1);
     expect(go2rtc.getOpenConnectionCount('office')).toBe(0);
+  });
+
+  describe('media info reloads after an in-place reconnect', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const mountAndLoad = async (stream: string): Promise<MountedCard> => {
+      const card = await mount(stream);
+      await card.events.waitForFirst('advanced-camera-card:media:loaded');
+
+      // The fake go2rtc server only sends a single frame per connection. To avoid
+      // the stall timeout occurring (which would itself reloads the media), pause
+      // timers.
+      vi.useFakeTimers();
+      return card;
+    };
+
+    it('should load the stream again after the go2rtc connection drops', async () => {
+      const card = await mountAndLoad('dropped');
+
+      go2rtc.dropConnections('dropped');
+      await card.advanceSeconds(RECONNECT_INTERVAL_SECONDS);
+
+      await card.events.waitForCount('advanced-camera-card:media:loaded', 2);
+    });
+
+    it('should load the stream again after the go2rtc stream fails', async () => {
+      const card = await mountAndLoad('failed');
+
+      go2rtc.sendModeError('failed', 'mjpeg');
+      await card.advanceSeconds(RECONNECT_INTERVAL_SECONDS);
+
+      await card.events.waitForCount('advanced-camera-card:media:loaded', 2);
+    });
   });
 
   it("should negotiate WebRTC with Home Assistant's ICE servers", async () => {

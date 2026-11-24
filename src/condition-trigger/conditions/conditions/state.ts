@@ -1,8 +1,18 @@
 import { haEqual } from '../../../ha/event-match';
-import { arrayify, arrayifyWithFalsy } from '../../../utils/basic';
+import {
+  arrayify,
+  arrayifyWithFalsy,
+  getEarliestDate,
+  isValidDate,
+} from '../../../utils/basic';
 import { renderTimePeriodToSeconds } from '../../common/time-period';
-import type { ConditionsEvaluationResult, ConditionState } from '../types';
-import type { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
+import type { ConditionState } from '../types';
+import type {
+  ConditionEvaluator,
+  ConditionEvaluatorResult,
+  ConditionOfType,
+  EvaluatorContext,
+} from './types';
 
 // Home Assistant resolves an expected value that names an `input_*` helper to
 // that helper's current state (its Lovelace state-condition behavior), on both
@@ -37,7 +47,7 @@ export class StateConditionEvaluator implements ConditionEvaluator {
   public evaluate(
     newState?: ConditionState,
     oldState?: ConditionState,
-  ): ConditionsEvaluationResult {
+  ): ConditionEvaluatorResult {
     const condition = this._condition;
     const attribute = condition.attribute;
 
@@ -86,6 +96,9 @@ export class StateConditionEvaluator implements ConditionEvaluator {
       return false;
     };
 
+    // The earliest time at which a matching entity's `for` duration completes.
+    let validUntil: Date | null = null;
+
     const matchesEntity = (entityID: string): boolean => {
       const fromValue = readValue(entityID, oldState);
       const toValue = readValue(entityID, newState);
@@ -115,12 +128,19 @@ export class StateConditionEvaluator implements ConditionEvaluator {
           newState,
         );
         const lastChanged = newState?.hass?.states?.[entityID]?.last_changed;
-        if (forSeconds === null || !lastChanged) {
+        const lastChangedDate = lastChanged ? new Date(lastChanged) : null;
+        if (forSeconds === null || !lastChangedDate || !isValidDate(lastChangedDate)) {
           result = false;
         } else {
-          const heldSeconds =
-            (new Date().getTime() - new Date(lastChanged).getTime()) / 1000;
-          result = heldSeconds > forSeconds;
+          // Dates count whole milliseconds and the match must last longer than
+          // `for`, so this is the first instant at which `for` completes.
+          const forCompletesAt = new Date(
+            lastChangedDate.getTime() + Math.floor(forSeconds * 1000) + 1,
+          );
+          result = new Date() >= forCompletesAt;
+          if (!result) {
+            validUntil = getEarliestDate(validUntil, forCompletesAt);
+          }
         }
       }
       return result;
@@ -132,6 +152,7 @@ export class StateConditionEvaluator implements ConditionEvaluator {
         ? entityIDs.some(matchesEntity)
         : entityIDs.every(matchesEntity);
 
-    return { result };
+    // Only a state change can end a match, so a match carries no `validUntil`.
+    return !result && validUntil ? { result, validUntil } : { result };
   }
 }

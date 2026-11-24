@@ -4,6 +4,7 @@ import type { RawAdvancedCameraCardConfig } from '../../../config/types';
 import { localize } from '../../../localize/localize';
 import type { ConfigChange, ConfigPath, EditorForm, FieldBinding } from '../types';
 import { getCameraSimpleFields } from './cameras';
+import { createAspectRatioField } from './common/aspect-ratio';
 import { createGrid } from './common/grid';
 import { createSelectSelector } from './common/selectors';
 import { getAspectRatioModeOptions } from './dimensions';
@@ -118,10 +119,7 @@ export const getSimpleTopLevelForms = (): EditorForm[] => [
           name: 'aspect_ratio_mode',
           selector: createSelectSelector(getAspectRatioModeOptions()),
         },
-        {
-          name: 'aspect_ratio',
-          selector: { text: {} },
-        },
+        createAspectRatioField(),
       ]),
       getProfilesField(),
     ],

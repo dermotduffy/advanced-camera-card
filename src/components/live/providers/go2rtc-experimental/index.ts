@@ -146,6 +146,7 @@ export class AdvancedCameraCardGo2RTCExperimental
     getCardWideConfig: () => this.cardWideConfig ?? null,
     getICEServers: () => getICEServers(this.hass),
     mediaLoadedCallback: (info) => this._mediaLoadedInfoSourceController.set(info),
+    mediaUnloadedCallback: () => this._mediaLoadedInfoSourceController.clear(),
 
     surfaceCommittedCallback: (surface) => {
       this._activeSurface = surface;
@@ -185,8 +186,8 @@ export class AdvancedCameraCardGo2RTCExperimental
     super.disconnectedCallback();
   }
 
-  // Drop the session and everything it was playing on. The surfaces keep their
-  // elements but the session clears them.
+  // Drop the session and everything it was playing on. The session reports the
+  // loss of any media it announced through mediaUnloadedCallback.
   private _destroyMedia(): void {
     // Retire the media before the session clears the surfaces (see
     // `MediaLoadedInfoSourceController.clear()`).

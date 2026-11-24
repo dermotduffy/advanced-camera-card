@@ -144,6 +144,11 @@ interface Box {
   bottom: number;
 }
 
+export interface Size {
+  width: number;
+  height: number;
+}
+
 /**
  * @param point A point, in the coordinates the box is measured in.
  * @param box The box.
@@ -239,6 +244,16 @@ export const isSuperset = (superset: Set<unknown>, subset: Set<unknown>) => {
 
 export const isValidDate = (date: Date): boolean => {
   return !isNaN(date.getTime());
+};
+
+export const getEarliestDate = (...dates: (Date | null | undefined)[]): Date | null => {
+  let earliest: Date | null = null;
+  for (const date of dates) {
+    if (date && (!earliest || date < earliest)) {
+      earliest = date;
+    }
+  }
+  return earliest;
 };
 
 /**
@@ -415,3 +430,10 @@ export const forceReflow = (element: HTMLElement): void => {
   // Force reflow by measuring the height.
   void element.offsetHeight;
 };
+
+// The element's size ignoring any transform on it or its ancestors, which makes
+// it safe to write back to a CSS length such as `max-height`.
+export const getLayoutSize = (element: HTMLElement): Size => ({
+  width: element.offsetWidth,
+  height: element.offsetHeight,
+});

@@ -20,6 +20,7 @@ import {
   MutationObserverMock,
   ResizeObserverMock,
 } from '../test-utils';
+import { setLayoutSize } from './test-utils';
 
 const cap = (px: number): string => `var(${FULLSCREEN_MAX_HEIGHT_PROPERTY}, ${px}px)`;
 
@@ -50,9 +51,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 600,
-      });
+      setLayoutSize(child, { height: 600 });
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -60,6 +59,28 @@ describe('MediaHeightController', () => {
       // Calling a second time has no effect.
       controller.setRoot(root);
 
+      controller.setSelected(0);
+
+      vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
+
+      expect(host.style.maxHeight).toBe(cap(600));
+    });
+
+    it('should ignore ancestor transforms when measuring the height', () => {
+      const host = document.createElement('div');
+      const controller = new MediaHeightController(host, 'div');
+
+      const root = document.createElement('div');
+      const child = document.createElement('div');
+      setLayoutSize(child, { height: 600 });
+      // A scaled-down ancestor shrinks the bounding rect but not the layout
+      // height.
+      child.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 300,
+      });
+      root.appendChild(child);
+
+      controller.setRoot(root);
       controller.setSelected(0);
 
       vi.advanceTimersByTime(SET_HEIGHT_DEBOUNCE_SECONDS * 1000);
@@ -93,9 +114,7 @@ describe('MediaHeightController', () => {
       controller.setRoot(root);
       controller.setSelected(0);
 
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 800,
-      });
+      setLayoutSize(child, { height: 800 });
 
       callResizeHandler([
         {
@@ -120,9 +139,7 @@ describe('MediaHeightController', () => {
 
       controller.setRoot(root);
 
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 800,
-      });
+      setLayoutSize(child, { height: 800 });
 
       callResizeHandler([
         {
@@ -143,17 +160,13 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child_0 = document.createElement('div');
-      child_0.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 100,
-      });
+      setLayoutSize(child_0, { height: 100 });
       root.appendChild(child_0);
 
       controller.setRoot(root);
 
       const child_1 = document.createElement('div');
-      child_1.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 200,
-      });
+      setLayoutSize(child_1, { height: 200 });
       root.appendChild(child_1);
 
       callMutationHandler();
@@ -171,9 +184,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 700,
-      });
+      setLayoutSize(child, { height: 700 });
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -183,9 +194,7 @@ describe('MediaHeightController', () => {
 
       expect(host.style.maxHeight).toBe(cap(700));
 
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 900,
-      });
+      setLayoutSize(child, { height: 900 });
 
       controller.recalculate();
 
@@ -200,9 +209,7 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child = document.createElement('div');
-      child.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 0,
-      });
+      setLayoutSize(child, { height: 0 });
       root.appendChild(child);
 
       controller.setRoot(root);
@@ -219,13 +226,9 @@ describe('MediaHeightController', () => {
 
       const root = document.createElement('div');
       const child_0 = document.createElement('div');
-      child_0.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 750,
-      });
+      setLayoutSize(child_0, { height: 750 });
       const child_1 = document.createElement('div');
-      child_1.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 562,
-      });
+      setLayoutSize(child_1, { height: 562 });
       root.appendChild(child_0);
       root.appendChild(child_1);
 

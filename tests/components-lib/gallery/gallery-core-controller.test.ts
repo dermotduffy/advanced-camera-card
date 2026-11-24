@@ -20,6 +20,7 @@ import {
   IntersectionObserverMock,
   ResizeObserverMock,
 } from '../../test-utils';
+import { setLayoutSize } from '../test-utils';
 
 vi.mock('../../../src/utils/sleep');
 vi.mock('../../../src/utils/scroll');
@@ -591,17 +592,7 @@ describe('GalleryCoreController', () => {
         selectedChild: HTMLElement,
         options: { thumbnailHeight: number; galleryHeight: number },
       ): { host: LitElement; slot: HTMLSlotElement } => {
-        vi.spyOn(selectedChild, 'getBoundingClientRect').mockReturnValue({
-          x: 0,
-          y: 0,
-          width: 100,
-          height: options.thumbnailHeight,
-          top: 0,
-          right: 100,
-          bottom: options.thumbnailHeight,
-          left: 0,
-          toJSON: () => ({}),
-        });
+        setLayoutSize(selectedChild, { height: options.thumbnailHeight });
 
         const slot = createSlot();
         const host = createSlotHost({

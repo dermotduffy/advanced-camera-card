@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from 'vitest';
 
 import type { PartialAdvancedCameraCardConfig } from '../../../src/config/types';
-import { clickElement, deepQueryAll } from '../../browser/dom';
+import { clickElement, deepQueryAll, waitForFrame } from '../../browser/dom';
 import { MountedCardFactory, type MountedCard } from '../../browser/mounted-card';
 import {
   CAMERA_ENTITY,
@@ -63,9 +63,6 @@ const mountGrid = async (): Promise<MountedCard> =>
     },
   );
 
-const nextFrame = async (): Promise<void> =>
-  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-
 const getCells = (card: MountedCard): HTMLElement[] =>
   deepQueryAll<HTMLElement>(card.card, 'advanced-camera-card-live-carousel');
 
@@ -118,7 +115,7 @@ const waitForQuietGrid = async (card: MountedCard): Promise<HTMLElement[]> => {
     if (quietFrames >= QUIET_FRAME_COUNT) {
       return getCells(card);
     }
-    await nextFrame();
+    await waitForFrame();
   }
   throw new Error('The grid cells never stopped changing size');
 };
@@ -156,7 +153,7 @@ describe('AdvancedCameraCardLiveGrid', () => {
     // height is the intermediate state the user sees as a two-step layout.
     const wideButShort: { width: number; height: number }[] = [];
     for (let frame = 0; frame < TRANSITION_FRAME_SAMPLES; frame++) {
-      await nextFrame();
+      await waitForFrame();
       const rect = target.getBoundingClientRect();
       if (rect.width > wideThreshold && rect.height < shortThreshold) {
         wideButShort.push({ width: rect.width, height: rect.height });

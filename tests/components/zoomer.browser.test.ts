@@ -6,13 +6,27 @@ import type { MediaLayoutConfig } from '../../src/config/schema/camera/media-lay
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
 import { createPTZDigitalAction } from '../../src/utils/action';
 import { arefloatsApproximatelyEqual, isHoverableDevice } from '../../src/utils/basic';
+// The built card defines the zoomer as it starts, before any media can load.
+// Unbundled, the media viewer's own import of it can finish after its media
+// has already loaded.
+import '../../src/components/zoomer';
+
 import { deepQuery } from '../browser/dom';
+import {
+  createTestFrigateEvent,
+  EVENT_TIME_NEWER,
+  mountCardWithFrigate,
+} from '../browser/fake-frigate';
+import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from '../browser/fixtures';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
+  CAMERA_ENTITY,
+  clickThumbnail,
   createGenericCameraHASS,
   createStillImageCameraConfig,
   createStillImageCardConfig,
   isZoomSettingsObserved,
+  waitForThumbnails,
 } from '../browser/test-utils';
 
 const ZOOM_CHANGE_EVENT = 'advanced-camera-card:zoom:change';
@@ -232,4 +246,143 @@ describe('AdvancedCameraCardZoomer default zoom', () => {
     await zoomTo(card, 4);
     expect(await card.findControl(PTZ_HOME)).not.toBeNull();
   });
+});
+
+describe('AdvancedCameraCardZoomer picture limits', () => {
+  // A portrait card around a 16:9 picture, so the picture has bars above and
+  // below it, as a camera does in fullscreen on a phone held upright.
+  const createPortraitConfig = (
+    layout: MediaLayoutConfig,
+  ): PartialAdvancedCameraCardConfig => ({
+    cameras: [{ ...createStillImageCameraConfig(), dimensions: { layout } }],
+    dimensions: { aspect_ratio_mode: 'static', aspect_ratio: [9, 16] },
+  });
+
+  const mountLiveView = async (layout: MediaLayoutConfig): Promise<MountedCard> =>
+    await MountedCardFactory.createFromSource(
+      createStillImageCardConfig(createPortraitConfig(layout)),
+      createGenericCameraHASS(),
+    );
+
+  // The `ha` provider's player never loads in the harness, so the loading image
+  // stays in its place.
+  const mountLiveViewWhileStreamLoads = async (
+    layout: MediaLayoutConfig,
+  ): Promise<MountedCard> =>
+    await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        ...createPortraitConfig(layout),
+        cameras: [
+          {
+            ...createStillImageCameraConfig(),
+            live_provider: 'ha',
+            dimensions: { layout },
+          },
+        ],
+        live: { show_image_during_load: true },
+      }),
+      createGenericCameraHASS(),
+    );
+
+  const mountImageView = async (layout: MediaLayoutConfig): Promise<MountedCard> =>
+    await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        ...createPortraitConfig(layout),
+        view: { default: 'image' },
+        image: { mode: 'camera' },
+      }),
+      createGenericCameraHASS({
+        entities: {
+          [CAMERA_ENTITY]: {
+            state: 'idle',
+            attributes: { entity_picture: createFixtureURL(SNAPSHOT_FIXTURE_FILENAME) },
+          },
+        },
+      }),
+    );
+
+  // The still snapshot is 16:9 and the clip 4:3: both have bars above and below
+  // in the portrait card.
+  const createMediaViewerMount =
+    (gallery: 'clips' | 'snapshots') =>
+    async (layout: MediaLayoutConfig): Promise<MountedCard> => {
+      const { card } = await mountCardWithFrigate(
+        [createTestFrigateEvent('event', EVENT_TIME_NEWER)],
+        { ...createPortraitConfig(layout), view: { default: gallery } },
+      );
+      await waitForThumbnails(card, 1);
+      await clickThumbnail(card.card, 0);
+      return card;
+    };
+
+  const VIEWS = [
+    ['live view', mountLiveView],
+    ['live view while its stream loads', mountLiveViewWhileStreamLoads],
+    ['image view', mountImageView],
+    ['media viewer showing a snapshot', createMediaViewerMount('snapshots')],
+    ['media viewer playing a clip', createMediaViewerMount('clips')],
+  ] satisfies [string, (layout: MediaLayoutConfig) => Promise<MountedCard>][];
+
+  const isZoomAndPan =
+    (zoom: number, x: number, y: number) =>
+    (report: ZoomSettingsObserved): boolean =>
+      arefloatsApproximatelyEqual(report.zoom, zoom, 1) &&
+      arefloatsApproximatelyEqual(report.pan.x, x, 1) &&
+      arefloatsApproximatelyEqual(report.pan.y, y, 1);
+
+  // The vertical translation Panzoom applied to the zoomer, in its unscaled
+  // pixels (its transform is `scale(s) translate(x, y)`).
+  const getTranslateY = (zoomer: HTMLElement): number | null => {
+    if (!zoomer.style.transform) {
+      return null;
+    }
+    const matrix = new DOMMatrix(zoomer.style.transform);
+    return matrix.f / matrix.a;
+  };
+
+  const waitForTranslateY = async (
+    card: MountedCard,
+    zoomer: HTMLElement,
+    y: number,
+  ): Promise<void> => {
+    await card.waitForRender(() => {
+      const translateY = getTranslateY(zoomer);
+      return translateY !== null && Math.abs(translateY - y) < 0.5 ? true : null;
+    }, `a zoomer translated by ${y}px vertically`);
+  };
+
+  it.each(VIEWS)(
+    'should keep the picture centered on an axis it does not fill in the %s',
+    async (_view, mountView) => {
+      const card = await mountView({ zoom: 2, pan: { x: 0, y: 0 } });
+      const zoomer = await card.waitForSelector<HTMLElement>(
+        'advanced-camera-card-zoomer',
+      );
+
+      // Only reported once the picture's shape is known: until then the element
+      // bounds the pan, and the configured top is reported.
+      await waitForZoomReport(
+        card,
+        0,
+        isZoomAndPan(2, 0, 50),
+        'zoom 2 centered vertically',
+      );
+      await waitForTranslateY(card, zoomer, 0);
+    },
+  );
+
+  it.each(VIEWS)(
+    'should keep the element limits when the picture covers it in the %s',
+    async (_view, mountView) => {
+      const card = await mountView({ fit: 'cover', zoom: 2, pan: { x: 0, y: 0 } });
+      const zoomer = await card.waitForSelector<HTMLElement>(
+        'advanced-camera-card-zoomer',
+      );
+
+      await waitForZoomReport(card, 0, isZoomAndPan(2, 0, 0), 'zoom 2 at the top left');
+
+      // At the element's top edge: a quarter of its height, in unscaled pixels.
+      await waitForTranslateY(card, zoomer, zoomer.offsetHeight / 4);
+    },
+  );
 });

@@ -28,9 +28,13 @@ Each type has a pure level-predicate evaluator (`evaluate(state) -> result`),
 built by `createConditionEvaluator`. An evaluator may also declare
 `externalSources` -- change sources outside `ConditionState` (currently only
 `screen`'s `matchMedia`, via a `MediaQueryWatcher`) -- which `ConditionsManager`
-subscribes to so a change there triggers a re-evaluation. The manager ANDs a set
-of evaluators and notifies when the combined result flips; it backs
-`overrides`/`elements` and the automation ongoing-`conditions` pull (below).
+subscribes to so a change there triggers a re-evaluation. When time alone can
+change a result (a `state` condition whose `for` duration has not yet passed),
+the evaluator also returns `validUntil`, the time until which the result holds;
+`and`/`or`/`not` pass up the earliest among the children they evaluated, and
+`ConditionsManager` re-evaluates then. The manager ANDs a set of evaluators and
+notifies when the combined result flips; it backs `overrides`/`elements` and the
+automation ongoing-`conditions` pull (below).
 
 ## The bridge
 

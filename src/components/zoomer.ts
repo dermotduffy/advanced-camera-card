@@ -10,6 +10,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import type { PartialZoomSettings } from '../components-lib/zoom/types.js';
 import { ZoomController } from '../components-lib/zoom/zoom-controller.js';
+import type { CameraDimensionsConfig } from '../config/schema/cameras.js';
 
 @customElement('advanced-camera-card-zoomer')
 export class AdvancedCameraCardZoomer extends LitElement {
@@ -21,6 +22,10 @@ export class AdvancedCameraCardZoomer extends LitElement {
 
   @property({ attribute: false })
   public zoom = true;
+
+  // The dimensions the media inside is laid out with.
+  @property({ attribute: false })
+  public dimensionsConfig?: CameraDimensionsConfig;
 
   @state()
   private _zoomed = false;
@@ -53,6 +58,9 @@ export class AdvancedCameraCardZoomer extends LitElement {
 
     if (changedProps.has('zoom')) {
       this._zoomController.setZoom(this.zoom);
+    }
+    if (changedProps.has('dimensionsConfig')) {
+      this._zoomController.setDimensionsConfig(this.dimensionsConfig ?? null);
     }
     if (changedProps.has('defaultSettings')) {
       this._zoomController.setDefaultSettings(this.defaultSettings ?? null);
