@@ -190,7 +190,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
     getShownURL: () => this._cachedValueController.getValue(),
 
     // The next update works the image source out again.
-    onShownFrameExpired: () => {
+    onShownFrameOutdated: () => {
       this._cachedValueController.clearValue();
       this.requestUpdate();
     },

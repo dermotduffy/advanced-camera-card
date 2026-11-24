@@ -88,11 +88,18 @@ const getImage = (card: MountedCard): HTMLImageElement | null => {
 
 const getImageSource = (card: MountedCard): string | null => getImage(card)?.src ?? null;
 
-// A frame large enough for the card to accept as loaded media.
-const createPreservedFrameURL = (): DataURL => {
+// A frame large enough for the card to accept as loaded media, filled with a
+// color to tell two frames apart.
+const createPreservedFrameURL = (color?: string): DataURL => {
   const canvas = document.createElement('canvas');
   canvas.width = 100;
   canvas.height = 100;
+  if (color) {
+    const context = canvas.getContext('2d');
+    assert(context);
+    context.fillStyle = color;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
   const url = canvas.toDataURL();
   assert(isDataURL(url));
   return url;
@@ -308,6 +315,40 @@ describe('AdvancedCameraCardLiveProvider', () => {
       () =>
         getStatusBarStrings(card.card).includes(formatDateAndTime(frame.date)) || null,
       'the status bar showing the date of the frame',
+    );
+  });
+
+  it('should show a newer frame preserved while an older one is shown', async () => {
+    // Stands in for a newer frame that finishes encoding after the card already
+    // shows an older one.
+    const date = new Date();
+    const olderURL = createPreservedFrameURL();
+    sharedPreservedFrameStore.set(
+      { cameraID: 'newer-frame' },
+      { url: olderURL, date: new Date(date.getTime() - 30 * 1000) },
+    );
+
+    const card = await mount({
+      id: 'newer-frame',
+      live_provider: 'image',
+      image: {
+        mode: 'url',
+        url: IMAGE_URL,
+        refresh_seconds: 0,
+        preserve_frame_seconds: 600,
+      },
+    });
+    await card.waitForRender(
+      () => getImageSource(card) === olderURL || null,
+      'the image showing the older frame',
+    );
+
+    const newerURL = createPreservedFrameURL('blue');
+    sharedPreservedFrameStore.set({ cameraID: 'newer-frame' }, { url: newerURL, date });
+
+    await card.waitForRender(
+      () => getImageSource(card) === newerURL || null,
+      'the image showing the newer frame',
     );
   });
 

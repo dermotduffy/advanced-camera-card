@@ -1,6 +1,6 @@
 import { LRUCache } from '../cache/lru';
 import type { AdvancedCameraCardConfig } from '../config/schema/types';
-import type { DataURL } from '../types';
+import type { DataURL, UnsubscribeCallback } from '../types';
 
 export interface PreservedFrame {
   url: DataURL;
@@ -13,6 +13,8 @@ export interface PreservedFrameKey {
   cameraID: string;
 }
 
+export type PreservedFrameCallback = () => void;
+
 // Arbitrary cap on how many frames to store. The LRU cache may hold up to twice
 // this, so 16 frames at 4K is roughly 16-32MB (each a 1-2 MB `data:` URL).
 const PRESERVED_FRAME_STORE_CAPACITY = 8;
@@ -24,6 +26,7 @@ const PRESERVED_FRAME_STORE_CAPACITY = 8;
  */
 export class PreservedFrameStore {
   private _frames = new LRUCache<string, PreservedFrame>(PRESERVED_FRAME_STORE_CAPACITY);
+  private _callbacks = new Map<string, Set<PreservedFrameCallback>>();
 
   public get(key: PreservedFrameKey, maxAgeSeconds: number): PreservedFrame | null {
     const frame = this._frames.get(this._encodeKey(key));
@@ -36,9 +39,32 @@ export class PreservedFrameStore {
 
   public set(key: PreservedFrameKey, frame: PreservedFrame): void {
     const encodedKey = this._encodeKey(key);
-    if (this._frames.get(encodedKey)?.url !== frame.url) {
-      this._frames.set(encodedKey, frame);
+    const stored = this._frames.get(encodedKey);
+
+    // A frame never replaces a newer one, e.g. when its encoding finishes after
+    // that of a frame captured later.
+    if (stored && stored.date > frame.date) {
+      return;
     }
+
+    if (stored?.url !== frame.url) {
+      this._frames.set(encodedKey, frame);
+      this._callbacks.get(encodedKey)?.forEach((callback) => callback());
+    }
+  }
+
+  /** Call `callback` whenever a new frame is stored for `key`. */
+  public subscribe(
+    key: PreservedFrameKey,
+    callback: PreservedFrameCallback,
+  ): UnsubscribeCallback {
+    const encodedKey = this._encodeKey(key);
+    const callbacks = this._callbacks.get(encodedKey) ?? new Set();
+    callbacks.add(callback);
+    this._callbacks.set(encodedKey, callbacks);
+    return () => {
+      callbacks.delete(callback);
+    };
   }
 
   private _encodeKey(key: PreservedFrameKey): string {

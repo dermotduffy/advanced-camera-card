@@ -173,6 +173,45 @@ describe('PreservedFrameManager', () => {
     });
   });
 
+  describe('should tell subscribers of new frames', () => {
+    it('should call back when a frame is preserved for the camera by any card sharing its frames', async () => {
+      const store = new PreservedFrameStore();
+      const manager = new PreservedFrameManager(createAPI({ cardID: 'card-1' }), store);
+      const callback = vi.fn();
+      manager.subscribe('camera-1', callback);
+
+      await new PreservedFrameManager(createAPI({ cardID: 'card-1' }), store).capture(
+        'camera-1',
+        createPlayer(),
+      );
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call back for a frame of another camera or card', () => {
+      const store = new PreservedFrameStore();
+      const manager = new PreservedFrameManager(createAPI({ cardID: 'card-1' }), store);
+      const callback = vi.fn();
+      manager.subscribe('camera-1', callback);
+
+      store.set({ cardID: 'card-1', cameraID: 'camera-2' }, createPreservedFrame());
+      store.set({ cardID: 'card-2', cameraID: 'camera-1' }, createPreservedFrame());
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should not call back once unsubscribed', async () => {
+      const manager = new PreservedFrameManager(createAPI(), new PreservedFrameStore());
+      const callback = vi.fn();
+      manager.subscribe('camera-1', callback)();
+
+      await manager.capture('camera-1', createPlayer());
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
   describe('should track the frame a camera is showing', () => {
     it('should report no shown frame by default', () => {
       const manager = new PreservedFrameManager(createAPI(), new PreservedFrameStore());

@@ -78,6 +78,35 @@ describe('PreservedFrameStore', () => {
     expect(store.get({ cameraID: 'camera-1' }, 60)).toBe(frame);
   });
 
+  it('should not replace a frame with an older one', () => {
+    const store = new PreservedFrameStore();
+    const frame = createPreservedFrame();
+
+    store.set({ cameraID: 'camera-1' }, frame);
+    store.set(
+      { cameraID: 'camera-1' },
+      createPreservedFrame({
+        url: 'data:image/jpeg;base64,older',
+        date: new Date(date.getTime() - 1000),
+      }),
+    );
+
+    expect(store.get({ cameraID: 'camera-1' }, 60)).toBe(frame);
+  });
+
+  it('should replace a frame with another of the same date', () => {
+    const store = new PreservedFrameStore();
+    const replacement = createPreservedFrame({
+      url: 'data:image/jpeg;base64,replacement',
+      date,
+    });
+
+    store.set({ cameraID: 'camera-1' }, createPreservedFrame({ date }));
+    store.set({ cameraID: 'camera-1' }, replacement);
+
+    expect(store.get({ cameraID: 'camera-1' }, 60)).toBe(replacement);
+  });
+
   describe('should expire a frame', () => {
     it('should return a frame that is younger than the maximum age', () => {
       const store = new PreservedFrameStore();
@@ -135,6 +164,68 @@ describe('PreservedFrameStore', () => {
 
     expect(store.get({ cameraID: 'camera-0' }, 60)).toBeNull();
     expect(store.get({ cameraID: 'camera-19' }, 60)).not.toBeNull();
+  });
+
+  describe('should tell subscribers of stored frames', () => {
+    it('should call back when a frame is stored for the key', () => {
+      const store = new PreservedFrameStore();
+      const callback = vi.fn();
+      store.subscribe({ cardID: 'card-1', cameraID: 'camera-1' }, callback);
+
+      store.set({ cardID: 'card-1', cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call back when a frame is stored for another key', () => {
+      const store = new PreservedFrameStore();
+      const callback = vi.fn();
+      store.subscribe({ cardID: 'card-1', cameraID: 'camera-1' }, callback);
+
+      store.set({ cardID: 'card-1', cameraID: 'camera-2' }, createPreservedFrame());
+      store.set({ cardID: 'card-2', cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should not call back when the same frame is stored again', () => {
+      const store = new PreservedFrameStore();
+      const callback = vi.fn();
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+      store.subscribe({ cameraID: 'camera-1' }, callback);
+
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should not call back when an older frame is ignored', () => {
+      const store = new PreservedFrameStore();
+      const callback = vi.fn();
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+      store.subscribe({ cameraID: 'camera-1' }, callback);
+
+      store.set(
+        { cameraID: 'camera-1' },
+        createPreservedFrame({
+          url: 'data:image/jpeg;base64,older',
+          date: new Date(date.getTime() - 1000),
+        }),
+      );
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should not call back once unsubscribed', () => {
+      const store = new PreservedFrameStore();
+      const callback = vi.fn();
+      const unsubscribe = store.subscribe({ cameraID: 'camera-1' }, callback);
+
+      unsubscribe();
+      store.set({ cameraID: 'camera-1' }, createPreservedFrame());
+
+      expect(callback).not.toHaveBeenCalled();
+    });
   });
 
   it('should share one store across the page', () => {

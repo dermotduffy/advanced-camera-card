@@ -1,6 +1,7 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit';
 
 import type { PreservedFrameManager } from '../card-controller/preserved-frame-manager';
+import { onAbort } from '../utils/abort-signal';
 import type { PreservedFrame } from '../utils/preserved-frame-store';
 import { Timer } from '../utils/timer';
 
@@ -12,8 +13,10 @@ interface PreservedFrameDisplayControllerOptions {
   // the host shows the preserved frame while this matches the frame's URL.
   getShownURL: () => string | null;
 
-  // Called when the preserved frame the host displays becomes too old.
-  onShownFrameExpired: () => void;
+  // Called when the preserved frame the host displays becomes too old, or a
+  // newer frame is preserved for the camera (e.g. one whose encoding finished
+  // after the host was created).
+  onShownFrameOutdated: () => void;
 }
 
 /**
@@ -99,6 +102,10 @@ export class PreservedFrameDisplayController implements ReactiveController {
     this._showingFrame = frame;
     this._showingAbort = new AbortController();
     manager.setShowing(cameraID, frame, this._showingAbort.signal);
+    onAbort(
+      this._showingAbort.signal,
+      manager.subscribe(cameraID, () => this._options.onShownFrameOutdated()),
+    );
   }
 
   // The timer restarts on every call, as the maximum age may have changed.
@@ -111,7 +118,7 @@ export class PreservedFrameDisplayController implements ReactiveController {
     }
 
     this._expiryTimer.start(manager.getSecondsUntilExpired(cameraID, frame), () =>
-      this._options.onShownFrameExpired(),
+      this._options.onShownFrameOutdated(),
     );
   }
 }
