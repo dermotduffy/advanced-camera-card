@@ -5,12 +5,12 @@ import {
   BrowseMediaEventViewMedia,
   BrowseMediaViewFolder,
 } from '../../../src/ha/browse-media/item';
-import { formatDateAndTime } from '../../../src/utils/basic';
 import { ViewMediaType } from '../../../src/view/item';
 import {
   createBrowseMedia,
   createFolder,
   createRichBrowseMedia,
+  stubDateTimeLocale,
 } from '../../test-utils';
 
 describe('BrowseMediaEventViewMedia', () => {
@@ -115,19 +115,19 @@ describe('BrowseMediaEventViewMedia', () => {
 
   describe('should get title', () => {
     it('should get title from metadata start time', () => {
-      const startDate = new Date('2025-05-05T07:46:00Z');
+      stubDateTimeLocale({ language: 'es', time_format: '24' });
       const browseMedia = createRichBrowseMedia({
         _metadata: {
-          startDate: startDate,
-          endDate: new Date('2025-05-05T07:48:00Z'),
+          // In the browser's time zone.
+          startDate: new Date('2025-05-05T07:46:00'),
+          endDate: new Date('2025-05-05T07:48:00'),
           cameraID: 'camera.office',
         },
       });
 
       const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
 
-      // The title is formatted using local time via formatDateAndTime
-      expect(viewMedia.getTitle()).toEqual(formatDateAndTime(startDate));
+      expect(viewMedia.getTitle()).toBe('5 may 2025, 07:46');
     });
 
     it('should get title without metadata', () => {

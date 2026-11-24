@@ -4,7 +4,7 @@ import { ThumbnailDetailsPanelController } from '../../../../src/components-lib/
 import type { ThumbnailTier } from '../../../../src/components-lib/thumbnail/tier';
 import { ViewFolder, type ViewItem } from '../../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../../camera-manager/test-utils';
-import { createFolder } from '../../../test-utils';
+import { createFolder, stubDateTimeLocale } from '../../../test-utils';
 import { TestViewMedia } from '../../../view/test-utils';
 
 // An event with every value the panel can show.
@@ -35,12 +35,25 @@ const createController = (
 };
 
 describe('ThumbnailDetailsPanelController', () => {
+  // Dates in the browser's time zone, shown as in American English (whose
+  // month names do not vary between browsers) with 24-hour times. Two days
+  // after the event, so its date is shown.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-10T22:45:00'));
+    stubDateTimeLocale({ language: 'en-US', time_format: '24' });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should join the values onto a line each', () => {
     const controller = createController('poster');
 
     expect(controller.getLabel()).toBe('Person');
     expect(controller.getDetails()).toEqual([
-      '2026-09-08 · 41s',
+      'Sep 8 · 41s',
       'Office · Driveway',
       'Delivery',
     ]);
@@ -50,27 +63,33 @@ describe('ThumbnailDetailsPanelController', () => {
   it('should show the start time beside the heading rather than among the details', () => {
     const controller = createController('poster');
 
-    expect(controller.getTime()).toEqual({ hoursMinutes: '16:55', seconds: ':47' });
+    expect(
+      controller
+        .getTimeParts()
+        ?.map((part) => part.value)
+        .join(''),
+    ).toBe('16:55:47');
+    expect(controller.getTimeParts()).toContainEqual({ type: 'second', value: '47' });
     expect(controller.getDetails().join()).not.toContain('16:55');
   });
 
   it('should show no time for media that does not say when it starts', () => {
     const controller = createController('poster', new TestViewMedia());
 
-    expect(controller.getTime()).toBeNull();
+    expect(controller.getTimeParts()).toBeNull();
   });
 
   it('should show no time for a folder, which has no start at all', () => {
     const controller = createController('poster', new ViewFolder(createFolder(), []));
 
-    expect(controller.getTime()).toBeNull();
+    expect(controller.getTimeParts()).toBeNull();
   });
 
   it('should pack more onto each line where the panel has fewer of them', () => {
     const controller = createController('compact');
 
     expect(controller.getDetails()).toEqual([
-      '2026-09-08 · 41s · Office',
+      'Sep 8 · 41s · Office',
       'Driveway · Delivery',
     ]);
     expect(controller.getHiddenDetailCount()).toBe(0);
@@ -105,19 +124,10 @@ describe('ThumbnailDetailsPanelController', () => {
     );
 
     expect(controller.getLabel()).toBe('Office');
-    expect(controller.getDetails()).toEqual(['2026-09-08 · 41s']);
+    expect(controller.getDetails()).toEqual(['Sep 8 · 41s']);
   });
 
   describe('should name the day the media starts', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date('2026-09-10T22:45:00'));
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
     const createEventOn = (day: string): TestViewMedia =>
       new TestViewMedia({
         cameraID: 'camera_1',
@@ -129,12 +139,33 @@ describe('ThumbnailDetailsPanelController', () => {
     it.each([
       ['2026-09-10', 'Today · 41s'],
       ['2026-09-09', 'Yesterday · 41s'],
-      ['2026-09-08', '2026-09-08 · 41s'],
+      ['2026-09-08', 'Sep 8 · 41s'],
+      ['2025-09-08', 'Sep 8, 2025 · 41s'],
     ])('should name %s as %s', (day, expected) => {
       const controller = createController('poster', createEventOn(day));
 
       expect(controller.getDetails()[0]).toBe(expected);
     });
+  });
+
+  it('should show 12-hour times with AM/PM', () => {
+    stubDateTimeLocale({ language: 'en-US', time_format: '12' });
+
+    const controller = new ThumbnailDetailsPanelController();
+    controller.calculate({
+      item: createEvent(),
+      seek: new Date('2026-09-08T16:55:52'),
+      tier: 'poster',
+    });
+
+    expect(
+      controller
+        .getTimeParts()
+        ?.map((part) => part.value)
+        .join(''),
+    ).toMatch(/^4:55:47\sPM$/);
+    expect(controller.getTimeParts()).toContainEqual({ type: 'dayPeriod', value: 'PM' });
+    expect(controller.getSeekTime()).toMatch(/^4:55:52\sPM$/);
   });
 
   it('should keep the seek time separate from the other details', () => {
@@ -170,7 +201,7 @@ describe('ThumbnailDetailsPanelController', () => {
       tier: 'standard',
     });
 
-    expect(controller.getDetails()).toEqual(['2026-09-08 · 41s']);
+    expect(controller.getDetails()).toEqual(['Sep 8 · 41s']);
     expect(controller.getHiddenDetailCount()).toBe(3);
   });
 
@@ -216,7 +247,7 @@ describe('ThumbnailDetailsPanelController', () => {
     });
 
     // Standard budget is 4: heading + pill + one detail line + chip.
-    expect(controller.getDetails()).toEqual(['2026-09-08 · 41s']);
+    expect(controller.getDetails()).toEqual(['Sep 8 · 41s']);
     expect(controller.getHiddenDetailCount()).toBe(3);
   });
 
@@ -237,7 +268,7 @@ describe('ThumbnailDetailsPanelController', () => {
     });
 
     expect(controller.getLabel()).toBeNull();
-    expect(controller.getDetails()).toEqual(['2026-09-08 · 41s', 'Driveway · Delivery']);
+    expect(controller.getDetails()).toEqual(['Sep 8 · 41s', 'Driveway · Delivery']);
   });
 
   it('should show nothing for media that says nothing about itself', () => {

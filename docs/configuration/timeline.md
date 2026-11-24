@@ -18,10 +18,11 @@ You can interact with the timeline in a number of ways:
 | ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clustering_threshold` | `3`     | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
 | `controls`             |         | Configuration for the timeline controls. See [`controls`](#controls).                                                                                                                                                                                                                                                                                                                                                           |
-| `format`               |         | Configuration for the timeline time & date format. See [`format`](#format).                                                                                                                                                                                                                                                                                                                                                     |
 | `show_recordings`      | `true`  | Whether to show recordings on the timeline (specifically: which hours have any recorded content).                                                                                                                                                                                                                                                                                                                               |
 | `style`                | `stack` | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold`.                                                                                                                                                                                                                                                                                   |
 | `window_seconds`       | `3600`  | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline.                                                                                                                                                                                                                                                                                                                    |
+
+[](common/timeline-format-info.md ':include')
 
 ## `controls`
 
@@ -36,20 +37,6 @@ timeline:
 | Option       | Default | Description                                                                                  |
 | ------------ | ------- | -------------------------------------------------------------------------------------------- |
 | `thumbnails` |         | Configures how thumbnails are shown on the `timeline` view. See [`thumbnails`](#thumbnails). |
-
-## `format`
-
-Configure the date and time format for the `timeline` view.
-
-```yaml
-timeline:
-  format:
-    # [...]
-```
-
-| Option | Default | Description                                                                     |
-| ------ | ------- | ------------------------------------------------------------------------------- |
-| `24h`  | `true`  | If `true` shows time in 24-hour clock. If `false` otherwise uses 12-hour clock. |
 
 ### `thumbnails`
 
@@ -92,8 +79,6 @@ timeline:
   clustering_threshold: 3
   show_recordings: true
   window_seconds: 3600
-  format:
-    24h: true
   controls:
     thumbnails:
       mode: right

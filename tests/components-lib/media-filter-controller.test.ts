@@ -34,7 +34,7 @@ import type { Severity } from '../../src/severity';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import { createCameraManager, createStore } from '../camera-manager/test-utils';
 import { createCameraConfig, createPerformanceConfig } from '../config/test-utils';
-import { createLitElement } from '../test-utils';
+import { createLitElement, stubDateTimeLocale } from '../test-utils';
 import { createView } from '../view/test-utils';
 
 const createCameraStore = (options?: { capabilities: Capabilities }) => {
@@ -515,6 +515,8 @@ describe('MediaFilterController', () => {
       });
 
       it('with metadata for days', async () => {
+        stubDateTimeLocale({ language: 'es' });
+
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getMediaMetadata).mockResolvedValue({
           days: new Set(['2024-02-04', '2024-02-05']),
@@ -528,7 +530,7 @@ describe('MediaFilterController', () => {
           expect.arrayContaining([
             expect.objectContaining({
               value: '2024-02-01,2024-02-29',
-              label: 'February 2024',
+              label: 'febrero de 2024',
             }),
           ]),
         );

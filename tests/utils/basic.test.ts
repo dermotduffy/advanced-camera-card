@@ -12,13 +12,9 @@ import {
   desparsifyArrays,
   errorToConsole,
   forceReflow,
-  formatDate,
-  formatDateAndTime,
   generateFloatApproximatelyEqualsCustomizer,
   getChildrenFromElement,
   getDistance,
-  getDurationString,
-  getEarliestDate,
   getErrorDescription,
   getUnanimousValue,
   ignoreFunctionIdentity,
@@ -27,8 +23,6 @@ import {
   isPointInBox,
   isSuperset,
   isTruthy,
-  isValidDate,
-  isValidDay,
   prettifyTitle,
   recursivelyMergeObjectsConcatenatingArraysUniquely,
   recursivelyMergeObjectsNotArrays,
@@ -221,24 +215,6 @@ describe('isHoverableDevice', () => {
   });
 });
 
-describe('formatDateAndTime', () => {
-  it('should format date and time', () => {
-    const date = new Date(2023, 3, 14, 13, 35, 0);
-    expect(formatDateAndTime(date)).toBe('2023-04-14 13:35');
-  });
-  it('should format date and time with seconds', () => {
-    const date = new Date(2023, 3, 14, 13, 35, 1);
-    expect(formatDateAndTime(date, true)).toBe('2023-04-14 13:35:01');
-  });
-});
-
-describe('formatDate', () => {
-  it('should format date', () => {
-    const date = new Date(2023, 3, 14, 13, 35, 0);
-    expect(formatDate(date)).toBe('2023-04-14');
-  });
-});
-
 // @vitest-environment jsdom
 describe('runWhenIdleIfSupported', () => {
   const originalRequestIdleCallback = window.requestIdleCallback;
@@ -271,23 +247,6 @@ describe('runWhenIdleIfSupported', () => {
   });
 });
 
-describe('getDurationString', () => {
-  it('should return duration', () => {
-    const start = new Date(2023, 3, 14, 13, 35, 0);
-    const end = new Date(2023, 3, 14, 15, 37, 20);
-    expect(getDurationString(start, end)).toBe('2h 2m 20s');
-  });
-  it('should return very short duration', () => {
-    const start = new Date(2023, 3, 14, 13, 35, 10);
-    const end = new Date(2023, 3, 14, 13, 35, 12);
-    expect(getDurationString(start, end)).toBe('2s');
-  });
-  it('should return 0s for no delta', () => {
-    const start = new Date(2023, 3, 14, 13, 35, 10);
-    expect(getDurationString(start, start)).toBe('0s');
-  });
-});
-
 describe('allPromises', () => {
   it('should await all promises', async () => {
     const results = await allPromises([1, 2, 3], async (n) => n * 2);
@@ -301,50 +260,6 @@ describe('isSuperset', () => {
   });
   it('should return is not a superset', () => {
     expect(isSuperset(new Set([1, 2, 3, 4]), new Set([2, 3, 5]))).toBeFalsy();
-  });
-});
-
-describe('isValidDate', () => {
-  it('should be valid date', () => {
-    expect(isValidDate(new Date(2023, 3, 28))).toBeTruthy();
-  });
-  it('should be invalid date', () => {
-    expect(isValidDate(new Date('moo'))).toBeFalsy();
-  });
-});
-
-describe('getEarliestDate', () => {
-  it('should return the earliest date', () => {
-    const earliest = new Date('2026-06-05T22:56:56Z');
-    expect(
-      getEarliestDate(
-        new Date('2026-06-05T22:57:00Z'),
-        earliest,
-        new Date('2026-06-06'),
-      ),
-    ).toBe(earliest);
-  });
-  it('should skip absent dates', () => {
-    const date = new Date('2026-06-05T22:56:56Z');
-    expect(getEarliestDate(null, date, undefined)).toBe(date);
-  });
-  it('should return null without dates', () => {
-    expect(getEarliestDate()).toBeNull();
-    expect(getEarliestDate(null, undefined)).toBeNull();
-  });
-});
-
-describe('isValidDay', () => {
-  it('should accept a day that exists', () => {
-    expect(isValidDay('2023-05-06')).toBeTruthy();
-  });
-
-  it('should reject a day past the end of its month', () => {
-    expect(isValidDay('2023-02-31')).toBeFalsy();
-  });
-
-  it('should reject a month that does not exist', () => {
-    expect(isValidDay('2023-13-01')).toBeFalsy();
   });
 });
 

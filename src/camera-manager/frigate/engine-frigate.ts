@@ -14,7 +14,7 @@ import {
   endOfHourInTimeZone,
   hourInTimeZoneToDate,
   startOfHourInTimeZone,
-} from '../../utils/timezone';
+} from '../../utils/date/timezone';
 import { ViewMediaType, type ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../view/types';

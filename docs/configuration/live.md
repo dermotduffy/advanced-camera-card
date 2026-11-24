@@ -212,30 +212,15 @@ live:
 | Option                 | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clustering_threshold` | `3`      | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
-| `format`               |          | Configuration for the timeline time & date format. See [`format`](#format).                                                                                                                                                                                                                                                                                                                                                     |
 | `mode`                 | `none`   | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).                                                                                                                                                                                                                                                                 |
 | `pan_mode`             | `pan`    | See [timeline pan mode](timeline-pan-mode.md).                                                                                                                                                                                                                                                                                                                                                                                  |
 | `show_recordings`      | `true`   | Whether to show recordings on the timeline (specifically: which hours have any recorded content).                                                                                                                                                                                                                                                                                                                               |
 | `style`                | `ribbon` | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold`.                                                                                                                                                                                                                                                                                   |
 | `window_seconds`       | `3600`   | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline.                                                                                                                                                                                                                                                                                                                    |
 
+[](common/timeline-format-info.md ':include')
+
 [](common/timeline-seek-info.md ':include')
-
-#### `format`
-
-Configure the date and time format for the `timeline` view.
-
-```yaml
-live:
-  controls:
-    timeline:
-      format:
-        # [...]
-```
-
-| Option | Default | Description                                                                     |
-| ------ | ------- | ------------------------------------------------------------------------------- |
-| `24h`  | `true`  | If `true` shows time in 24-hour clock. If `false` otherwise uses 12-hour clock. |
 
 ## `display`
 
@@ -371,8 +356,6 @@ live:
       clustering_threshold: 3
       show_recordings: true
       window_seconds: 3600
-      format:
-        24h: true
   microphone:
     always_connected: false
     audio_processing:

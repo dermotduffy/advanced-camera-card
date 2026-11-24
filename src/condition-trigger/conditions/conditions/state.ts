@@ -1,10 +1,7 @@
 import { haEqual } from '../../../ha/event-match';
-import {
-  arrayify,
-  arrayifyWithFalsy,
-  getEarliestDate,
-  isValidDate,
-} from '../../../utils/basic';
+import { arrayify, arrayifyWithFalsy } from '../../../utils/basic';
+import { getEarliestDate } from '../../../utils/date/compare';
+import { isValidDate } from '../../../utils/date/validity';
 import { renderTimePeriodToSeconds } from '../../common/time-period';
 import type { ConditionState } from '../types';
 import type {

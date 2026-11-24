@@ -10,9 +10,9 @@ export interface DayHour {
 
 /**
  * Create a function that resolves dates to the calendar day and hour they fall
- * on in a given timezone. Constructing the underlying formatter costs 13x what
- * *using* one does, so callers that resolve many dates should create one
- * resolver and reuse it.
+ * on in a given timezone. The returned function holds its own formatter, which
+ * costs 13x as much to build as to use. A caller that resolves many dates
+ * should call this once and keep calling the returned function.
  */
 export const createDayHourResolver = (timeZone: string): ((date: Date) => DayHour) => {
   const formatter = new Intl.DateTimeFormat('en-US', {
