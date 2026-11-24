@@ -464,6 +464,13 @@ describe('AdvancedCameraCardZoomer after a remount', () => {
     await waitForZoomReport(card, before, isZoom(1), 'zoom 1 after the reload');
     await new Promise((resolve) => setTimeout(resolve, 200));
     expect(getZoomReports(card, before).some(isZoomed)).toBe(false);
+
+    // Nor does a new card with the same camera start zoomed.
+    card.destroy();
+    const rebuilt = await mount();
+    await waitForZoomReport(rebuilt, 0, isZoom(1), 'zoom 1 in a new card');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(getZoomReports(rebuilt, 0).some(isZoomed)).toBe(false);
   });
 
   it('should keep the zoom and pan when the card is shown again', async () => {

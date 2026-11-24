@@ -91,9 +91,10 @@ export class AdvancedCameraCardZoomer extends LitElement {
     if (!this._zoomController.isActivated()) {
       // A request still pending at a remount (also an empty one, e.g. the
       // double tap just before a stream reload) wins over where the target was.
-      if (!this.settings) {
-        this._zoomController.setStartSettings(this.getObservedSettings?.() ?? null);
-      }
+      this._zoomController.setStartSettings(
+        this.getObservedSettings?.() ?? null,
+        !!this.settings,
+      );
       this._zoomController.activate();
     }
   }

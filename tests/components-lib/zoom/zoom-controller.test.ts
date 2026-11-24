@@ -1884,10 +1884,17 @@ describe('ZoomController', () => {
       return { element, controller };
     };
 
-    const change = (element: HTMLElement, scale: number): void => {
+    // A zoom report, by a gesture or not.
+    const change = (element: HTMLElement, scale: number, gesture = false): void => {
       element.dispatchEvent(
         new CustomEvent('panzoomchange', {
-          detail: { x: 0, y: 0, scale, isSVG: false },
+          detail: {
+            x: 0,
+            y: 0,
+            scale,
+            isSVG: false,
+            ...(gesture && { originalEvent: new Event('pointermove') }),
+          },
         }),
       );
     };
@@ -1960,18 +1967,79 @@ describe('ZoomController', () => {
       expect(store.get(KEY)).toBeNull();
     });
 
-    it('and forget it on a return to the default after starting from it', () => {
+    it.each([
+      ['a gesture', false],
+      ['a request', true],
+    ])(
+      'and forget it on a return to the default by %s after starting from it',
+      (_name: string, request: boolean) => {
+        const store = new ZoomStore();
+        store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+        const { element, controller } = create(store, (c) => {
+          c.setStoreKey(KEY);
+          c.setStartSettings(null);
+        });
+
+        if (request) {
+          controller.setSettings({});
+        }
+        change(element, 1, !request);
+
+        expect(store.get(KEY)).toBeNull();
+      },
+    );
+
+    it('and forget it on a return to the default pending at the start', () => {
       const store = new ZoomStore();
       store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
       const { element } = create(store, (c) => {
         c.setStoreKey(KEY);
-        c.setStartSettings(null);
+        c.setSettings({});
+        c.setStartSettings(null, true);
       });
 
+      expect(Panzoom).toHaveBeenLastCalledWith(
+        element,
+        expect.not.objectContaining({ startScale: expect.anything() }),
+      );
       change(element, 1);
 
       expect(store.get(KEY)).toBeNull();
     });
+
+    it.each([
+      ['the first resize', false],
+      ['a gesture', true],
+    ])(
+      'but keep it through the zoom reported before the start applies, until %s',
+      (_name: string, gesture: boolean) => {
+        const store = new ZoomStore();
+        store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+
+        // Activated without a size (e.g. while hidden), so Panzoom starts at
+        // its own scale 1, and reports it.
+        const element = createAttachedElement();
+        const panzoom = createMockPanZoom();
+        vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+        const controller = new ZoomController(element, { store });
+        controller.setStoreKey(KEY);
+        controller.setStartSettings(null);
+        controller.activate();
+        change(element, 1);
+        expect(store.get(KEY)?.zoom).toBe(3);
+
+        if (gesture) {
+          change(element, 1, true);
+          expect(store.get(KEY)).toBeNull();
+        } else {
+          setElementToDefaultCardSize(element);
+          triggerResizeObserver();
+          expect(panzoom.zoom).toHaveBeenCalledWith(3, { animate: false });
+          change(element, 2);
+          expect(store.get(KEY)?.zoom).toBe(2);
+        }
+      },
+    );
 
     it('but not on the default of another card loading the same camera', () => {
       const store = new ZoomStore();

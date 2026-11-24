@@ -99,6 +99,11 @@ export class ZoomController {
   // dropped by any request or a new default.
   private _startSettings: ZoomSettingsBase | null = null;
 
+  // Whether that start still waits for a size to be applied at: what is
+  // reported meanwhile (e.g. Panzoom's own scale 1 while hidden) is not where
+  // the user left the target, so it does not replace the stored zoom.
+  private _startPending = false;
+
   // The page-wide store of each camera's last zoom (see `setStoreKey`), and
   // whether this instance put a zoom there or started from one (only then does
   // a return to the default forget it, so that another card loading the same
@@ -259,6 +264,9 @@ export class ZoomController {
       ...(config && converted && { startY: converted.y }),
       ...(config && converted && { startScale }),
     });
+    if (converted) {
+      this._startPending = false;
+    }
 
     const registerListeners = (
       events: string[],
@@ -315,6 +323,7 @@ export class ZoomController {
   public setDefaultSettings(config: PartialZoomSettings | null): void {
     this._defaultSettings = config;
     this._startSettings = null;
+    this._startPending = false;
     this._clearUserAdjustment();
     this._debouncedUpdater();
   }
@@ -325,6 +334,7 @@ export class ZoomController {
     // Any request supersedes the start: also an empty one, which returns to
     // the default (a double tap, the `ptz_home` button or the `h` key).
     this._startSettings = null;
+    this._startPending = false;
     this._clearUserAdjustment();
     this._debouncedUpdater();
   }
@@ -345,9 +355,15 @@ export class ZoomController {
 
   /**
    * Start from the zoom the target was last seen at in this card, unless that
-   * was its default; without one, from the store. Set before activation.
+   * was its default; without one, from the store. Set before activation. A
+   * request pending at activation wins over it, but this instance still takes
+   * the stored zoom over, so that the request's return to the default forgets
+   * it.
    */
-  public setStartSettings(observed: ZoomSettingsObserved | null): void {
+  public setStartSettings(
+    observed: ZoomSettingsObserved | null,
+    requestPending = false,
+  ): void {
     const start = observed
       ? observed.isDefault
         ? null
@@ -355,7 +371,9 @@ export class ZoomController {
       : this._storeKey
         ? this._store.get(this._storeKey)
         : null;
-    this._startSettings = start ? { zoom: start.zoom, pan: { ...start.pan } } : null;
+    this._startSettings =
+      start && !requestPending ? { zoom: start.zoom, pan: { ...start.pan } } : null;
+    this._startPending = !!this._startSettings;
 
     // Starting from it, this instance shows the stored zoom: a return to the
     // default here forgets it, even before this instance reports a zoom (the
@@ -396,6 +414,7 @@ export class ZoomController {
     // Panzoom sets originalEvent only for a change that a gesture drove.
     if (pz.originalEvent) {
       this._userAdjusted = true;
+      this._startPending = false;
 
       // A gesture cannot move the picture along an axis without room, so the
       // user's earlier pan on that axis is kept.
@@ -419,7 +438,7 @@ export class ZoomController {
       unzoomed: unzoomed,
     };
 
-    if (this._storeKey && (!observed.isDefault || this._stored)) {
+    if (this._storeKey && !this._startPending && (!observed.isDefault || this._stored)) {
       this._store.set(this._storeKey, observed.isDefault ? null : observed);
       this._stored = !observed.isDefault;
     }
@@ -495,6 +514,7 @@ export class ZoomController {
     if (!this._hasSize()) {
       return;
     }
+    this._startPending = false;
 
     const config = this._getConfigToUse();
     const desiredScale = config?.zoom ?? ZOOM_DEFAULT_SCALE;
