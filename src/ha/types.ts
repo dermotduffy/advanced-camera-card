@@ -349,7 +349,14 @@ interface CardHAFormSchemaExtensions {
 
 export interface HAFormSelectorSchema
   extends StockHAFormSelectorSchema,
-    CardHAFormSchemaExtensions {}
+    CardHAFormSchemaExtensions {
+  // Convert a configured value into the value the field shows, e.g. an aspect
+  // ratio stored as `[16, 9]` is shown in a text field as `16:9`. Pass a
+  // function defined once, not one created each time the schema is built: the
+  // editor redraws a form whenever its rebuilt schema differs from the last
+  // one, and two separately created functions always count as different.
+  formatDisplayed?: (value: unknown) => unknown;
+}
 
 export interface HAFormExpandableSchema
   extends Omit<StockHAFormExpandableSchema, 'name'>,

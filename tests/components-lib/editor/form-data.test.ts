@@ -220,6 +220,54 @@ describe('computeDisplayedData', () => {
     expect(data.modes).toEqual(['a']);
     expect(data.modes).not.toBe(defaults.modes);
   });
+
+  describe('with a field that formats its value', () => {
+    const FORMATTED_FORM = createForm([
+      { name: 'size', selector: { text: {} }, formatDisplayed: (value) => `${value}px` },
+    ]);
+
+    it('should format a configured value', () => {
+      expect(
+        computeDisplayedData(FORMATTED_FORM, createConfig({ size: 100 }), {}),
+      ).toEqual({ size: '100px' });
+    });
+
+    it('should format a default value', () => {
+      expect(
+        computeDisplayedData(
+          FORMATTED_FORM,
+          createConfig({}),
+          createConfig({ size: 200 }),
+        ),
+      ).toEqual({ size: '200px' });
+    });
+
+    it('should show nothing for a field with no value or default', () => {
+      expect(computeDisplayedData(FORMATTED_FORM, createConfig({}), {})).toEqual({});
+    });
+
+    it('should never report an untouched formatted value', () => {
+      const displayed = computeDisplayedData(
+        FORMATTED_FORM,
+        createConfig({ size: 100 }),
+        {},
+      );
+      expect(
+        computeConfigChanges(FORMATTED_FORM, displayed, { ...displayed }, {}),
+      ).toEqual([]);
+    });
+
+    it('should report an edited formatted value as entered', () => {
+      const displayed = computeDisplayedData(
+        FORMATTED_FORM,
+        createConfig({ size: 100 }),
+        {},
+      );
+      expect(
+        computeConfigChanges(FORMATTED_FORM, displayed, { size: '150' }, {}),
+      ).toEqual([{ path: ['live', 'size'], type: 'set', value: '150' }]);
+    });
+  });
 });
 
 describe('computeConfigChanges', () => {
@@ -454,6 +502,24 @@ describe('field bindings', () => {
   it('should display the default of the bound path', () => {
     expect(computeDisplayedData(BOUND_FORM, {}, { menu: { style: 'hidden' } })).toEqual({
       menu_style: 'hidden',
+    });
+  });
+
+  it('should format the value from the bound path', () => {
+    const form: EditorForm = {
+      ...BOUND_FORM,
+      schema: [
+        {
+          name: 'menu_style',
+          selector: { text: {} },
+          formatDisplayed: (value) => String(value).toUpperCase(),
+        },
+      ],
+    };
+
+    expect(computeDisplayedData(form, { menu: { style: 'outside' } }, {})).toEqual({
+      menu: { style: 'outside' },
+      menu_style: 'OUTSIDE',
     });
   });
 

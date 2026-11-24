@@ -121,6 +121,7 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
+            aspect_ratio: [1, 1],
             style: 'auto',
             mode: 'right',
             show_download_control: false,
@@ -165,6 +166,7 @@ describe('config defaults', () => {
             mode: 'right',
           },
           thumbnails: {
+            aspect_ratio: [1, 1],
             style: 'auto',
             show_download_control: false,
             show_favorite_control: true,
@@ -198,6 +200,7 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
+            aspect_ratio: [1, 1],
             style: 'auto',
             mode: 'right',
             show_download_control: false,
@@ -490,6 +493,7 @@ describe('config defaults', () => {
         clustering_threshold: 3,
         controls: {
           thumbnails: {
+            aspect_ratio: [1, 1],
             style: 'auto',
             mode: 'right',
             show_download_control: false,

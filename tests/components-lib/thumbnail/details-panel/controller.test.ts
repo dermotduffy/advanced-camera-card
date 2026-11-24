@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ThumbnailDetailsPanelController } from '../../../../src/components-lib/thumbnail/details-panel/controller';
+import type { ThumbnailTier } from '../../../../src/components-lib/thumbnail/tier';
 import { ViewFolder, type ViewItem } from '../../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../../camera-manager/test-utils';
 import { createFolder, stubDateTimeLocale } from '../../../test-utils';
@@ -18,7 +19,7 @@ const createEvent = (): TestViewMedia =>
   });
 
 const createController = (
-  size: number,
+  tier?: ThumbnailTier,
   item: ViewItem = createEvent(),
 ): ThumbnailDetailsPanelController => {
   const controller = new ThumbnailDetailsPanelController();
@@ -28,7 +29,7 @@ const createController = (
       icon: { icon: 'mdi:cctv' },
     }),
     item,
-    size,
+    tier,
   });
   return controller;
 };
@@ -48,9 +49,8 @@ describe('ThumbnailDetailsPanelController', () => {
   });
 
   it('should join the values onto a line each', () => {
-    const controller = createController(300);
+    const controller = createController('poster');
 
-    expect(controller.getTier()).toBe('poster');
     expect(controller.getLabel()).toBe('Person');
     expect(controller.getDetails()).toEqual([
       'Sep 8 · 41s',
@@ -61,7 +61,7 @@ describe('ThumbnailDetailsPanelController', () => {
   });
 
   it('should show the start time beside the heading rather than among the details', () => {
-    const controller = createController(300);
+    const controller = createController('poster');
 
     expect(
       controller
@@ -74,21 +74,20 @@ describe('ThumbnailDetailsPanelController', () => {
   });
 
   it('should show no time for media that does not say when it starts', () => {
-    const controller = createController(300, new TestViewMedia());
+    const controller = createController('poster', new TestViewMedia());
 
     expect(controller.getTimeParts()).toBeNull();
   });
 
   it('should show no time for a folder, which has no start at all', () => {
-    const controller = createController(300, new ViewFolder(createFolder(), []));
+    const controller = createController('poster', new ViewFolder(createFolder(), []));
 
     expect(controller.getTimeParts()).toBeNull();
   });
 
   it('should pack more onto each line where the panel has fewer of them', () => {
-    const controller = createController(75);
+    const controller = createController('compact');
 
-    expect(controller.getTier()).toBe('compact');
     expect(controller.getDetails()).toEqual([
       'Sep 8 · 41s · Office',
       'Driveway · Delivery',
@@ -96,16 +95,27 @@ describe('ThumbnailDetailsPanelController', () => {
     expect(controller.getHiddenDetailCount()).toBe(0);
   });
 
-  it.each([[100], [175], [300]])('should show every value at size %s', (size) => {
-    const controller = createController(size);
+  it.each([['standard' as const], ['comfortable' as const], ['poster' as const]])(
+    'should show every value in the %s tier',
+    (tier) => {
+      const controller = createController(tier);
 
-    expect(controller.getDetails()).toHaveLength(3);
-    expect(controller.getHiddenDetailCount()).toBe(0);
+      expect(controller.getDetails()).toHaveLength(3);
+      expect(controller.getHiddenDetailCount()).toBe(0);
+    },
+  );
+
+  it('should use the tier it is given', () => {
+    expect(createController('comfortable').getTier()).toBe('comfortable');
+  });
+
+  it('should use the standard tier by default', () => {
+    expect(createController().getTier()).toBe('standard');
   });
 
   it('should not repeat a camera title the heading already carries', () => {
     const controller = createController(
-      300,
+      'poster',
       new TestViewMedia({
         cameraID: 'camera_1',
         startTime: new Date('2026-09-08T16:55:47'),
@@ -132,7 +142,7 @@ describe('ThumbnailDetailsPanelController', () => {
       ['2026-09-08', 'Sep 8 · 41s'],
       ['2025-09-08', 'Sep 8, 2025 · 41s'],
     ])('should name %s as %s', (day, expected) => {
-      const controller = createController(300, createEventOn(day));
+      const controller = createController('poster', createEventOn(day));
 
       expect(controller.getDetails()[0]).toBe(expected);
     });
@@ -145,7 +155,7 @@ describe('ThumbnailDetailsPanelController', () => {
     controller.calculate({
       item: createEvent(),
       seek: new Date('2026-09-08T16:55:52'),
-      size: 300,
+      tier: 'poster',
     });
 
     expect(
@@ -168,7 +178,7 @@ describe('ThumbnailDetailsPanelController', () => {
       }),
       item: createEvent(),
       seek: new Date('2026-09-08T16:55:52'),
-      size: 175,
+      tier: 'comfortable',
     });
 
     expect(controller.getDetails()).toHaveLength(3);
@@ -188,7 +198,7 @@ describe('ThumbnailDetailsPanelController', () => {
       }),
       item: createEvent(),
       seek: new Date('2026-09-08T16:55:52'),
-      size: 100,
+      tier: 'standard',
     });
 
     expect(controller.getDetails()).toEqual(['Sep 8 · 41s']);
@@ -196,12 +206,12 @@ describe('ThumbnailDetailsPanelController', () => {
   });
 
   it('should show no seek time where the reader is not seeking', () => {
-    expect(createController(175).getSeekTime()).toBeNull();
+    expect(createController('comfortable').getSeekTime()).toBeNull();
   });
 
   it('should report an in-progress recording', () => {
     const controller = createController(
-      300,
+      'poster',
       new TestViewMedia({
         cameraID: 'camera_1',
         startTime: new Date('2026-09-08T16:55:47'),
@@ -213,7 +223,7 @@ describe('ThumbnailDetailsPanelController', () => {
   });
 
   it('should not report a finished recording as in progress', () => {
-    expect(createController(300).isInProgress()).toBe(false);
+    expect(createController('poster').isInProgress()).toBe(false);
   });
 
   it('should give the in-progress pill a line of the budget', () => {
@@ -233,7 +243,7 @@ describe('ThumbnailDetailsPanelController', () => {
         tags: ['delivery'],
         inProgress: true,
       }),
-      size: 100,
+      tier: 'standard',
     });
 
     // Standard budget is 4: heading + pill + one detail line + chip.
@@ -254,7 +264,7 @@ describe('ThumbnailDetailsPanelController', () => {
         where: ['driveway'],
         tags: ['delivery'],
       }),
-      size: 75,
+      tier: 'compact',
     });
 
     expect(controller.getLabel()).toBeNull();
@@ -266,7 +276,7 @@ describe('ThumbnailDetailsPanelController', () => {
 
     controller.calculate({
       item: new TestViewMedia(),
-      size: 100,
+      tier: 'standard',
     });
 
     expect(controller.getLabel()).toBeNull();

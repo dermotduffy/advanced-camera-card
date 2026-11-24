@@ -13,6 +13,7 @@ import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import { isMediaReviewed } from '../../components-lib/media/format';
 import { ThumbnailDetailsPanelController } from '../../components-lib/thumbnail/details-panel/controller';
+import type { ThumbnailTier } from '../../components-lib/thumbnail/tier';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import thumbnailDetailsPanelStyle from '../../scss/thumbnail-details-panel.scss?inline';
@@ -47,7 +48,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
   public filterReviewed?: boolean;
 
   @property({ attribute: false })
-  public size?: number;
+  public tier?: ThumbnailTier;
 
   @property({ attribute: false })
   public filterFavorite?: boolean;
@@ -56,7 +57,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
 
   protected willUpdate(changedProperties: PropertyValues): void {
     if (
-      ['item', 'seek', 'cameraManager', 'size'].some((prop) =>
+      ['item', 'seek', 'cameraManager', 'tier'].some((prop) =>
         changedProperties.has(prop),
       )
     ) {
@@ -64,7 +65,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
         cameraManager: this.cameraManager,
         item: this.item,
         seek: this.seek,
-        size: this.size,
+        tier: this.tier,
       });
       this.setAttribute('tier', this._controller.getTier());
 

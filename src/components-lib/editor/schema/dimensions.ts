@@ -1,6 +1,7 @@
 import type { HASelectSelectorOption } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import type { EditorForm } from '../types';
+import { createAspectRatioField } from './common/aspect-ratio';
 import { createGrid } from './common/grid';
 import { createSelectSelector } from './common/selectors';
 
@@ -36,10 +37,7 @@ export const getDimensionsSectionForms = (): EditorForm[] => [
           name: 'aspect_ratio_mode',
           selector: createSelectSelector(getAspectRatioModeOptions()),
         },
-        {
-          name: 'aspect_ratio',
-          selector: { text: {} },
-        },
+        createAspectRatioField(),
       ]),
       {
         name: 'height',

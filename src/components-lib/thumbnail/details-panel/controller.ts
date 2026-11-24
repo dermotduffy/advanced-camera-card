@@ -18,7 +18,7 @@ import {
   getMediaWhere,
   joinValues,
 } from '../../media/format';
-import { getThumbnailTier, type ThumbnailTier } from '../tier';
+import { THUMBNAIL_TIER_DEFAULT, type ThumbnailTier } from '../tier';
 
 // The lines the panel show, always smaller than the actual thumbnail.
 const LINES_BY_TIER: Record<ThumbnailTier, number> = {
@@ -40,11 +40,11 @@ export interface ThumbnailDetailsPanelOptions {
   cameraManager?: CameraManager;
   item?: ViewItem;
   seek?: Date;
-  size?: number;
+  tier?: ThumbnailTier;
 }
 
 export class ThumbnailDetailsPanelController {
-  private _tier: ThumbnailTier = 'standard';
+  private _tier: ThumbnailTier = THUMBNAIL_TIER_DEFAULT;
   private _label: string | null = null;
   private _timeParts: Intl.DateTimeFormatPart[] | null = null;
   private _isInProgress = false;
@@ -53,7 +53,7 @@ export class ThumbnailDetailsPanelController {
   private _hiddenDetailCount = 0;
 
   public calculate(options: ThumbnailDetailsPanelOptions): void {
-    this._tier = getThumbnailTier(options.size);
+    this._tier = options.tier ?? THUMBNAIL_TIER_DEFAULT;
     this._label = getMediaLabel(options.cameraManager, options.item);
     this._isInProgress =
       ViewItemClassifier.isMedia(options.item) && options.item.inProgress() === true;

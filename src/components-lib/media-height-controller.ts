@@ -1,5 +1,7 @@
 import { debounce, isEqual } from 'lodash-es';
 
+import { forceReflow, getLayoutSize } from '../utils/basic';
+
 // Balancing act: Debounce to avoid excessive calls to setHeight, when new media
 // is loading the player may be a much smaller height momentarily.
 export const SET_HEIGHT_DEBOUNCE_SECONDS = 0.3;
@@ -93,17 +95,15 @@ export class MediaHeightController {
     // card is in fullscreen mode.
     this._host.style.maxHeight = '';
 
-    // Calculate the true height.
-    const selectedHeight = this._selectedChild.getBoundingClientRect().height;
+    const selectedHeight = getLayoutSize(this._selectedChild).height;
 
     // Reset the original height so that browser transition animation can be
     // applied from the current to the target.
     this._host.style.maxHeight = originalHeight;
 
-    // Force the browser to reflow.
-    this._selectedChild.getBoundingClientRect();
+    forceReflow(this._selectedChild);
 
-    if (selectedHeight && !isNaN(selectedHeight) && selectedHeight > 0) {
+    if (selectedHeight > 0) {
       this._host.style.maxHeight = `var(${FULLSCREEN_MAX_HEIGHT_PROPERTY}, ${selectedHeight}px)`;
     }
   }
