@@ -11,10 +11,6 @@
 .inner {
   display: block;
 
-  // The box a loading image held over the media fills (see the live
-  // provider's `over-media`).
-  position: relative;
-
   // The container will be sized by the provider resize controller, but don't
   // allow the outer container to shrink or contain the inner (as we need to
   // calculate the true intrinsic size, otherwise on landscape videos the

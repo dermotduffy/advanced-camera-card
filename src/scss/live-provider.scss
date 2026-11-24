@@ -42,19 +42,3 @@ advanced-camera-card-icon {
   color: var(--primary-color);
   cursor: help;
 }
-
-// A loading image that stays over loaded media until the media has painted (see
-// `PreservedFrameHoldController`). It fills the box the media fills (the media
-// dimensions container's inner box), and is lifted over anything the media
-// positions. The host is isolated meanwhile, so that `z-index` stays within
-// this provider and the card's own controls stay on top. Taps pass through to
-// the media (e.g. its controls).
-.over-media {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-:host([holding-preserved-frame]) {
-  isolation: isolate;
-}

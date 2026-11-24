@@ -235,11 +235,6 @@ export class AdvancedCameraCardImageUpdatingPlayer
     return this._mediaPlayerController;
   }
 
-  /** Whether the player shows a preserved frame. */
-  public isShowingPreservedFrame(): boolean {
-    return this._preservedFrameDisplayController.isShowingPreservedFrame();
-  }
-
   /**
    * Determine whether the element should be updated.
    * @param changedProps The changed properties if any.
