@@ -99,9 +99,10 @@ export class ZoomController {
   // dropped by any request or a new default.
   private _startSettings: ZoomSettingsBase | null = null;
 
-  // Whether that start still waits for a size to be applied at: what is
-  // reported meanwhile (e.g. Panzoom's own scale 1 while hidden) is not where
-  // the user left the target, so it does not replace the stored zoom.
+  // Whether that start still waits for a size to be applied at: what Panzoom
+  // reports meanwhile (e.g. its own scale 1 while hidden) is not where the user
+  // left the target, so it reaches neither the store nor the view context (a
+  // remount meanwhile still starts from the start).
   private _startPending = false;
 
   // The page-wide store of each camera's last zoom (see `setStoreKey`), and
@@ -438,7 +439,11 @@ export class ZoomController {
       unzoomed: unzoomed,
     };
 
-    if (this._storeKey && !this._startPending && (!observed.isDefault || this._stored)) {
+    if (this._startPending) {
+      return;
+    }
+
+    if (this._storeKey && (!observed.isDefault || this._stored)) {
       this._store.set(this._storeKey, observed.isDefault ? null : observed);
       this._stored = !observed.isDefault;
     }

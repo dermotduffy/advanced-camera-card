@@ -443,6 +443,30 @@ describe('AdvancedCameraCardZoomer after a remount', () => {
     expect(reloaded).not.toBe(zoomer);
   });
 
+  it('should keep the zoom and pan through reloads while the card is hidden', async () => {
+    const card = await mount();
+    await zoomIn(card);
+
+    // Hidden, a new zoomer has no size to apply the kept zoom at, and its
+    // own scale 1 meanwhile is not where the user left the camera: a second
+    // reload before the card is shown again still starts from the zoom.
+    card.card.style.display = 'none';
+    const viewManager = getViewManager(card);
+    const cameraID = viewManager.getView()?.camera ?? '';
+    viewManager.setViewWithMergedContext({
+      mediaRetry: { [cameraID]: { epoch: 1, retrying: true } },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    viewManager.setViewWithMergedContext({
+      mediaRetry: { [cameraID]: { epoch: 2, retrying: true } },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const before = card.events.getEntries(ZOOM_CHANGE_EVENT).length;
+    card.card.style.display = '';
+    await waitForZoomReport(card, before, isZoomed, 'the zoom once shown again');
+  });
+
   it('should stay at the default when a return to it is pending at a reload', async () => {
     const card = await mount();
     await zoomIn(card);

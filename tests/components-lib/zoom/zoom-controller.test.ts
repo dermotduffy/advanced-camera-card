@@ -2041,6 +2041,66 @@ describe('ZoomController', () => {
       },
     );
 
+    // Activated without a size (e.g. while hidden), starting from the store.
+    const createUnsizedFromStore = (
+      store: ZoomStore,
+    ): { element: HTMLElement; controller: ZoomController } => {
+      store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+      const element = createAttachedElement();
+      vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+      const controller = new ZoomController(element, { store });
+      controller.setStoreKey(KEY);
+      controller.setStartSettings(null);
+      controller.activate();
+      return { element, controller };
+    };
+
+    it('and not report the zoom before the start applies to the card', () => {
+      const { element } = createUnsizedFromStore(new ZoomStore());
+      const changeFunc = vi.fn();
+      element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
+
+      change(element, 1);
+
+      expect(changeFunc).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['a request', (c: ZoomController) => c.setSettings({})],
+      ['a new default', (c: ZoomController) => c.setDefaultSettings(null)],
+    ])(
+      'and forget it on a return to the default by %s before the start applies',
+      (_name: string, act: (controller: ZoomController) => void) => {
+        const store = new ZoomStore();
+        const { element, controller } = createUnsizedFromStore(store);
+
+        act(controller);
+        change(element, 1);
+
+        expect(store.get(KEY)).toBeNull();
+      },
+    );
+
+    it('and keep what is reported once the start applied at activation', () => {
+      const store = new ZoomStore();
+      store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
+
+      // Activated with a size, starting from this card's own zoom: the start
+      // applies at once, so the next report replaces the stored zoom.
+      const { element } = create(store, (c) => {
+        c.setStoreKey(KEY);
+        c.setStartSettings({
+          zoom: 2,
+          pan: { x: 50, y: 50 },
+          isDefault: false,
+          unzoomed: false,
+        });
+      });
+      change(element, 2);
+
+      expect(store.get(KEY)?.zoom).toBe(2);
+    });
+
     it('but not on the default of another card loading the same camera', () => {
       const store = new ZoomStore();
       store.set(KEY, { zoom: 3, pan: { x: 20, y: 20 } });
