@@ -1,22 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getZoomKey, ZoomStore } from '../../src/utils/zoom-store';
-
-describe('getZoomKey', () => {
-  it('should give the same key for the same card and camera', () => {
-    expect(getZoomKey({ cardID: 'card', cameraID: 'camera' })).toBe(
-      getZoomKey({ cardID: 'card', cameraID: 'camera' }),
-    );
-    expect(getZoomKey({ cameraID: 'camera' })).toBe(getZoomKey({ cameraID: 'camera' }));
-  });
-
-  it('should differ for another card or camera', () => {
-    const key = getZoomKey({ cardID: 'card', cameraID: 'camera' });
-    expect(getZoomKey({ cardID: 'other', cameraID: 'camera' })).not.toBe(key);
-    expect(getZoomKey({ cameraID: 'camera' })).not.toBe(key);
-    expect(getZoomKey({ cardID: 'card', cameraID: 'other' })).not.toBe(key);
-  });
-});
+import { ZoomStore } from '../../src/utils/zoom-store';
 
 describe('ZoomStore', () => {
   it('should keep a copy of a zoom per key', () => {
@@ -35,6 +19,16 @@ describe('ZoomStore', () => {
     store.set('a', null);
 
     expect(store.get('a')).toBeNull();
+  });
+
+  it('should drop the zooms used least recently beyond its capacity', () => {
+    const store = new ZoomStore();
+    for (let i = 0; i < 100; i++) {
+      store.set(`camera-${i}`, { zoom: 2, pan: { x: 10, y: 20 } });
+    }
+
+    expect(store.get('camera-0')).toBeNull();
+    expect(store.get('camera-99')).toEqual({ zoom: 2, pan: { x: 10, y: 20 } });
   });
 
   it('should forget every zoom on clear', () => {

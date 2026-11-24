@@ -23,12 +23,12 @@ export class AdvancedCameraCardZoomer extends LitElement {
   @property({ attribute: false })
   public settings?: PartialZoomSettings | null;
 
-  // The zoom the target was last seen at (the view context's `observed`). A
-  // remount (a stream reload, the card shown again, a lazily unloaded camera
-  // loaded again) starts from it rather than from the default. Read only on
-  // activation: afterwards the new instance reports its own zoom there.
+  // Gets the zoom the target was last seen at (the view context's `observed`).
+  // A remount (a stream reload, the card shown again, a lazily unloaded camera
+  // loaded again) starts from it rather than from the default. A getter, read
+  // only on activation, so that every zoom report does not render this again.
   @property({ attribute: false })
-  public observedSettings?: ZoomSettingsObserved | null;
+  public getObservedSettings?: () => ZoomSettingsObserved | null;
 
   // The key the target's zoom is kept under in the page-wide zoom store, so a
   // card built again (e.g. on a return from another dashboard) starts from it.
@@ -92,7 +92,7 @@ export class AdvancedCameraCardZoomer extends LitElement {
       // A request still pending at a remount (also an empty one, e.g. the
       // double tap just before a stream reload) wins over where the target was.
       if (!this.settings) {
-        this._zoomController.setStartSettings(this.observedSettings ?? null);
+        this._zoomController.setStartSettings(this.getObservedSettings?.() ?? null);
       }
       this._zoomController.activate();
     }

@@ -1,27 +1,21 @@
-import type { ZoomSettingsBase } from '../components-lib/zoom/types.js';
-import type { AdvancedCameraCardConfig } from '../config/schema/types.js';
+import { LRUCache } from '../cache/lru';
+import type { ZoomSettingsBase } from '../components-lib/zoom/types';
 
 // The last zoom and pan of each camera's live view, to start from when a card
 // is built again (e.g. on a return from another dashboard, when Home Assistant
 // builds a new card element whose view context is empty). Kept in memory, one
-// zoom per card and camera, for as long as the page stays open.
+// zoom per card and camera (see `encodeCardCameraKey`), for as long as the page
+// stays open.
 
-export interface ZoomKey {
-  // As for preserved frames: cards without a `card_id` share the zoom of the
-  // same camera ID.
-  cardID?: AdvancedCameraCardConfig['card_id'];
-  cameraID: string;
-}
-
-/** The key a camera's zoom is kept under (a string, so it compares by value). */
-export const getZoomKey = (key: ZoomKey): string =>
-  JSON.stringify([key.cardID, key.cameraID]);
+// As for preserved frames, an arbitrary cap, which the LRU cache may hold up to
+// twice of.
+const ZOOM_STORE_CAPACITY = 8;
 
 export class ZoomStore {
-  private _zooms = new Map<string, ZoomSettingsBase>();
+  private _zooms = new LRUCache<string, ZoomSettingsBase>(ZOOM_STORE_CAPACITY);
 
   public get(key: string): ZoomSettingsBase | null {
-    return this._zooms.get(key) ?? null;
+    return this._zooms.get(key);
   }
 
   /** Keep a zoom under `key`, replacing the one before; null forgets it. */

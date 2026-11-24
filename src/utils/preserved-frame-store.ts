@@ -1,16 +1,10 @@
 import { LRUCache } from '../cache/lru';
-import type { AdvancedCameraCardConfig } from '../config/schema/types';
 import type { DataURL, UnsubscribeCallback } from '../types';
+import { encodeCardCameraKey, type CardCameraKey } from './card-camera-key';
 
 export interface PreservedFrame {
   url: DataURL;
   date: Date;
-}
-
-export interface PreservedFrameKey {
-  // Cards without a `card_id` share frames for the same camera ID.
-  cardID?: AdvancedCameraCardConfig['card_id'];
-  cameraID: string;
 }
 
 export type PreservedFrameCallback = () => void;
@@ -28,8 +22,8 @@ export class PreservedFrameStore {
   private _frames = new LRUCache<string, PreservedFrame>(PRESERVED_FRAME_STORE_CAPACITY);
   private _callbacks = new Map<string, Set<PreservedFrameCallback>>();
 
-  public get(key: PreservedFrameKey, maxAgeSeconds: number): PreservedFrame | null {
-    const frame = this._frames.get(this._encodeKey(key));
+  public get(key: CardCameraKey, maxAgeSeconds: number): PreservedFrame | null {
+    const frame = this._frames.get(encodeCardCameraKey(key));
     return frame && this.getSecondsUntilExpired(frame, maxAgeSeconds) > 0 ? frame : null;
   }
 
@@ -37,8 +31,8 @@ export class PreservedFrameStore {
     return maxAgeSeconds - (new Date().getTime() - frame.date.getTime()) / 1000;
   }
 
-  public set(key: PreservedFrameKey, frame: PreservedFrame): void {
-    const encodedKey = this._encodeKey(key);
+  public set(key: CardCameraKey, frame: PreservedFrame): void {
+    const encodedKey = encodeCardCameraKey(key);
     const stored = this._frames.get(encodedKey);
 
     // A frame never replaces a newer one, e.g. when its encoding finishes after
@@ -55,20 +49,16 @@ export class PreservedFrameStore {
 
   /** Call `callback` whenever a new frame is stored for `key`. */
   public subscribe(
-    key: PreservedFrameKey,
+    key: CardCameraKey,
     callback: PreservedFrameCallback,
   ): UnsubscribeCallback {
-    const encodedKey = this._encodeKey(key);
+    const encodedKey = encodeCardCameraKey(key);
     const callbacks = this._callbacks.get(encodedKey) ?? new Set();
     callbacks.add(callback);
     this._callbacks.set(encodedKey, callbacks);
     return () => {
       callbacks.delete(callback);
     };
-  }
-
-  private _encodeKey(key: PreservedFrameKey): string {
-    return JSON.stringify([key.cardID, key.cameraID]);
   }
 }
 

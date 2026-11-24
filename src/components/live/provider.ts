@@ -82,10 +82,10 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
 
-  // The zoom this camera was last seen at, to start from when this provider is
-  // remounted (see the zoomer).
+  // Gets the zoom a camera was last seen at, to start from when this provider
+  // is remounted (see the zoomer).
   @property({ attribute: false })
-  public zoomObserved?: ZoomSettingsObserved | null;
+  public getZoomObserved?: (targetID: string) => ZoomSettingsObserved | null;
 
   // The key of this camera's zoom in the page-wide zoom store, to start from
   // when the card is built again (see the zoomer).
@@ -219,6 +219,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     );
   }
 
+  private _getZoomObserved = (): ZoomSettingsObserved | null =>
+    (this.targetID && this.getZoomObserved?.(this.targetID)) || null;
+
   private _hasPreservedFrame(): boolean {
     return !!this.targetID && !!this.preservedFrameManager?.has(this.targetID);
   }
@@ -330,7 +333,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               : undefined,
           )}
           .settings=${this.zoomSettings}
-          .observedSettings=${this.zoomObserved}
+          .getObservedSettings=${this._getZoomObserved}
           .storeKey=${this.zoomStoreKey}
           .zoom=${this.zoom}
           .dimensionsConfig=${config?.dimensions}
