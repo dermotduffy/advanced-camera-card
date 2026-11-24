@@ -315,10 +315,6 @@
         },
         "timeline": {
           "editor_label": "Minilinha do tempo",
-          "format": {
-            "24h": "Usar relógio de 24 horas",
-            "editor_label": "Formato de data e hora"
-          },
           "mode": "Modo",
           "modes": {
             "above": "Acima",

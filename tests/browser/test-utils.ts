@@ -10,7 +10,7 @@ import type {
   RawAdvancedCameraCardConfig,
 } from '../../src/config/types';
 import type { Entity } from '../../src/ha/registry/entity/types';
-import type { HomeAssistant } from '../../src/ha/types';
+import type { FrontendLocaleData } from '../../src/ha/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { isRecord, isTruthy } from '../../src/utils/basic';
@@ -73,7 +73,7 @@ export interface CameraHASSOptions {
   language?: string;
 
   // The user's date and time settings, for tests that read a date or time.
-  locale?: HomeAssistant['locale'];
+  locale?: FrontendLocaleData;
 }
 
 /**

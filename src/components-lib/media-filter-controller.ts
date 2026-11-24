@@ -27,13 +27,9 @@ import type { CardWideConfig } from '../config/schema/types';
 import { localize } from '../localize/localize';
 import { SEVERITIES, type Severity } from '../severity';
 import type { ViewMediaType } from '../types';
-import {
-  errorToConsole,
-  formatDate,
-  getUnanimousValue,
-  prettifyTitle,
-} from '../utils/basic';
-import { formatMonth } from '../utils/format-date-time';
+import { errorToConsole, getUnanimousValue, prettifyTitle } from '../utils/basic';
+import { formatISODate } from '../utils/date/iso';
+import { formatMonth } from '../utils/date/localized';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder';
 
 export interface MediaFilterCoreDefaults {
@@ -455,7 +451,7 @@ export class MediaFilterController {
   }
 
   private _dateRangeToString(when: DateRange): string {
-    return `${formatDate(when.start)},${formatDate(when.end)}`;
+    return `${formatISODate(when.start)},${formatISODate(when.end)}`;
   }
 
   private _stringToDateRange(input: string): DateRange {

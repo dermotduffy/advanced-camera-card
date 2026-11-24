@@ -1,17 +1,16 @@
 import { format } from 'date-fns';
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import {
   BrowseMediaEventViewMedia,
   BrowseMediaViewFolder,
 } from '../../../src/ha/browse-media/item';
-import { setDateTimeLocale } from '../../../src/utils/format-date-time';
 import { ViewMediaType } from '../../../src/view/item';
 import {
   createBrowseMedia,
   createFolder,
-  createLocaleHASS,
   createRichBrowseMedia,
+  stubDateTimeLocale,
 } from '../../test-utils';
 
 describe('BrowseMediaEventViewMedia', () => {
@@ -115,12 +114,8 @@ describe('BrowseMediaEventViewMedia', () => {
   });
 
   describe('should get title', () => {
-    afterEach(() => {
-      setDateTimeLocale(null);
-    });
-
     it('should get title from metadata start time', () => {
-      setDateTimeLocale(createLocaleHASS({ language: 'en-GB', time_format: '24' }));
+      stubDateTimeLocale({ language: 'es', time_format: '24' });
       const browseMedia = createRichBrowseMedia({
         _metadata: {
           // In the browser's time zone.
@@ -132,7 +127,7 @@ describe('BrowseMediaEventViewMedia', () => {
 
       const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
 
-      expect(viewMedia.getTitle()).toBe('5 May 2025, 07:46');
+      expect(viewMedia.getTitle()).toBe('5 may 2025, 07:46');
     });
 
     it('should get title without metadata', () => {

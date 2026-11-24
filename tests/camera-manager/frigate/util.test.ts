@@ -16,23 +16,18 @@ import {
   getReviewTitle,
 } from '../../../src/camera-manager/frigate/util';
 import type { CameraConfig } from '../../../src/config/schema/cameras';
-import { setDateTimeLocale } from '../../../src/utils/format-date-time';
 import { createCameraConfig } from '../../config/test-utils';
 import {
   createFrigateEvent,
   createFrigateRecording,
   createFrigateReview,
-  createLocaleHASS,
+  stubDateTimeLocale,
 } from '../../test-utils';
 
-// Dates in these tests are in the browser's time zone, shown as in British
-// English with 24-hour times.
+// Dates in these tests are in the browser's time zone, shown in Spanish with
+// 24-hour times.
 beforeEach(() => {
-  setDateTimeLocale(createLocaleHASS({ language: 'en-GB', time_format: '24' }));
-});
-
-afterEach(() => {
-  setDateTimeLocale(null);
+  stubDateTimeLocale({ language: 'es', time_format: '24' });
 });
 
 describe('getEventTitle', () => {
@@ -51,7 +46,7 @@ describe('getEventTitle', () => {
           label: 'person',
         }),
       ),
-    ).toBe('6 May 2023, 10:43 [72s, Person 84%]');
+    ).toBe('6 may 2023, 10:43 [72s, Person 84%]');
   });
   it('should get in-progress event title', () => {
     vi.useFakeTimers();
@@ -66,7 +61,7 @@ describe('getEventTitle', () => {
           label: 'person',
         }),
       ),
-    ).toBe('6 May 2023, 10:43 [60s, Person 84%]');
+    ).toBe('6 may 2023, 10:43 [60s, Person 84%]');
   });
   it('should get scoreless event title', () => {
     expect(
@@ -78,7 +73,7 @@ describe('getEventTitle', () => {
           label: 'person',
         }),
       ),
-    ).toBe('6 May 2023, 10:43 [72s, Person]');
+    ).toBe('6 may 2023, 10:43 [72s, Person]');
   });
 });
 
@@ -91,7 +86,7 @@ describe('getRecordingTitle', () => {
           startTime: new Date('2023-04-29T14:00:00'),
         }),
       ),
-    ).toBe('Kitchen 29 Apr 2023, 14:00');
+    ).toBe('Kitchen 29 abr 2023, 14:00');
   });
 });
 
@@ -206,7 +201,7 @@ describe('getReviewTitle', () => {
           },
         }),
       ),
-    ).toBe('6 May 2023, 10:43 [72s]');
+    ).toBe('6 may 2023, 10:43 [72s]');
   });
 
   it('should get finished review title with objects', () => {
@@ -274,7 +269,7 @@ describe('getReviewTitle', () => {
           },
         }),
       ),
-    ).toBe('6 May 2023, 10:43 [60s]');
+    ).toBe('6 may 2023, 10:43 [60s]');
   });
 });
 

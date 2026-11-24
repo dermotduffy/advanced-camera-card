@@ -1,7 +1,12 @@
-import { add } from 'date-fns';
+import { add, format } from 'date-fns';
 import { LitElement } from 'lit';
-import type { TimelineEventPropertiesResult, TimelineWindow } from 'vis-timeline';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import moment from 'moment';
+import type {
+  TimelineEventPropertiesResult,
+  TimelineFormatOption,
+  TimelineWindow,
+} from 'vis-timeline';
+import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
@@ -24,7 +29,7 @@ import { ViewMediaType, type ViewMedia } from '../../../src/view/item';
 import { QueryResults } from '../../../src/view/query-results';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import { createCameraManager, createStore } from '../../camera-manager/test-utils';
-import { createHASS, stubMatchMedia } from '../../test-utils';
+import { createHASS, stubDateTimeLocale, stubMatchMedia } from '../../test-utils';
 import { createReviewQuery, createView, TestViewMedia } from '../../view/test-utils';
 
 // Vitest hoists vi.mock above this, so its factory can only reach a vi.hoisted value.
@@ -57,7 +62,6 @@ const createTimelineConfig = (
   window_seconds: 60 * 60,
   show_recordings: false,
   style,
-  format: { '24h': true },
   pan_mode: panMode,
 });
 
@@ -190,6 +194,45 @@ describe('TimelineController', () => {
     const options = timelineConstructor.mock.calls[0]?.at(-1);
 
     expect(options).toEqual(expect.objectContaining({ dataAttributes: ['severity'] }));
+  });
+
+  describe("should label the axis in the user's settings", () => {
+    // vis-timeline's TypeScript types say it calls the label functions with a
+    // `Date`, but it actually passes a moment.js object, so the test passes one
+    // too. The date is in a past year, so every date label includes the year.
+    const date = moment(new Date(2025, 10, 23, 22, 43, 7, 45)) as unknown as Date;
+
+    const getFormat = async (): Promise<TimelineFormatOption> => {
+      stubDateTimeLocale({ language: 'en-US', time_format: '12' });
+      await createHarness();
+      return timelineConstructor.mock.calls[0]?.at(-1).format;
+    };
+
+    it.each([
+      ['millisecond', '045'],
+      ['second', '7'],
+      ['minute', '10:43 PM'],
+      ['hour', '10:43 PM'],
+      ['day', 'Nov 23, 2025'],
+    ])('should label the minor %s scale', async (scale, label) => {
+      const minorLabels = (await getFormat()).minorLabels;
+      assert(typeof minorLabels === 'function');
+
+      expect(minorLabels(date, scale, 1).replace(/\s/g, ' ')).toBe(label);
+    });
+
+    it.each([
+      ['millisecond', '10:43:07 PM'],
+      ['second', 'Nov 23, 2025, 10:43 PM'],
+      ['minute', 'Nov 23, 2025'],
+      ['hour', 'Nov 23, 2025'],
+      ['day', 'November 2025'],
+    ])('should label the major %s scale', async (scale, label) => {
+      const majorLabels = (await getFormat()).majorLabels;
+      assert(typeof majorLabels === 'function');
+
+      expect(majorLabels(date, scale, 1).replace(/\s/g, ' ')).toBe(label);
+    });
   });
 
   describe('should decide what can be clustered', () => {
@@ -337,6 +380,18 @@ describe('TimelineController', () => {
 
       expect(harness.timeline.addCustomTime).toHaveBeenCalledWith(
         POINTER_TIME,
+        'target_bar',
+      );
+    });
+
+    it("should label the target bar with the date and time in the user's settings", async () => {
+      stubDateTimeLocale({ language: 'en-US', time_format: '24' });
+      const harness = await createHarness({ panMode: 'seek' });
+
+      dragTimeline(harness, POINTER_TIME);
+
+      expect(harness.timeline.setCustomTimeMarker).toHaveBeenCalledWith(
+        format(POINTER_TIME, 'MMM d, yyyy, HH:mm:ss'),
         'target_bar',
       );
     });

@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 
 import type { FolderPathLevel } from '../../card-controller/folders/types';
 import type { FolderConfig } from '../../config/schema/folders';
-import { formatDateTime } from '../../utils/format-date-time';
+import { formatDateTime } from '../../utils/date/localized';
 import {
   ViewFolder,
   ViewMedia,

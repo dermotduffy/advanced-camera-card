@@ -6,8 +6,8 @@ import { isTruthy } from '../../../utils/basic';
 import {
   formatShortDate,
   formatTime,
-  formatTimeParts,
-} from '../../../utils/format-date-time';
+  formatTimeToParts,
+} from '../../../utils/date/localized';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import {
@@ -43,15 +43,10 @@ export interface ThumbnailDetailsPanelOptions {
   size?: number;
 }
 
-export interface ThumbnailDetailsPanelTime {
-  hoursMinutes: string;
-  seconds: string;
-}
-
 export class ThumbnailDetailsPanelController {
   private _tier: ThumbnailTier = 'standard';
   private _label: string | null = null;
-  private _time: ThumbnailDetailsPanelTime | null = null;
+  private _timeParts: Intl.DateTimeFormatPart[] | null = null;
   private _isInProgress = false;
   private _details: string[] = [];
   private _seekTime: string | null = null;
@@ -67,7 +62,7 @@ export class ThumbnailDetailsPanelController {
     const startTime = ViewItemClassifier.isMedia(options.item)
       ? options.item.getStartTime()
       : null;
-    this._time = startTime ? formatTimeParts(startTime) : null;
+    this._timeParts = startTime ? formatTimeToParts(startTime, { seconds: true }) : null;
 
     const cameraTitle = getMediaCameraTitle(options.cameraManager, options.item);
 
@@ -134,8 +129,8 @@ export class ThumbnailDetailsPanelController {
     return this._isInProgress;
   }
 
-  public getTime(): ThumbnailDetailsPanelTime | null {
-    return this._time;
+  public getTimeParts(): Intl.DateTimeFormatPart[] | null {
+    return this._timeParts;
   }
 
   public getDetails(): string[] {

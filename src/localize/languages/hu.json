@@ -315,10 +315,6 @@
         },
         "timeline": {
           "editor_label": "Mini idővonal",
-          "format": {
-            "24h": "24 órás időformátum használata",
-            "editor_label": "Idő- és dátumformátum"
-          },
           "mode": "Mód",
           "modes": {
             "above": "Felül",

@@ -1,23 +1,18 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   getMediaHeading,
   getMediaSeekDetail,
   getNotificationDetails,
 } from '../../../src/components-lib/notification/detail';
-import { setDateTimeLocale } from '../../../src/utils/format-date-time';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../camera-manager/test-utils';
-import { createFolder, createLocaleHASS } from '../../test-utils';
+import { createFolder, stubDateTimeLocale } from '../../test-utils';
 import { TestViewMedia } from '../../view/test-utils';
 
-// Shown as in British English with 24-hour times.
+// Shown in Spanish with 24-hour times.
 beforeEach(() => {
-  setDateTimeLocale(createLocaleHASS({ language: 'en-GB', time_format: '24' }));
-});
-
-afterEach(() => {
-  setDateTimeLocale(null);
+  stubDateTimeLocale({ language: 'es', time_format: '24' });
 });
 
 describe('getMediaHeading', () => {
@@ -144,7 +139,7 @@ describe('getNotificationDetails', () => {
     const item = new TestViewMedia({ startTime });
 
     expect(getNotificationDetails({ item })).toContainEqual({
-      text: expect.stringMatching(/^18 May 2025,? 17:03:00$/),
+      text: expect.stringMatching(/^18 may 2025,? 17:03:00$/),
       tooltip: 'Start',
       icon: 'mdi:calendar-clock-outline',
     });

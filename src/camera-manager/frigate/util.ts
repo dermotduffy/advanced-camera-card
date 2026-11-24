@@ -3,8 +3,8 @@ import { fromUnixTime, subSeconds } from 'date-fns';
 import type { CameraConfig } from '../../config/schema/cameras';
 import type { Severity } from '../../severity';
 import { prettifyTitle } from '../../utils/basic';
-import { formatDateTime } from '../../utils/format-date-time';
-import { getDayHourInTimeZone, startOfHourInTimeZone } from '../../utils/timezone';
+import { formatDateTime } from '../../utils/date/localized';
+import { getDayHourInTimeZone, startOfHourInTimeZone } from '../../utils/date/timezone';
 import type {
   FrigateEvent,
   FrigateRecording,

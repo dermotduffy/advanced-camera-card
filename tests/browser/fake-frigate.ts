@@ -179,7 +179,7 @@ const getSubLabels = (event: FrigateEvent): string[] =>
   event.sub_label?.split(',').map((subLabel) => subLabel.trim()) ?? [];
 
 // The day an event falls on. Always UTC, the only time zone a `FakeHASS` reports,
-// so `formatDate` cannot be used: it renders in local time.
+// so `formatISODate` cannot be used: it renders in local time.
 const getEventDay = (event: FrigateEvent): string =>
   fromUnixTime(event.start_time).toISOString().slice(0, 'YYYY-MM-DD'.length);
 

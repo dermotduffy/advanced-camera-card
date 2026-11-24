@@ -304,10 +304,6 @@
         },
         "timeline": {
           "editor_label": "Mini časová os",
-          "format": {
-            "24h": "Použiť 24-hodinový formát",
-            "editor_label": "Formát času a dátumu"
-          },
           "mode": "Režim",
           "modes": {
             "above": "Nad",

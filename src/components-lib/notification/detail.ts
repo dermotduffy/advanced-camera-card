@@ -1,7 +1,7 @@
 import type { CameraManager } from '../../camera-manager/manager';
 import type { NotificationDetail } from '../../config/schema/actions/types';
 import { localize } from '../../localize/localize';
-import { formatDateTime, formatTime } from '../../utils/format-date-time';
+import { formatDateTime, formatTime } from '../../utils/date/localized';
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import {

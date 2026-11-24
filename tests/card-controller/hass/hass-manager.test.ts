@@ -1,18 +1,18 @@
 import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { InitializationAspect } from '../../../src/card-controller/initialization/initialization-manager';
 import type { HomeAssistant } from '../../../src/ha/types';
-import { formatTime, setDateTimeLocale } from '../../../src/utils/format-date-time';
+import { formatTime, setDateTimeLocale } from '../../../src/utils/date/localized';
 import { createCameraManager, createStore } from '../../camera-manager/test-utils';
 import { createCameraConfig, createConfig } from '../../config/test-utils';
 import {
   createCardAPI,
   createHASS,
-  createLocaleHASS,
+  createLocale,
   createStateEntity,
 } from '../../test-utils';
 import { createView } from '../../view/test-utils';
@@ -60,24 +60,20 @@ describe('HASSManager', () => {
     expect(manager.hasHASS()).toBeTruthy();
   });
 
-  describe('should show dates and times as the user set them', () => {
-    afterEach(() => {
-      setDateTimeLocale(null);
-    });
+  it("should apply a new hass's date and time settings before notifying listeners", () => {
+    onTestFinished(() => setDateTimeLocale(null));
 
-    it('should show them in the settings of the new hass, before its listeners see it', () => {
-      const manager = new HASSManager(createCardAPI());
-      const hass = createHASS();
-      hass.locale = createLocaleHASS({ language: 'en-US', time_format: '12' }).locale;
+    const manager = new HASSManager(createCardAPI());
+    const hass = createHASS();
+    hass.locale = createLocale({ language: 'en-US', time_format: '12' });
 
-      const date = new Date('2026-11-17T15:05:00');
-      const shown: string[] = [];
-      manager.addListener(() => shown.push(formatTime(date)));
+    const date = new Date('2026-11-17T15:05:00');
+    const shown: string[] = [];
+    manager.addListener(() => shown.push(formatTime(date)));
 
-      manager.setHASS(hass);
+    manager.setHASS(hass);
 
-      expect(shown).toEqual([expect.stringMatching(/^3:05\sPM$/)]);
-    });
+    expect(shown).toEqual([expect.stringMatching(/^3:05\sPM$/)]);
   });
 
   describe('as a HASS source', () => {

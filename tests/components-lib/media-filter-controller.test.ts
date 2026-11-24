@@ -7,7 +7,6 @@ import {
   describe,
   expect,
   it,
-  onTestFinished,
   vi,
 } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
@@ -32,11 +31,10 @@ import {
 } from '../../src/components-lib/media-filter-controller';
 import { QuerySource } from '../../src/query-source';
 import type { Severity } from '../../src/severity';
-import { setDateTimeLocale } from '../../src/utils/format-date-time';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import { createCameraManager, createStore } from '../camera-manager/test-utils';
 import { createCameraConfig, createPerformanceConfig } from '../config/test-utils';
-import { createLitElement, createLocaleHASS } from '../test-utils';
+import { createLitElement, stubDateTimeLocale } from '../test-utils';
 import { createView } from '../view/test-utils';
 
 const createCameraStore = (options?: { capabilities: Capabilities }) => {
@@ -517,8 +515,7 @@ describe('MediaFilterController', () => {
       });
 
       it('with metadata for days', async () => {
-        setDateTimeLocale(createLocaleHASS({ language: 'en' }));
-        onTestFinished(() => setDateTimeLocale(null));
+        stubDateTimeLocale({ language: 'es' });
 
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getMediaMetadata).mockResolvedValue({
@@ -533,7 +530,7 @@ describe('MediaFilterController', () => {
           expect.arrayContaining([
             expect.objectContaining({
               value: '2024-02-01,2024-02-29',
-              label: 'February 2024',
+              label: 'febrero de 2024',
             }),
           ]),
         );

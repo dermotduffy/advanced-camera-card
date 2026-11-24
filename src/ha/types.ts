@@ -157,23 +157,17 @@ export interface HomeAssistant {
   formatEntityName: (stateObj: HassEntity) => string;
 }
 
-declare enum NumberFormat {
-  language = 'language',
-  system = 'system',
-  comma_decimal = 'comma_decimal',
-  decimal_comma = 'decimal_comma',
-  space_comma = 'space_comma',
-  none = 'none',
-}
+type NumberFormat =
+  | 'language'
+  | 'system'
+  | 'comma_decimal'
+  | 'decimal_comma'
+  | 'space_comma'
+  | 'none';
 
-declare enum TimeFormat {
-  language = 'language',
-  system = 'system',
-  am_pm = '12',
-  twenty_four = '24',
-}
+type TimeFormat = 'language' | 'system' | '12' | '24';
 
-interface FrontendLocaleData {
+export interface FrontendLocaleData {
   language: string;
   number_format: NumberFormat;
   time_format: TimeFormat;

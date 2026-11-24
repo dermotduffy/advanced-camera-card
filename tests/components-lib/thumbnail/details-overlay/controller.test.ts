@@ -1,11 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ThumbnailDetailsOverlayController } from '../../../../src/components-lib/thumbnail/details-overlay/controller';
 import type { ResolvedThumbnailStyle } from '../../../../src/components-lib/thumbnail/resolve-style';
-import { setDateTimeLocale } from '../../../../src/utils/format-date-time';
 import { ViewFolder, ViewMediaType } from '../../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../../camera-manager/test-utils';
-import { createFolder, createLocaleHASS } from '../../../test-utils';
+import { createFolder, stubDateTimeLocale } from '../../../test-utils';
 import { TestViewMedia } from '../../../view/test-utils';
 
 const createEvent = (): TestViewMedia =>
@@ -135,51 +134,52 @@ describe('ThumbnailDetailsOverlayController', () => {
   });
 
   describe('should show the time', () => {
-    beforeEach(() => {
-      setDateTimeLocale(createLocaleHASS({ language: 'en-US', time_format: '24' }));
-    });
+    const getText = (parts?: Intl.DateTimeFormatPart[]): string | undefined =>
+      parts?.map((part) => part.value).join('');
 
-    afterEach(() => {
-      setDateTimeLocale(null);
+    beforeEach(() => {
+      stubDateTimeLocale({ language: 'en-US', time_format: '24' });
     });
 
     it.each([[75], [100]])(
       'should omit the seconds where the line is shared at size %s',
       (size) => {
-        expect(createController('overlay', size).getTime()).toEqual({
-          hoursMinutes: '16:55',
-          hoursMinutesSeconds: '16:55:47',
-        });
+        const time = createController('overlay', size).getTime();
+        expect(getText(time?.parts)).toBe('16:55');
+        expect(time?.tooltip).toBe('16:55:47');
       },
     );
 
     it('should show the seconds where there is room', () => {
-      expect(createController('overlay', 175).getTime()).toEqual({
-        hoursMinutes: '16:55',
-        seconds: ':47',
-        hoursMinutesSeconds: '16:55:47',
-      });
+      const time = createController('overlay', 175).getTime();
+      expect(getText(time?.parts)).toBe('16:55:47');
+      expect(time?.parts).toContainEqual({ type: 'second', value: '47' });
+      expect(time?.tooltip).toBe('16:55:47');
     });
 
     it('should keep AM/PM where the seconds are omitted', () => {
-      setDateTimeLocale(createLocaleHASS({ language: 'en-US', time_format: '12' }));
+      stubDateTimeLocale({ language: 'en-US', time_format: '12' });
 
       const time = createController('overlay', 75).getTime();
-      expect(time?.hoursMinutes).toMatch(/^4:55\sPM$/);
-      expect(time?.seconds).toBeUndefined();
+      expect(getText(time?.parts)).toMatch(/^4:55\sPM$/);
+      expect(time?.parts).toContainEqual({ type: 'dayPeriod', value: 'PM' });
     });
 
-    it('should show AM/PM after the seconds where there is room', () => {
-      setDateTimeLocale(createLocaleHASS({ language: 'en-US', time_format: '12' }));
+    it('should keep AM/PM with the seconds where there is room', () => {
+      stubDateTimeLocale({ language: 'en-US', time_format: '12' });
 
       const time = createController('overlay', 175).getTime();
-      expect(time?.hoursMinutes).toBe('4:55');
-      expect(time?.seconds).toMatch(/^:47\sPM$/);
-      expect(time?.hoursMinutesSeconds).toMatch(/^4:55:47\sPM$/);
+      expect(getText(time?.parts)).toMatch(/^4:55:47\sPM$/);
+      expect(time?.parts).toContainEqual({ type: 'dayPeriod', value: 'PM' });
+      expect(time?.tooltip).toMatch(/^4:55:47\sPM$/);
     });
 
     it('should show no seconds at the smallest hover size', () => {
-      expect(createController('hover', 75).getTime()?.seconds).toBeUndefined();
+      expect(
+        createController('hover', 75)
+          .getTime()
+          ?.parts.map((part) => part.type),
+      ).not.toContain('second');
     });
 
     it('should show no time without a start time', () => {

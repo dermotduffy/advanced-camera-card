@@ -1,6 +1,6 @@
 import type { CameraManager } from '../../../camera-manager/manager';
 import { isTruthy } from '../../../utils/basic';
-import { formatTime, formatTimeParts } from '../../../utils/format-date-time';
+import { formatTime, formatTimeToParts } from '../../../utils/date/localized';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import {
@@ -22,13 +22,13 @@ export interface ThumbnailDetailsOverlayOptions {
 }
 
 interface ThumbnailDetailsOverlayTime {
-  hoursMinutes: string;
+  // The time shown in the headline, as typed pieces. These include a `second`
+  // piece only when `isOneLineHeadline()` is false, since a one-line headline
+  // has no room for seconds.
+  parts: Intl.DateTimeFormatPart[];
 
-  // Dropped where the overlay has only one line to give the time.
-  seconds?: string;
-
-  // Full time (for the tooltip).
-  hoursMinutesSeconds: string;
+  // The full time, with seconds.
+  tooltip: string;
 }
 
 export class ThumbnailDetailsOverlayController {
@@ -110,13 +110,9 @@ export class ThumbnailDetailsOverlayController {
       return null;
     }
 
-    const hoursMinutesSeconds = formatTime(this._startTime, { seconds: true });
     return {
-      // A time without its seconds keeps everything else, such as AM/PM.
-      ...(this.isOneLineHeadline()
-        ? { hoursMinutes: formatTime(this._startTime) }
-        : formatTimeParts(this._startTime)),
-      hoursMinutesSeconds,
+      parts: formatTimeToParts(this._startTime, { seconds: !this.isOneLineHeadline() }),
+      tooltip: formatTime(this._startTime, { seconds: true }),
     };
   }
 

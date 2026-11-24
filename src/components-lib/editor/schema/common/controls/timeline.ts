@@ -62,19 +62,6 @@ export const getTimelineCoreSchema = (options?: {
       label: localize('config.common.timeline.show_recordings'),
       selector: { boolean: {} },
     },
-    {
-      name: 'format',
-      type: 'expandable',
-      title: localize('config.common.controls.timeline.format.editor_label'),
-      icon: 'mdi:clock-edit',
-      schema: [
-        {
-          name: '24h',
-          label: localize('config.common.controls.timeline.format.24h'),
-          selector: { boolean: {} },
-        },
-      ],
-    },
   );
   return schema;
 };

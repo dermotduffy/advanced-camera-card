@@ -6,7 +6,7 @@ import {
   getDayHourInTimeZone,
   hourInTimeZoneToDate,
   startOfHourInTimeZone,
-} from '../../src/utils/timezone';
+} from '../../../src/utils/date/timezone';
 
 describe('startOfHourInTimeZone', () => {
   it('should get the start of the hour', () => {

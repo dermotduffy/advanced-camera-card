@@ -89,7 +89,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
 
   protected render(): TemplateResult | void {
     const label = this._controller.getLabel();
-    const time = this._controller.getTime();
+    const timeParts = this._controller.getTimeParts();
     const isInProgress = this._controller.isInProgress();
     const details = this._controller.getDetails();
     const seekTime = this._controller.getSeekTime();
@@ -102,12 +102,14 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
             ><span class="label">${localize('thumbnail.in_progress')}</span></span
           >`
         : ''}
-      ${label || time
+      ${label || timeParts
         ? html`<div class="heading">
             ${label ? html`<span title=${label}>${label}</span>` : ''}
-            ${time
+            ${timeParts
               ? html`<span class="time" dir="ltr"
-                  >${time.hoursMinutes}<span class="seconds">${time.seconds}</span></span
+                  >${timeParts.map(
+                    (part) => html`<span class=${part.type}>${part.value}</span>`,
+                  )}</span
                 >`
               : ''}
           </div>`

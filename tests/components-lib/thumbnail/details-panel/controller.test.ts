@@ -1,10 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ThumbnailDetailsPanelController } from '../../../../src/components-lib/thumbnail/details-panel/controller';
-import { setDateTimeLocale } from '../../../../src/utils/format-date-time';
 import { ViewFolder, type ViewItem } from '../../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../../camera-manager/test-utils';
-import { createFolder, createLocaleHASS } from '../../../test-utils';
+import { createFolder, stubDateTimeLocale } from '../../../test-utils';
 import { TestViewMedia } from '../../../view/test-utils';
 
 // An event with every value the panel can show.
@@ -41,12 +40,11 @@ describe('ThumbnailDetailsPanelController', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-09-10T22:45:00'));
-    setDateTimeLocale(createLocaleHASS({ language: 'en-US', time_format: '24' }));
+    stubDateTimeLocale({ language: 'en-US', time_format: '24' });
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    setDateTimeLocale(null);
   });
 
   it('should join the values onto a line each', () => {
@@ -65,20 +63,26 @@ describe('ThumbnailDetailsPanelController', () => {
   it('should show the start time beside the heading rather than among the details', () => {
     const controller = createController(300);
 
-    expect(controller.getTime()).toEqual({ hoursMinutes: '16:55', seconds: ':47' });
+    expect(
+      controller
+        .getTimeParts()
+        ?.map((part) => part.value)
+        .join(''),
+    ).toBe('16:55:47');
+    expect(controller.getTimeParts()).toContainEqual({ type: 'second', value: '47' });
     expect(controller.getDetails().join()).not.toContain('16:55');
   });
 
   it('should show no time for media that does not say when it starts', () => {
     const controller = createController(300, new TestViewMedia());
 
-    expect(controller.getTime()).toBeNull();
+    expect(controller.getTimeParts()).toBeNull();
   });
 
   it('should show no time for a folder, which has no start at all', () => {
     const controller = createController(300, new ViewFolder(createFolder(), []));
 
-    expect(controller.getTime()).toBeNull();
+    expect(controller.getTimeParts()).toBeNull();
   });
 
   it('should pack more onto each line where the panel has fewer of them', () => {
@@ -134,8 +138,8 @@ describe('ThumbnailDetailsPanelController', () => {
     });
   });
 
-  it('should show 12-hour times with AM/PM after the seconds', () => {
-    setDateTimeLocale(createLocaleHASS({ language: 'en-US', time_format: '12' }));
+  it('should show 12-hour times with AM/PM', () => {
+    stubDateTimeLocale({ language: 'en-US', time_format: '12' });
 
     const controller = new ThumbnailDetailsPanelController();
     controller.calculate({
@@ -144,8 +148,13 @@ describe('ThumbnailDetailsPanelController', () => {
       size: 300,
     });
 
-    expect(controller.getTime()?.hoursMinutes).toBe('4:55');
-    expect(controller.getTime()?.seconds).toMatch(/^:47\sPM$/);
+    expect(
+      controller
+        .getTimeParts()
+        ?.map((part) => part.value)
+        .join(''),
+    ).toMatch(/^4:55:47\sPM$/);
+    expect(controller.getTimeParts()).toContainEqual({ type: 'dayPeriod', value: 'PM' });
     expect(controller.getSeekTime()).toMatch(/^4:55:52\sPM$/);
   });
 

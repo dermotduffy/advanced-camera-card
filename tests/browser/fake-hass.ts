@@ -10,8 +10,13 @@ import { mock } from 'vitest-mock-extended';
 
 import type { BrowseMedia } from '../../src/ha/browse-media/types';
 import type { Entity } from '../../src/ha/registry/entity/types';
-import type { HomeAssistant, ResolvedMedia } from '../../src/ha/types';
+import type {
+  FrontendLocaleData,
+  HomeAssistant,
+  ResolvedMedia,
+} from '../../src/ha/types';
 import {
+  createLocale,
   createRegistryEntity,
   createStateEntity,
   formatEntityName,
@@ -48,20 +53,18 @@ export interface FakeHASSOptions {
   language?: string;
   isAdmin?: boolean;
 
-  // The user's date and time settings. Without one, the card shows the
-  // browser's own format.
-  locale?: HomeAssistant['locale'];
+  // The user's date and time settings. Without one, Home Assistant's defaults
+  // for `language`.
+  locale?: FrontendLocaleData;
 }
 
 // Home Assistant sends real timestamps, and the card measures a state's age
 // against them: must use a dynamic (vs static) date.
 const createDefaultTime = (): Date => new Date();
 
-// `Auth` is a class built from real credentials, and `locale` is typed with
-// ambient enums that have no runtime value, so neither is constructed here by
-// default. The card never reads `auth`, and reads only the language and time
-// format from `locale` (see the `locale` option).
-const { auth: INERT_AUTH, locale: INERT_LOCALE } = mock<HomeAssistant>();
+// `Auth` is a class built from real credentials, so it cannot be constructed
+// here. The card never reads it.
+const { auth: INERT_AUTH } = mock<HomeAssistant>();
 
 const createConfig = (state: HassConfig['state']): HassConfig => ({
   latitude: 0,
@@ -118,7 +121,7 @@ export class FakeHASS {
   private _connection: Connection;
   private _language: string;
   private _isAdmin: boolean;
-  private _locale: HomeAssistant['locale'];
+  private _locale: FrontendLocaleData;
   private _handlers = new Map<string, WSCommandHandler>();
   private _pathHandlers: { pattern: RegExp; handler: PathHandler }[] = [];
   private _mediaSources: { pattern: RegExp; handler: MediaSourceHandler }[] = [];
@@ -129,7 +132,7 @@ export class FakeHASS {
   constructor(options?: FakeHASSOptions) {
     this._language = options?.language ?? 'en';
     this._isAdmin = options?.isAdmin ?? true;
-    this._locale = options?.locale ?? INERT_LOCALE;
+    this._locale = options?.locale ?? createLocale({ language: this._language });
 
     for (const [entityID, entityOptions] of Object.entries(options?.entities ?? {})) {
       this._states[entityID] = this._createEntity(entityID, entityOptions);
