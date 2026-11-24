@@ -168,23 +168,6 @@ describe('GalleryController', () => {
     ).toBe('160 / 90');
   });
 
-  describe('getThumbnailTierSize', () => {
-    it('should return the default size if no config', () => {
-      const controller = new GalleryController(createLitElement());
-      expect(controller.getThumbnailTierSize()).toBe(THUMBNAIL_SIZE_DEFAULT);
-    });
-
-    it('should return the shorter side of a wide thumbnail', () => {
-      const controller = new GalleryController(createLitElement());
-
-      controller.setThumbnailConfig(
-        createThumbnailConfig({ aspect_ratio: [16, 9], size: 160 }),
-      );
-
-      expect(controller.getThumbnailTierSize()).toBe(90);
-    });
-  });
-
   describe('getColumnWidth', () => {
     it('should return default width if no config', () => {
       const controller = new GalleryController(createLitElement());

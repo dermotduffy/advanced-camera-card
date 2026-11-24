@@ -5,7 +5,7 @@ import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../../view/types';
 import { isMediaReviewed } from '../../media/format';
 import type { ResolvedThumbnailStyle } from '../resolve-style';
-import { getThumbnailTier, type ThumbnailTier } from '../tier';
+import { THUMBNAIL_TIER_DEFAULT, type ThumbnailTier } from '../tier';
 
 type ThumbnailControlName = 'review' | 'favorite' | 'info' | 'timeline' | 'download';
 
@@ -22,7 +22,7 @@ export interface ThumbnailControlsOptions {
   item?: ViewItem;
   capabilities?: ViewItemCapabilities;
 
-  size?: number;
+  tier?: ThumbnailTier;
 
   showFavoriteControl?: boolean;
   showTimelineControl?: boolean;
@@ -49,7 +49,7 @@ const POINTER_CONTROL_CAPACITY: Record<ThumbnailTier, number> = {
 };
 
 export class ThumbnailControlsController {
-  private _tier: ThumbnailTier = 'standard';
+  private _tier: ThumbnailTier = THUMBNAIL_TIER_DEFAULT;
   private _controls: ThumbnailControl[] = [];
 
   private _isTouch = false;
@@ -57,7 +57,7 @@ export class ThumbnailControlsController {
   public calculate(options: ThumbnailControlsOptions): void {
     const controls = this._calculateControls(options);
 
-    this._tier = getThumbnailTier(options.size);
+    this._tier = options.tier ?? THUMBNAIL_TIER_DEFAULT;
     this._isTouch = !isHoverableDevice();
     this._controls = this._getControlsThatFit(
       controls,

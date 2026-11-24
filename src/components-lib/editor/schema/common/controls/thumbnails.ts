@@ -4,6 +4,7 @@ import {
 } from '../../../../../config/schema/common/controls/thumbnails';
 import type { HAFormExpandableSchema, HAFormSchema } from '../../../../../ha/types';
 import { localize } from '../../../../../localize/localize';
+import { createAspectRatioField } from '../aspect-ratio';
 import { createGrid } from '../grid';
 import { createNumberSelector, createSelectSelector } from '../selectors';
 
@@ -24,11 +25,9 @@ export const getThumbnailsSchema = (options?: {
     }),
   };
 
-  const aspectRatioField: HAFormSchema = {
-    name: 'aspect_ratio',
-    label: localize('config.common.controls.thumbnails.aspect_ratio'),
-    selector: { text: {} },
-  };
+  const aspectRatioField = createAspectRatioField(
+    localize('config.common.controls.thumbnails.aspect_ratio'),
+  );
 
   const thumbnailStyleField: HAFormSchema = {
     name: 'style',

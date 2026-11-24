@@ -1,15 +1,8 @@
 import type { ThumbnailsControlBaseConfig } from '../../config/schema/common/controls/thumbnails';
-import { isValidAspectRatio } from '../../utils/basic';
+import { aspectRatioToString, isValidAspectRatio, type Size } from '../../utils/basic';
 
-type ThumbnailDimensionsConfig = Pick<
-  ThumbnailsControlBaseConfig,
-  'aspect_ratio' | 'size'
->;
-
-interface ThumbnailDimensions {
-  width: number;
-  height: number;
-}
+type ThumbnailDimensionsConfig = Pick<ThumbnailsControlBaseConfig, 'size'> &
+  Partial<Pick<ThumbnailsControlBaseConfig, 'aspect_ratio'>>;
 
 const THUMBNAIL_STYLE_PROPERTIES = [
   '--advanced-camera-card-thumbnail-size',
@@ -22,9 +15,7 @@ const THUMBNAIL_STYLE_PROPERTIES = [
  * The longer side is drawn at `size`, so thumbnails of any aspect ratio fit the
  * same square.
  */
-export const getThumbnailDimensions = (
-  config: ThumbnailDimensionsConfig,
-): ThumbnailDimensions => {
+export const getThumbnailDimensions = (config: ThumbnailDimensionsConfig): Size => {
   const [ratioWidth, ratioHeight] = isValidAspectRatio(config.aspect_ratio)
     ? config.aspect_ratio
     : [1, 1];
@@ -36,15 +27,27 @@ export const getThumbnailDimensions = (
   };
 };
 
-/**
- * The details tiers were drawn for a square thumbnail, so a wide or tall one
- * takes the tier of its shorter side.
- */
-export const getThumbnailTierSize = (config: ThumbnailDimensionsConfig): number => {
+export const getThumbnailShorterSide = (config: ThumbnailDimensionsConfig): number => {
   const { width, height } = getThumbnailDimensions(config);
   return Math.min(width, height);
 };
 
+/**
+ * Set, on `element`, the CSS variables that the thumbnails inside it are sized
+ * from:
+ *
+ * - `--advanced-camera-card-thumbnail-size`: the `size` configuration option,
+ *   which is the length of the image's longer side. A `panel` thumbnail in a
+ *   carousel or timeline popup is this tall, leaving room for its details
+ *   beside an image that is shorter than this.
+ * - `--advanced-camera-card-thumbnail-width` and
+ *   `--advanced-camera-card-thumbnail-height`: the dimensions of the image
+ *   itself, e.g. 100 x 56.25 for `aspect_ratio: 16:9` at `size: 100`.
+ * - `--advanced-camera-card-thumbnail-aspect-ratio`: the image's aspect ratio,
+ *   for the CSS `aspect-ratio` property.
+ *
+ * Without a config, all four are removed.
+ */
 export const setThumbnailDimensionsStyle = (
   element: HTMLElement,
   config: ThumbnailDimensionsConfig | null,
@@ -62,6 +65,6 @@ export const setThumbnailDimensionsStyle = (
   element.style.setProperty('--advanced-camera-card-thumbnail-height', `${height}px`);
   element.style.setProperty(
     '--advanced-camera-card-thumbnail-aspect-ratio',
-    `${width} / ${height}`,
+    aspectRatioToString({ ratio: [width, height] }),
   );
 };

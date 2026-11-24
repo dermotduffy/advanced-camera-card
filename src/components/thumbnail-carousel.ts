@@ -22,10 +22,7 @@ import {
   navigateUp,
   type FolderNavigationParamaters,
 } from '../components-lib/navigation.js';
-import {
-  getThumbnailTierSize,
-  setThumbnailDimensionsStyle,
-} from '../components-lib/thumbnail/dimensions.js';
+import { setThumbnailDimensionsStyle } from '../components-lib/thumbnail/dimensions.js';
 import {
   resolveThumbnailStyle,
   type ResolvedThumbnailStyle,
@@ -183,7 +180,8 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
         ? seekTarget
         : undefined}
       .thumbnailStyle=${this._getResolvedThumbnailStyle() ?? undefined}
-      .size=${this.config ? getThumbnailTierSize(this.config) : undefined}
+      .size=${this.config?.size}
+      .aspectRatio=${this.config?.aspect_ratio}
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}
       ?show_download_control=${this.config?.show_download_control}

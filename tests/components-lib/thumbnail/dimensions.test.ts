@@ -2,17 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getThumbnailDimensions,
-  getThumbnailTierSize,
+  getThumbnailShorterSide,
   setThumbnailDimensionsStyle,
 } from '../../../src/components-lib/thumbnail/dimensions';
 
+// @vitest-environment jsdom
 describe('getThumbnailDimensions', () => {
   it.each([
     ['square', [1, 1] as [number, number], { width: 160, height: 160 }],
     ['wide', [16, 9] as [number, number], { width: 160, height: 90 }],
     ['tall', [9, 16] as [number, number], { width: 90, height: 160 }],
   ])(
-    'should draw the longer side of a %s thumbnail at the size',
+    'should make the longer side of a %s thumbnail equal to the configured size',
     (_name, aspectRatio, dimensions) => {
       expect(getThumbnailDimensions({ aspect_ratio: aspectRatio, size: 160 })).toEqual(
         dimensions,
@@ -26,21 +27,25 @@ describe('getThumbnailDimensions', () => {
       height: 100,
     });
   });
+
+  it('should draw a square thumbnail without an aspect ratio', () => {
+    expect(getThumbnailDimensions({ size: 100 })).toEqual({
+      width: 100,
+      height: 100,
+    });
+  });
 });
 
-describe('getThumbnailTierSize', () => {
+describe('getThumbnailShorterSide', () => {
   it.each([
     ['square', [1, 1] as [number, number], 160],
     ['wide', [16, 9] as [number, number], 90],
     ['tall', [9, 16] as [number, number], 90],
-  ])('should use the shorter side of a %s thumbnail', (_name, aspectRatio, tierSize) => {
-    expect(getThumbnailTierSize({ aspect_ratio: aspectRatio, size: 160 })).toBe(
-      tierSize,
-    );
+  ])('should return the shorter side of a %s thumbnail', (_name, aspectRatio, side) => {
+    expect(getThumbnailShorterSide({ aspect_ratio: aspectRatio, size: 160 })).toBe(side);
   });
 });
 
-// @vitest-environment jsdom
 describe('setThumbnailDimensionsStyle', () => {
   it('should set the thumbnail dimensions', () => {
     const element = document.createElement('div');

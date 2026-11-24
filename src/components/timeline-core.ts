@@ -117,6 +117,7 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
       .viewManagerEpoch=${dataRequest.viewManagerEpoch}
       .thumbnailStyle=${this.thumbnailStyle}
       .size=${dataRequest.size}
+      .aspectRatio=${dataRequest.aspectRatio}
     >
     </advanced-camera-card-thumbnail>`;
   }

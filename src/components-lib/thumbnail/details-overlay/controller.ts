@@ -13,13 +13,13 @@ import {
   joinValues,
 } from '../../media/format';
 import type { ResolvedThumbnailStyle } from '../resolve-style';
-import { getThumbnailTier, type ThumbnailTier } from '../tier';
+import { THUMBNAIL_TIER_DEFAULT, type ThumbnailTier } from '../tier';
 
 export interface ThumbnailDetailsOverlayOptions {
   cameraManager?: CameraManager;
   item?: ViewItem;
   thumbnailStyle?: ResolvedThumbnailStyle;
-  size?: number;
+  tier?: ThumbnailTier;
 }
 
 interface ThumbnailDetailsOverlayTime {
@@ -33,7 +33,7 @@ interface ThumbnailDetailsOverlayTime {
 }
 
 export class ThumbnailDetailsOverlayController {
-  private _tier: ThumbnailTier = 'standard';
+  private _tier: ThumbnailTier = THUMBNAIL_TIER_DEFAULT;
 
   private _isHover = false;
 
@@ -46,7 +46,7 @@ export class ThumbnailDetailsOverlayController {
   private _tags: string | null = null;
 
   public calculate(options: ThumbnailDetailsOverlayOptions): void {
-    this._tier = getThumbnailTier(options.size);
+    this._tier = options.tier ?? THUMBNAIL_TIER_DEFAULT;
 
     this._isHover = options.thumbnailStyle === 'hover';
 

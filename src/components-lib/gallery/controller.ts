@@ -15,7 +15,6 @@ import type { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import type { View } from '../../view/view';
 import {
   getThumbnailDimensions,
-  getThumbnailTierSize,
   setThumbnailDimensionsStyle,
 } from '../thumbnail/dimensions';
 import {
@@ -144,10 +143,6 @@ export class GalleryController implements ReactiveController {
     return this._foldersOnly
       ? width + FOLDER_DETAILS_PANEL_WIDTH
       : Math.max(MEDIA_DETAILS_PANEL_COLUMN_WIDTH_MIN, width + DETAILS_PANEL_WIDTH);
-  }
-
-  public getThumbnailTierSize(): number {
-    return getThumbnailTierSize(this._thumbnailConfig ?? thumbnailsControlBaseDefaults);
   }
 
   public getColumnCountRoundMethod(): GalleryColumnCountRoundMethod {

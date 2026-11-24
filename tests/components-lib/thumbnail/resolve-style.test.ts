@@ -120,6 +120,15 @@ describe('resolveThumbnailStyle', () => {
       ).toBe('hover');
     });
 
+    it('should hover on large wide grid thumbnails', () => {
+      expect(
+        resolveThumbnailStyle(
+          createConfig({ style: 'auto', size: 200, aspect_ratio: [16, 9] }),
+          createContext(),
+        ),
+      ).toBe('hover');
+    });
+
     it('should ignore an unknown available width', () => {
       expect(
         resolveThumbnailStyle(
