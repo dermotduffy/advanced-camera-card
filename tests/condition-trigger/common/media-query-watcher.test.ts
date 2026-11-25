@@ -7,6 +7,7 @@ import { stubMatchMedia } from '../../test-utils';
 describe('MediaQueryWatcher', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('should report whether the query matches', () => {

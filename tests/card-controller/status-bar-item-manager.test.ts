@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import type { StatusBarString } from '../../src/config/schema/actions/types';
-import { formatDateAndTime } from '../../src/utils/basic';
+import { formatDateTime } from '../../src/utils/date/localized';
 import { QueryResults } from '../../src/view/query-results';
 import { createCameraManager, createStore } from '../camera-manager/test-utils';
 import { createConfig } from '../config/test-utils';
@@ -255,7 +255,7 @@ describe('StatusBarItemManager', () => {
           },
           {
             type: 'custom:advanced-camera-card-status-bar-string' as const,
-            string: formatDateAndTime(date),
+            string: formatDateTime(date),
           },
         ]);
       });
@@ -282,7 +282,7 @@ describe('StatusBarItemManager', () => {
           },
           {
             type: 'custom:advanced-camera-card-status-bar-string' as const,
-            string: formatDateAndTime(date),
+            string: formatDateTime(date),
             enabled: true,
             permanent: true,
             priority: 90,

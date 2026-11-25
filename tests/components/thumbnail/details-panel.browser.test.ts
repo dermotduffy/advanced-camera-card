@@ -17,6 +17,7 @@ import {
   createStillImageCameraConfig,
   waitForThumbnails,
 } from '../../browser/test-utils';
+import { createLocale } from '../../test-utils';
 
 const mountGalleryWithThumbnailSize = async (
   size: number,
@@ -30,6 +31,9 @@ const mountGalleryWithThumbnailSize = async (
     },
     [],
     width ? { width } : undefined,
+
+    // The start time test below expects `HH:mm:ss`, which needs 24-hour times.
+    { locale: createLocale({ time_format: '24' }) },
   );
   await waitForThumbnails(card, 1);
   return card;
@@ -198,6 +202,17 @@ describe('AdvancedCameraCardThumbnailDetailsPanel', () => {
     expect(getComputedStyle(time).fontFamily).not.toBe(
       getComputedStyle(getMetadataRow(details)).fontFamily,
     );
+  });
+
+  it('should show the seconds smaller than the hours and minutes', async () => {
+    const card = await mountGalleryWithThumbnailSize(THUMBNAIL_SIZE_DEFAULT);
+    const time = deepQuery(getHeading(getDetails(card)), '.time');
+    assert(time);
+    const hour = deepQuery(time, '.hour');
+    const second = deepQuery(time, '.second');
+    assert(hour && second);
+
+    expect(getFontSize(second)).toBeLessThan(getFontSize(hour));
   });
 
   it('should ignore a line height inherited from the page', async () => {

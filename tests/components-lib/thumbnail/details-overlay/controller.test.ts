@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ThumbnailDetailsOverlayController } from '../../../../src/components-lib/thumbnail/details-overlay/controller';
 import type { ResolvedThumbnailStyle } from '../../../../src/components-lib/thumbnail/resolve-style';
 import type { ThumbnailTier } from '../../../../src/components-lib/thumbnail/tier';
 import { ViewFolder, ViewMediaType } from '../../../../src/view/item';
 import { createCameraManagerWithMetadata } from '../../../camera-manager/test-utils';
-import { createFolder } from '../../../test-utils';
+import { createFolder, stubDateTimeLocale } from '../../../test-utils';
 import { TestViewMedia } from '../../../view/test-utils';
 
 const createEvent = (): TestViewMedia =>
@@ -135,26 +135,52 @@ describe('ThumbnailDetailsOverlayController', () => {
   });
 
   describe('should show the time', () => {
+    const getText = (parts?: Intl.DateTimeFormatPart[]): string | undefined =>
+      parts?.map((part) => part.value).join('');
+
+    beforeEach(() => {
+      stubDateTimeLocale({ language: 'en-US', time_format: '24' });
+    });
+
     it.each([['compact' as const], ['standard' as const]])(
       'should omit the seconds where the line is shared in the %s tier',
       (tier) => {
-        expect(createController('overlay', tier).getTime()).toEqual({
-          hoursMinutes: '16:55',
-          hoursMinutesSeconds: '16:55:47',
-        });
+        const time = createController('overlay', tier).getTime();
+        expect(getText(time?.parts)).toBe('16:55');
+        expect(time?.tooltip).toBe('16:55:47');
       },
     );
 
     it('should show the seconds where there is room', () => {
-      expect(createController('overlay', 'comfortable').getTime()).toEqual({
-        hoursMinutes: '16:55',
-        seconds: ':47',
-        hoursMinutesSeconds: '16:55:47',
-      });
+      const time = createController('overlay', 'comfortable').getTime();
+      expect(getText(time?.parts)).toBe('16:55:47');
+      expect(time?.parts).toContainEqual({ type: 'second', value: '47' });
+      expect(time?.tooltip).toBe('16:55:47');
+    });
+
+    it('should keep AM/PM where the seconds are omitted', () => {
+      stubDateTimeLocale({ language: 'en-US', time_format: '12' });
+
+      const time = createController('overlay', 'compact').getTime();
+      expect(getText(time?.parts)).toMatch(/^4:55\sPM$/);
+      expect(time?.parts).toContainEqual({ type: 'dayPeriod', value: 'PM' });
+    });
+
+    it('should keep AM/PM with the seconds where there is room', () => {
+      stubDateTimeLocale({ language: 'en-US', time_format: '12' });
+
+      const time = createController('overlay', 'comfortable').getTime();
+      expect(getText(time?.parts)).toMatch(/^4:55:47\sPM$/);
+      expect(time?.parts).toContainEqual({ type: 'dayPeriod', value: 'PM' });
+      expect(time?.tooltip).toMatch(/^4:55:47\sPM$/);
     });
 
     it('should show no seconds when hovered in the compact tier', () => {
-      expect(createController('hover', 'compact').getTime()?.seconds).toBeUndefined();
+      expect(
+        createController('hover', 'compact')
+          .getTime()
+          ?.parts.map((part) => part.type),
+      ).not.toContain('second');
     });
 
     it('should show no time without a start time', () => {

@@ -317,10 +317,6 @@
         },
         "timeline": {
           "editor_label": "Mini Timeline",
-          "format": {
-            "24h": "Use 24-hour clock",
-            "editor_label": "Time & date format"
-          },
           "mode": "Mode",
           "modes": {
             "above": "Above",
@@ -514,7 +510,7 @@
       },
       "draggable": "Draggable",
       "lazy_load": "Live cameras are lazily loaded",
-      "lazy_unload": "Live cameras are lazily unloaded",
+      "lazy_unload": "Unload live cameras to save data/battery",
       "microphone": {
         "always_connected": "Always keep the microphone connected",
         "audio_processing": {

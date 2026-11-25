@@ -60,17 +60,11 @@ describe('PIPManager', () => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
 
-    // Reset document PIP properties.
-    Object.defineProperty(document, 'pictureInPictureEnabled', {
-      value: undefined,
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(document, 'pictureInPictureElement', {
-      value: undefined,
-      writable: true,
-      configurable: true,
-    });
+    // jsdom has no picture-in-picture support for `vi.spyOn()` to replace, so
+    // the tests define these properties on the document.
+    Reflect.deleteProperty(document, 'exitPictureInPicture');
+    Reflect.deleteProperty(document, 'pictureInPictureElement');
+    Reflect.deleteProperty(document, 'pictureInPictureEnabled');
   });
 
   describe('isSupported', () => {

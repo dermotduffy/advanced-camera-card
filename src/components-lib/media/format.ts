@@ -1,7 +1,8 @@
 import type { CameraManager } from '../../camera-manager/manager';
 import { localize } from '../../localize/localize';
 import type { Severity } from '../../severity';
-import { getDurationString, isTruthy, prettifyTitle } from '../../utils/basic';
+import { isTruthy, prettifyTitle } from '../../utils/basic';
+import { getDurationString } from '../../utils/date/duration';
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { CardController } from '../../src/card-controller/controller';
@@ -18,6 +18,16 @@ const createCardAPIWithStateWatcher = (): CardController => {
     mock<StateWatcherSubscriptionInterface>(),
   );
   return api;
+};
+
+const createManager = (
+  ...args: ConstructorParameters<typeof DefaultManager>
+): DefaultManager => {
+  const manager = new DefaultManager(...args);
+
+  // The manager's reset timer outlives this test file.
+  onTestFinished(() => manager.uninitialize());
+  return manager;
 };
 
 // @vitest-environment jsdom
@@ -43,7 +53,7 @@ describe('DefaultManager', () => {
 
       vi.useFakeTimers();
 
-      const manager = new DefaultManager(api);
+      const manager = createManager(api);
       await manager.initialize();
 
       expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
@@ -79,7 +89,7 @@ describe('DefaultManager', () => {
 
       vi.useFakeTimers();
 
-      const manager = new DefaultManager(api);
+      const manager = createManager(api);
       manager.initialize();
 
       expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
@@ -105,7 +115,7 @@ describe('DefaultManager', () => {
 
       vi.useFakeTimers();
 
-      const manager = new DefaultManager(api);
+      const manager = createManager(api);
 
       await manager.initialize();
       expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
@@ -137,7 +147,7 @@ describe('DefaultManager', () => {
     const hass = createHASS();
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
-    const manager = new DefaultManager(api);
+    const manager = createManager(api);
     await manager.initialize();
 
     callStateWatcherCallback(api.getHASSManager().getStateWatcher(), {
@@ -163,7 +173,7 @@ describe('DefaultManager', () => {
         }),
       );
 
-      const manager = new DefaultManager(api);
+      const manager = createManager(api);
       await manager.initialize();
 
       expect(api.getAutomationsManager().addAutomations).not.toHaveBeenCalled();
@@ -182,7 +192,7 @@ describe('DefaultManager', () => {
         }),
       );
 
-      const manager = new DefaultManager(api);
+      const manager = createManager(api);
       await manager.initialize();
 
       expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith([
@@ -206,7 +216,7 @@ describe('DefaultManager', () => {
 
     it('should remove automation on uninitalize', () => {
       const api = createCardAPIWithStateWatcher();
-      const manager = new DefaultManager(api);
+      const manager = createManager(api);
       manager.uninitialize();
 
       expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
@@ -237,7 +247,7 @@ describe('DefaultManager', () => {
 
     vi.useFakeTimers();
 
-    const manager = new DefaultManager(api);
+    const manager = createManager(api);
 
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(configOn);
     await manager.initializeIfNecessary(null);

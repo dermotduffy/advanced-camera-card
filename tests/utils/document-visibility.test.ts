@@ -1,8 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { DocumentVisibility } from '../../src/utils/document-visibility';
 import { setVisibilityState, setVisibilityStateAndDispatch } from '../test-utils';
 import { createPromiseWithResolvers } from './test-utils';
+
+const subscribe = (
+  visibility: DocumentVisibility,
+  callback: (visible: boolean) => void,
+): void => {
+  // The subscription's document listener outlives this test file.
+  onTestFinished(visibility.subscribe(callback));
+};
 
 // @vitest-environment jsdom
 describe('DocumentVisibility', () => {
@@ -39,7 +47,7 @@ describe('DocumentVisibility', () => {
     it('should notify when the document is hidden', () => {
       const visibility = new DocumentVisibility();
       const callback = vi.fn();
-      visibility.subscribe(callback);
+      subscribe(visibility, callback);
 
       setVisibilityStateAndDispatch('hidden');
 
@@ -51,7 +59,7 @@ describe('DocumentVisibility', () => {
       setVisibilityState('hidden');
       const visibility = new DocumentVisibility();
       const callback = vi.fn();
-      visibility.subscribe(callback);
+      subscribe(visibility, callback);
 
       setVisibilityStateAndDispatch('visible');
 
@@ -62,7 +70,7 @@ describe('DocumentVisibility', () => {
     it('should not notify when the visibility is unchanged', () => {
       const visibility = new DocumentVisibility();
       const callback = vi.fn();
-      visibility.subscribe(callback);
+      subscribe(visibility, callback);
 
       setVisibilityStateAndDispatch('visible');
 
@@ -89,7 +97,7 @@ describe('DocumentVisibility', () => {
     it('should not notify of a hidden blip that ends while the request is pending', async () => {
       const visibility = new DocumentVisibility();
       const callback = vi.fn();
-      visibility.subscribe(callback);
+      subscribe(visibility, callback);
       const request = createPromiseWithResolvers();
 
       visibility.trackFullscreenRequest(request.promise);
@@ -104,7 +112,7 @@ describe('DocumentVisibility', () => {
     it('should notify of hidden when the document is still hidden as the request resolves', async () => {
       const visibility = new DocumentVisibility();
       const callback = vi.fn();
-      visibility.subscribe(callback);
+      subscribe(visibility, callback);
       const request = createPromiseWithResolvers();
 
       visibility.trackFullscreenRequest(request.promise);
@@ -121,7 +129,7 @@ describe('DocumentVisibility', () => {
     it('should notify of hidden when the document is still hidden as the request rejects', async () => {
       const visibility = new DocumentVisibility();
       const callback = vi.fn();
-      visibility.subscribe(callback);
+      subscribe(visibility, callback);
       const request = createPromiseWithResolvers();
 
       visibility.trackFullscreenRequest(request.promise);
@@ -137,7 +145,7 @@ describe('DocumentVisibility', () => {
     it('should not notify of hidden until the last of overlapping requests settles', async () => {
       const visibility = new DocumentVisibility();
       const callback = vi.fn();
-      visibility.subscribe(callback);
+      subscribe(visibility, callback);
       const first = createPromiseWithResolvers();
       const second = createPromiseWithResolvers();
 
@@ -157,7 +165,7 @@ describe('DocumentVisibility', () => {
     it('should notify of hidden at once when no request is pending', async () => {
       const visibility = new DocumentVisibility();
       const callback = vi.fn();
-      visibility.subscribe(callback);
+      subscribe(visibility, callback);
       const request = createPromiseWithResolvers();
 
       visibility.trackFullscreenRequest(request.promise);

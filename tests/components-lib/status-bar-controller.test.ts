@@ -431,6 +431,16 @@ describe('StatusBarController', () => {
   });
 
   describe('auto-hide', () => {
+    beforeAll(() => {
+      // The controller starts a popup timer it has no way to stop, and fake
+      // timers discard it once these tests finish.
+      vi.useFakeTimers();
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
     const sufficientItem = {
       type: 'custom:advanced-camera-card-status-bar-string' as const,
       string: 'Item',

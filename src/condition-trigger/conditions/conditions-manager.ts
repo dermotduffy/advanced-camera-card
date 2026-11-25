@@ -1,7 +1,7 @@
 import type { TemplateRenderer } from '../../card-controller/templates';
 import type { Condition } from '../../config/schema/condition-trigger/conditions/types';
 import type { UnsubscribeCallback } from '../../types';
-import { getEarliestDate } from '../../utils/basic';
+import { getEarliestDate } from '../../utils/date/compare';
 import { Timer } from '../../utils/timer';
 import { isEnabled } from '../common/is-enabled';
 import type { ConditionEvaluator } from './conditions/types';

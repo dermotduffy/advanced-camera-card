@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   resolveThumbnailStyle,
@@ -26,6 +26,10 @@ const createContext = (
 
 // @vitest-environment jsdom
 describe('resolveThumbnailStyle', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   beforeEach(() => {
     stubMatchMedia().mockReturnValue({ matches: true });
   });

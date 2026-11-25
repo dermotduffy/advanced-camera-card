@@ -134,9 +134,6 @@ describe('config defaults', () => {
           },
           timeline: {
             clustering_threshold: 3,
-            format: {
-              '24h': true,
-            },
             mode: 'none',
             pan_mode: 'pan',
             show_recordings: true,
@@ -216,9 +213,6 @@ describe('config defaults', () => {
           },
           timeline: {
             clustering_threshold: 3,
-            format: {
-              '24h': true,
-            },
             mode: 'none',
             pan_mode: 'pan',
             show_recordings: true,
@@ -515,9 +509,6 @@ describe('config defaults', () => {
             show_timeline_control: false,
             size: 100,
           },
-        },
-        format: {
-          '24h': true,
         },
         show_recordings: true,
         style: 'stack',

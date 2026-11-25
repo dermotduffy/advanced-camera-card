@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import type { Severity } from '../../severity';
-import { isValidDay } from '../../utils/basic';
+import { isValidDay } from '../../utils/date/validity';
 import type {
   Engine,
   EventQueryResults,

@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { MicrophoneState } from '../../src/card-controller/types';
@@ -65,6 +74,14 @@ const createPlayerSlideNodes = (n = 10): HTMLElement[] => {
   return divs;
 };
 
+const createController = (): MediaActionsController => {
+  const controller = new MediaActionsController();
+
+  // The controller's document visibility subscription outlives this test file.
+  onTestFinished(() => controller.destroy());
+  return controller;
+};
+
 // @vitest-environment jsdom
 describe('MediaActionsController', () => {
   beforeAll(() => {
@@ -87,7 +104,7 @@ describe('MediaActionsController', () => {
 
   describe('should set root', () => {
     it('should have root', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setRoot(createParent());
 
@@ -95,7 +112,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should do nothing without options', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       const children = createPlayerSlideNodes();
       const parent = createParent({ children: children });
@@ -110,7 +127,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should do nothing on resetting same root', () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       const parent = createParent({ children: createPlayerSlideNodes() });
 
       expect(controller.setRoot(parent)).toBeTruthy();
@@ -118,7 +135,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should re-setRoot after mutation', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         playerSelector: 'video',
         autoPlayConditions: ['selected' as const],
@@ -146,7 +163,7 @@ describe('MediaActionsController', () => {
 
   describe('should destroy', () => {
     it('should do nothing after destroy', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         playerSelector: 'video',
         autoPlayConditions: ['selected' as const],
@@ -181,7 +198,7 @@ describe('MediaActionsController', () => {
         func: string,
         called: boolean,
       ) => {
-        const controller = new MediaActionsController();
+        const controller = createController();
         controller.setOptions({
           playerSelector: 'video',
           ...options,
@@ -202,7 +219,7 @@ describe('MediaActionsController', () => {
     );
 
     it('should not reselect previously selected target', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         autoPlayConditions: ['selected' as const],
         playerSelector: 'video',
@@ -227,7 +244,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should unselect before selecting a new target', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         autoPauseConditions: ['unselected' as const],
         autoMuteConditions: ['unselected' as const],
@@ -250,7 +267,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should select after target was previously visible', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         autoPlayConditions: ['selected' as const],
         autoUnmuteConditions: ['selected' as const],
@@ -283,7 +300,7 @@ describe('MediaActionsController', () => {
   });
 
   it('should take no action after target unset', async () => {
-    const controller = new MediaActionsController();
+    const controller = createController();
     controller.setOptions({
       autoPlayConditions: ['selected' as const, 'visible' as const],
       autoUnmuteConditions: ['selected' as const, 'visible' as const],
@@ -322,7 +339,7 @@ describe('MediaActionsController', () => {
 
   describe('should respond to media loaded', () => {
     it('should play after media load', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         autoPlayConditions: ['selected' as const],
         playerSelector: 'video',
@@ -351,7 +368,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should unmute after media load', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         autoUnmuteConditions: ['selected' as const],
         playerSelector: 'video',
@@ -377,7 +394,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should take no action on unrelated media load', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         autoPlayConditions: ['selected' as const, 'visible' as const],
         autoUnmuteConditions: ['selected' as const, 'visible' as const],
@@ -405,7 +422,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should play and unmute on unselected but targeted media load', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
       controller.setOptions({
         autoPlayConditions: ['visible' as const],
         autoUnmuteConditions: ['visible' as const],
@@ -455,7 +472,7 @@ describe('MediaActionsController', () => {
         func: string,
         called: boolean,
       ) => {
-        const controller = new MediaActionsController();
+        const controller = createController();
         controller.setOptions({
           playerSelector: 'video',
           ...options,
@@ -493,7 +510,7 @@ describe('MediaActionsController', () => {
       ) => {
         vi.spyOn(global.document, 'addEventListener');
 
-        const controller = new MediaActionsController();
+        const controller = createController();
         controller.setOptions({
           playerSelector: 'video',
           ...options,
@@ -541,7 +558,7 @@ describe('MediaActionsController', () => {
         func: string,
         called: boolean,
       ) => {
-        const controller = new MediaActionsController();
+        const controller = createController();
         controller.setOptions({
           playerSelector: 'video',
           ...options,
@@ -582,7 +599,7 @@ describe('MediaActionsController', () => {
         func: string,
         called: boolean,
       ) => {
-        const controller = new MediaActionsController();
+        const controller = createController();
         controller.setOptions({
           playerSelector: 'video',
           ...options,
@@ -631,7 +648,7 @@ describe('MediaActionsController', () => {
         func: string,
         called: boolean,
       ) => {
-        const controller = new MediaActionsController();
+        const controller = createController();
         controller.setOptions({
           playerSelector: 'video',
           ...options,
@@ -687,7 +704,7 @@ describe('MediaActionsController', () => {
     };
 
     it('should unmute when microphone unmuted', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoUnmuteConditions: ['microphone' as const],
@@ -708,7 +725,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should mute after delay after microphone muted', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoMuteConditions: ['microphone' as const],
@@ -731,7 +748,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should not mute after delay after microphone muted', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoMuteConditions: [],
@@ -754,7 +771,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should not act on the initial microphone state', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoUnmuteConditions: ['microphone' as const],
@@ -775,7 +792,7 @@ describe('MediaActionsController', () => {
 
   describe('should take action on call answered state changes', () => {
     it('should unmute the target on call answer', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoUnmuteConditions: ['call' as const],
@@ -796,7 +813,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should mute the target on call end', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoMuteConditions: ['call' as const],
@@ -817,7 +834,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should not act on the initial call state', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoMuteConditions: ['call' as const],
@@ -837,7 +854,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should not act when call is not a configured condition', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoUnmuteConditions: [],
@@ -857,7 +874,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should apply the call-answer unmute when the target arrives after the call', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoUnmuteConditions: ['call' as const],
@@ -883,7 +900,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should unmute when the call is already answered on the first call-state signal', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoUnmuteConditions: ['call' as const],
@@ -906,7 +923,7 @@ describe('MediaActionsController', () => {
     });
 
     it('should defer the call-answer unmute until the media player is ready', async () => {
-      const controller = new MediaActionsController();
+      const controller = createController();
 
       controller.setOptions({
         autoUnmuteConditions: ['call' as const],

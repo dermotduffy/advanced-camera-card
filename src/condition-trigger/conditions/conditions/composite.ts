@@ -1,4 +1,4 @@
-import { getEarliestDate } from '../../../utils/basic';
+import { getEarliestDate } from '../../../utils/date/compare';
 import type { ConditionState } from '../types';
 import type {
   ConditionEvaluator,

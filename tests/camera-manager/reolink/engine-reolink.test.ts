@@ -33,7 +33,12 @@ import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
 import { QuerySource } from '../../../src/query-source';
 import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import { createHASS, createHASSManager, createRegistryEntity } from '../../test-utils';
+import {
+  createHASS,
+  createHASSManager,
+  createRegistryEntity,
+  stubDateTimeLocale,
+} from '../../test-utils';
 import { createInitializedCamera, createStore } from '../test-utils';
 
 vi.mock('../../../src/ha/ws-request');
@@ -974,6 +979,8 @@ describe('ReolinkCameraManagerEngine', () => {
 
   describe('should generate media from events', () => {
     it('should generate media successfully', () => {
+      stubDateTimeLocale({ language: 'es', time_format: '24' });
+
       const query: EventQuery = {
         source: QuerySource.Camera,
         type: QueryType.Event,
@@ -1016,7 +1023,7 @@ describe('ReolinkCameraManagerEngine', () => {
       expect(media?.[0].getContentID()).toBe(
         'media-source://reolink/FILE|01J8XHYTNH77WE3C654K03KX1F|0|sub|Rec_20241105_052353_211_S.mp4',
       );
-      expect(media?.[0].getTitle()).toBe('2024-11-04 21:00');
+      expect(media?.[0].getTitle()).toBe('4 nov 2024, 21:00');
     });
 
     it('should reject non-reolink results', () => {

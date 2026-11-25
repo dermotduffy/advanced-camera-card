@@ -6,6 +6,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi,
 } from 'vitest';
 
@@ -23,12 +24,7 @@ import {
 } from '../../../src/utils/action';
 import { arrayify } from '../../../src/utils/basic';
 import { createConfig } from '../../config/test-utils';
-import {
-  createCardAPI,
-  createHASS,
-  createMockTemplateRenderer,
-  stubConnectedHomeAssistant,
-} from '../../test-utils';
+import { createCardAPI, createHASS, createMockTemplateRenderer } from '../../test-utils';
 import { createView } from '../../view/test-utils';
 
 const createAPI = (): CardController => {
@@ -179,12 +175,6 @@ describe('ActionsManager', () => {
   });
 
   describe('handleInteractionEvent', () => {
-    // Templated actions render through ha-nunjucks, which polls (via setTimeout)
-    // for a connected `home-assistant` element until ready. Stubbing one makes
-    // it resolve synchronously, so no retry timer leaks past test teardown.
-    beforeAll(() => {
-      stubConnectedHomeAssistant();
-    });
     beforeEach(() => {
       vi.restoreAllMocks();
     });
@@ -643,6 +633,7 @@ describe('ActionsManager', () => {
       it('should forward success haptic', async () => {
         const handler = vi.fn();
         window.addEventListener('haptic', handler);
+        onTestFinished(() => window.removeEventListener('haptic', handler));
 
         const api = createAPI();
         const manager = new ActionsManager(api);
@@ -659,6 +650,7 @@ describe('ActionsManager', () => {
 
         const handler = vi.fn();
         window.addEventListener('haptic', handler);
+        onTestFinished(() => window.removeEventListener('haptic', handler));
 
         const api = createAPI();
         const manager = new ActionsManager(api);

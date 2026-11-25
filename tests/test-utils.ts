@@ -3,7 +3,6 @@ import {
   type HassEntities,
   type HassEntity,
   type HassEvent,
-  type MessageBase,
 } from 'home-assistant-js-websocket';
 import type { LitElement } from 'lit';
 import screenfull from 'screenfull';
@@ -67,12 +66,18 @@ import { computeObjectId } from '../src/ha/compute-object-id';
 import type { Device } from '../src/ha/registry/device/types';
 import type { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import type { HASSListener, HASSSource } from '../src/ha/source';
-import type { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
+import type {
+  CurrentUser,
+  FrontendLocaleData,
+  HassStateDifference,
+  HomeAssistant,
+} from '../src/ha/types';
 import type {
   Interaction,
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,
 } from '../src/types';
+import { setDateTimeLocale } from '../src/utils/date/localized';
 import type { DocumentVisibility } from '../src/utils/document-visibility';
 import type { ViewItemCapabilities } from '../src/view/types';
 
@@ -93,6 +98,10 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   }
   hass.config.components = [];
 
+  // The card formats dates and times with these settings, so they are real
+  // values rather than the mock's.
+  hass.locale = createLocale();
+
   // Most Home Assistant instances share the browser's timezone.
   hass.config.time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -111,6 +120,24 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   // ha-nunjucks calls sendMessagePromise to fetch label registry; return empty array to prevent crash.
   hass.connection.sendMessagePromise = vi.fn().mockResolvedValue([]);
   return hass;
+};
+
+export const createLocale = (
+  locale?: Partial<FrontendLocaleData>,
+): FrontendLocaleData => ({
+  language: 'en',
+  number_format: 'language',
+  time_format: 'language',
+  ...locale,
+});
+
+/**
+ * Show dates and times with the given settings until the current test
+ * finishes.
+ */
+export const stubDateTimeLocale = (locale?: Partial<FrontendLocaleData>): void => {
+  setDateTimeLocale(createLocale(locale));
+  onTestFinished(() => setDateTimeLocale(null));
 };
 
 /**
@@ -308,13 +335,19 @@ export const createMediaLoadedInfoEvent = (options?: {
   return ev;
 };
 
+/**
+ * Appends an element to the document body until the current test finishes.
+ */
+export const appendToBody = <T extends Element>(element: T): T => {
+  document.body.append(element);
+  onTestFinished(() => element.remove());
+  return element;
+};
+
+// Callers must undo the stub with `vi.unstubAllGlobals()`.
 export const stubMatchMedia = (): Mock => {
   const matchMedia = vi.fn();
   vi.stubGlobal('matchMedia', matchMedia);
-  onTestFinished(() => {
-    // There is no singular unstubGlobal.
-    Reflect.deleteProperty(globalThis, 'matchMedia');
-  });
   return matchMedia;
 };
 
@@ -387,11 +420,7 @@ export const callMutationHandler = async (n = 0): Promise<void> => {
 };
 
 export const setVisibilityState = (state: DocumentVisibilityState): void => {
-  Object.defineProperty(document, 'visibilityState', {
-    value: state,
-    writable: true,
-    configurable: true,
-  });
+  vi.spyOn(document, 'visibilityState', 'get').mockReturnValue(state);
 };
 
 export const setVisibilityStateAndDispatch = (state: DocumentVisibilityState): void => {
@@ -526,58 +555,6 @@ export const createMockTemplateRenderer = (): TemplateManager => {
   renderer.renderRecursively.mockImplementation((_hass, value) => value);
   renderer.renderRecursivelyAsType.mockImplementation((_hass, value) => value);
   return renderer;
-};
-
-// At import the real ha-nunjucks engine waits for a connected `home-assistant`
-// element before finishing initialization, retrying on a timer that can outlive
-// the test (and throw `document is not defined` once the environment is torn
-// down). Test suites that load the real engine call this first, in a jsdom
-// environment, so it initializes immediately as it does in a real Home
-// Assistant frontend. Idempotent.
-//
-// Workaround for an upstream bug; remove once it is fixed:
-// https://github.com/Nerwyn/ha-nunjucks/issues/11
-export const stubConnectedHomeAssistant = (): void => {
-  if (document.querySelector('home-assistant')) {
-    return;
-  }
-  const ha = document.createElement('home-assistant');
-  Object.assign(ha, {
-    hass: {
-      // The readiness gate the engine polls for.
-      connected: true,
-      connection: {
-        connected: true,
-        // Awaited by ha-nunjucks' registry fetches during init. Most (labels,
-        // entities) expect a bare array; repairs issues expects a `{issues}`
-        // wrapper -- see ha-nunjucks' fetchLabelRegistry/fetchEntityRegistry
-        // vs fetchRepairsIssues.
-        sendMessagePromise: (message: MessageBase) =>
-          Promise.resolve(message.type === 'repairs/list_issues' ? { issues: [] } : []),
-        // ha-nunjucks 1.7.x subscribes to live registry updates (labels,
-        // entities, repairs issues, config entries) during init via these two
-        // methods; without them, the calls throw and the engine deletes its
-        // own global state, silently.
-        subscribeEvents: () => Promise.resolve(() => {}),
-        subscribeMessage: () => Promise.resolve(() => {}),
-      },
-      language: 'en',
-      // ha-nunjucks 1.7.x builds number/time formatters during init
-      // (getNumberFormatter/getTimeFormatter), which read these unconditionally.
-      locale: {
-        language: 'en',
-        number_format: 'language',
-        time_format: 'language',
-        time_zone: 'local',
-      },
-      // Fallback for resolveTimeZone() if the 'local' branch above isn't taken.
-      config: {
-        time_zone: 'UTC',
-      },
-      states: {},
-    },
-  });
-  document.body.appendChild(ha);
 };
 
 export const createCardAPI = (): CardController => {

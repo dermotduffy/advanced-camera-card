@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { CallSession } from '../../../src/card-controller/call/types';
@@ -18,6 +27,14 @@ const createMicrophoneManager = (): MicrophoneManager => {
   const microphoneManager = mock<MicrophoneManager>();
   vi.mocked(microphoneManager.unmute).mockResolvedValue(undefined);
   return microphoneManager;
+};
+
+const createController = (): MicrophoneActionsController => {
+  const controller = new MicrophoneActionsController();
+
+  // The controller's document visibility subscription outlives this test file.
+  onTestFinished(() => controller.destroy());
+  return controller;
 };
 
 const createCallSession = (session?: Partial<CallSession>): CallSession => ({
@@ -52,7 +69,7 @@ describe('MicrophoneActionsController', () => {
   describe('on document visibility change', () => {
     it('should mute on hidden when the live root is intersecting', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoMuteConditions: ['hidden' as const],
@@ -69,7 +86,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should unmute on visible when the live root is intersecting', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['visible' as const],
@@ -95,7 +112,7 @@ describe('MicrophoneActionsController', () => {
       // regains focus. Without this gate, tab focus would prompt for / open the
       // microphone from a hidden live view.
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['visible' as const],
@@ -113,7 +130,7 @@ describe('MicrophoneActionsController', () => {
   describe('on intersection change', () => {
     it('should mute when the live root scrolls out of view', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoMuteConditions: ['hidden' as const],
@@ -130,7 +147,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should unmute when the live root scrolls back into view', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['visible' as const],
@@ -145,7 +162,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should ignore the very first intersection callback (baseline)', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoMuteConditions: ['hidden' as const],
@@ -162,7 +179,7 @@ describe('MicrophoneActionsController', () => {
     it('should swallow a rejected auto-unmute so a denied microphone does not surface', async () => {
       const microphoneManager = createMicrophoneManager();
       vi.mocked(microphoneManager.unmute).mockRejectedValue(new Error('denied'));
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['visible' as const],
@@ -177,7 +194,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should not act when no condition is configured', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({ microphoneManager });
       controller.setRoot(createParent());
 
@@ -193,7 +210,7 @@ describe('MicrophoneActionsController', () => {
       // Guards the short-circuit on the helpers: with conditions configured but
       // no microphoneManager, .mute()/.unmute() must not be invoked on
       // undefined.
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         autoMuteConditions: ['hidden' as const],
         autoUnmuteConditions: ['visible' as const],
@@ -207,7 +224,7 @@ describe('MicrophoneActionsController', () => {
     });
 
     it('should not act before options are set', async () => {
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setRoot(createParent());
 
       await callIntersectionHandler(true);
@@ -220,7 +237,7 @@ describe('MicrophoneActionsController', () => {
   describe('on call session change', () => {
     it('should unmute on call answer when call is a configured unmute condition', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['call' as const],
@@ -234,7 +251,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should unmute when the first call session is already answered', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['call' as const],
@@ -253,7 +270,7 @@ describe('MicrophoneActionsController', () => {
       // have muted themselves during the call it replaced, so the new call
       // applies its own unmute rules rather than inheriting that mute.
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['call' as const],
@@ -267,7 +284,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should not unmute again when the same call session is set again', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['call' as const],
@@ -282,7 +299,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should not mute on call end', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['call' as const],
@@ -298,7 +315,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should not act on a ringing call', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: ['call' as const],
@@ -312,7 +329,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should not act on call answer when call is not a configured condition', async () => {
       const microphoneManager = createMicrophoneManager();
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setOptions({
         microphoneManager,
         autoUnmuteConditions: [],
@@ -327,7 +344,7 @@ describe('MicrophoneActionsController', () => {
 
   describe('lifecycle', () => {
     it('should be idempotent on setRoot for the same element', () => {
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       const parent = createParent();
 
       controller.setRoot(parent);
@@ -344,7 +361,7 @@ describe('MicrophoneActionsController', () => {
 
     it('should disconnect the intersection observer and remove the visibility listener on destroy', () => {
       const removeEventListenerSpy = vi.spyOn(global.document, 'removeEventListener');
-      const controller = new MicrophoneActionsController();
+      const controller = createController();
       controller.setRoot(createParent());
 
       const intersectionObserver = getMockIntersectionObserver();

@@ -121,10 +121,6 @@
           }
         },
         "timeline": {
-          "format": {
-            "24h": "24h Uhr",
-            "editor_label": "Datums & Zeitformat"
-          },
           "pan_mode": "Standard Pan Modus",
           "pan_modes": {
             "pan": "Pan",

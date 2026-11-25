@@ -4,8 +4,9 @@ import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../src/components-lib/live/liveness/detectors/entity-availability';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import type { DataURL } from '../../../src/types';
-import { aspectRatioToString, formatDateAndTime } from '../../../src/utils/basic';
+import { aspectRatioToString } from '../../../src/utils/basic';
 import { isDataURL } from '../../../src/utils/data-url';
+import { formatDateTime } from '../../../src/utils/date/localized';
 import { sharedPreservedFrameStore } from '../../../src/utils/preserved-frame-store';
 import { deepQuery } from '../../browser/dom';
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from '../../browser/fixtures';
@@ -254,7 +255,7 @@ describe('AdvancedCameraCardLiveProvider', () => {
       );
 
       await card.waitForRender(
-        () => getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+        () => getStatusBarStrings(card.card).includes(formatDateTime(date)) || null,
         'the status bar showing the date of the loading image',
       );
     });
@@ -278,7 +279,7 @@ describe('AdvancedCameraCardLiveProvider', () => {
       });
 
       await card.waitForRender(
-        () => getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+        () => getStatusBarStrings(card.card).includes(formatDateTime(date)) || null,
         'the status bar showing the date of the image',
       );
     });
@@ -338,8 +339,7 @@ describe('AdvancedCameraCardLiveProvider', () => {
       'the image showing the preserved frame',
     );
     await card.waitForRender(
-      () =>
-        getStatusBarStrings(card.card).includes(formatDateAndTime(frame.date)) || null,
+      () => getStatusBarStrings(card.card).includes(formatDateTime(frame.date)) || null,
       'the status bar showing the date of the frame',
     );
   });
@@ -459,7 +459,7 @@ describe('AdvancedCameraCardLiveProvider', () => {
         'the image showing its configured URL',
       );
       await card.waitForRender(
-        () => !getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+        () => !getStatusBarStrings(card.card).includes(formatDateTime(date)) || null,
         'the status bar no longer showing the date of the frame',
       );
     });
@@ -604,7 +604,7 @@ describe('AdvancedCameraCardLiveProvider', () => {
       'the image being rendered',
     );
     await card.waitForRender(
-      () => getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+      () => getStatusBarStrings(card.card).includes(formatDateTime(date)) || null,
       'the status bar showing the date of the image',
     );
     expect(image.src).toBe(frameURL);
@@ -616,7 +616,7 @@ describe('AdvancedCameraCardLiveProvider', () => {
       'the image showing its configured URL',
     );
     await card.waitForRender(
-      () => !getStatusBarStrings(card.card).includes(formatDateAndTime(date)) || null,
+      () => !getStatusBarStrings(card.card).includes(formatDateTime(date)) || null,
       'the status bar no longer showing the date of the frame',
     );
   });

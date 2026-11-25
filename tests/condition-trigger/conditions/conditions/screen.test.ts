@@ -8,6 +8,7 @@ import { createEvaluatorContext } from './test-utils';
 describe('screen condition', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('should evaluate the media query', () => {

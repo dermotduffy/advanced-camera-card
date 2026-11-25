@@ -1,18 +1,18 @@
-import { assert, describe, expect, it, onTestFinished, vi } from 'vitest';
+import { describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { NotificationPopupController } from '../../../src/components-lib/notification/notification-popup-controller';
 import { POP_OUT_ANIMATION_NAME } from '../../../src/utils/animation';
-import { createLitElement } from '../../test-utils';
+import { appendToBody, createLitElement } from '../../test-utils';
 
 // @vitest-environment jsdom
 describe('NotificationPopupController', () => {
   const create = (getNotificationElement?: () => HTMLElement | null) => {
     const focusReturnElement = document.createElement('div');
     focusReturnElement.setAttribute('tabindex', '0');
-    document.body.appendChild(focusReturnElement);
+    appendToBody(focusReturnElement);
 
     const host = createLitElement();
-    document.body.appendChild(host);
+    appendToBody(host);
     const popup = document.createElement('div');
 
     const controller = new NotificationPopupController(
@@ -22,12 +22,8 @@ describe('NotificationPopupController', () => {
     );
     controller.hostConnected();
 
-    // Cleanup (disconnecting the window listeners and clearing the DOM) is
-    // registered per test, so leaked listeners cannot bleed into later tests.
-    onTestFinished(() => {
-      controller.hostDisconnected();
-      document.body.replaceChildren();
-    });
+    // The controller's window listeners outlive this test file.
+    onTestFinished(() => controller.hostDisconnected());
 
     return { focusReturnElement, host, popup, controller };
   };
@@ -58,7 +54,7 @@ describe('NotificationPopupController', () => {
     it('should dismiss on a click outside the host', () => {
       const { popup } = create();
       const outside = document.createElement('div');
-      document.body.appendChild(outside);
+      appendToBody(outside);
       outside.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
       expect(popup.classList.contains('exiting')).toBe(true);
     });
@@ -74,7 +70,7 @@ describe('NotificationPopupController', () => {
       controller.hostDisconnected();
 
       const outside = document.createElement('div');
-      document.body.appendChild(outside);
+      appendToBody(outside);
       outside.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
       expect(popup.classList.contains('exiting')).toBe(false);
     });
@@ -86,7 +82,7 @@ describe('NotificationPopupController', () => {
     const createFocusablePopup = (): HTMLElement => {
       const popup = document.createElement('div');
       popup.setAttribute('tabindex', '-1');
-      document.body.appendChild(popup);
+      appendToBody(popup);
       return popup;
     };
 
@@ -105,7 +101,7 @@ describe('NotificationPopupController', () => {
       controller.hostUpdated();
 
       const control = document.createElement('button');
-      document.body.appendChild(control);
+      appendToBody(control);
       control.focus();
 
       controller.hostUpdated();
@@ -145,7 +141,7 @@ describe('NotificationPopupController', () => {
 
     it('should do nothing when there is nowhere to hand focus back to', () => {
       const host = createLitElement();
-      document.body.appendChild(host);
+      appendToBody(host);
       const popup = createFocusablePopup();
 
       const controller = new NotificationPopupController(
@@ -164,7 +160,7 @@ describe('NotificationPopupController', () => {
       const { controller } = create();
 
       const elsewhere = document.createElement('button');
-      document.body.appendChild(elsewhere);
+      appendToBody(elsewhere);
       elsewhere.focus();
 
       controller.hostDisconnected();
@@ -173,18 +169,10 @@ describe('NotificationPopupController', () => {
     });
 
     it('should do nothing when nothing had focus', () => {
-      const activeElement = Object.getOwnPropertyDescriptor(
-        Document.prototype,
-        'activeElement',
-      );
-      assert(activeElement);
-      Object.defineProperty(document, 'activeElement', {
-        configurable: true,
-        get: () => null,
-      });
-      onTestFinished(() => {
-        Object.defineProperty(document, 'activeElement', activeElement);
-      });
+      const activeElement = vi
+        .spyOn(document, 'activeElement', 'get')
+        .mockReturnValue(null);
+      onTestFinished(() => activeElement.mockRestore());
 
       const { controller } = create();
 

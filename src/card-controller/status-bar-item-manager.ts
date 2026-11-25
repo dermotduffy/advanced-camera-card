@@ -5,7 +5,7 @@ import type { StatusBarItem } from '../config/schema/actions/types';
 import type { StatusBarConfig } from '../config/schema/status-bar';
 import type { MediaLoadedInfo } from '../types';
 import { createNotificationAction } from '../utils/action';
-import { formatDateAndTime } from '../utils/basic';
+import { formatDateTime } from '../utils/date/localized';
 import type { PreservedFrame } from '../utils/preserved-frame-store';
 import type { View } from '../view/view';
 import type { KeyedIssueDescription } from './issues/types';
@@ -104,7 +104,7 @@ export class StatusBarItemManager {
             },
             {
               type: 'custom:advanced-camera-card-status-bar-string' as const,
-              string: formatDateAndTime(options.preservedFrame.date),
+              string: formatDateTime(options.preservedFrame.date),
               ...options?.statusConfig?.items.preserved_frame,
             },
           ]

@@ -315,10 +315,6 @@
         },
         "timeline": {
           "editor_label": "Mini vremenska linija",
-          "format": {
-            "24h": "Koristi 24-časovni format vremena",
-            "editor_label": "Format vremena i datuma"
-          },
           "mode": "Režim",
           "modes": {
             "above": "Iznad",
