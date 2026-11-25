@@ -16,8 +16,10 @@ import { onAbort } from '../../utils/abort-signal';
 import {
   arefloatsApproximatelyEqual,
   getDistance,
+  getLayoutSize,
   isHoverableDevice,
   type Point,
+  type Size,
 } from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { isMediaContainedAndCentered } from '../../utils/media-layout';
@@ -533,8 +535,8 @@ export class ZoomController {
   }
 
   // The picture's size at scale 1, contained within the element.
-  private _getPictureSize(): { width: number; height: number } {
-    const size = this._getLayoutSize();
+  private _getPictureSize(): Size {
+    const size = getLayoutSize(this._element);
     const ratio = this._pictureAspectRatio;
     if (!ratio) {
       return size;
@@ -580,7 +582,7 @@ export class ZoomController {
 
     // The room to pan on each axis is how far the scaled picture overhangs the
     // element, in Panzoom's unscaled coordinates.
-    const size = this._getLayoutSize();
+    const size = getLayoutSize(this._element);
     const picture = this._getPictureSize();
 
     const minX = Math.max(0, (picture.width - size.width / scale) / 2);
@@ -599,18 +601,8 @@ export class ZoomController {
   }
 
   private _hasSize(): boolean {
-    const size = this._getLayoutSize();
+    const size = getLayoutSize(this._element);
     return !!size.width && !!size.height;
-  }
-
-  // The element's size excluding any transform (`getBoundingClientRect()`
-  // includes the Panzoom transform).
-  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2223
-  private _getLayoutSize(): { width: number; height: number } {
-    return {
-      width: this._element.offsetWidth,
-      height: this._element.offsetHeight,
-    };
   }
 
   private _isUnzoomed(scale?: number): boolean {

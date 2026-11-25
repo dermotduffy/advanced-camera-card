@@ -157,23 +157,17 @@ export interface HomeAssistant {
   formatEntityName: (stateObj: HassEntity) => string;
 }
 
-declare enum NumberFormat {
-  language = 'language',
-  system = 'system',
-  comma_decimal = 'comma_decimal',
-  decimal_comma = 'decimal_comma',
-  space_comma = 'space_comma',
-  none = 'none',
-}
+type NumberFormat =
+  | 'language'
+  | 'system'
+  | 'comma_decimal'
+  | 'decimal_comma'
+  | 'space_comma'
+  | 'none';
 
-declare enum TimeFormat {
-  language = 'language',
-  system = 'system',
-  am_pm = '12',
-  twenty_four = '24',
-}
+type TimeFormat = 'language' | 'system' | '12' | '24';
 
-interface FrontendLocaleData {
+export interface FrontendLocaleData {
   language: string;
   number_format: NumberFormat;
   time_format: TimeFormat;
@@ -355,7 +349,14 @@ interface CardHAFormSchemaExtensions {
 
 export interface HAFormSelectorSchema
   extends StockHAFormSelectorSchema,
-    CardHAFormSchemaExtensions {}
+    CardHAFormSchemaExtensions {
+  // Convert a configured value into the value the field shows, e.g. an aspect
+  // ratio stored as `[16, 9]` is shown in a text field as `16:9`. Pass a
+  // function defined once, not one created each time the schema is built: the
+  // editor redraws a form whenever its rebuilt schema differs from the last
+  // one, and two separately created functions always count as different.
+  formatDisplayed?: (value: unknown) => unknown;
+}
 
 export interface HAFormExpandableSchema
   extends Omit<StockHAFormExpandableSchema, 'name'>,

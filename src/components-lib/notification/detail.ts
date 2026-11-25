@@ -1,8 +1,7 @@
-import { format } from 'date-fns';
-
 import type { CameraManager } from '../../camera-manager/manager';
 import type { NotificationDetail } from '../../config/schema/actions/types';
 import { localize } from '../../localize/localize';
+import { formatDateTime, formatTime } from '../../utils/date/localized';
 import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import {
@@ -65,7 +64,7 @@ export const getNotificationDetails = (
 
   return [
     ...toDetails(
-      startTime ? format(startTime, 'yyyy-MM-dd HH:mm:ss') : null,
+      startTime ? formatDateTime(startTime, { seconds: true }) : null,
       'mdi:calendar-clock-outline',
       localize('thumbnail.start'),
     ),
@@ -91,7 +90,7 @@ export const getNotificationDetails = (
 export const getMediaSeekDetail = (seek?: Date): NotificationDetail | null =>
   seek
     ? {
-        text: format(seek, 'HH:mm:ss'),
+        text: formatTime(seek, { seconds: true }),
         icon: 'mdi:clock-fast',
         tooltip: localize('thumbnail.seek'),
       }

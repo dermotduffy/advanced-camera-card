@@ -289,6 +289,7 @@
           }
         },
         "thumbnails": {
+          "aspect_ratio": "Aspect ratio (e.g. '16:9')",
           "editor_label": "Thumbnails",
           "mode": "Mode",
           "modes": {
@@ -315,10 +316,6 @@
         },
         "timeline": {
           "editor_label": "Mini Timeline",
-          "format": {
-            "24h": "Use 24-hour clock",
-            "editor_label": "Time & date format"
-          },
           "mode": "Mode",
           "modes": {
             "above": "Above",

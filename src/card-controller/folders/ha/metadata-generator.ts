@@ -13,7 +13,7 @@ import type {
   BrowseMediaMetadata,
   RichBrowseMedia,
 } from '../../../ha/browse-media/types';
-import { isValidDate } from '../../../utils/basic';
+import { isValidDate } from '../../../utils/date/validity';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import { REGEXP_GROUP_VALUE_KEY } from './types';
 

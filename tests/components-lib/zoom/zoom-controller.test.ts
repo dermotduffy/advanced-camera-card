@@ -25,6 +25,7 @@ import {
   DRAG_THRESHOLD_PIXELS,
   HOLD_SECONDS,
 } from '../../../src/const';
+import type { Size } from '../../../src/utils/basic';
 import {
   createMediaLoadedInfo,
   createMediaLoadedInfoEvent,
@@ -34,6 +35,7 @@ import {
   ResizeObserverMock,
   stubMatchMedia,
 } from '../../test-utils';
+import { setLayoutSize } from '../test-utils';
 
 vi.mock('@dermotduffy/panzoom');
 vi.mock('lodash-es', () => ({
@@ -64,15 +66,10 @@ const createAttachedElement = (): HTMLElement => {
   return element;
 };
 
-// jsdom doesn't layout, so layout sizes must be set manually.
 const setElementToDefaultCardSize = (element: HTMLElement, multiple?: number): void => {
-  Object.defineProperty(element, 'offsetWidth', {
-    configurable: true,
-    value: 492 * (multiple ?? 1),
-  });
-  Object.defineProperty(element, 'offsetHeight', {
-    configurable: true,
-    value: 276.75 * (multiple ?? 1),
+  setLayoutSize(element, {
+    width: 492 * (multiple ?? 1),
+    height: 276.75 * (multiple ?? 1),
   });
 };
 
@@ -1405,25 +1402,9 @@ describe('ZoomController', () => {
   });
 
   describe('with a picture that does not fill the element', () => {
-    interface Size {
-      width: number;
-      height: number;
-    }
-
     // A 16:9 picture in a portrait fullscreen is 411x231.1875 inside 411x914.
     const PORTRAIT: Size = { width: 411, height: 914 };
     const LANDSCAPE: Size = { width: 914, height: 411 };
-
-    const setElementSize = (element: HTMLElement, size: Size): void => {
-      Object.defineProperty(element, 'offsetWidth', {
-        configurable: true,
-        value: size.width,
-      });
-      Object.defineProperty(element, 'offsetHeight', {
-        configurable: true,
-        value: size.height,
-      });
-    };
 
     const dispatchMediaLoaded = (
       element: HTMLElement,
@@ -1448,7 +1429,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
       const element = createAttachedElement();
-      setElementSize(element, options?.elementSize ?? PORTRAIT);
+      setLayoutSize(element, options?.elementSize ?? PORTRAIT);
       const controller = createAndRegisterZoom(element);
       if (options?.dimensionsConfig) {
         controller.setDimensionsConfig(options.dimensionsConfig);

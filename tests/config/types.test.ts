@@ -121,6 +121,7 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
+            aspect_ratio: [1, 1],
             style: 'auto',
             mode: 'right',
             show_download_control: false,
@@ -132,9 +133,6 @@ describe('config defaults', () => {
           },
           timeline: {
             clustering_threshold: 3,
-            format: {
-              '24h': true,
-            },
             mode: 'none',
             pan_mode: 'pan',
             show_recordings: true,
@@ -168,6 +166,7 @@ describe('config defaults', () => {
             mode: 'right',
           },
           thumbnails: {
+            aspect_ratio: [1, 1],
             style: 'auto',
             show_download_control: false,
             show_favorite_control: true,
@@ -201,6 +200,7 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
+            aspect_ratio: [1, 1],
             style: 'auto',
             mode: 'right',
             show_download_control: false,
@@ -212,9 +212,6 @@ describe('config defaults', () => {
           },
           timeline: {
             clustering_threshold: 3,
-            format: {
-              '24h': true,
-            },
             mode: 'none',
             pan_mode: 'pan',
             show_recordings: true,
@@ -496,6 +493,7 @@ describe('config defaults', () => {
         clustering_threshold: 3,
         controls: {
           thumbnails: {
+            aspect_ratio: [1, 1],
             style: 'auto',
             mode: 'right',
             show_download_control: false,
@@ -505,9 +503,6 @@ describe('config defaults', () => {
             show_timeline_control: false,
             size: 100,
           },
-        },
-        format: {
-          '24h': true,
         },
         show_recordings: true,
         style: 'stack',

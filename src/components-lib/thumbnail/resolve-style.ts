@@ -3,6 +3,7 @@ import type {
   ThumbnailStyle,
 } from '../../config/schema/common/controls/thumbnails';
 import { isHoverableDevice } from '../../utils/basic';
+import { getThumbnailDimensions } from './dimensions';
 
 export type ResolvedThumbnailStyle = Exclude<ThumbnailStyle, 'auto'>;
 
@@ -19,7 +20,8 @@ export interface ThumbnailStyleContext {
 // the image so the panel keeps this much beside it.
 export const DETAILS_PANEL_WIDTH = 150;
 
-// A gallery thumbnail smaller than this uses overlay instead.
+// A gallery thumbnail whose longer side is smaller than this uses overlay
+// instead.
 const HOVER_SIZE_MIN = 200;
 
 const resolveAutoThumbnailStyle = (
@@ -28,7 +30,7 @@ const resolveAutoThumbnailStyle = (
 ): ResolvedThumbnailStyle => {
   if (
     context.availableWidth !== undefined &&
-    context.availableWidth < config.size + DETAILS_PANEL_WIDTH
+    context.availableWidth < getThumbnailDimensions(config).width + DETAILS_PANEL_WIDTH
   ) {
     return 'overlay';
   }
@@ -50,6 +52,11 @@ const resolveAutoThumbnailStyle = (
 
   // A small thumbnail cannot be identified from its picture alone, so it keeps
   // the details on screen.
+  //
+  // Unlike the details tiers, which follow the image's shorter side, this
+  // deliberately compares the longer side (`size`). The shorter side of a 16:9
+  // image never reaches `HOVER_SIZE_MIN`, since that would need a `size` above
+  // `THUMBNAIL_SIZE_MAX`, so judging by it would rule out `hover` entirely.
   return config.size >= HOVER_SIZE_MIN ? 'hover' : 'overlay';
 };
 

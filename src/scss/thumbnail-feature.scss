@@ -7,7 +7,7 @@
   max-width: var(--advanced-camera-card-thumbnail-size);
   max-height: var(--advanced-camera-card-thumbnail-size);
 
-  aspect-ratio: 1 / 1;
+  aspect-ratio: var(--advanced-camera-card-thumbnail-aspect-ratio, 1 / 1);
 
   // WebKit will not size this from the aspect ratio alone, so take the height
   // from the thumbnail.

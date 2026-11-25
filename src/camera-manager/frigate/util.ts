@@ -2,8 +2,9 @@ import { fromUnixTime, subSeconds } from 'date-fns';
 
 import type { CameraConfig } from '../../config/schema/cameras';
 import type { Severity } from '../../severity';
-import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
-import { getDayHourInTimeZone, startOfHourInTimeZone } from '../../utils/timezone';
+import { prettifyTitle } from '../../utils/basic';
+import { formatDateTime } from '../../utils/date/localized';
+import { getDayHourInTimeZone, startOfHourInTimeZone } from '../../utils/date/timezone';
 import type {
   FrigateEvent,
   FrigateRecording,
@@ -29,7 +30,7 @@ export const getEventTitle = (event: FrigateEvent): string => {
   );
   const score = event.top_score !== null ? ` ${Math.round(event.top_score * 100)}%` : '';
 
-  return `${formatDateAndTime(
+  return `${formatDateTime(
     new Date(event.start_time * 1000),
   )} [${durationSeconds}s, ${prettifyTitle(event.label)}${score}]`;
 };
@@ -38,7 +39,7 @@ export const getRecordingTitle = (
   cameraTitle: string,
   recording: FrigateRecording,
 ): string => {
-  return `${cameraTitle} ${formatDateAndTime(recording.startTime)}`;
+  return `${cameraTitle} ${formatDateTime(recording.startTime)}`;
 };
 
 /**
@@ -147,9 +148,7 @@ export const getReviewTitle = (review: FrigateReview): string => {
       : Date.now() / 1000 - review.start_time,
   );
 
-  return `${formatDateAndTime(
-    new Date(review.start_time * 1000),
-  )} [${durationSeconds}s]`;
+  return `${formatDateTime(new Date(review.start_time * 1000))} [${durationSeconds}s]`;
 };
 
 /**

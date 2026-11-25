@@ -11,6 +11,12 @@ export interface ExternalInvalidationSource {
   subscribe(callback: () => void): UnsubscribeCallback;
 }
 
+export interface ConditionEvaluatorResult extends ConditionsEvaluationResult {
+  // The time until which `result` holds without a `ConditionState` change;
+  // unset when only a state change can alter the result.
+  validUntil?: Date;
+}
+
 /**
  * A single condition, constructed once with its configuration and evaluated
  * repeatedly against incoming state.
@@ -19,7 +25,7 @@ export interface ConditionEvaluator {
   evaluate(
     newState?: ConditionState,
     oldState?: ConditionState,
-  ): ConditionsEvaluationResult;
+  ): ConditionEvaluatorResult;
 
   // Sources of change outside `ConditionState` that can invalidate this
   // condition's result (currently only `screen`, via `matchMedia`). A reactive

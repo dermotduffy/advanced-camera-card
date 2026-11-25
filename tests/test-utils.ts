@@ -65,12 +65,18 @@ import { computeObjectId } from '../src/ha/compute-object-id';
 import type { Device } from '../src/ha/registry/device/types';
 import type { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import type { HASSListener, HASSSource } from '../src/ha/source';
-import type { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
+import type {
+  CurrentUser,
+  FrontendLocaleData,
+  HassStateDifference,
+  HomeAssistant,
+} from '../src/ha/types';
 import type {
   Interaction,
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,
 } from '../src/types';
+import { setDateTimeLocale } from '../src/utils/date/localized';
 import type { DocumentVisibility } from '../src/utils/document-visibility';
 import type { ViewItemCapabilities } from '../src/view/types';
 
@@ -91,6 +97,10 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   }
   hass.config.components = [];
 
+  // The card formats dates and times with these settings, so they are real
+  // values rather than the mock's.
+  hass.locale = createLocale();
+
   // Most Home Assistant instances share the browser's timezone.
   hass.config.time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -109,6 +119,24 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   // ha-nunjucks calls sendMessagePromise to fetch label registry; return empty array to prevent crash.
   hass.connection.sendMessagePromise = vi.fn().mockResolvedValue([]);
   return hass;
+};
+
+export const createLocale = (
+  locale?: Partial<FrontendLocaleData>,
+): FrontendLocaleData => ({
+  language: 'en',
+  number_format: 'language',
+  time_format: 'language',
+  ...locale,
+});
+
+/**
+ * Show dates and times with the given settings until the current test
+ * finishes.
+ */
+export const stubDateTimeLocale = (locale?: Partial<FrontendLocaleData>): void => {
+  setDateTimeLocale(createLocale(locale));
+  onTestFinished(() => setDateTimeLocale(null));
 };
 
 /**

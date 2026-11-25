@@ -1947,4 +1947,12 @@ const UPGRADES = [
     CONF_TIMELINE_CONTROLS_THUMBNAILS_STYLE,
     { transform: showDetailsToStyleTransform },
   ),
+
+  // v8.3.0+
+  // The timeline now follows the 12/24-hour setting of the user's Home
+  // Assistant profile, so the timeline format is no longer needed (although it
+  // does not cause harm, it's just ignored/unnecessary).
+  deleteWithOverrides('timeline.format'),
+  deleteWithOverrides('live.controls.timeline.format'),
+  deleteWithOverrides('media_viewer.controls.timeline.format'),
 ];

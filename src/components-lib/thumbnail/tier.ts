@@ -8,9 +8,7 @@ const TIER_SIZE_MIN: Record<Exclude<ThumbnailTier, 'compact'>, number> = {
   poster: 250,
 };
 
-export const getThumbnailTier = (
-  size: number = THUMBNAIL_SIZE_DEFAULT,
-): ThumbnailTier =>
+export const getThumbnailTier = (size: number): ThumbnailTier =>
   size >= TIER_SIZE_MIN.poster
     ? 'poster'
     : size >= TIER_SIZE_MIN.comfortable
@@ -18,3 +16,5 @@ export const getThumbnailTier = (
       : size >= TIER_SIZE_MIN.standard
         ? 'standard'
         : 'compact';
+
+export const THUMBNAIL_TIER_DEFAULT = getThumbnailTier(THUMBNAIL_SIZE_DEFAULT);
