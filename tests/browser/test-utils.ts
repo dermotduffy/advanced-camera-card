@@ -334,6 +334,33 @@ export const clickNextPreviousMedia = async (
   await clickElement(clickable);
 };
 
+// Enough wheel movement to drag the media viewer a whole media item along.
+const WHEEL_GESTURE_EVENTS = 10;
+const WHEEL_GESTURE_EVENT_DELTA = 100;
+
+/**
+ * Move the media viewer to the next or previous media with a mouse wheel
+ * gesture: a burst of wheel events over the carousel, which its wheel plugin
+ * turns into a drag of the slides.
+ */
+export const wheelNextPreviousMedia = (
+  root: ParentNode,
+  direction: 'next' | 'previous',
+): void => {
+  const carousel = deepQuery(root, 'advanced-camera-card-viewer-carousel');
+  const viewport = carousel ? deepQuery(carousel, '.embla__viewport') : null;
+  if (!viewport) {
+    throw new Error('The media viewer is showing no carousel');
+  }
+
+  const deltaY = (direction === 'next' ? 1 : -1) * WHEEL_GESTURE_EVENT_DELTA;
+  for (let i = 0; i < WHEEL_GESTURE_EVENTS; i++) {
+    viewport.dispatchEvent(
+      new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY }),
+    );
+  }
+};
+
 // Everything the status bar is displaying gets this class, whether it is a
 // string, an icon or an image.
 const STATUS_BAR_ITEM_SELECTOR = '.item';
