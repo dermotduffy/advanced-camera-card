@@ -1,9 +1,19 @@
 import { add } from 'date-fns';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
 import { createConfig } from '../config/test-utils';
 import { createCardAPI, createLitElement } from '../test-utils';
+
+const createManager = (
+  ...args: ConstructorParameters<typeof InteractionManager>
+): InteractionManager => {
+  const manager = new InteractionManager(...args);
+
+  // The manager's interaction timer outlives this test file.
+  onTestFinished(() => manager.uninitialize());
+  return manager;
+};
 
 // @vitest-environment jsdom
 describe('InteractionManager', () => {
@@ -18,7 +28,7 @@ describe('InteractionManager', () => {
     const element = createLitElement();
     vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
 
-    const manager = new InteractionManager(api);
+    const manager = createManager(api);
 
     manager.initialize();
     expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
@@ -38,7 +48,7 @@ describe('InteractionManager', () => {
         },
       }),
     );
-    const manager = new InteractionManager(api);
+    const manager = createManager(api);
 
     manager.reportInteraction();
 
@@ -58,7 +68,7 @@ describe('InteractionManager', () => {
         },
       }),
     );
-    const manager = new InteractionManager(api);
+    const manager = createManager(api);
     vi.useFakeTimers();
     vi.setSystemTime(start);
 
@@ -97,7 +107,7 @@ describe('InteractionManager', () => {
         },
       }),
     );
-    const manager = new InteractionManager(api);
+    const manager = createManager(api);
 
     vi.useFakeTimers();
     vi.setSystemTime(start);

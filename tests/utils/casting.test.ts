@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { isBeingCasted } from '../../src/utils/casting.js';
 
 describe('isBeingCasted', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('should confirm being casted', () => {
     vi.stubGlobal('navigator', {
       userAgent:

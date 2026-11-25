@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { MediaPlayerLivenessDetector } from '../../../../../src/components-lib/live/liveness/detectors/media-player-liveness';
@@ -35,6 +44,12 @@ const setup = () => {
   document.body.append(host);
   const onChange = vi.fn();
   const detector = new MediaPlayerLivenessDetector(host, onChange);
+
+  // The detector's document visibility subscription and host outlive this test file.
+  onTestFinished(() => {
+    detector.unsubscribe();
+    host.remove();
+  });
 
   const loadMedia = (player?: MediaPlayerController, signal?: AbortSignal): void => {
     host.dispatchEvent(

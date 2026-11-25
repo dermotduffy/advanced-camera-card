@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   CUSTOM_ICON_NAMES,
@@ -12,7 +12,11 @@ import {
 // @vitest-environment jsdom
 describe('registerCustomIconset', () => {
   beforeEach(() => {
-    delete window.customIcons;
+    vi.stubGlobal('customIcons', undefined);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('should register the iconset', () => {

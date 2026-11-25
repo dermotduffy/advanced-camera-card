@@ -3,6 +3,7 @@ import Panzoom, {
   type PanzoomObject,
 } from '@dermotduffy/panzoom';
 import {
+  afterAll,
   afterEach,
   beforeAll,
   beforeEach,
@@ -103,6 +104,10 @@ describe('ZoomController', () => {
 
   afterEach(() => {
     document.body.replaceChildren();
+  });
+
+  afterAll(() => {
+    vi.unstubAllGlobals();
   });
 
   it('should be creatable', () => {

@@ -1,4 +1,4 @@
-import { afterEach, assert, describe, expect, it, vi } from 'vitest';
+import { afterEach, assert, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { CardElementManager } from '../../src/card-controller/card-element-manager';
@@ -8,6 +8,7 @@ import { QueryResults } from '../../src/view/query-results';
 import { View } from '../../src/view/view';
 import { createConfig } from '../config/test-utils';
 import {
+  appendToBody,
   callStateWatcherCallback,
   createCardAPI,
   createCardHTMLElement,
@@ -15,6 +16,16 @@ import {
   flushPromises,
 } from '../test-utils';
 import { createView, TestViewMedia } from '../view/test-utils';
+
+const createManager = (
+  ...args: ConstructorParameters<typeof CardElementManager>
+): CardElementManager => {
+  const manager = new CardElementManager(...args);
+
+  // The manager's window listeners outlive this test file.
+  onTestFinished(() => manager.elementDisconnected());
+  return manager;
+};
 
 // @vitest-environment jsdom
 describe('CardElementManager', () => {
@@ -24,7 +35,7 @@ describe('CardElementManager', () => {
 
   it('should get element', () => {
     const element = createCardHTMLElement();
-    const manager = new CardElementManager(
+    const manager = createManager(
       createCardAPI(),
       element,
       () => undefined,
@@ -36,7 +47,7 @@ describe('CardElementManager', () => {
 
   it('should report whether the element is connected', () => {
     const element = createCardHTMLElement();
-    const manager = new CardElementManager(
+    const manager = createManager(
       createCardAPI(),
       element,
       () => undefined,
@@ -54,7 +65,7 @@ describe('CardElementManager', () => {
 
   it('should reset scroll', () => {
     const callback = vi.fn();
-    const manager = new CardElementManager(
+    const manager = createManager(
       createCardAPI(),
       createCardHTMLElement(),
       callback,
@@ -68,7 +79,7 @@ describe('CardElementManager', () => {
 
   it('should toggle menu', () => {
     const callback = vi.fn();
-    const manager = new CardElementManager(
+    const manager = createManager(
       createCardAPI(),
       createCardHTMLElement(),
       () => undefined,
@@ -82,7 +93,7 @@ describe('CardElementManager', () => {
 
   it('should update', () => {
     const element = createCardHTMLElement();
-    const manager = new CardElementManager(
+    const manager = createManager(
       createCardAPI(),
       element,
       () => undefined,
@@ -96,7 +107,7 @@ describe('CardElementManager', () => {
   it('should get hasUpdated', () => {
     const element = createCardHTMLElement();
     element.hasUpdated = true;
-    const manager = new CardElementManager(
+    const manager = createManager(
       createCardAPI(),
       element,
       () => undefined,
@@ -114,7 +125,7 @@ describe('CardElementManager', () => {
     element.addEventListener = addEventListener;
 
     const api = createCardAPI();
-    const manager = new CardElementManager(
+    const manager = createManager(
       api,
       element,
       () => undefined,
@@ -183,7 +194,7 @@ describe('CardElementManager', () => {
 
     const api = createCardAPI();
 
-    const manager = new CardElementManager(
+    const manager = createManager(
       api,
       element,
       () => undefined,
@@ -264,7 +275,7 @@ describe('CardElementManager', () => {
       vi.mocked(api.getHASSManager().getStateWatcher).mockReturnValue(stateWatcher);
 
       const element = createCardHTMLElement();
-      const manager = new CardElementManager(
+      const manager = createManager(
         api,
         element,
         () => undefined,
@@ -292,7 +303,7 @@ describe('CardElementManager', () => {
       vi.mocked(api.getHASSManager().getStateWatcher).mockReturnValue(stateWatcher);
 
       const element = createCardHTMLElement();
-      const manager = new CardElementManager(
+      const manager = createManager(
         api,
         element,
         () => undefined,
@@ -326,7 +337,7 @@ describe('CardElementManager', () => {
       vi.mocked(api.getEffectsManager().startEffect).mockResolvedValue();
 
       const element = createCardHTMLElement();
-      const manager = new CardElementManager(
+      const manager = createManager(
         api,
         element,
         () => undefined,
@@ -357,7 +368,7 @@ describe('CardElementManager', () => {
       vi.mocked(api.getEffectsManager().startEffect).mockRejectedValue(new Error());
 
       const element = createCardHTMLElement();
-      const manager = new CardElementManager(
+      const manager = createManager(
         api,
         element,
         () => undefined,
@@ -405,7 +416,7 @@ describe('CardElementManager', () => {
     it('sets view to diagnostics if card is in editor', () => {
       const api = createCardAPI();
       const element = createCardHTMLElement();
-      const manager = new CardElementManager(
+      const manager = createManager(
         api,
         element,
         () => undefined,
@@ -413,7 +424,7 @@ describe('CardElementManager', () => {
       );
 
       const dialog = createDialogWithCard(element);
-      document.body.append(dialog);
+      appendToBody(dialog);
       manager.elementConnected();
 
       fireFromDialog(dialog);
@@ -426,7 +437,7 @@ describe('CardElementManager', () => {
     it('resets to default view if already in diagnostics view', () => {
       const api = createCardAPI();
       const element = createCardHTMLElement();
-      const manager = new CardElementManager(
+      const manager = createManager(
         api,
         element,
         () => undefined,
@@ -439,7 +450,7 @@ describe('CardElementManager', () => {
       vi.mocked(api.getViewManager().canSetViewDefault).mockReturnValue(true);
 
       const dialog = createDialogWithCard(element);
-      document.body.append(dialog);
+      appendToBody(dialog);
       manager.elementConnected();
 
       fireFromDialog(dialog);
@@ -450,7 +461,7 @@ describe('CardElementManager', () => {
     it('should reset the view when leaving diagnostics with no default view available', () => {
       const api = createCardAPI();
       const element = createCardHTMLElement();
-      const manager = new CardElementManager(
+      const manager = createManager(
         api,
         element,
         () => undefined,
@@ -463,7 +474,7 @@ describe('CardElementManager', () => {
       vi.mocked(api.getViewManager().canSetViewDefault).mockReturnValue(false);
 
       const dialog = createDialogWithCard(element);
-      document.body.append(dialog);
+      appendToBody(dialog);
       manager.elementConnected();
 
       fireFromDialog(dialog);
@@ -475,7 +486,7 @@ describe('CardElementManager', () => {
     it('does not set view to diagnostics if card is not in editor', () => {
       const api = createCardAPI();
       const element = createCardHTMLElement();
-      const manager = new CardElementManager(
+      const manager = createManager(
         api,
         element,
         () => undefined,
@@ -487,7 +498,7 @@ describe('CardElementManager', () => {
       // Event fired from a different dialog that does not contain the card
       const otherDialog = document.createElement('hui-dialog-edit-card');
       otherDialog.attachShadow({ mode: 'open' });
-      document.body.append(otherDialog);
+      appendToBody(otherDialog);
       fireFromDialog(otherDialog);
 
       expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();

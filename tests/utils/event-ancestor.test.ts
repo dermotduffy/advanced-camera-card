@@ -1,6 +1,7 @@
 import { assert, describe, expect, it } from 'vitest';
 
 import { isAncestorInEventPath } from '../../src/utils/event-ancestor';
+import { appendToBody } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('isAncestorInEventPath', () => {
@@ -15,7 +16,7 @@ describe('isAncestorInEventPath', () => {
     ancestor.attachShadow({ mode: 'open' });
     assert(ancestor.shadowRoot);
     ancestor.shadowRoot.append(element);
-    document.body.append(ancestor);
+    appendToBody(ancestor);
 
     const eventSource = document.createElement('div');
     ancestor.shadowRoot.append(eventSource);
@@ -34,14 +35,14 @@ describe('isAncestorInEventPath', () => {
     ancestor1.attachShadow({ mode: 'open' });
     assert(ancestor1.shadowRoot);
     ancestor1.shadowRoot.append(element);
-    document.body.append(ancestor1);
+    appendToBody(ancestor1);
 
     const ancestor2 = document.createElement('hui-dialog-edit-card');
     ancestor2.attachShadow({ mode: 'open' });
     assert(ancestor2.shadowRoot);
     const eventSource = document.createElement('div');
     ancestor2.shadowRoot.append(eventSource);
-    document.body.append(ancestor2);
+    appendToBody(ancestor2);
 
     let result: boolean | undefined;
     dispatch(eventSource, (ev) => {
@@ -53,10 +54,10 @@ describe('isAncestorInEventPath', () => {
 
   it('returns false when element has no ancestor with the given tag', () => {
     const element = document.createElement('div');
-    document.body.append(element);
+    appendToBody(element);
 
     const eventSource = document.createElement('div');
-    document.body.append(eventSource);
+    appendToBody(eventSource);
 
     let result: boolean | undefined;
     dispatch(eventSource, (ev) => {
@@ -77,7 +78,7 @@ describe('isAncestorInEventPath', () => {
     ancestor.attachShadow({ mode: 'open' });
     assert(ancestor.shadowRoot);
     ancestor.shadowRoot.append(inner);
-    document.body.append(ancestor);
+    appendToBody(ancestor);
 
     const eventSource = document.createElement('div');
     ancestor.shadowRoot.append(eventSource);

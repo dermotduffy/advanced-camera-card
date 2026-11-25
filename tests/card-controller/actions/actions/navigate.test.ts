@@ -1,13 +1,19 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { NavigateAction } from '../../../../src/card-controller/actions/actions/navigate';
 import { createCardAPI } from '../../../test-utils';
 
 // @vitest-environment jsdom
 describe('should handle navigate action', () => {
+  beforeEach(() => {
+    const href = location.href;
+    onTestFinished(() => history.replaceState(null, '', href));
+  });
+
   it('should handle navigate action', async () => {
     const handler = vi.fn();
     window.addEventListener('location-changed', handler);
+    onTestFinished(() => window.removeEventListener('location-changed', handler));
 
     const action = new NavigateAction(
       {},
@@ -33,6 +39,7 @@ describe('should handle navigate action', () => {
   it('should handle navigate action that replaces', async () => {
     const handler = vi.fn();
     window.addEventListener('location-changed', handler);
+    onTestFinished(() => window.removeEventListener('location-changed', handler));
 
     const action = new NavigateAction(
       {},

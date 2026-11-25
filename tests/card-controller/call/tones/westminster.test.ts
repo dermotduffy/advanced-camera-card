@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { WestminsterTone } from '../../../../src/card-controller/call/tones/westminster';
-import { useAudioMocks } from './test-utils';
+import { createTone, useAudioMocks } from './test-utils';
 
 const audio = useAudioMocks();
 
@@ -12,7 +12,7 @@ const audio = useAudioMocks();
 // `audio.oscillators` step through the four strikes of the phrase.
 describe('WestminsterTone', () => {
   it('should play the E5-D5-C5-G4 phrase 0.55s apart', () => {
-    new WestminsterTone(0).start();
+    createTone(WestminsterTone, 0).start();
 
     // 4 strikes × 3 layers = 12 oscillators.
     expect(audio.oscillators).toHaveLength(12);
@@ -35,7 +35,7 @@ describe('WestminsterTone', () => {
   });
 
   it('should give the resolving G4 a longer bell tail than the other strikes', () => {
-    new WestminsterTone(0).start();
+    createTone(WestminsterTone, 0).start();
 
     // First three strikes use default decay (fundDecay=0.6, humDecay=1.0).
     expect(audio.gainParams[1].setTargetAtTime).toHaveBeenCalledWith(0, 0.005, 0.6);

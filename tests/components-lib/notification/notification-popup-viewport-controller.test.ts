@@ -11,6 +11,7 @@ import {
 
 import { NotificationPopupViewportController } from '../../../src/components-lib/notification/notification-popup-viewport-controller';
 import {
+  appendToBody,
   callResizeHandler,
   createLitElement,
   getResizeObserver,
@@ -30,7 +31,6 @@ describe('NotificationPopupViewportController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    document.body.replaceChildren();
   });
 
   const create = (options?: {
@@ -39,7 +39,7 @@ describe('NotificationPopupViewportController', () => {
     scale?: number;
   }) => {
     const container = document.createElement('div');
-    document.body.appendChild(container);
+    appendToBody(container);
 
     const containerTop = options?.containerTop ?? 0;
     const containerHeight = options?.containerHeight ?? 100;
@@ -129,7 +129,7 @@ describe('NotificationPopupViewportController', () => {
 
   it('should do nothing when the popup is not within a shadow root', () => {
     const host = createLitElement();
-    document.body.appendChild(host);
+    appendToBody(host);
 
     const controller = new NotificationPopupViewportController(host);
     controller.hostConnected();
