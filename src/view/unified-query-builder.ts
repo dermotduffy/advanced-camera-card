@@ -9,7 +9,11 @@ import {
 import type { FoldersManager } from '../card-controller/folders/manager';
 import type { FolderQuery } from '../card-controller/folders/types';
 import type { CameraMediaType } from '../config/schema/cameras';
-import { QuerySource, type QueryFilters } from '../query-source.js';
+import {
+  QuerySource,
+  type QueryFilters,
+  type TimeBasedDataQuery,
+} from '../query-source.js';
 import { VIEW_MEDIA_TYPES, type ViewMediaType } from '../types';
 import { arrayify } from '../utils/basic';
 import { UnifiedQuery, type QueryNode } from '../view/unified-query';
@@ -23,6 +27,9 @@ interface MediaQueryBuildOptions extends QueryFilters {
 
 interface QueryFiltersOptions extends QueryFilters {
   limit?: number;
+
+  // A time range for folder queries only.
+  folderTimeRange?: Partial<TimeBasedDataQuery>;
 }
 
 type MediaType = 'events' | 'recordings' | 'reviews' | 'folder';
@@ -303,6 +310,7 @@ export class UnifiedQueryBuilder {
       ? {
           ...params,
           ...this._extractFilterOptions(options),
+          ...options?.folderTimeRange,
         }
       : null;
   }

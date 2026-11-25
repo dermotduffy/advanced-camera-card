@@ -115,18 +115,15 @@ export class UnifiedQuery {
   /**
    * Check if this query is a superset of another query.
    * A query is a superset if it covers at least all the queries of the other.
-   * For media queries, this means same cameras/type and time range encompasses.
+   * This means an otherwise identical query whose time range encompasses.
    */
   public isSupersetOf(that: UnifiedQuery): boolean {
     const nodeCovers = (thisNode: QueryNode, thatNode: QueryNode): boolean => {
-      if (this._isMediaQuery(thatNode) && this._isMediaQuery(thisNode)) {
-        const stripTimeRange = (query: MediaQuery) => omit(query, ['start', 'end']);
-        return (
-          isEqual(stripTimeRange(thisNode), stripTimeRange(thatNode)) &&
-          timeRangeCovers(thisNode, thatNode)
-        );
-      }
-      return isEqual(thisNode, thatNode);
+      const stripTimeRange = (query: QueryNode) => omit(query, ['start', 'end']);
+      return (
+        isEqual(stripTimeRange(thisNode), stripTimeRange(thatNode)) &&
+        timeRangeCovers(thisNode, thatNode)
+      );
     };
 
     const timeRangeCovers = (

@@ -2,7 +2,12 @@ import { ExpiringEqualityCache } from '../cache/expiring-cache';
 import type { AdvancedCameraCardView } from '../config/schema/common/const';
 import type { InternalIcon } from '../config/schema/common/icon';
 import type { ResolvedProxyConfig } from '../config/schema/common/proxy';
-import type { BaseQuery, QueryFilters, QuerySource } from '../query-source';
+import type {
+  BaseQuery,
+  QueryFilters,
+  QuerySource,
+  TimeBasedDataQuery,
+} from '../query-source';
 import type { CapabilityKey, Endpoint } from '../types';
 import type { ViewMedia } from '../view/item';
 
@@ -39,11 +44,6 @@ export interface CameraQuery {
   cameraIDs: Set<string>;
 }
 export type PartialCameraQuery = Partial<CameraQuery>;
-
-interface TimeBasedDataQuery {
-  start: Date;
-  end: Date;
-}
 
 interface LimitedDataQuery {
   limit: number;

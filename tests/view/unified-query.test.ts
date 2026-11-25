@@ -361,5 +361,28 @@ describe('UnifiedQuery', () => {
       nonSubset.addNode(createFolderQuery('f2'));
       expect(superset.isSupersetOf(nonSubset)).toBe(false);
     });
+
+    it('should compare the time ranges of folder nodes', () => {
+      const unbounded = new UnifiedQuery([createFolderQuery('f1')]);
+      const wider = new UnifiedQuery([
+        {
+          ...createFolderQuery('f1'),
+          start: new Date('2024-01-01'),
+          end: new Date('2024-01-31'),
+        },
+      ]);
+      const narrower = new UnifiedQuery([
+        {
+          ...createFolderQuery('f1'),
+          start: new Date('2024-01-10'),
+          end: new Date('2024-01-20'),
+        },
+      ]);
+
+      expect(unbounded.isSupersetOf(wider)).toBe(true);
+      expect(wider.isSupersetOf(narrower)).toBe(true);
+      expect(narrower.isSupersetOf(wider)).toBe(false);
+      expect(wider.isSupersetOf(unbounded)).toBe(false);
+    });
   });
 });

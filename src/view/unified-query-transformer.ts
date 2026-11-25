@@ -16,9 +16,6 @@ interface RebuildOptions {
 export class UnifiedQueryTransformer {
   static stripTimeRange(query: UnifiedQuery): UnifiedQuery {
     const nodes = query.getNodes().map((node) => {
-      if (node.source !== QuerySource.Camera) {
-        return node;
-      }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { start, end, ...rest } = node;
       return rest;
@@ -27,20 +24,17 @@ export class UnifiedQueryTransformer {
   }
 
   static rebuildQuery(query: UnifiedQuery, options: RebuildOptions): UnifiedQuery {
-    const commonOptions = {
-      ...(options?.start && { start: options.start }),
-      ...(options?.end && { end: options.end }),
-      ...(options?.limit !== undefined && { limit: options.limit }),
+    const timeRange = {
+      ...(options.start && { start: options.start }),
+      ...(options.end && { end: options.end }),
     };
-    const nodes = query.getNodes().map((node) => {
-      if (node.source === QuerySource.Camera) {
-        return {
-          ...node,
-          ...commonOptions,
-        };
-      }
-      return node;
-    });
+    const nodes = query.getNodes().map((node) => ({
+      ...node,
+      ...timeRange,
+      // Folder queries do not support a limit.
+      ...(node.source === QuerySource.Camera &&
+        options.limit !== undefined && { limit: options.limit }),
+    }));
     return new UnifiedQuery(nodes);
   }
 

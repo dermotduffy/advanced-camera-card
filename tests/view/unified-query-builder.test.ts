@@ -928,6 +928,36 @@ describe('UnifiedQueryBuilder', () => {
       expect(query).toBeNull();
     });
 
+    it('should apply a folder time range only to folder queries', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.folder', 'camera.clips']));
+      store.getCameraConfig.mockImplementation((cameraID) =>
+        createCameraConfig({
+          media: { type: cameraID === 'camera.folder' ? 'folder' : 'events' },
+        }),
+      );
+
+      const folder = createFolder({ id: 'folder1' });
+      const params = createFolderQueryParams(folder, [{}]);
+      foldersManager.getFolder.mockReturnValue(folder);
+      foldersManager.getDefaultQueryParameters.mockReturnValue(params);
+
+      const start = new Date('2026-11-12T00:00:00');
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery(undefined, {
+        folderTimeRange: { start },
+      });
+
+      expect(query?.getFolderQueries()).toEqual([{ ...params, start }]);
+      expect(query?.getMediaQueries()).toEqual([
+        {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['camera.clips']),
+        },
+      ]);
+    });
+
     it('should build folder query for folder media type', () => {
       const { cameraManager, foldersManager, store } = createMocks();
       store.getCameraIDs.mockReturnValue(new Set(['camera.office']));

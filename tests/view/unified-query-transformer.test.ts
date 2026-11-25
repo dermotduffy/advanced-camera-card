@@ -48,16 +48,23 @@ describe('UnifiedQueryTransformer', () => {
       expect(node.limit).toBe(10); // Other props preserved
     });
 
-    it('should not affect folder queries', () => {
+    it('should strip the time range from folder queries', () => {
       const folder = createFolder({ id: 'f1', title: 'Test' });
       const query = new UnifiedQuery([
-        { source: QuerySource.Folder, folder, path: [{}] },
+        {
+          source: QuerySource.Folder,
+          folder,
+          path: [{}],
+          start: new Date('2024-06-01'),
+          end: new Date('2024-06-02'),
+        },
       ]);
 
       const stripped = UnifiedQueryTransformer.stripTimeRange(query);
-      const node = stripped.getNodes()[0];
-      assert(isFolderQuery(node));
-      expect(node.folder.id).toBe('f1');
+
+      expect(stripped.getNodes()).toEqual([
+        { source: QuerySource.Folder, folder, path: [{}] },
+      ]);
     });
   });
 
@@ -84,21 +91,23 @@ describe('UnifiedQueryTransformer', () => {
       expect(node.limit).toBe(100);
     });
 
-    it('should not affect folder queries', () => {
+    it('should apply only a time range to folder queries', () => {
       const folder = createFolder({ id: 'f1', title: 'Test' });
       const query = new UnifiedQuery([
         { source: QuerySource.Folder, folder, path: [{}] },
       ]);
 
+      const start = new Date('2024-06-01');
+      const end = new Date('2024-06-02');
       const rebuilt = UnifiedQueryTransformer.rebuildQuery(query, {
-        start: new Date(),
-        end: new Date(),
+        start,
+        end,
+        limit: 100,
       });
 
-      const node = rebuilt.getNodes()[0];
-      assert(isFolderQuery(node));
-      expect(node).not.toHaveProperty('start');
-      expect(node).not.toHaveProperty('end');
+      expect(rebuilt.getNodes()).toEqual([
+        { source: QuerySource.Folder, folder, path: [{}], start, end },
+      ]);
     });
   });
 

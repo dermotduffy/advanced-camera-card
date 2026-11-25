@@ -141,7 +141,18 @@ export class ViewQueryExecutor {
         break;
       case 'timeline':
         // Timeline view always queries all cameras with media capabilities.
-        viewModifiers.push(...(await executeQuery(builder.buildDefaultCameraQuery())));
+        viewModifiers.push(
+          ...(await executeQuery(
+            builder.buildDefaultCameraQuery(undefined, {
+              // Opening every folder is expensive, and only the most recent
+              // media is needed to position the timeline. The timeline itself
+              // will fetch other time ranges as they come into view.
+              folderTimeRange: {
+                start: sub(new Date(), { seconds: config.timeline.window_seconds }),
+              },
+            }),
+          )),
+        );
         break;
       case 'gallery':
       case 'media':

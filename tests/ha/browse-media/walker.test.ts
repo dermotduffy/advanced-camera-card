@@ -256,6 +256,31 @@ describe('BrowseMediaWalker', () => {
     });
   });
 
+  it('should filter the matching children of each parent separately', async () => {
+    const createParent = (id: string): BrowseMedia =>
+      createBrowseMedia({
+        media_content_id: id,
+        children: ['1', '2', 'unmatched'].map((child) =>
+          createBrowseMedia({ media_content_id: `${id}/${child}` }),
+        ),
+      });
+    vi.mocked(homeAssistantWSRequest)
+      .mockResolvedValueOnce(createParent('a'))
+      .mockResolvedValueOnce(createParent('b'));
+
+    const walker = new BrowseMediaWalker();
+    const result = await walker.walk(createHASS(), [
+      {
+        targets: ['a', 'b'],
+        matcher: (media) => !media.media_content_id.endsWith('unmatched'),
+        // Keep only the last child.
+        childrenFilter: (children) => children.slice(-1),
+      },
+    ]);
+
+    expect(result.map((media) => media.media_content_id)).toEqual(['a/2', 'b/2']);
+  });
+
   it('should sort media using a sorter', async () => {
     const child_1 = createBrowseMedia({
       media_content_id: 'media/child-1',

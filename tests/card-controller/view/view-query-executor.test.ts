@@ -20,7 +20,12 @@ import {
   createPerformanceConfig,
 } from '../../config/test-utils';
 import { createCardAPI } from '../../test-utils';
-import { createView, isEventQuery, TestViewMedia } from '../../view/test-utils';
+import {
+  createFolderQuery,
+  createView,
+  isEventQuery,
+  TestViewMedia,
+} from '../../view/test-utils';
 import { createPopulatedAPI } from './test-utils';
 
 describe('ViewQueryExecutor', () => {
@@ -578,6 +583,43 @@ describe('ViewQueryExecutor', () => {
     });
 
     describe('with a timeline view', () => {
+      beforeAll(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-11-12T12:00:00'));
+      });
+
+      afterAll(() => {
+        vi.useRealTimers();
+      });
+
+      it('should only query folders from the start of the default window', async () => {
+        const api = createPopulatedAPI({ timeline: { window_seconds: 7200 } });
+        vi.mocked(api.getCameraManager).mockReturnValue(
+          createCameraManager(
+            createStore([
+              {
+                cameraID: 'camera.office',
+                config: createCameraConfig({ media: { type: 'folder' } }),
+              },
+            ]),
+          ),
+        );
+        const params = createFolderQuery('folder');
+        vi.mocked(api.getFoldersManager().hasFolders).mockReturnValue(true);
+        vi.mocked(api.getFoldersManager().getFolder).mockReturnValue(params.folder);
+        vi.mocked(api.getFoldersManager().getDefaultQueryParameters).mockReturnValue(
+          params,
+        );
+
+        const view = createView({ view: 'timeline', camera: 'camera.office' });
+        const modifiers = await new ViewQueryExecutor(api).getNewQueryModifiers(view);
+        applyViewModifiers(view, modifiers);
+
+        expect(view.query?.getNodes()).toEqual([
+          { ...params, start: new Date('2026-11-12T10:00:00') },
+        ]);
+      });
+
       it('should query all cameras for timeline view', async () => {
         const api = createPopulatedAPI();
         const viewQueryExecutor = new ViewQueryExecutor(api);

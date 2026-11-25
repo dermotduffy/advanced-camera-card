@@ -1,4 +1,5 @@
 import { sub } from 'date-fns';
+import { omit } from 'lodash-es';
 
 import type { ConditionState } from '../../../condition-trigger/conditions/types';
 import {
@@ -16,6 +17,7 @@ import {
   BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMediaCache,
   type BrowseMediaMetadata,
+  type RichBrowseMedia,
 } from '../../../ha/browse-media/types';
 import {
   BrowseMediaWalker,
@@ -41,6 +43,7 @@ import type {
 import { MediaMatcher } from './media-matcher';
 import { MetadataGenerator } from './metadata-generator.js';
 import { ThumbnailMetadataGenerator } from './thumbnail-metadata-generator';
+import { filterFoldersByTimeRange } from './time-range-filter';
 
 // A folder hierarchy level combining the folder configuration and the user's
 // navigation.
@@ -179,7 +182,11 @@ export class HAFoldersEngine implements FoldersEngine {
     //   only-showing the parent folder, and rather showing its siblings too.
     //   That empty element is later merged with level-appropriate
     //   matchers/parsers from the config.
-    return { ...query, path: [...query.path.slice(0, -2), {}] };
+    // - Remove any time range, so that every folder is available to navigate.
+    return {
+      ...omit(query, ['start', 'end']),
+      path: [...query.path.slice(0, -2), {}],
+    };
   }
 
   public getDownQuery(item: ViewFolder): FolderQuery {
@@ -280,6 +287,7 @@ export class HAFoldersEngine implements FoldersEngine {
       targets: BrowseMediaTarget<BrowseMediaMetadata>[],
     ): BrowseMediaStep<BrowseMediaMetadata>[] => {
       const nextLevel = levels.shift();
+      const isLastLevel = !levels.length;
 
       return [
         {
@@ -299,10 +307,18 @@ export class HAFoldersEngine implements FoldersEngine {
                 matchers: nextLevel.matchers,
                 // Set foldersOnly to true if there are more levels to walk, as
                 // by definition only folders can be matched at this point.
-                foldersOnly: levels.length > 0,
+                foldersOnly: !isLastLevel,
                 conditionState,
               }),
-            advance: (targets) => (levels.length ? generateStep(targets) : []),
+            // The last level is what is displayed and is not opened, so there
+            // is nothing to be saved by filtering it.
+            ...(!isLastLevel && {
+              childrenFilter: (folders) =>
+                filterFoldersByTimeRange(folders, query, (folder) =>
+                  this._getOwnStartDate(folder, nextLevel.parsers),
+                ),
+            }),
+            advance: (targets) => (isLastLevel ? [] : generateStep(targets)),
           }),
         },
       ];
@@ -324,6 +340,20 @@ export class HAFoldersEngine implements FoldersEngine {
       folder: query.folder,
       path: query.path,
     });
+  }
+
+  // Get the date parsed from a folder's own title, since a date inherited from
+  // its parent does not indicate when its contents start.
+  private _getOwnStartDate(
+    folder: RichBrowseMedia<BrowseMediaMetadata>,
+    parsers?: Parser[],
+  ): Date | null {
+    const hasOwnStartDate = !!this._metadataGenerator.generate(
+      folder,
+      undefined,
+      parsers,
+    )?.startDate;
+    return (hasOwnStartDate && folder._metadata?.startDate) || null;
   }
 
   public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {

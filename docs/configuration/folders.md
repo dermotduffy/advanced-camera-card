@@ -310,6 +310,29 @@ matchers:
     title: High
 ```
 
+### Timeline and dated folders
+
+The [timeline](./timeline.md) only needs media from around the time it is
+showing. Folders with a date parsed from their own title (see the [`date`
+parser](#parser-date-startdate)) are only opened when they may contain that
+media, with others opened as the timeline is panned. This may substantially
+reduce loading times when there are many folders (e.g. one per day).
+
+A dated folder is assumed to contain media that starts between its own date and
+the date of the next folder alongside it. The folder before that is also opened,
+since its last media may run into the time being shown (e.g. a recording that
+crosses midnight).
+
+Folders without a date of their own are always opened. [Matchers](#matchers)
+still apply, so a `date` matcher with `since` limits how far back the timeline
+can show.
+
+> [!IMPORTANT]
+> If the date parsed from a folder does not represent when its media starts, that
+> media may be missing from the timeline. If a title has only part of a date
+> (e.g. `11-12` in a folder named `2026`), parse the rest from the folders above
+> it.
+
 ### Understanding Media Source IDs and "parent folders"
 
 Home Assistant Media Source IDs are typically long integration-specific non-user
