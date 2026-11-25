@@ -227,7 +227,7 @@ export class CameraTriggersManager {
     if (this._hasAllowableInteractionStateForAction() && !skipViewAction) {
       if (triggerAction === 'update') {
         await this._api.getViewManager().setViewByParametersWithNewQuery({
-          queryExecutorOptions: { useCache: false },
+          queryExecutorOptions: { allowCached: false },
         });
       } else if (triggerAction === 'live') {
         await this._api.getViewManager().setViewByParametersWithNewQuery({

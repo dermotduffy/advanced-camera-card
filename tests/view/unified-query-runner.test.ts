@@ -46,7 +46,7 @@ describe('UnifiedQueryRunner', () => {
       expect(foldersManager.expandFolder).toHaveBeenCalledWith(
         expect.objectContaining({ source: QuerySource.Folder }),
         undefined,
-        expect.objectContaining({ useCache: undefined }),
+        expect.objectContaining({ allowCached: undefined }),
       );
     });
 
@@ -130,11 +130,11 @@ describe('UnifiedQueryRunner', () => {
       const query = new UnifiedQuery();
       query.addNode(createEventQuery('camera1'));
 
-      await runner.execute(query, { useCache: false });
+      await runner.execute(query, { allowCached: false });
 
       expect(cameraManager.executeMediaQueries).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ useCache: false }),
+        expect.objectContaining({ allowCached: false }),
       );
     });
   });

@@ -1023,7 +1023,7 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.cached).toBe(true);
     });
 
-    it('should skip cache when useCache is false', async () => {
+    it('should skip cache when allowCached is false', async () => {
       const requestCache = new CameraManagerRequestCache();
       const engine = createEngine({ requestCache });
       const hass = createHASS();
@@ -1048,7 +1048,7 @@ describe('FrigateCameraManagerEngine', () => {
           source: QuerySource.Camera,
           cameraIDs: new Set(['camera-1']),
         },
-        { useCache: false },
+        { allowCached: false },
       );
 
       expect(getEvents).toHaveBeenCalledTimes(2);
@@ -1165,7 +1165,7 @@ describe('FrigateCameraManagerEngine', () => {
       );
     });
 
-    it('should skip event cache write when useCache is false', async () => {
+    it('should cache events fetched when allowCached is false', async () => {
       const requestCache = new CameraManagerRequestCache();
       const engine = createEngine({ requestCache });
       const hass = createHASS();
@@ -1184,7 +1184,7 @@ describe('FrigateCameraManagerEngine', () => {
           source: QuerySource.Camera,
           cameraIDs: new Set(['camera-1']),
         },
-        { useCache: false },
+        { allowCached: false },
       );
 
       await engine.getEvents(hass, store, {
@@ -1193,7 +1193,7 @@ describe('FrigateCameraManagerEngine', () => {
         cameraIDs: new Set(['camera-1']),
       });
 
-      expect(getEvents).toHaveBeenCalledTimes(2);
+      expect(getEvents).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1459,7 +1459,7 @@ describe('FrigateCameraManagerEngine', () => {
       expect(result).toBeNull();
     });
 
-    it('should skip review cache write when useCache is false', async () => {
+    it('should cache reviews fetched when allowCached is false', async () => {
       const requestCache = new CameraManagerRequestCache();
       const engine = createEngine({ requestCache });
       const hass = createHASS();
@@ -1478,17 +1478,16 @@ describe('FrigateCameraManagerEngine', () => {
           source: QuerySource.Camera,
           cameraIDs: new Set(['camera-1']),
         },
-        { useCache: false },
+        { allowCached: false },
       );
 
-      // Second call should still hit the API since cache was not populated.
       await engine.getReviews(hass, store, {
         type: QueryType.Review,
         source: QuerySource.Camera,
         cameraIDs: new Set(['camera-1']),
       });
 
-      expect(getReviews).toHaveBeenCalledTimes(2);
+      expect(getReviews).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1765,7 +1764,7 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.recordings).toHaveLength(0);
     });
 
-    it('should skip recording cache write when useCache is false', async () => {
+    it('should cache recordings fetched when allowCached is false', async () => {
       const requestCache = new CameraManagerRequestCache();
       const engine = createEngine({ requestCache });
       const hass = createHASS();
@@ -1784,17 +1783,16 @@ describe('FrigateCameraManagerEngine', () => {
           source: QuerySource.Camera,
           cameraIDs: new Set(['camera-1']),
         },
-        { useCache: false },
+        { allowCached: false },
       );
 
-      // Second call should still hit the API since cache was not populated.
       await engine.getRecordings(hass, store, {
         type: QueryType.Recording,
         source: QuerySource.Camera,
         cameraIDs: new Set(['camera-1']),
       });
 
-      expect(getRecordingsSummary).toHaveBeenCalledTimes(2);
+      expect(getRecordingsSummary).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1891,7 +1889,7 @@ describe('FrigateCameraManagerEngine', () => {
       expect(result).toBeNull();
     });
 
-    it('should skip segment cache when useCache is false', async () => {
+    it('should skip segment cache when allowCached is false', async () => {
       const cache = new RecordingSegmentsCache();
       const engine = createEngine({ cache });
       const hass = createHASS();
@@ -1917,10 +1915,40 @@ describe('FrigateCameraManagerEngine', () => {
           start,
           end,
         },
-        { useCache: false },
+        { allowCached: false },
       );
 
       expect(getRecordingSegments).toHaveBeenCalled();
+    });
+
+    it('should cache segments fetched when allowCached is false', async () => {
+      const cache = new RecordingSegmentsCache();
+      const engine = createEngine({ cache });
+      const config = createCameraConfig({
+        frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+      });
+      const store = createStore([{ cameraID: 'camera-1', config }]);
+
+      const start = new Date('2026-03-14T20:00:00Z');
+      const end = new Date('2026-03-14T21:00:00Z');
+
+      vi.mocked(getRecordingSegments).mockResolvedValue([
+        { start_time: 100, end_time: 200, id: 'seg-1' },
+      ]);
+
+      await engine.getRecordingSegments(
+        createHASS(),
+        store,
+        {
+          type: QueryType.RecordingSegments,
+          cameraIDs: new Set(['camera-1']),
+          start,
+          end,
+        },
+        { allowCached: false },
+      );
+
+      expect(cache.hasCoverage('camera-1', { start, end })).toBe(true);
     });
   });
 
@@ -3250,7 +3278,7 @@ describe('FrigateCameraManagerEngine', () => {
       expect(queryResult.metadata.what).toBeUndefined();
     });
 
-    it('should skip cache when useCache is false', async () => {
+    it('should skip cache when allowCached is false', async () => {
       const requestCache = new CameraManagerRequestCache();
       const engine = createEngine({ requestCache });
       const hass = createHASS();
@@ -3268,7 +3296,7 @@ describe('FrigateCameraManagerEngine', () => {
       };
 
       await engine.getMediaMetadata(hass, store, query);
-      await engine.getMediaMetadata(hass, store, query, { useCache: false });
+      await engine.getMediaMetadata(hass, store, query, { allowCached: false });
 
       expect(getEventSummary).toHaveBeenCalledTimes(2);
     });
@@ -3382,7 +3410,7 @@ describe('FrigateCameraManagerEngine', () => {
       expect(getEventSummary).toHaveBeenCalledTimes(2);
     });
 
-    it('should skip metadata cache write when useCache is false', async () => {
+    it('should cache metadata fetched when allowCached is false', async () => {
       const requestCache = new CameraManagerRequestCache();
       const engine = createEngine({ requestCache });
       const hass = createHASS();
@@ -3401,7 +3429,7 @@ describe('FrigateCameraManagerEngine', () => {
           type: QueryType.MediaMetadata,
           cameraIDs: new Set(['camera-1']),
         },
-        { useCache: false },
+        { allowCached: false },
       );
 
       await engine.getMediaMetadata(hass, store, {
@@ -3409,7 +3437,7 @@ describe('FrigateCameraManagerEngine', () => {
         cameraIDs: new Set(['camera-1']),
       });
 
-      expect(getEventSummary).toHaveBeenCalledTimes(2);
+      expect(getEventSummary).toHaveBeenCalledTimes(1);
     });
   });
 
