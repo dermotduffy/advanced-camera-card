@@ -120,9 +120,7 @@ export const liveConfigDefault = {
   auto_unmute: ['microphone' as const, 'call' as const],
   preload: false,
   lazy_load: true,
-  // Unload streams that are off-screen or in a hidden tab. `[]` keeps them
-  // loaded so the carousel can show a visited camera without reconnecting.
-  lazy_unload: ['unselected' as const, 'hidden' as const],
+  lazy_unload: [],
   draggable: true,
   zoomable: true,
   transition_effect: 'slide' as const,
