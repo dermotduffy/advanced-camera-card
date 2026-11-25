@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { OrConditionEvaluator } from '../../../../src/condition-trigger/conditions/conditions/or';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
-import { createEvaluatorContext } from './test-utils';
+import { createEvaluatorContext, createMockEvaluator } from './test-utils';
 
 describe('or condition', () => {
   afterEach(() => {
@@ -41,5 +42,18 @@ describe('or condition', () => {
     );
 
     expect(evaluator.externalSources).toHaveLength(1);
+  });
+
+  it('should report the earliest time among the children it evaluated', () => {
+    const evaluated = createMockEvaluator(false, new Date('2026-06-05T23:00:00Z'));
+    const deciding = createMockEvaluator(true, new Date('2026-06-05T22:58:00Z'));
+    const skipped = createMockEvaluator(true, new Date('2026-06-05T22:57:00Z'));
+    const evaluator = new OrConditionEvaluator([evaluated, deciding, skipped]);
+
+    expect(evaluator.evaluate({})).toEqual({
+      result: true,
+      validUntil: new Date('2026-06-05T22:58:00Z'),
+    });
+    expect(skipped.evaluate).not.toHaveBeenCalled();
   });
 });

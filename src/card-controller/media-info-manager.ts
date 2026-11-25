@@ -55,16 +55,13 @@ export class MediaLoadedInfoManager {
   }
 
   public initialize(): void {
+    // A pre-existing selection is kept: ViewManager owns it and only sets it on
+    // a view change, while the view itself survives a card reconnect.
     const cleared = [...this._active.keys()];
-    const hadSelected = this._selected !== null;
     this._active.clear();
     this._lastKnown.clear();
-    this._selected = null;
     this._api.getConditionStateManager().setState({ mediaLoadedInfo: null });
     cleared.forEach((targetID) => this._notify({ type: 'unload', targetID }));
-    if (hadSelected) {
-      this._notify({ type: 'select', targetID: null });
-    }
   }
 
   public set(mediaLoadedInfo: MediaLoadedInfo, owner: MediaLoadedInfoOwner): void {

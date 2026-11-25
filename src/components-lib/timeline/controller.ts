@@ -19,6 +19,7 @@ import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/ran
 import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
+import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
@@ -30,14 +31,20 @@ import type {
 import { configDefaults } from '../../config/schema/types';
 import type { HomeAssistant } from '../../ha/types';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action';
-import { formatDateAndTime, isHoverableDevice, isTruthy } from '../../utils/basic';
+import { isHoverableDevice, isTruthy } from '../../utils/basic';
+import {
+  formatDateTime,
+  formatMonth,
+  formatShortDate,
+  formatTime,
+} from '../../utils/date/localized';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
-import { mergeViewContext } from '../../view/view';
+import { setThumbnailDimensionsStyle } from '../thumbnail/dimensions';
 import { resolveThumbnailStyle } from '../thumbnail/resolve-style';
 import {
   canMediaBeShownAsTimelineItem,
@@ -64,6 +71,48 @@ interface TimelineControllerOptions {
 }
 
 const TIMELINE_TARGET_BAR_ID = 'target_bar';
+
+// vis-timeline labels its axis with moment.js, in English and with fixed
+// 12/24-hour strings. These label functions use the card's own formatting
+// instead, so the axis follows the user's language and 12/24-hour setting. A
+// label function must cover every scale the axis reaches: `millisecond` up to
+// `day`, as `zoomMax` keeps the window within a day.
+const formatMinorLabel = (date: Date, scale: string): string => {
+  switch (scale) {
+    case 'millisecond':
+      return String(date.getMilliseconds()).padStart(3, '0');
+    case 'second':
+      return String(date.getSeconds());
+    case 'minute':
+    case 'hour':
+      return formatTime(date);
+    default:
+      return formatShortDate(date, new Date());
+  }
+};
+
+const formatMajorLabel = (date: Date, scale: string): string => {
+  switch (scale) {
+    case 'millisecond':
+      return formatTime(date, { seconds: true });
+    case 'second':
+      return formatDateTime(date);
+    case 'minute':
+    case 'hour':
+      return formatShortDate(date, new Date());
+    default:
+      return formatMonth(date);
+  }
+};
+
+// vis-timeline's TypeScript types say it calls these functions with a `Date`,
+// but it actually passes a moment.js object, which lacks `Date` methods such as
+// `getSeconds()`. Each function therefore makes a real `Date` from the object's
+// timestamp.
+const TIMELINE_FORMAT: TimelineFormatOption = {
+  minorLabels: (date, scale) => formatMinorLabel(new Date(date.valueOf()), scale),
+  majorLabels: (date, scale) => formatMajorLabel(new Date(date.valueOf()), scale),
+};
 
 export class TimelineController {
   private _host: LitElement;
@@ -171,14 +220,7 @@ export class TimelineController {
     }
 
     if (this._thumbnailConfig !== (options.thumbnailConfig ?? null)) {
-      if (options.thumbnailConfig) {
-        this._host.style.setProperty(
-          '--advanced-camera-card-thumbnail-size',
-          `${options?.thumbnailConfig.size}px`,
-        );
-      } else {
-        this._host.style.removeProperty('--advanced-camera-card-thumbnail-size');
-      }
+      setThumbnailDimensionsStyle(this._host, options.thumbnailConfig ?? null);
     }
 
     if (this._timelineConfig !== (options.timelineConfig ?? null)) {
@@ -222,6 +264,7 @@ export class TimelineController {
     request.detail.media = media;
     request.detail.viewManagerEpoch = this._viewManagerEpoch ?? undefined;
     request.detail.size = this._thumbnailConfig?.size;
+    request.detail.aspectRatio = this._thumbnailConfig?.aspect_ratio;
   };
 
   public getEffectivePanMode(): TimelinePanMode {
@@ -337,7 +380,7 @@ export class TimelineController {
         markerProportion < 0.25 ? 'right' : markerProportion > 0.75 ? 'left' : 'center',
       );
       this._timeline?.setCustomTimeMarker?.(
-        formatDateAndTime(targetTime, true),
+        formatDateTime(targetTime, { seconds: true }),
         TIMELINE_TARGET_BAR_ID,
       );
     } else {
@@ -544,13 +587,18 @@ export class TimelineController {
         .resetSelectedResult()
         .selectResultIfFound((media) => media.getID() === id, criteria);
       const selectedItem = newResults?.getSelectedResult();
-      const context: ViewContext = mergeViewContext(this._getTimelineContext(), {
-        ...(canMediaBeShownAsTimelineItem(selectedItem) &&
-          // Only attempt to seek if the media has a real end time, otherwise
-          // the viewer cannot actually seek there and shows the unseekable
-          // message.
-          selectedItem.getEndTime() && { mediaViewer: { seek: properties.time } }),
-      });
+
+      // Only attempt to seek if the media has a real end time, otherwise the
+      // viewer cannot actually seek there and would show the unseekable
+      // message.
+      const shouldSeek =
+        canMediaBeShownAsTimelineItem(selectedItem) && !!selectedItem.getEndTime();
+      const modifiers = [
+        new MergeContextViewModifier(this._getTimelineContext()),
+        shouldSeek
+          ? new MergeContextViewModifier({ mediaViewer: { seek: properties.time } })
+          : new RemoveContextPropertyViewModifier('mediaViewer', 'seek'),
+      ];
 
       if (!newResults || !newResults.hasSelectedResult()) {
         // This can happen in a few situations:
@@ -571,7 +619,7 @@ export class TimelineController {
               query: item.query,
               queryResults,
             },
-            modifiers: [new MergeContextViewModifier(context)],
+            modifiers,
           });
         }
       } else {
@@ -580,7 +628,7 @@ export class TimelineController {
             queryResults: newResults,
             view: this._itemClickAction === 'play' ? 'media' : view.view,
           },
-          modifiers: [new MergeContextViewModifier(context)],
+          modifiers,
         });
       }
 
@@ -919,22 +967,6 @@ export class TimelineController {
     return { start: start, end: end };
   }
 
-  private _getDateTimeFormat(): TimelineFormatOption {
-    const format24Hour = !!this._timelineConfig?.format?.['24h'];
-
-    // See: https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
-    return {
-      minorLabels: {
-        minute: format24Hour ? 'HH:mm' : 'h:mm A',
-        hour: format24Hour ? 'HH:mm' : 'h:mm A',
-      },
-      majorLabels: {
-        millisecond: format24Hour ? 'HH:mm:ss' : 'h:mm:ss A',
-        second: format24Hour ? 'D MMMM HH:mm' : 'D MMMM h:mm A',
-      },
-    };
-  }
-
   private _canCluster(first: TimelineItem, second: TimelineItem): boolean {
     const selectedIDs = this._getAllSelectedMediaIDsFromView();
     const firstMedia = (<AdvancedCameraCardTimelineItem>first).media;
@@ -1011,7 +1043,7 @@ export class TimelineController {
         overflowMethod: 'cap',
         template: this._getTooltip.bind(this),
       },
-      format: this._getDateTimeFormat(),
+      format: TIMELINE_FORMAT,
       xss: {
         disabled: false,
         filterOptions: {

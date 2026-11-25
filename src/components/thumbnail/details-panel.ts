@@ -13,6 +13,7 @@ import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import type { ViewManagerEpoch } from '../../card-controller/view/types';
 import { isMediaReviewed } from '../../components-lib/media/format';
 import { ThumbnailDetailsPanelController } from '../../components-lib/thumbnail/details-panel/controller';
+import type { ThumbnailTier } from '../../components-lib/thumbnail/tier';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import thumbnailDetailsPanelStyle from '../../scss/thumbnail-details-panel.scss?inline';
@@ -47,7 +48,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
   public filterReviewed?: boolean;
 
   @property({ attribute: false })
-  public size?: number;
+  public tier?: ThumbnailTier;
 
   @property({ attribute: false })
   public filterFavorite?: boolean;
@@ -56,7 +57,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
 
   protected willUpdate(changedProperties: PropertyValues): void {
     if (
-      ['item', 'seek', 'cameraManager', 'size'].some((prop) =>
+      ['item', 'seek', 'cameraManager', 'tier'].some((prop) =>
         changedProperties.has(prop),
       )
     ) {
@@ -64,7 +65,7 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
         cameraManager: this.cameraManager,
         item: this.item,
         seek: this.seek,
-        size: this.size,
+        tier: this.tier,
       });
       this.setAttribute('tier', this._controller.getTier());
 
@@ -89,63 +90,53 @@ export class AdvancedCameraCardThumbnailDetailsPanel extends LitElement {
 
   protected render(): TemplateResult | void {
     const label = this._controller.getLabel();
-    const time = this._controller.getTime();
+    const timeParts = this._controller.getTimeParts();
     const isInProgress = this._controller.isInProgress();
     const details = this._controller.getDetails();
     const seekTime = this._controller.getSeekTime();
     const hiddenDetailCount = this._controller.getHiddenDetailCount();
 
     return html`
-      ${
-        isInProgress
-          ? html`<span class="in-progress" title=${localize('common.in_progress')}
-              ><span class="dot"></span
-              ><span class="label">${localize('thumbnail.in_progress')}</span></span
-            >`
-          : ''
-      }
-      ${
-        label || time
-          ? html`<div class="heading">
-              ${label ? html`<span title=${label}>${label}</span>` : ''}
-              ${
-                time
-                  ? html`<span class="time" dir="ltr"
-                      >${time.hoursMinutes}<span class="seconds"
-                        >${time.seconds}</span
-                      ></span
-                    >`
-                  : ''
-              }
-            </div>`
-          : ''
-      }
+      ${isInProgress
+        ? html`<span class="in-progress" title=${localize('common.in_progress')}
+            ><span class="dot"></span
+            ><span class="label">${localize('thumbnail.in_progress')}</span></span
+          >`
+        : ''}
+      ${label || timeParts
+        ? html`<div class="heading">
+            ${label ? html`<span title=${label}>${label}</span>` : ''}
+            ${timeParts
+              ? html`<span class="time" dir="ltr"
+                  >${timeParts.map(
+                    (part) => html`<span class=${part.type}>${part.value}</span>`,
+                  )}</span
+                >`
+              : ''}
+          </div>`
+        : ''}
       ${details.map((detail) => html`<div><span title=${detail}>${detail}</span></div>`)}
-      ${
-        seekTime
-          ? html`<div class="seek">
-              <advanced-camera-card-icon
-                title=${localize('thumbnail.seek')}
-                .icon=${{ icon: 'mdi:clock-fast' }}
-              ></advanced-camera-card-icon>
-              <span title=${seekTime}>${seekTime}</span>
-            </div>`
-          : ''
-      }
-      ${
-        hiddenDetailCount
-          ? html`<ha-assist-chip
-              class="more"
-              filled
-              .label=${localize(
-                'thumbnail.more_details',
-                '{count}',
-                String(hiddenDetailCount),
-              )}
-              @click=${(ev: Event) => this._showInfo(ev)}
-            ></ha-assist-chip>`
-          : ''
-      }
+      ${seekTime
+        ? html`<div class="seek">
+            <advanced-camera-card-icon
+              title=${localize('thumbnail.seek')}
+              .icon=${{ icon: 'mdi:clock-fast' }}
+            ></advanced-camera-card-icon>
+            <span title=${seekTime}>${seekTime}</span>
+          </div>`
+        : ''}
+      ${hiddenDetailCount
+        ? html`<ha-assist-chip
+            class="more"
+            filled
+            .label=${localize(
+              'thumbnail.more_details',
+              '{count}',
+              String(hiddenDetailCount),
+            )}
+            @click=${(ev: Event) => this._showInfo(ev)}
+          ></ha-assist-chip>`
+        : ''}
     `;
   }
 

@@ -88,6 +88,15 @@ const getMicrophoneTypeSchema = (): HAFormSchema => ({
   ]),
 });
 
+const getMenuButtonUnavailableSchema = (): HAFormSchema => ({
+  name: 'unavailable',
+  label: localize('config.menu.buttons.unavailable'),
+  selector: createSelectSelector([
+    { value: 'hidden', label: localize('config.menu.buttons.unavailables.hidden') },
+    { value: 'inert', label: localize('config.menu.buttons.unavailables.inert') },
+  ]),
+});
+
 const getMenuButtonSchema = (
   button: string,
   extraSchema: HAFormSchema[] = [],
@@ -147,6 +156,7 @@ const getMenuButtonSchema = (
         selector: { boolean: {} },
       },
     ]),
+    getMenuButtonUnavailableSchema(),
     {
       type: 'expandable',
       title: localize('config.menu.buttons.style'),

@@ -137,6 +137,96 @@ describe('AdvancedCameraCardViewerCarousel', () => {
     expect(getSelectedThumbnail(card.card)).toBe(getThumbnails(card.card)[0]);
   });
 
+  it('should draw the carousel thumbnails at the configured aspect ratio', async () => {
+    const card = await mountViewer(EVENTS, {
+      config: {
+        media_viewer: {
+          controls: {
+            thumbnails: {
+              mode: 'below',
+              size: 160,
+              aspect_ratio: [16, 9],
+              style: 'plain',
+            },
+          },
+        },
+      },
+    });
+
+    const rect = getThumbnails(card.card)[0].getBoundingClientRect();
+
+    expect(Math.abs(rect.width - 160)).toBeLessThanOrEqual(1);
+    expect(Math.abs(rect.height - 90)).toBeLessThanOrEqual(1);
+  });
+
+  it('should show a full size details panel beside a wide thumbnail', async () => {
+    const card = await mountViewer(EVENTS, {
+      config: {
+        media_viewer: {
+          controls: {
+            thumbnails: {
+              mode: 'right',
+              size: 100,
+              aspect_ratio: [16, 9],
+              style: 'panel',
+            },
+          },
+        },
+      },
+    });
+
+    const thumbnail = getThumbnails(card.card)[0];
+    const feature = deepQuery(thumbnail, 'advanced-camera-card-thumbnail-feature');
+    const panel = deepQuery(thumbnail, 'advanced-camera-card-thumbnail-details-panel');
+    const controls = deepQuery(thumbnail, 'advanced-camera-card-thumbnail-controls');
+    assert(feature);
+    assert(panel);
+    assert(controls);
+
+    // The row is as tall as `size` and the panel fills it, whereas the
+    // controls sit on a 56px tall image.
+    const featureRect = feature.getBoundingClientRect();
+    const controlsRect = controls.getBoundingClientRect();
+    expect(Math.abs(thumbnail.getBoundingClientRect().height - 100)).toBeLessThanOrEqual(
+      1,
+    );
+    expect(Math.abs(featureRect.height - 56.25)).toBeLessThanOrEqual(1);
+    expect(panel.getBoundingClientRect().height).toBeGreaterThan(featureRect.height);
+    expect(Math.abs(controlsRect.top - featureRect.top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(controlsRect.height - featureRect.height)).toBeLessThanOrEqual(1);
+    expect(panel.getAttribute('tier')).toBe('standard');
+    expect(controls.getAttribute('tier')).toBe('compact');
+  });
+
+  it('should narrow the details panel row to fit a tall thumbnail', async () => {
+    const card = await mountViewer(EVENTS, {
+      config: {
+        media_viewer: {
+          controls: {
+            thumbnails: {
+              mode: 'right',
+              size: 100,
+              aspect_ratio: [9, 16],
+              style: 'panel',
+            },
+          },
+        },
+      },
+    });
+
+    const thumbnail = getThumbnails(card.card)[0];
+    const feature = deepQuery(thumbnail, 'advanced-camera-card-thumbnail-feature');
+    assert(feature);
+
+    // The image is 56.25px wide, and the panel beside it keeps its 150px.
+    const featureRect = feature.getBoundingClientRect();
+    expect(Math.abs(featureRect.width - 56.25)).toBeLessThanOrEqual(1);
+    expect(Math.abs(featureRect.height - 100)).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(thumbnail.getBoundingClientRect().width - 206.25),
+    ).toBeLessThanOrEqual(1);
+  });
+
   it('should name the media being viewed in the status bar', async () => {
     const card = await mountViewer(
       [
@@ -274,7 +364,8 @@ describe('AdvancedCameraCardViewerCarousel', () => {
 
     // Outside a grid the carousel fills the card, so the cap is what gives the
     // card the height of its media rather than of whatever contains it.
-    expect(parseFloat(carousel.style.maxHeight)).toBe(
+    // Computed: the inline cap is a var() with the pixel height as fallback.
+    expect(parseFloat(getComputedStyle(carousel).maxHeight)).toBe(
       carousel.getBoundingClientRect().height,
     );
   });

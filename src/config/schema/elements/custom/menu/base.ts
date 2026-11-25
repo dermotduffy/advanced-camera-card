@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
+import { buttonBaseSchema } from '../../../common/button';
 import { MENU_PRIORITY_DEFAULT, MENU_PRIORITY_MAX } from '../../../common/const';
-import { styleSchema } from '../../../common/style';
 
-export const menuBaseSchema = z.object({
+export const menuBaseSchema = buttonBaseSchema.extend({
   enabled: z.boolean().default(true).optional(),
   inert: z.boolean().optional(),
   priority: z
@@ -13,8 +13,6 @@ export const menuBaseSchema = z.object({
     .default(MENU_PRIORITY_DEFAULT)
     .optional(),
   alignment: z.enum(['matching', 'opposing']).default('matching').optional(),
-  icon: z.string().optional(),
   state_color: z.boolean().default(true).optional(),
   permanent: z.boolean().default(false).optional(),
-  style: styleSchema.optional(),
 });

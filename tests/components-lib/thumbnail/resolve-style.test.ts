@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   resolveThumbnailStyle,
@@ -26,6 +26,10 @@ const createContext = (
 
 // @vitest-environment jsdom
 describe('resolveThumbnailStyle', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   beforeEach(() => {
     stubMatchMedia().mockReturnValue({ matches: true });
   });
@@ -61,6 +65,15 @@ describe('resolveThumbnailStyle', () => {
       expect(
         resolveThumbnailStyle(
           createConfig({ style: 'auto', size: 100 }),
+          createContext({ placement: 'surround-vertical', availableWidth: 300 }),
+        ),
+      ).toBe('panel');
+    });
+
+    it('should fit a panel beside a narrow image', () => {
+      expect(
+        resolveThumbnailStyle(
+          createConfig({ style: 'auto', size: 200, aspect_ratio: [9, 16] }),
           createContext({ placement: 'surround-vertical', availableWidth: 300 }),
         ),
       ).toBe('panel');
@@ -106,6 +119,15 @@ describe('resolveThumbnailStyle', () => {
       expect(
         resolveThumbnailStyle(
           createConfig({ style: 'auto', size: 200 }),
+          createContext(),
+        ),
+      ).toBe('hover');
+    });
+
+    it('should hover on large wide grid thumbnails', () => {
+      expect(
+        resolveThumbnailStyle(
+          createConfig({ style: 'auto', size: 200, aspect_ratio: [16, 9] }),
           createContext(),
         ),
       ).toBe('hover');

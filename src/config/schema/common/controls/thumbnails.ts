@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { aspectRatioSchema } from '../aspect-ratio';
+
 export const THUMBNAIL_SIZE_MIN = 75;
 export const THUMBNAIL_SIZE_DEFAULT = 100;
 export const THUMBNAIL_SIZE_MAX = 300;
@@ -8,6 +10,7 @@ const thumbnailStyleSchema = z.enum(['auto', 'plain', 'overlay', 'hover', 'panel
 export type ThumbnailStyle = z.infer<typeof thumbnailStyleSchema>;
 
 export const thumbnailsControlBaseDefaults = {
+  aspect_ratio: [1, 1],
   size: THUMBNAIL_SIZE_DEFAULT,
   style: 'auto' as const,
   show_favorite_control: true,
@@ -19,6 +22,7 @@ export const thumbnailsControlBaseDefaults = {
 
 // Configuration for the actual rendered thumbnail.
 export const thumbnailsControlBaseSchema = z.object({
+  aspect_ratio: aspectRatioSchema.default(thumbnailsControlBaseDefaults.aspect_ratio),
   size: z
     .number()
     .min(THUMBNAIL_SIZE_MIN)

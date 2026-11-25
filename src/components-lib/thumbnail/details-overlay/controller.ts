@@ -1,7 +1,6 @@
-import { format } from 'date-fns';
-
 import type { CameraManager } from '../../../camera-manager/manager';
 import { isTruthy } from '../../../utils/basic';
+import { formatTime, formatTimeToParts } from '../../../utils/date/localized';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import {
@@ -13,27 +12,27 @@ import {
   joinValues,
 } from '../../media/format';
 import type { ResolvedThumbnailStyle } from '../resolve-style';
-import { getThumbnailTier, type ThumbnailTier } from '../tier';
+import { THUMBNAIL_TIER_DEFAULT, type ThumbnailTier } from '../tier';
 
 export interface ThumbnailDetailsOverlayOptions {
   cameraManager?: CameraManager;
   item?: ViewItem;
   thumbnailStyle?: ResolvedThumbnailStyle;
-  size?: number;
+  tier?: ThumbnailTier;
 }
 
 interface ThumbnailDetailsOverlayTime {
-  hoursMinutes: string;
+  // The time shown in the headline, as typed pieces. These include a `second`
+  // piece only when `isOneLineHeadline()` is false, since a one-line headline
+  // has no room for seconds.
+  parts: Intl.DateTimeFormatPart[];
 
-  // Dropped where the overlay has only one line to give the time.
-  seconds?: string;
-
-  // Full time (for the tooltip).
-  hoursMinutesSeconds: string;
+  // The full time, with seconds.
+  tooltip: string;
 }
 
 export class ThumbnailDetailsOverlayController {
-  private _tier: ThumbnailTier = 'standard';
+  private _tier: ThumbnailTier = THUMBNAIL_TIER_DEFAULT;
 
   private _isHover = false;
 
@@ -46,7 +45,7 @@ export class ThumbnailDetailsOverlayController {
   private _tags: string | null = null;
 
   public calculate(options: ThumbnailDetailsOverlayOptions): void {
-    this._tier = getThumbnailTier(options.size);
+    this._tier = options.tier ?? THUMBNAIL_TIER_DEFAULT;
 
     this._isHover = options.thumbnailStyle === 'hover';
 
@@ -111,12 +110,9 @@ export class ThumbnailDetailsOverlayController {
       return null;
     }
 
-    const hoursMinutesSeconds = format(this._startTime, 'HH:mm:ss');
-    const showSeconds = !this.isOneLineHeadline();
     return {
-      hoursMinutes: hoursMinutesSeconds.slice(0, 5),
-      ...(showSeconds && { seconds: hoursMinutesSeconds.slice(5) }),
-      hoursMinutesSeconds,
+      parts: formatTimeToParts(this._startTime, { seconds: !this.isOneLineHeadline() }),
+      tooltip: formatTime(this._startTime, { seconds: true }),
     };
   }
 

@@ -157,23 +157,17 @@ export interface HomeAssistant {
   formatEntityName: (stateObj: HassEntity) => string;
 }
 
-declare enum NumberFormat {
-  language = 'language',
-  system = 'system',
-  comma_decimal = 'comma_decimal',
-  decimal_comma = 'decimal_comma',
-  space_comma = 'space_comma',
-  none = 'none',
-}
+type NumberFormat =
+  | 'language'
+  | 'system'
+  | 'comma_decimal'
+  | 'decimal_comma'
+  | 'space_comma'
+  | 'none';
 
-declare enum TimeFormat {
-  language = 'language',
-  system = 'system',
-  am_pm = '12',
-  twenty_four = '24',
-}
+type TimeFormat = 'language' | 'system' | '12' | '24';
 
-interface FrontendLocaleData {
+export interface FrontendLocaleData {
   language: string;
   number_format: NumberFormat;
   time_format: TimeFormat;
@@ -354,10 +348,19 @@ interface CardHAFormSchemaExtensions {
 }
 
 export interface HAFormSelectorSchema
-  extends StockHAFormSelectorSchema, CardHAFormSchemaExtensions {}
+  extends StockHAFormSelectorSchema,
+    CardHAFormSchemaExtensions {
+  // Convert a configured value into the value the field shows, e.g. an aspect
+  // ratio stored as `[16, 9]` is shown in a text field as `16:9`. Pass a
+  // function defined once, not one created each time the schema is built: the
+  // editor redraws a form whenever its rebuilt schema differs from the last
+  // one, and two separately created functions always count as different.
+  formatDisplayed?: (value: unknown) => unknown;
+}
 
 export interface HAFormExpandableSchema
-  extends Omit<StockHAFormExpandableSchema, 'name'>, CardHAFormSchemaExtensions {
+  extends Omit<StockHAFormExpandableSchema, 'name'>,
+    CardHAFormSchemaExtensions {
   // hass-frontend requires `name`, but `ha-form`'s runtime treats a missing name
   // as a flattened, visual-only group (the `!item.name` paths in ha-form.ts).
   // Relaxed to optional here for nameless grouping, e.g. an "Engine" group over
@@ -373,12 +376,15 @@ export interface HAFormExpandableSchema
 // any other visual-only grouping, so the fields within it are stored where they
 // would be without it.
 export interface HAFormGridSchema
-  extends Omit<StockHAFormGridSchema, 'name'>, CardHAFormSchemaExtensions {
+  extends Omit<StockHAFormGridSchema, 'name'>,
+    CardHAFormSchemaExtensions {
   name?: string;
 }
 
 export type HAFormSchema =
-  HAFormSelectorSchema | HAFormExpandableSchema | HAFormGridSchema;
+  | HAFormSelectorSchema
+  | HAFormExpandableSchema
+  | HAFormGridSchema;
 
 /**
  * Whether a form node is a field the user fills in, rather than a container of

@@ -178,4 +178,30 @@ describe('AdvancedCameraCardLiveProvider', () => {
       expectMeasuredAspectRatio(card.card, DEFAULT_RATIO);
     });
   });
+
+  it.each([
+    ['zoomable', true],
+    ['not zoomable', false],
+  ])(
+    'should not count the loading image as loaded media when %s',
+    async (_name: string, zoomable: boolean) => {
+      // The `ha` provider's player never loads in the harness, so the loading
+      // image stays in its place.
+      const card = await mount(
+        {
+          live_provider: 'ha',
+          image: { mode: 'url', url: IMAGE_URL, refresh_seconds: 0 },
+        },
+        { show_image_during_load: true, zoomable },
+      );
+
+      const provider = await getProvider(card);
+      await card.waitForRender(
+        () => provider.hasAttribute('sized') || null,
+        'the frame being sized by the loaded loading image',
+      );
+
+      expect(card.events.getEntries('advanced-camera-card:media:loaded')).toEqual([]);
+    },
+  );
 });

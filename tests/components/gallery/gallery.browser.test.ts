@@ -137,6 +137,43 @@ describe('AdvancedCameraCardGallery', () => {
     expect(Math.abs(rect.width - rect.height)).toBeLessThanOrEqual(1);
   });
 
+  it('should draw a thumbnail at the configured aspect ratio', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)], {
+      media_gallery: { controls: { thumbnails: { size: 200, aspect_ratio: [16, 9] } } },
+    });
+    await waitForThumbnails(card, 1);
+
+    const thumbnail = getThumbnails(card.card)[0];
+    const feature = deepQuery(thumbnail, 'advanced-camera-card-thumbnail-feature');
+    assert(feature);
+
+    for (const rect of [
+      thumbnail.getBoundingClientRect(),
+      feature.getBoundingClientRect(),
+    ]) {
+      expect(rect.width).toBeGreaterThan(0);
+      expect(Math.abs(rect.width - (rect.height * 16) / 9)).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('should size the details overlay to the shorter side of a wide thumbnail', async () => {
+    const card = await mountCard([createTestFrigateEvent('newer', EVENT_TIME_NEWER)], {
+      media_gallery: {
+        controls: { thumbnails: { size: 300, aspect_ratio: [16, 9], style: 'overlay' } },
+      },
+    });
+    await waitForThumbnails(card, 1);
+
+    const overlay = deepQuery(
+      getThumbnails(card.card)[0],
+      'advanced-camera-card-thumbnail-details-overlay',
+    );
+    assert(overlay);
+
+    // A 300px wide 16:9 thumbnail is 169px tall, too short for the poster tier.
+    expect(overlay.getAttribute('tier')).toBe('standard');
+  });
+
   it('should say there is nothing to view when the camera has no events', async () => {
     const card = await mountCard([]);
 

@@ -1,35 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
 import { LatestValueRunner } from '../../../src/utils/concurrency/latest-value-runner';
-
-interface Deferred {
-  promise: Promise<void>;
-  resolve: () => void;
-  reject: (reason?: unknown) => void;
-}
-
-const createDeferred = (): Deferred => {
-  let resolve: () => void = () => {};
-  let reject: (reason?: unknown) => void = () => {};
-  const promise = new Promise<void>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
-};
+import { createPromiseWithResolvers, type PromiseWithResolvers } from '../test-utils';
 
 // A runner whose operation blocks on an external gate per run, so tests control
 // exactly when each run completes.
 const createGatedRunner = (): {
   runner: LatestValueRunner<string>;
   runs: string[];
-  gates: Deferred[];
+  gates: PromiseWithResolvers[];
 } => {
   const runs: string[] = [];
-  const gates: Deferred[] = [];
+  const gates: PromiseWithResolvers[] = [];
   const runner = new LatestValueRunner<string>((value) => {
     runs.push(value);
-    const gate = createDeferred();
+    const gate = createPromiseWithResolvers();
     gates.push(gate);
     return gate.promise;
   });
@@ -38,7 +23,7 @@ const createGatedRunner = (): {
 
 describe('LatestValueRunner', () => {
   it('should resolve the submit promise once the run completes', async () => {
-    const gate = createDeferred();
+    const gate = createPromiseWithResolvers();
     const runner = new LatestValueRunner<string>(() => gate.promise);
 
     let resolved = false;

@@ -110,6 +110,7 @@ export class FakeRTCPeerConnection extends EventTarget {
     return Promise.resolve();
   });
   public addIceCandidate = vi.fn(() => Promise.resolve());
+  public createDataChannel = vi.fn();
   public close = vi.fn();
 
   public addTransceiver(

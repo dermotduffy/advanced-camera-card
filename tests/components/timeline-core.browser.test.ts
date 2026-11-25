@@ -7,7 +7,12 @@ import '../../src/components/timeline';
 import type { FrigateReview } from '../../src/camera-manager/frigate/types';
 import type { AdvancedCameraCardDrawer } from '../../src/components/drawer';
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
-import { deepQuery, deepQueryAll, getElementAtPoint } from '../browser/dom';
+import {
+  deepQuery,
+  deepQueryAll,
+  getElementAtPoint,
+  hoverElement,
+} from '../browser/dom';
 import {
   createFrigateCameraDescription,
   createTestFrigateEvent,
@@ -293,6 +298,49 @@ describe('AdvancedCameraCardTimelineCore', () => {
 
       expect(drawn.clusters).toBeGreaterThan(0);
       expect(drawn.items).toBeLessThan(10);
+    });
+  });
+
+  describe('thumbnail popup', () => {
+    it('should show a full size details panel beside a wide thumbnail', async () => {
+      const card = await mountCardWithReviews(
+        [createTestFrigateReview('review', getRecentTime(600))],
+        {
+          timeline: {
+            // A clustering timeline replaces its items each time it redraws,
+            // which can detach the item before the pointer reaches it.
+            clustering_threshold: 0,
+            controls: { thumbnails: { size: 100, aspect_ratio: [16, 9] } },
+          },
+        },
+      );
+
+      await hoverElement(
+        await card.waitForSelector('.vis-item:not(.vis-background):not(.vis-cluster)'),
+      );
+      const popup = await card.waitForSelector(
+        'advanced-camera-card-timeline-thumbnail',
+      );
+      const thumbnail = await card.waitForRender(
+        () => deepQuery<HTMLElement>(popup, 'advanced-camera-card-thumbnail'),
+        'the popup thumbnail',
+      );
+      const feature = deepQuery(thumbnail, 'advanced-camera-card-thumbnail-feature');
+      const panel = deepQuery(thumbnail, 'advanced-camera-card-thumbnail-details-panel');
+      const controls = deepQuery(thumbnail, 'advanced-camera-card-thumbnail-controls');
+      assert(feature);
+      assert(panel);
+      assert(controls);
+
+      // The popup is as tall as `size`, beside a 56px tall image.
+      const thumbnailRect = thumbnail.getBoundingClientRect();
+      expect(Math.abs(thumbnailRect.height - 100)).toBeLessThanOrEqual(1);
+      expect(Math.abs(thumbnailRect.width - 250)).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(feature.getBoundingClientRect().height - 56.25),
+      ).toBeLessThanOrEqual(1);
+      expect(panel.getAttribute('tier')).toBe('standard');
+      expect(controls.getAttribute('tier')).toBe('compact');
     });
   });
 });

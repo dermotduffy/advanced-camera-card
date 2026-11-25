@@ -27,7 +27,7 @@ import { HA_MEDIA_SOURCE_ROOT } from '../../../ha/media-source';
 import type { HomeAssistant } from '../../../ha/types';
 import { QuerySource } from '../../../query-source.js';
 import type { Endpoint } from '../../../types';
-import type { ViewFolder, ViewItem } from '../../../view/item';
+import type { ViewFolder, ViewItem, ViewMedia } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../../view/types';
 import type { TemplateRenderer } from '../../templates';
@@ -124,6 +124,16 @@ export class HAFoldersEngine implements FoldersEngine {
     _favorite: boolean,
   ): Promise<void> {
     return;
+  }
+
+  public getMediaSeekTime(media: ViewMedia, target: Date): number | null {
+    // Playback of Home Assistant media is assumed to begin at its start time,
+    // so a position is the time elapsed since then.
+    const startTime = media.getPlaybackStartTime();
+    const endTime = media.getEndTime();
+    return startTime && endTime && target >= startTime && target <= endTime
+      ? (target.getTime() - startTime.getTime()) / 1000
+      : null;
   }
 
   public getDefaultQueryParameters(folder: FolderConfig): FolderQuery | null {

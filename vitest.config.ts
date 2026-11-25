@@ -85,10 +85,12 @@ export default defineConfig({
         test: {
           // Nothing stops these sharing, so they run against a single loaded
           // copy of the source tree. Most of the suite is here, and anything
-          // moved out of here pays to import that tree again.
+          // moved out of here pays to import that tree again. The setup file
+          // fails any file that doesn't clean up shared state.
           name: 'shared',
           include: getInclusions('shared-node'),
           isolate: false,
+          setupFiles: ['tests/setup/leak-check.ts'],
         },
       },
       {
@@ -108,11 +110,18 @@ export default defineConfig({
           //
           // They share one `document` as well, so a file that redefines part of
           // it must leave the property configurable for the files that follow.
+          // `jsdom-leak-check.ts` also checks the state that only jsdom has,
+          // and `home-assistant.ts` adds a shared home-assistant element.
           name: 'shared (jsdom)',
           include: getInclusions('shared-jsdom'),
           environment: 'jsdom',
           setupFiles: ['./tests/setup-jsdom.ts'],
           isolate: false,
+          setupFiles: [
+            'tests/setup/home-assistant.ts',
+            'tests/setup/leak-check.ts',
+            'tests/setup/jsdom-leak-check.ts',
+          ],
         },
       },
       {

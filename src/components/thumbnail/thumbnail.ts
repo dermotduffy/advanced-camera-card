@@ -13,7 +13,9 @@ import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { getMediaSeverity } from '../../components-lib/media/format.js';
+import { getThumbnailShorterSide } from '../../components-lib/thumbnail/dimensions.js';
 import type { ResolvedThumbnailStyle } from '../../components-lib/thumbnail/resolve-style.js';
+import { getThumbnailTier } from '../../components-lib/thumbnail/tier.js';
 import { THUMBNAIL_SIZE_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss?inline';
@@ -57,6 +59,9 @@ export class AdvancedCameraCardThumbnail extends LitElement {
 
   @property({ attribute: false })
   public size: number = THUMBNAIL_SIZE_DEFAULT;
+
+  @property({ attribute: false })
+  public aspectRatio?: number[];
 
   @property({ attribute: true, type: Boolean })
   public show_favorite_control = false;
@@ -137,13 +142,24 @@ export class AdvancedCameraCardThumbnail extends LitElement {
       return;
     }
 
+    // Controls and overlays sit on the image, so must fit its shorter side.
+    const imageTier = getThumbnailTier(
+      getThumbnailShorterSide({ size: this.size, aspect_ratio: this.aspectRatio }),
+    );
+
+    // The details panel sits beside the image, not on it, and may be as tall as
+    // `size` regardless of the height of the image. A wide image is left with
+    // bands above and below it, so that the panel shows as much as it would
+    // beside a square image of the same `size`.
+    const panelTier = getThumbnailTier(this.size);
+
     return html`
       <advanced-camera-card-thumbnail-feature
         .cameraManager=${this.cameraManager}
         .thumbnailStyle=${this.thumbnailStyle}
         .hass=${this.hass}
         .item=${this.item}
-        .size=${this.size}
+        .tier=${imageTier}
         .viewItemManager=${this.viewItemManager}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .show_favorite_control=${this.show_favorite_control}
@@ -155,31 +171,27 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .filterFavorite=${this.filterFavorite}
       >
       </advanced-camera-card-thumbnail-feature>
-      ${
-        this.thumbnailStyle === 'overlay' || this.thumbnailStyle === 'hover'
-          ? html`<advanced-camera-card-thumbnail-details-overlay
-              .cameraManager=${this.cameraManager}
-              .item=${this.item}
-              .thumbnailStyle=${this.thumbnailStyle}
-              .size=${this.size}
-            ></advanced-camera-card-thumbnail-details-overlay>`
-          : ''
-      }
-      ${
-        this.thumbnailStyle === 'panel'
-          ? html`<advanced-camera-card-thumbnail-details-panel
-              .hass=${this.hass}
-              .item=${this.item ?? undefined}
-              .cameraManager=${this.cameraManager}
-              .seek=${this.seek}
-              .viewItemManager=${this.viewItemManager}
-              .viewManagerEpoch=${this.viewManagerEpoch}
-              .filterReviewed=${this.filterReviewed}
-              .filterFavorite=${this.filterFavorite}
-              .size=${this.size}
-            ></advanced-camera-card-thumbnail-details-panel>`
-          : ''
-      }
+      ${this.thumbnailStyle === 'overlay' || this.thumbnailStyle === 'hover'
+        ? html`<advanced-camera-card-thumbnail-details-overlay
+            .cameraManager=${this.cameraManager}
+            .item=${this.item}
+            .thumbnailStyle=${this.thumbnailStyle}
+            .tier=${imageTier}
+          ></advanced-camera-card-thumbnail-details-overlay>`
+        : ''}
+      ${this.thumbnailStyle === 'panel'
+        ? html`<advanced-camera-card-thumbnail-details-panel
+            .hass=${this.hass}
+            .item=${this.item ?? undefined}
+            .cameraManager=${this.cameraManager}
+            .seek=${this.seek}
+            .viewItemManager=${this.viewItemManager}
+            .viewManagerEpoch=${this.viewManagerEpoch}
+            .filterReviewed=${this.filterReviewed}
+            .filterFavorite=${this.filterFavorite}
+            .tier=${panelTier}
+          ></advanced-camera-card-thumbnail-details-panel>`
+        : ''}
       <div class="ring"></div>
     `;
   }

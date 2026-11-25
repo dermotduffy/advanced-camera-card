@@ -1,13 +1,35 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 
 import { VisibilityObserver } from '../../src/components-lib/visibility-observer';
 import {
   callIntersectionHandler,
   callVisibilityHandler,
+  changeDocumentVisibility,
+  createDocumentVisibility,
   createParent,
   getMockIntersectionObserver,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../test-utils';
+
+const createObserver = (
+  ...args: ConstructorParameters<typeof VisibilityObserver>
+): VisibilityObserver => {
+  const observer = new VisibilityObserver(...args);
+
+  // The observer's document visibility subscription outlives this test file.
+  onTestFinished(() => observer.destroy());
+  return observer;
+};
 
 // @vitest-environment jsdom
 describe('VisibilityObserver', () => {
@@ -27,17 +49,13 @@ describe('VisibilityObserver', () => {
     // Reset document.visibilityState so each test starts with the tab
     // visible and is not affected by leftover state from a prior
     // `callVisibilityHandler(false)`.
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   describe('intersection', () => {
     it('should treat the first callback as baseline and not emit', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
 
       await callIntersectionHandler(false);
@@ -47,7 +65,7 @@ describe('VisibilityObserver', () => {
 
     it('should emit true when the root scrolls into view', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
 
       await callIntersectionHandler(false);
@@ -59,7 +77,7 @@ describe('VisibilityObserver', () => {
 
     it('should emit false when the root scrolls out of view', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
 
       await callIntersectionHandler(true);
@@ -71,7 +89,7 @@ describe('VisibilityObserver', () => {
 
     it('should not emit when intersection state is unchanged', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
 
       await callIntersectionHandler(true);
@@ -85,7 +103,7 @@ describe('VisibilityObserver', () => {
       // compared against the previous root's last-known intersection state and
       // could emit a spurious change.
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
 
       // Establish a non-null intersection state on the first root.
@@ -110,7 +128,7 @@ describe('VisibilityObserver', () => {
   describe('document visibility', () => {
     it('should emit false when the tab becomes hidden while the element is intersecting', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
       await callIntersectionHandler(true); // baseline: visible=true
 
@@ -122,7 +140,7 @@ describe('VisibilityObserver', () => {
 
     it('should emit true when the tab becomes visible while the element is intersecting', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
       await callIntersectionHandler(true); // baseline: visible=true
       await callVisibilityHandler(false); // visible -> hidden
@@ -141,7 +159,7 @@ describe('VisibilityObserver', () => {
       // would emit visible=true on tab focus, making microphone
       // auto_unmute: ['visible'] open the mic from a hidden view.
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
       await callIntersectionHandler(false); // baseline: visible=false
 
@@ -153,7 +171,7 @@ describe('VisibilityObserver', () => {
 
     it('should emit nothing for tab events received before any intersection callback', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
 
       await callVisibilityHandler(false);
@@ -161,12 +179,30 @@ describe('VisibilityObserver', () => {
 
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it('should respect the document visibility source over the raw document state', async () => {
+      setVisibilityState('hidden');
+      const documentVisibility = createDocumentVisibility(true);
+      const onChange = vi.fn();
+      const observer = createObserver(
+        onChange,
+        { emitInitial: true },
+        documentVisibility,
+      );
+      observer.setRoot(createParent());
+
+      await callIntersectionHandler(true);
+      expect(onChange).toHaveBeenLastCalledWith(true);
+
+      await changeDocumentVisibility(documentVisibility, false);
+      expect(onChange).toHaveBeenLastCalledWith(false);
+    });
   });
 
   describe('combining tab and intersection signals', () => {
     it('should emit true only when both signals are visible', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange);
+      const observer = createObserver(onChange);
       observer.setRoot(createParent());
 
       // baseline: visible=false
@@ -189,7 +225,7 @@ describe('VisibilityObserver', () => {
 
   describe('lifecycle', () => {
     it('should be idempotent on setRoot for the same element', () => {
-      const observer = new VisibilityObserver(vi.fn());
+      const observer = createObserver(vi.fn());
       const parent = createParent();
 
       observer.setRoot(parent);
@@ -204,9 +240,11 @@ describe('VisibilityObserver', () => {
       expect(intersectionObserver?.disconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('should disconnect the intersection observer and remove the visibility listener on destroy', () => {
-      const removeEventListenerSpy = vi.spyOn(global.document, 'removeEventListener');
-      const observer = new VisibilityObserver(vi.fn());
+    it('should disconnect the intersection observer and unsubscribe from document visibility on destroy', () => {
+      const documentVisibility = createDocumentVisibility();
+      const unsubscribe = vi.fn();
+      documentVisibility.subscribe.mockReturnValue(unsubscribe);
+      const observer = createObserver(vi.fn(), undefined, documentVisibility);
       observer.setRoot(createParent());
 
       const intersectionObserver = getMockIntersectionObserver();
@@ -214,17 +252,14 @@ describe('VisibilityObserver', () => {
       observer.destroy();
 
       expect(intersectionObserver?.disconnect).toHaveBeenCalled();
-      expect(removeEventListenerSpy).toHaveBeenCalledWith(
-        'visibilitychange',
-        expect.any(Function),
-      );
+      expect(unsubscribe).toHaveBeenCalled();
     });
   });
 
   describe('emitInitial', () => {
     it('should emit the initial visible value on the baseline callback', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange, { emitInitial: true });
+      const observer = createObserver(onChange, { emitInitial: true });
       observer.setRoot(createParent());
 
       await callIntersectionHandler(true);
@@ -235,7 +270,7 @@ describe('VisibilityObserver', () => {
 
     it('should emit the initial hidden value on the baseline callback', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange, { emitInitial: true });
+      const observer = createObserver(onChange, { emitInitial: true });
       observer.setRoot(createParent());
 
       await callIntersectionHandler(false);
@@ -246,7 +281,7 @@ describe('VisibilityObserver', () => {
 
     it('should not re-emit an unchanged state after the initial emit', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange, { emitInitial: true });
+      const observer = createObserver(onChange, { emitInitial: true });
       observer.setRoot(createParent());
 
       await callIntersectionHandler(true);
@@ -257,7 +292,7 @@ describe('VisibilityObserver', () => {
 
     it('should still emit subsequent transitions after the initial emit', async () => {
       const onChange = vi.fn();
-      const observer = new VisibilityObserver(onChange, { emitInitial: true });
+      const observer = createObserver(onChange, { emitInitial: true });
       observer.setRoot(createParent());
 
       await callIntersectionHandler(true);

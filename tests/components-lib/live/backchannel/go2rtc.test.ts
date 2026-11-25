@@ -2,12 +2,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { Go2RTCBackchannel } from '../../../../src/components-lib/live/backchannel/go2rtc';
-import type { BackchannelErrorCallback } from '../../../../src/components-lib/live/backchannel/types';
+import {
+  BackchannelAbandonedError,
+  type BackchannelErrorCallback,
+} from '../../../../src/components-lib/live/backchannel/types';
 import {
   resolveEndpointURL,
   type ResolvedEndpoint,
 } from '../../../../src/ha/resolve-endpoint';
 import type { HomeAssistant } from '../../../../src/ha/types';
+import { getICEServers } from '../../../../src/ha/webrtc';
 import {
   FakeMediaStream,
   FakeMediaStreamTrack,
@@ -15,26 +19,29 @@ import {
   FakeWebSocket,
 } from '../../../go2rtc/test-utils';
 import { flushPromises } from '../../../test-utils';
+import { createPromiseWithResolvers } from '../../../utils/test-utils';
 
 vi.mock('../../../../src/ha/resolve-endpoint');
+vi.mock('../../../../src/ha/webrtc');
 
 const createStream = (): FakeMediaStream =>
   new FakeMediaStream([new FakeMediaStreamTrack('audio')]);
 
 const setup = (options?: { errorCallback?: BackchannelErrorCallback }) => {
   const pc = new FakeRTCPeerConnection();
+  const createPeerConnection = vi.fn(() => pc.asPeerConnection());
   const websocket = new FakeWebSocket();
   const backchannel = new Go2RTCBackchannel(
     mock<HomeAssistant>(),
     { endpoint: '/local/api/ws?src=camera', sign: true },
     undefined,
     {
-      createPeerConnection: () => pc.asPeerConnection(),
+      createPeerConnection,
       createWebSocket: () => websocket.asWebSocket(),
       ...(options?.errorCallback && { errorCallback: options.errorCallback }),
     },
   );
-  return { backchannel, pc, websocket };
+  return { backchannel, createPeerConnection, pc, websocket };
 };
 
 // Drives a successful negotiation up to (but not including) the point the
@@ -60,6 +67,7 @@ describe('Go2RTCBackchannel', () => {
       success: true,
       url: 'http://go2rtc/api/ws',
     });
+    vi.mocked(getICEServers).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -118,6 +126,21 @@ describe('Go2RTCBackchannel', () => {
       await expect(
         backchannel.start(new FakeMediaStream([track]).asMediaStream()),
       ).rejects.toMatchObject({ reason: 'no_microphone' });
+    });
+
+    it("should use Home Assistant's ICE servers", async () => {
+      const iceServers = [{ urls: 'turn:turn.example.com:3478', username: 'u' }];
+      vi.mocked(getICEServers).mockResolvedValue(iceServers);
+
+      const { backchannel, createPeerConnection, pc, websocket } = setup();
+      const started = backchannel.start(createStream().asMediaStream());
+      await connect(pc, websocket);
+      await started;
+
+      expect(createPeerConnection).toHaveBeenCalledWith({
+        bundlePolicy: 'max-bundle',
+        iceServers,
+      });
     });
 
     it('should reject when the address cannot be resolved', async () => {
@@ -339,7 +362,7 @@ describe('Go2RTCBackchannel', () => {
       pc.fireConnectionStateChange('failed');
       await flushPromises();
 
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
       expect(errorCallback).not.toHaveBeenCalled();
     });
   });
@@ -480,8 +503,22 @@ describe('Go2RTCBackchannel', () => {
       release({ success: true, url: 'http://go2rtc/api/ws' });
       await flushPromises();
 
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
       expect(pc.transceivers).toHaveLength(0);
+    });
+
+    it('should abandon a start that is stopped while the ICE servers are requested', async () => {
+      const iceServers = createPromiseWithResolvers<RTCIceServer[]>();
+      vi.mocked(getICEServers).mockReturnValue(iceServers.promise);
+
+      const { backchannel, createPeerConnection } = setup();
+      const started = backchannel.start(createStream().asMediaStream());
+      backchannel.stop();
+      iceServers.resolve([]);
+      await flushPromises();
+
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
+      expect(createPeerConnection).not.toHaveBeenCalled();
     });
 
     it('should not send candidates after being stopped', async () => {
@@ -720,7 +757,7 @@ describe('Go2RTCBackchannel', () => {
       await flushPromises();
 
       backchannel.stop();
-      await expect(started).rejects.toMatchObject({ reason: 'abandoned' });
+      await expect(started).rejects.toBeInstanceOf(BackchannelAbandonedError);
 
       rejectOffer(new Error('too late'));
       await flushPromises();

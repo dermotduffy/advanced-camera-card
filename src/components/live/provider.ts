@@ -114,6 +114,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   private _loadingImageLoaded = false;
 
   private _refProvider: Ref<MediaPlayerElement> = createRef();
+  private _refLiveImage: Ref<HTMLElement> = createRef();
 
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
@@ -134,6 +135,30 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         !this._streamLivenessController.getFailure(),
     });
   }
+
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    const root = super.createRenderRoot();
+    root.addEventListener(
+      'advanced-camera-card:media:loaded',
+      this._stopLoadingImageLoad,
+    );
+    return root;
+  }
+
+  // This provider's shadow root stops the loading image's media loaded event as
+  // late as possible: the image is still sized and zoomed, but never counted as
+  // loaded media by this provider or anything above it.
+  private _stopLoadingImageLoad = (ev: Event): void => {
+    const liveImage = this._refLiveImage.value;
+    if (
+      // With the image provider, the live image is the stream itself.
+      getResolvedLiveProvider(this.camera?.getConfig()) !== 'image' &&
+      liveImage &&
+      ev.composedPath().includes(liveImage)
+    ) {
+      ev.stopPropagation();
+    }
+  };
 
   // A note on dynamic imports:
   //
@@ -264,26 +289,25 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       ${template}
     </advanced-camera-card-media-dimensions-container>`;
 
-    return html` ${
-      this.liveConfig?.zoomable
-        ? html` <advanced-camera-card-zoomer
-            .defaultSettings=${guard([config?.dimensions?.layout], () =>
-              config?.dimensions?.layout
-                ? {
-                    pan: config.dimensions.layout.pan,
-                    zoom: config.dimensions.layout.zoom,
-                  }
-                : undefined,
-            )}
-            .settings=${this.zoomSettings}
-            .zoom=${this.zoom}
-            @advanced-camera-card:zoom:zoomed=${() => (this._zoomed = true)}
-            @advanced-camera-card:zoom:unzoomed=${() => (this._zoomed = false)}
-          >
-            ${intermediateTemplate}
-          </advanced-camera-card-zoomer>`
-        : intermediateTemplate
-    }`;
+    return html` ${this.liveConfig?.zoomable
+      ? html` <advanced-camera-card-zoomer
+          .defaultSettings=${guard([config?.dimensions?.layout], () =>
+            config?.dimensions?.layout
+              ? {
+                  pan: config.dimensions.layout.pan,
+                  zoom: config.dimensions.layout.zoom,
+                }
+              : undefined,
+          )}
+          .settings=${this.zoomSettings}
+          .zoom=${this.zoom}
+          .dimensionsConfig=${config?.dimensions}
+          @advanced-camera-card:zoom:zoomed=${() => (this._zoomed = true)}
+          @advanced-camera-card:zoom:unzoomed=${() => (this._zoomed = false)}
+        >
+          ${intermediateTemplate}
+        </advanced-camera-card-zoomer>`
+      : intermediateTemplate}`;
   }
 
   private _getNotification(failure: StreamFailure | null): TemplateResult | null {
@@ -377,68 +401,70 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     };
 
     return html`${this._renderContainer(html`
-      ${
-        shouldShowImageDuringLoading || provider === 'image'
-          ? html` <advanced-camera-card-live-image
-              ${ref(this._refProvider)}
-              .hass=${this.hass}
-              .camera=${this.camera}
-              .targetID=${this.targetID}
-              .cameraTitle=${this.cameraTitle}
-              class=${classMap({
-                ...classes,
-                // The image provider is providing the temporary loading image,
-                // so it should not be hidden.
-                hidden: false,
-              })}
-              @advanced-camera-card:media:loaded=${(
-                ev: CustomEvent<MediaLoadedInfoEventDetail>,
-              ) => {
-                // When the image is rendered as a placeholder behind another
-                // provider, suppress its load event so it doesn't reach the
-                // card-root listener and clobber the real provider's
-                // registration. The real provider's load event will arrive
-                // afterwards.
-                if (provider !== 'image') {
-                  this._loadingImageLoaded = true;
+      ${shouldShowImageDuringLoading || provider === 'image'
+        ? html` <advanced-camera-card-live-image
+            ${ref(this._refProvider)}
+            ${ref(this._refLiveImage)}
+            .hass=${this.hass}
+            .camera=${this.camera}
+            .targetID=${this.targetID}
+            .cameraTitle=${this.cameraTitle}
+            class=${classMap({
+              ...classes,
+              // The image provider is providing the temporary loading image,
+              // so it should not be hidden.
+              hidden: false,
+            })}
+            @advanced-camera-card:media:loaded=${(
+              ev: CustomEvent<MediaLoadedInfoEventDetail>,
+            ) => {
+              if (provider !== 'image') {
+                this._loadingImageLoaded = true;
 
-                  // Should the image unload, the provider returns to unsized.
-                  onAbort(ev.detail.signal, () => (this._loadingImageLoaded = false));
-                  ev.stopPropagation();
-                }
-              }}
-            >
-            </advanced-camera-card-live-image>`
-          : html``
-      }
-      ${
-        provider === 'ha'
-          ? html` <advanced-camera-card-live-ha
+                // Should the image unload, the provider returns to unsized.
+                onAbort(ev.detail.signal, () => (this._loadingImageLoaded = false));
+              }
+            }}
+          >
+          </advanced-camera-card-live-image>`
+        : html``}
+      ${provider === 'ha'
+        ? html` <advanced-camera-card-live-ha
+            ${ref(this._refProvider)}
+            class=${classMap(classes)}
+            .hass=${this.hass}
+            .camera=${this.camera}
+            .targetID=${this.targetID}
+            .preferAudioStream=${this.forceSelected &&
+            isAudioIntendedOnLoad(this.liveConfig?.auto_unmute ?? [])}
+            ?controls=${this._getEffectiveBuiltinControls()}
+          >
+          </advanced-camera-card-live-ha>`
+        : provider === 'go2rtc'
+          ? html`<advanced-camera-card-live-go2rtc
               ${ref(this._refProvider)}
               class=${classMap(classes)}
               .hass=${this.hass}
               .camera=${this.camera}
               .targetID=${this.targetID}
-              .preferAudioStream=${
-                this.forceSelected &&
-                isAudioIntendedOnLoad(this.liveConfig?.auto_unmute ?? [])
-              }
+              .cameraTitle=${this.cameraTitle}
               ?controls=${this._getEffectiveBuiltinControls()}
             >
-            </advanced-camera-card-live-ha>`
-          : provider === 'go2rtc'
-            ? html`<advanced-camera-card-live-go2rtc
+            </advanced-camera-card-live-go2rtc>`
+          : provider === 'go2rtc-experimental'
+            ? html`<advanced-camera-card-live-go2rtc-experimental
                 ${ref(this._refProvider)}
                 class=${classMap(classes)}
                 .hass=${this.hass}
                 .camera=${this.camera}
                 .targetID=${this.targetID}
                 .cameraTitle=${this.cameraTitle}
+                .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this._getEffectiveBuiltinControls()}
               >
-              </advanced-camera-card-live-go2rtc>`
-            : provider === 'go2rtc-experimental'
-              ? html`<advanced-camera-card-live-go2rtc-experimental
+              </advanced-camera-card-live-go2rtc-experimental>`
+            : provider === 'webrtc-card'
+              ? html`<advanced-camera-card-live-webrtc-card
                   ${ref(this._refProvider)}
                   class=${classMap(classes)}
                   .hass=${this.hass}
@@ -448,9 +474,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                   .cardWideConfig=${this.cardWideConfig}
                   ?controls=${this._getEffectiveBuiltinControls()}
                 >
-                </advanced-camera-card-live-go2rtc-experimental>`
-              : provider === 'webrtc-card'
-                ? html`<advanced-camera-card-live-webrtc-card
+                </advanced-camera-card-live-webrtc-card>`
+              : provider === 'jsmpeg'
+                ? html` <advanced-camera-card-live-jsmpeg
                     ${ref(this._refProvider)}
                     class=${classMap(classes)}
                     .hass=${this.hass}
@@ -458,28 +484,13 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                     .targetID=${this.targetID}
                     .cameraTitle=${this.cameraTitle}
                     .cardWideConfig=${this.cardWideConfig}
-                    ?controls=${this._getEffectiveBuiltinControls()}
                   >
-                  </advanced-camera-card-live-webrtc-card>`
-                : provider === 'jsmpeg'
-                  ? html` <advanced-camera-card-live-jsmpeg
-                      ${ref(this._refProvider)}
-                      class=${classMap(classes)}
-                      .hass=${this.hass}
-                      .camera=${this.camera}
-                      .targetID=${this.targetID}
-                      .cameraTitle=${this.cameraTitle}
-                      .cardWideConfig=${this.cardWideConfig}
-                    >
-                    </advanced-camera-card-live-jsmpeg>`
-                  : html``
-      }
+                  </advanced-camera-card-live-jsmpeg>`
+                : html``}
     `)}
-    ${
-      failure || mediaLoaded
-        ? ''
-        : this._renderLoadingOverlay(shouldShowImageDuringLoading)
-    }`;
+    ${failure || mediaLoaded
+      ? ''
+      : this._renderLoadingOverlay(shouldShowImageDuringLoading)}`;
   }
 
   // The loading status drawn on top of the mounted provider while its media has

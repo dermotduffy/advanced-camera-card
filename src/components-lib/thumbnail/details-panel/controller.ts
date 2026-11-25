@@ -1,8 +1,13 @@
-import { format, isToday, isYesterday } from 'date-fns';
+import { isToday, isYesterday } from 'date-fns';
 
 import type { CameraManager } from '../../../camera-manager/manager';
 import { localize } from '../../../localize/localize';
 import { isTruthy } from '../../../utils/basic';
+import {
+  formatShortDate,
+  formatTime,
+  formatTimeToParts,
+} from '../../../utils/date/localized';
 import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import {
@@ -13,7 +18,7 @@ import {
   getMediaWhere,
   joinValues,
 } from '../../media/format';
-import { getThumbnailTier, type ThumbnailTier } from '../tier';
+import { THUMBNAIL_TIER_DEFAULT, type ThumbnailTier } from '../tier';
 
 // The lines the panel show, always smaller than the actual thumbnail.
 const LINES_BY_TIER: Record<ThumbnailTier, number> = {
@@ -29,42 +34,35 @@ const formatDay = (startTime: Date): string =>
     ? localize('common.today')
     : isYesterday(startTime)
       ? localize('common.yesterday')
-      : format(startTime, 'yyyy-MM-dd');
+      : formatShortDate(startTime, new Date());
 
 export interface ThumbnailDetailsPanelOptions {
   cameraManager?: CameraManager;
   item?: ViewItem;
   seek?: Date;
-  size?: number;
-}
-
-export interface ThumbnailDetailsPanelTime {
-  hoursMinutes: string;
-  seconds: string;
+  tier?: ThumbnailTier;
 }
 
 export class ThumbnailDetailsPanelController {
-  private _tier: ThumbnailTier = 'standard';
+  private _tier: ThumbnailTier = THUMBNAIL_TIER_DEFAULT;
   private _label: string | null = null;
-  private _time: ThumbnailDetailsPanelTime | null = null;
+  private _timeParts: Intl.DateTimeFormatPart[] | null = null;
   private _isInProgress = false;
   private _details: string[] = [];
   private _seekTime: string | null = null;
   private _hiddenDetailCount = 0;
 
   public calculate(options: ThumbnailDetailsPanelOptions): void {
-    this._tier = getThumbnailTier(options.size);
+    this._tier = options.tier ?? THUMBNAIL_TIER_DEFAULT;
     this._label = getMediaLabel(options.cameraManager, options.item);
     this._isInProgress =
       ViewItemClassifier.isMedia(options.item) && options.item.inProgress() === true;
-    this._seekTime = options.seek ? format(options.seek, 'HH:mm:ss') : null;
+    this._seekTime = options.seek ? formatTime(options.seek, { seconds: true }) : null;
 
     const startTime = ViewItemClassifier.isMedia(options.item)
       ? options.item.getStartTime()
       : null;
-    this._time = startTime
-      ? { hoursMinutes: format(startTime, 'HH:mm'), seconds: format(startTime, ':ss') }
-      : null;
+    this._timeParts = startTime ? formatTimeToParts(startTime, { seconds: true }) : null;
 
     const cameraTitle = getMediaCameraTitle(options.cameraManager, options.item);
 
@@ -131,8 +129,8 @@ export class ThumbnailDetailsPanelController {
     return this._isInProgress;
   }
 
-  public getTime(): ThumbnailDetailsPanelTime | null {
-    return this._time;
+  public getTimeParts(): Intl.DateTimeFormatPart[] | null {
+    return this._timeParts;
   }
 
   public getDetails(): string[] {

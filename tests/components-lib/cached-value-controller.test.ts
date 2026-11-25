@@ -1,8 +1,18 @@
 import type { ReactiveControllerHost } from 'lit';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { CachedValueController } from '../../src/components-lib/cached-value-controller';
+
+const createController = <T>(
+  ...args: ConstructorParameters<typeof CachedValueController<T>>
+): CachedValueController<T> => {
+  const controller = new CachedValueController<T>(...args);
+
+  // The controller's refresh timer outlives this test file.
+  onTestFinished(() => controller.hostDisconnected());
+  return controller;
+};
 
 // @vitest-environment jsdom
 describe('CachedValueController', () => {
@@ -15,7 +25,7 @@ describe('CachedValueController', () => {
     const callback = vi.fn().mockReturnValue(42);
     let refreshSeconds: number | null = 10;
 
-    const controller = new CachedValueController(host, () => refreshSeconds, callback);
+    const controller = createController(host, () => refreshSeconds, callback);
 
     Object.defineProperty(host, 'isConnected', { get: () => false });
 
@@ -29,7 +39,7 @@ describe('CachedValueController', () => {
     const callback = vi.fn().mockReturnValue(42);
     const refreshSeconds: number | null = 10;
 
-    const controller = new CachedValueController(host, () => refreshSeconds, callback);
+    const controller = createController(host, () => refreshSeconds, callback);
 
     Object.defineProperty(host, 'isConnected', { get: () => true });
 
@@ -47,7 +57,7 @@ describe('CachedValueController', () => {
   it('should construct', () => {
     const host = mock<ReactiveControllerHost & HTMLElement>();
     const callback = vi.fn();
-    const controller = new CachedValueController(host, () => 10, callback);
+    const controller = createController(host, () => 10, callback);
 
     expect(controller).toBeTruthy();
   });
@@ -60,7 +70,7 @@ describe('CachedValueController', () => {
 
     vi.useFakeTimers();
 
-    const controller = new CachedValueController(
+    const controller = createController(
       host,
       () => 10,
       callback,
@@ -99,7 +109,7 @@ describe('CachedValueController', () => {
 
     vi.useFakeTimers();
 
-    const controller = new CachedValueController(host, () => 10, callback);
+    const controller = createController(host, () => 10, callback);
     controller.startTimer();
 
     vi.runOnlyPendingTimers();
@@ -115,7 +125,7 @@ describe('CachedValueController', () => {
     const startCallback = vi.fn();
     const stopCallback = vi.fn();
 
-    const controller = new CachedValueController(
+    const controller = createController(
       host,
       () => 10,
       callback,
@@ -140,7 +150,7 @@ describe('CachedValueController', () => {
 
     vi.useFakeTimers();
 
-    const controller = new CachedValueController(
+    const controller = createController(
       host,
       () => 5,
       callback,
@@ -165,7 +175,7 @@ describe('CachedValueController', () => {
     const callback = vi.fn().mockReturnValue('value');
     const tickCallback = vi.fn();
 
-    const controller = new CachedValueController(
+    const controller = createController(
       host,
       () => 5,
       callback,
@@ -184,7 +194,7 @@ describe('CachedValueController', () => {
     const callback = vi.fn().mockReturnValue(42);
     let refreshSeconds: number | null = null;
 
-    const controller = new CachedValueController(host, () => refreshSeconds, callback);
+    const controller = createController(host, () => refreshSeconds, callback);
 
     vi.useFakeTimers();
     Object.defineProperty(host, 'isConnected', { get: () => true });

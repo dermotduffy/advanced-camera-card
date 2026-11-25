@@ -405,7 +405,7 @@ describe('MediaLoadedInfoManager', () => {
   });
 
   describe('initialize', () => {
-    it('should clear active state, last-known and selected', () => {
+    it('should clear active state and last-known', () => {
       const api = createCardAPI();
       const manager = new MediaLoadedInfoManager(api);
       const owner = document.createElement('div');
@@ -418,10 +418,25 @@ describe('MediaLoadedInfoManager', () => {
 
       expect(manager.get()).toBeNull();
       expect(manager.getLastKnown()).toBeNull();
+    });
 
-      // Re-selecting `target-1` after initialize should produce no last-known.
-      manager.setSelected('target-1');
-      expect(manager.getLastKnown()).toBeNull();
+    it('should keep the selected target', () => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const owner = document.createElement('div');
+      const info = createMediaLoadedInfo({ targetID: 'camera.office' });
+
+      manager.setSelected('camera.office');
+      manager.set(info, owner);
+      manager.initialize();
+      vi.mocked(api.getConditionStateManager().setState).mockClear();
+
+      manager.set(info, owner);
+
+      expect(manager.get()).toBe(info);
+      expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
+        mediaLoadedInfo: info,
+      });
     });
   });
 
@@ -489,7 +504,7 @@ describe('MediaLoadedInfoManager', () => {
       expect(listener).toHaveBeenCalledWith({ type: 'unload', targetID: 'target-2' });
     });
 
-    it('should notify of unloads and a deselect on initialize', () => {
+    it('should notify of unloads on initialize', () => {
       const api = createCardAPI();
       const manager = new MediaLoadedInfoManager(api);
       const owner = document.createElement('div');
@@ -501,7 +516,6 @@ describe('MediaLoadedInfoManager', () => {
       manager.initialize();
 
       expect(listener).toHaveBeenCalledWith({ type: 'unload', targetID: 'target-1' });
-      expect(listener).toHaveBeenCalledWith({ type: 'select', targetID: null });
     });
 
     it('should stop notifying after unsubscribe', () => {

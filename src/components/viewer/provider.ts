@@ -12,16 +12,21 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
+import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
+import { MediaStartPositionController } from '../../components-lib/media-start-position-controller.js';
 import { ResolvedMediaController } from '../../components-lib/resolved-media-controller.js';
 import {
   getSignedURLErrorText,
   SignedURLController,
 } from '../../components-lib/signed-url-controller.js';
 import type { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
-import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
+import {
+  handleDigitalZoomHomeEvent,
+  handleZoomSettingsObservedEvent,
+} from '../../components-lib/zoom/zoom-view-context.js';
 import type { CameraConfig } from '../../config/schema/cameras.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { ViewerConfig } from '../../config/schema/viewer.js';
@@ -38,7 +43,7 @@ import type {
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../types.js';
-import { classifyMimeType } from '../../utils/mime-type.js';
+import { classifyMimeType, type MimeTypeClassification } from '../../utils/mime-type.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewMedia } from '../../view/item.js';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
@@ -74,6 +79,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
+
   // Whether to force this slide to behave as if it is selected and
   // intersecting. Set by the carousel on its currently-selected slide. This is
   // necessary: `render` below draws nothing until the slide has loaded, and a
@@ -86,10 +94,11 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   private _refProvider: Ref<MediaPlayerElement> = createRef();
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
-  // Lit runs controllers in declaration order: Resolve first, then sign.
+  // Lit runs controllers in declaration order: resolve first, since signing and
+  // the start position both read the resolved media.
   private _resolvedMediaController = new ResolvedMediaController(this, () => ({
     hass: this.hass,
-    contentID: this._shouldLoad() ? (this.media?.getContentID() ?? null) : null,
+    contentID: this._shouldLoad() ? this.media?.getContentID() ?? null : null,
     cache: this.resolvedMediaCache,
   }));
 
@@ -112,6 +121,14 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       proxyConfig: camera?.getMediaProxyConfig(),
     };
   });
+
+  // Only HLS media is given a start position: the HLS player is the one that
+  // can start loading part way through.
+  private _mediaStartPositionController = new MediaStartPositionController(this, () => ({
+    viewItemManager: this.viewItemManager,
+    view: this.viewManagerEpoch?.manager.getView() ?? undefined,
+    media: this._shouldLoad() && this._classifyMedia().isHLS ? this.media : undefined,
+  }));
 
   constructor() {
     super();
@@ -177,10 +194,14 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     return this._lazyLoadController.isLoaded();
   }
 
+  private _classifyMedia(): MimeTypeClassification {
+    return classifyMimeType(this._resolvedMediaController.getValue()?.mime_type);
+  }
+
   private _getRelevantCameraConfig(): CameraConfig | null {
     const cameraID = this.media?.getCameraID();
     return cameraID
-      ? (this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null)
+      ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null
       : null;
   }
 
@@ -191,7 +212,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     const cameraID = this.media.getCameraID();
     const mediaID = this.media.getID() ?? undefined;
     const cameraConfig = cameraID
-      ? (this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null)
+      ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null
       : null;
     const view = this.viewManagerEpoch?.manager.getView();
 
@@ -202,35 +223,36 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     </advanced-camera-card-media-dimensions-container>`;
 
     return html`
-      ${
-        this.viewerConfig?.zoomable
-          ? html`<advanced-camera-card-zoomer
-              .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
-                cameraConfig?.dimensions?.layout
-                  ? {
-                      pan: cameraConfig.dimensions.layout.pan,
-                      zoom: cameraConfig.dimensions.layout.zoom,
-                    }
-                  : undefined,
+      ${this.viewerConfig?.zoomable
+        ? html`<advanced-camera-card-zoomer
+            .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
+              cameraConfig?.dimensions?.layout
+                ? {
+                    pan: cameraConfig.dimensions.layout.pan,
+                    zoom: cameraConfig.dimensions.layout.zoom,
+                  }
+                : undefined,
+            )}
+            .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
+            .dimensionsConfig=${this._getRelevantCameraConfig()?.dimensions}
+            @advanced-camera-card:zoom:zoomed=${async () =>
+              (await this.getMediaPlayerController())?.setControls(false)}
+            @advanced-camera-card:zoom:unzoomed=${async () =>
+              (await this.getMediaPlayerController())?.setControls()}
+            @advanced-camera-card:zoom:change=${(
+              ev: CustomEvent<ZoomSettingsObserved>,
+            ) =>
+              handleZoomSettingsObservedEvent(
+                ev,
+                this.viewManagerEpoch?.manager,
+                mediaID,
               )}
-              .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
-              @advanced-camera-card:zoom:zoomed=${async () =>
-                (await this.getMediaPlayerController())?.setControls(false)}
-              @advanced-camera-card:zoom:unzoomed=${async () =>
-                (await this.getMediaPlayerController())?.setControls()}
-              @advanced-camera-card:zoom:change=${(
-                ev: CustomEvent<ZoomSettingsObserved>,
-              ) =>
-                handleZoomSettingsObservedEvent(
-                  ev,
-                  this.viewManagerEpoch?.manager,
-                  mediaID,
-                )}
-            >
-              ${intermediateTemplate}
-            </advanced-camera-card-zoomer>`
-          : intermediateTemplate
-      }
+            @advanced-camera-card:zoom:home=${() =>
+              handleDigitalZoomHomeEvent(this, mediaID)}
+          >
+            ${intermediateTemplate}
+          </advanced-camera-card-zoomer>`
+        : intermediateTemplate}
     `;
   }
 
@@ -247,8 +269,13 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       });
     }
 
+    const { isHLS, isVideo } = this._classifyMedia();
+
+    // The HLS player waits for its start position: hls.js starts loading as
+    // soon as the player is created, and without the position it would download
+    // the start of the stream only for the carousel to seek away from it.
     const url = this._signedURLController.getValue();
-    if (!url) {
+    if (!url || this._mediaStartPositionController.isPending()) {
       return renderProgressIndicator({
         cardWideConfig: this.cardWideConfig,
       });
@@ -257,53 +284,50 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     // Note: crossorigin="anonymous" is required on <video> below in order to
     // allow screenshot of motionEye videos which currently go cross-origin.
     const mediaID = this.media.getID() ?? undefined;
-    const { isHLS, isVideo } = classifyMimeType(
-      this._resolvedMediaController.getValue()?.mime_type,
-    );
+    const startPosition = this._mediaStartPositionController.getValue() ?? undefined;
 
     return this._renderContainer(html`
-      ${
-        isVideo
-          ? isHLS
-            ? html`<advanced-camera-card-ha-hls-player
+      ${isVideo
+        ? isHLS
+          ? html`<advanced-camera-card-ha-hls-player
+              ${ref(this._refProvider)}
+              allow-exoplayer
+              aria-label="${this.media.getTitle() ?? ''}"
+              ?autoplay=${false}
+              controls
+              muted
+              playsinline
+              title="${this.media.getTitle() ?? ''}"
+              url=${url}
+              .hass=${this.hass}
+              .startPosition=${startPosition}
+              .targetID=${mediaID}
+              ?controls=${this.viewerConfig.controls.builtin}
+            >
+            </advanced-camera-card-ha-hls-player>`
+          : html`
+              <advanced-camera-card-video-player
                 ${ref(this._refProvider)}
-                allow-exoplayer
-                aria-label="${this.media.getTitle() ?? ''}"
-                ?autoplay=${false}
-                controls
-                muted
-                playsinline
-                title="${this.media.getTitle() ?? ''}"
                 url=${url}
-                .hass=${this.hass}
+                aria-label="${this.media.getTitle() ?? ''}"
+                title="${this.media.getTitle() ?? ''}"
                 .targetID=${mediaID}
                 ?controls=${this.viewerConfig.controls.builtin}
               >
-              </advanced-camera-card-ha-hls-player>`
-            : html`
-                <advanced-camera-card-video-player
-                  ${ref(this._refProvider)}
-                  url=${url}
-                  aria-label="${this.media.getTitle() ?? ''}"
-                  title="${this.media.getTitle() ?? ''}"
-                  .targetID=${mediaID}
-                  ?controls=${this.viewerConfig.controls.builtin}
-                >
-                </advanced-camera-card-video-player>
-              `
-          : html`<advanced-camera-card-image-player
-              ${ref(this._refProvider)}
-              url="${url}"
-              aria-label="${this.media.getTitle() ?? ''}"
-              title="${this.media.getTitle() ?? ''}"
-              .targetID=${mediaID}
-              @click=${() => {
-                if (this.viewerConfig?.snapshot_click_plays_clip) {
-                  void this._switchToRelatedClipView();
-                }
-              }}
-            ></advanced-camera-card-image-player>`
-      }
+              </advanced-camera-card-video-player>
+            `
+        : html`<advanced-camera-card-image-player
+            ${ref(this._refProvider)}
+            url="${url}"
+            aria-label="${this.media.getTitle() ?? ''}"
+            title="${this.media.getTitle() ?? ''}"
+            .targetID=${mediaID}
+            @click=${() => {
+              if (this.viewerConfig?.snapshot_click_plays_clip) {
+                void this._switchToRelatedClipView();
+              }
+            }}
+          ></advanced-camera-card-image-player>`}
     `);
   }
 

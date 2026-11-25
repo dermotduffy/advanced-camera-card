@@ -16,6 +16,11 @@ import type { UnsubscribeCallback } from '../../../../../src/types';
 // User agents.
 // ===========================================================================
 
+export const ANDROID_WEBVIEW_USER_AGENT =
+  'Mozilla/5.0 (Linux; Android 16; SM-X210 Build/BP2A.250605.031.A3; wv) ' +
+  'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/155.0.8059.43 ' +
+  'Safari/537.36 Home Assistant/2026.6.5-22884 (Android 16; SM-X210)';
+
 export const CHROME_USER_AGENT =
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';

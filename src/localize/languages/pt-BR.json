@@ -1,32 +1,123 @@
 {
+  "actions": {
+    "abort": "Ação abortada",
+    "confirmation": "Tem certeza de que deseja executar esta ação"
+  },
   "common": {
+    "advanced_camera_card": "Advanced Camera Card",
+    "advanced_camera_card_description": "Um Advanced Camera Card",
+    "close": "Fechar",
+    "event": "Evento",
+    "folder": "Pasta",
     "in_progress": "Em andamento",
-    "no_media": "Nenhuma mídia para exibir"
+    "no_media": "Nenhuma mídia para exibir",
+    "notification": "Notificação",
+    "retry": "Tentar novamente",
+    "set_reviews": {
+      "reviewed": "Marcar como revisado",
+      "unreviewed": "Marcar como não revisado"
+    },
+    "severities": {
+      "high": "Alta",
+      "low": "Baixa",
+      "medium": "Média"
+    },
+    "severity": "Severidade",
+    "today": "Hoje",
+    "up": "Pasta acima",
+    "yesterday": "Ontem"
   },
   "config": {
     "cameras": {
+      "always_error_if_entity_unavailable": "Sempre tratar a indisponibilidade da entidade como erro",
       "camera_entity": "Entidade da Câmera",
+      "capabilities": {
+        "capabilities": {
+          "2-way-audio": "Áudio bidirecional",
+          "clips": "Clipes",
+          "favorite-events": "Eventos favoritos",
+          "favorite-recordings": "Gravações favoritas",
+          "live": "Ao vivo",
+          "menu": "Menu",
+          "ptz": "PTZ",
+          "recordings": "Gravações",
+          "remote-control-entity": "Entidade de controle remoto",
+          "reviews": "Revisões",
+          "seek": "Busca na linha do tempo",
+          "snapshots": "Instantâneos",
+          "substream": "Substream",
+          "trigger": "Acionamento"
+        },
+        "disable": "Desativar",
+        "disable_except": "Desativar exceto",
+        "editor_label": "Recursos",
+        "force": "Forçar"
+      },
+      "cast": {
+        "dashboard": {
+          "dashboard_path": "Caminho do painel",
+          "editor_label": "Painel",
+          "view_path": "Caminho da visualização"
+        },
+        "editor_label": "Transmissão (Cast)",
+        "method": "Método de transmissão",
+        "methods": {
+          "dashboard": "Painel",
+          "standard": "Padrão"
+        }
+      },
       "dependencies": {
         "all_cameras": "Mostrar eventos para todas as câmeras nesta câmera",
         "cameras": "Mostrar eventos para câmeras específicas nesta câmera",
-        "editor_label": "Opções de dependência"
+        "editor_label": "Dependências"
       },
       "dimensions": {
+        "aspect_ratio": "Proporção fixa",
+        "editor_label": "Dimensões",
         "layout": {
+          "editor_label": "Layout da câmera",
           "fit": "Ajuste de layout",
           "fits": {
-            "contain": "A mídia é contida no cartão",
+            "contain": "A mídia fica contida no cartão (com bordas)",
             "cover": "A mídia se expande proporcionalmente para cobrir o cartão",
             "fill": "A mídia é esticada para preencher o cartão"
           },
+          "pan": {
+            "editor_label": "Deslocamento do layout",
+            "x": "Horizontal %",
+            "y": "Vertical %"
+          },
           "position": {
+            "editor_label": "Posição de cobertura do layout",
             "x": "Porcentagem do posicionamento horizontal",
             "y": "Porcentagem do posicionamento vertical"
-          }
+          },
+          "view_box": {
+            "bottom": "Margem inferior %",
+            "editor_label": "Área visível do layout",
+            "left": "Margem esquerda %",
+            "right": "Margem direita %",
+            "top": "Margem superior %"
+          },
+          "zoom": "Fator de zoom"
+        },
+        "rotation": "Rotação",
+        "rotations": {
+          "0": "Nenhuma",
+          "90": "90° no sentido horário",
+          "180": "180° no sentido horário",
+          "270": "270° no sentido horário"
         }
       },
+      "engine": "Motor da câmera",
       "engines": {
-        "editor_label": "Opções do motor da câmera"
+        "auto": "Automático",
+        "editor_label": "Motor",
+        "frigate": "Frigate",
+        "generic": "Genérico",
+        "motioneye": "MotionEye",
+        "reolink": "Reolink",
+        "tplink": "TP-Link"
       },
       "frigate": {
         "camera_name": "Nome da câmera do Frigate (detectado automaticamente pela entidade)",
@@ -38,6 +129,7 @@
       },
       "go2rtc": {
         "editor_label": "Opções do go2rtc",
+        "metadata_fetch_timeout_seconds": "Tempo limite para obter metadados (segundos)",
         "modes": {
           "editor_label": "Modos do go2rtc",
           "mjpeg": "Motion JPEG (MJPEG)",
@@ -45,13 +137,14 @@
           "mse": "Media Source Extensions (MSE)",
           "webrtc": "Web Real-Time Communication (WebRTC)"
         },
-        "stream": "Nome do stream do go2rtc"
+        "stream": "Nome do stream",
+        "url": "URL"
       },
-      "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
+      "icon": "Ícone (automático)",
       "id": "ID exclusivo para esta câmera nesse cartão",
       "image": {
-        "editor_label": "Opções de Imagem",
-        "refresh_seconds": "Número de segundos após os quais atualizar a imagem ao vivo (0=nunca)",
+        "editor_label": "Imagem",
+        "refresh_seconds": "Segundos entre atualizações da imagem ao vivo (0=nunca)",
         "url": "URL da imagem para usar em vez do instantâneo da entidade da câmera"
       },
       "live_provider": "Provedor de visualização ao vivo para esta câmera",
@@ -59,42 +152,93 @@
         "editor_label": "Opções do provedor de visualização ao vivo"
       },
       "live_providers": {
-        "auto": "Automatico",
+        "auto": "Automático",
         "go2rtc": "go2rtc",
-        "ha": "Stream de vídeo do Home Assistant (ou seja, HLS, LL-HLS, WebRTC via HA)",
-        "image": "Imagens do Home Assistant",
+        "go2rtc-experimental": "go2rtc (implementação experimental)",
+        "ha": "Stream de vídeo do Home Assistant (ex.: HLS, LL-HLS, WebRTC via HA)",
+        "image": "Imagem",
         "jsmpeg": "JSMpeg",
         "webrtc-card": "Cartão WebRTC (de @AlexxIT)"
+      },
+      "media": {
+        "editor_label": "Mídia",
+        "events_type": "Subtipo de eventos",
+        "folders": "IDs das pastas",
+        "reviewed": "Filtro de status de revisão",
+        "revieweds": {
+          "all": "Todos (revisados e não revisados)",
+          "reviewed": "Somente revisados",
+          "unreviewed": "Somente não revisados"
+        },
+        "type": "Tipo padrão"
       },
       "motioneye": {
         "editor_label": "Opções do MotionEye",
         "images": {
           "directory_pattern": "Padrão de diretório de imagens",
+          "editor_label": "Imagens",
           "file_pattern": "Padrão de arquivo de imagens"
         },
         "movies": {
           "directory_pattern": "Padrão de diretório de filmes",
+          "editor_label": "Filmes",
           "file_pattern": "Padrão de arquivo de filmes"
         },
         "url": "URL da interface de usuário do MotionEye"
       },
-      "title": "Título para esta câmera (detectado automaticamente pela entidade)",
+      "proxy": {
+        "editor_label": "Proxy",
+        "live": "Ao vivo",
+        "media": "Mídia"
+      },
+      "reolink": {
+        "editor_label": "Reolink",
+        "media_resolution": {
+          "editor_label": "Resolução da mídia",
+          "high": "Alta resolução",
+          "low": "Baixa resolução"
+        },
+        "url": "URL da interface da Reolink"
+      },
+      "title": "Título (automático)",
       "triggers": {
+        "doorbell": "Acionar detectando automaticamente entidades de evento de campainha",
         "editor_label": "Opções de acionamento",
         "entities": "Acionar a partir de outras entidades",
+        "events": {
+          "add_new_event": "Adicionar acionamento por evento",
+          "editor_label": "Eventos do Home Assistant",
+          "event_data": "Filtro de dados do evento",
+          "event_type": "Tipo de evento"
+        },
+        "media_events": {
+          "clips": "Eventos com novos clipes",
+          "editor_label": "Acionar por eventos de mídia",
+          "events": "Todos os eventos",
+          "snapshots": "Eventos com novos instantâneos"
+        },
         "motion": "Acionar detectando automaticamente o sensor de movimento",
-        "occupancy": "Acionar detectando automaticamente o sensor de ocupação"
+        "occupancy": "Acionar detectando automaticamente o sensor de ocupação",
+        "reviews": {
+          "description": "Acionar em atualizações de descrição",
+          "editor_label": "Acionamentos por revisão"
+        }
       },
       "webrtc_card": {
         "editor_label": "Opções do cartão WebRTC",
-        "entity": "Entidade de câmera de cartão WebRTC (não é uma câmera Frigate)",
+        "entity": "Entidade de câmera do cartão WebRTC",
         "url": "URL da câmera do cartão WebRTC"
       }
     },
     "common": {
+      "auto_hide_conditions": {
+        "call": "Durante uma chamada de áudio bidirecional",
+        "casting": "Durante a transmissão (Cast)"
+      },
       "controls": {
+        "builtin": "Controles de vídeo nativos",
         "filter": {
-          "editor_label": "Filtro de Mídia",
+          "editor_label": "Filtro de mídia",
           "mode": "Modo do filtro",
           "modes": {
             "left": "Filtro de mídia em uma gaveta à esquerda",
@@ -103,14 +247,45 @@
           }
         },
         "next_previous": {
-          "editor_label": "Próximo",
-          "size": "Tamanho de controle próximo e anterior",
-          "style": "Estilo do controle próximo e anterior",
+          "auto_hide": "Ocultar automaticamente",
+          "editor_label": "Próximo e anterior",
+          "size": "Tamanho em pixels",
+          "style": "Estilo",
           "styles": {
             "chevrons": "Setas",
             "icons": "Ícones",
             "none": "Nenhum",
             "thumbnails": "Miniaturas"
+          }
+        },
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Ocultar posição inicial e predefinições",
+          "hide_pan_tilt": "Ocultar giro e inclinação",
+          "hide_type": "Ocultar alternância de tipo",
+          "hide_zoom": "Ocultar zoom",
+          "mode": "Modo",
+          "modes": {
+            "auto": "Automático",
+            "off": "Desligado",
+            "on": "Ligado"
+          },
+          "orientation": "Orientação",
+          "orientations": {
+            "horizontal": "Horizontal",
+            "vertical": "Vertical"
+          },
+          "position": "Posição",
+          "positions": {
+            "bottom-left": "Inferior esquerdo",
+            "bottom-right": "Inferior direito",
+            "top-left": "Superior esquerdo",
+            "top-right": "Superior direito"
+          },
+          "type": "Tipo padrão",
+          "types": {
+            "buttons": "Botões",
+            "gestures": "Gestos"
           }
         },
         "thumbnails": {
@@ -125,18 +300,49 @@
           },
           "show_download_control": "Mostrar controle de download nas miniaturas",
           "show_favorite_control": "Mostrar controle de favorito nas miniaturas",
+          "show_info_control": "Mostrar controle de informações",
+          "show_review_control": "Mostrar controle de revisão",
           "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",
-          "size": "Tamanho das miniaturas em pixels"
+          "size": "Tamanho das miniaturas em pixels",
+          "style": "Estilo",
+          "styles": {
+            "auto": "Automático",
+            "hover": "Miniatura com detalhes ao passar o mouse",
+            "overlay": "Miniatura com detalhes sobrepostos",
+            "panel": "Miniatura com painel de detalhes",
+            "plain": "Miniatura sem detalhes"
+          }
         },
         "timeline": {
-          "editor_label": "Controles da linha do tempo",
+          "editor_label": "Minilinha do tempo",
           "mode": "Modo",
           "modes": {
             "above": "Acima",
             "below": "Abaixo",
             "none": "Nenhum"
+          },
+          "pan_mode": "Modo de deslocamento padrão",
+          "pan_modes": {
+            "pan": "Deslocar",
+            "seek": "O deslocamento busca em todas as mídias",
+            "seek-in-camera": "O deslocamento busca somente na câmera selecionada",
+            "seek-in-media": "O deslocamento busca somente no item de mídia selecionado"
           }
-        }
+        },
+        "wheel": "A roda do mouse rola o carrossel de mídia"
+      },
+      "display": {
+        "editor_label": "Exibição",
+        "grid_columns": "Número exato de colunas da grade",
+        "grid_max_columns": "Número máximo de colunas da grade",
+        "grid_selected_position": "Posição da mídia selecionada na grade",
+        "grid_selected_positions": {
+          "default": "Item selecionado na posição padrão",
+          "first": "Item selecionado é o primeiro da grade",
+          "last": "Item selecionado é o último da grade"
+        },
+        "grid_selected_width_factor": "Aumentar a largura da mídia selecionada por este fator",
+        "mode": "Modo"
       },
       "events_media_types": {
         "all": "Todos os tipos de mídia",
@@ -144,24 +350,76 @@
         "snapshots": "Instantâneos"
       },
       "image": {
+        "entity": "Entidade para uso com o modo entidade",
+        "entity_parameters": "Parâmetros de consulta adicionados às URLs de imagem baseadas em entidade (ex.: width=1920&height=1080)",
         "mode": "Modo de visualização de imagem",
         "modes": {
+          "auto": "Escolhido automaticamente conforme a configuração",
           "camera": "Instantâneo da câmera do Home Assistant, da entidade de câmera",
+          "default": "Imagem incorporada padrão",
+          "entity": "Entidade com atributo entity_picture",
+          "screensaver": "Imagem aleatória",
           "url": "Imagem arbitrária especificada por URL"
         },
-        "refresh_seconds": "Número de segundos após o qual atualizar (0 = nunca)",
-        "url": "Imagem arbitrária especificada por URL"
+        "proxy": {
+          "editor_label": "Proxy de imagem"
+        },
+        "refresh_seconds": "Segundos entre atualizações (0=nunca)",
+        "url": "URL da imagem estática"
+      },
+      "interaction_modes": {
+        "active": "Somente durante a interação",
+        "all": "Sempre, independentemente da interação",
+        "inactive": "Somente sem interação"
       },
       "media_action_conditions": {
+        "call_mute": "Ao encerrar a chamada",
+        "call_unmute": "Ao atender a chamada",
         "hidden": "Ao ocultar o navegador/aba",
+        "microphone_mute": "Ao silenciar o microfone",
+        "microphone_unmute": "Ao reativar o microfone",
         "selected": "Ao selecionar",
         "unselected": "Ao desselecionar",
         "visible": "Ao mostrar o navegador/aba"
       },
+      "media_types": {
+        "auto": "Automático",
+        "events": "Eventos",
+        "folder": "Pasta",
+        "recordings": "Gravações",
+        "reviews": "Revisões"
+      },
+      "proxy": {
+        "dynamic": "Dinâmico",
+        "modes": {
+          "auto": "Automático",
+          "false": "Desativado",
+          "true": "Ativado"
+        },
+        "ssl_ciphers": {
+          "auto": "Automático",
+          "default": "Padrão",
+          "editor_label": "Cifras SSL",
+          "insecure": "Inseguro",
+          "intermediate": "Intermediário",
+          "modern": "Moderno"
+        },
+        "ssl_verification": {
+          "auto": "Automático",
+          "editor_label": "Verificação SSL",
+          "false": "Desativada",
+          "true": "Ativada"
+        }
+      },
       "timeline": {
-        "clustering_threshold": "A contagem de eventos nos quais eles são agrupados (0 = sem agrupamento)",
+        "clustering_threshold": "Número de eventos antes de agrupar (0=sem agrupamento)",
         "show_recordings": "Mostrar gravações",
-        "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
+        "style": "Estilo da linha do tempo",
+        "styles": {
+          "ribbon": "Eventos em uma única faixa",
+          "stack": "Eventos empilhados e agrupados"
+        },
+        "window_seconds": "Duração padrão da janela da linha do tempo em segundos"
       },
       "transition_effects": {
         "none": "Sem transição",
@@ -169,13 +427,39 @@
       }
     },
     "dimensions": {
-      "aspect_ratio": "Proporção padrão (e.g. '16:9')",
+      "aspect_ratio": "Proporção (ex.: '16:9')",
       "aspect_ratio_mode": "Modo de proporção",
       "aspect_ratio_modes": {
         "dynamic": "A proporção se ajusta à mídia",
         "static": "Proporção estática",
         "unconstrained": "Proporção irrestrita"
+      },
+      "height": "Altura do cartão em unidades CSS (ex.: '500px')"
+    },
+    "editor": {
+      "mode": "Editor completo"
+    },
+    "folders": {
+      "ha": {
+        "editor_label": "Opções da pasta de mídia do Home Assistant",
+        "path_info": "Recursos adicionais de correspondência de caminho estão disponíveis no editor de texto",
+        "url": "URL da pasta de mídia"
+      },
+      "icon": "Ícone",
+      "id": "ID exclusivo",
+      "navigation": "Navegação",
+      "navigations": {
+        "restricted": "Restrita a esta pasta ou abaixo",
+        "unrestricted": "Permitida acima desta pasta"
+      },
+      "title": "Título",
+      "type": "Tipo",
+      "types": {
+        "ha": "Pasta de mídia do Home Assistant"
       }
+    },
+    "image": {
+      "zoomable": "Com zoom e deslocamento"
     },
     "live": {
       "auto_mute": "Silenciar câmeras ao vivo automaticamente",
@@ -183,27 +467,77 @@
       "auto_play": "Reproduzir câmeras ao vivo automaticamente",
       "auto_unmute": "Ativar automaticamente o som das câmeras ao vivo",
       "controls": {
+        "call": {
+          "answer": "Atender chamada",
+          "button_size": "Tamanho dos botões de controle de chamada",
+          "editor_label": "Chamada de áudio bidirecional",
+          "enabled": "Mostrar controles de chamada na tela",
+          "end": "Encerrar chamada de áudio bidirecional",
+          "lock": "Bloquear a interface durante uma chamada ativa",
+          "mute_audio": "Silenciar áudio",
+          "mute_microphone": "Silenciar microfone",
+          "reject": "Rejeitar chamada",
+          "ringtone": {
+            "editor_label": "Toque",
+            "repeat": "Repetições do toque por chamada recebida (0=indefinidamente)",
+            "type": "Tipo",
+            "types": {
+              "arpeggio": "Arpejo",
+              "chime": "Sino",
+              "custom": "URL de áudio personalizado",
+              "melody": "Melodia",
+              "none": "Nenhum",
+              "westminster": "Westminster"
+            },
+            "url": "URL personalizada"
+          },
+          "start": "Iniciar chamada de áudio bidirecional",
+          "unanswered_timeout_seconds": "Segundos antes de encerrar chamadas recebidas não atendidas (0=nunca)",
+          "unmute_audio": "Reativar áudio",
+          "unmute_microphone": "Reativar microfone"
+        },
         "editor_label": "Controles da visualização ao vivo"
       },
       "draggable": "A visualização ao vivo das câmeras pode ser arrastada/deslizada",
-      "lazy_load": "As câmeras ao vivo são carregadas lentamente",
-      "lazy_unload": "As câmeras ao vivo são descarregadas preguiçosamente",
+      "lazy_load": "As câmeras ao vivo são carregadas sob demanda",
+      "lazy_unload": "As câmeras ao vivo são descarregadas sob demanda",
+      "microphone": {
+        "always_connected": "Manter o microfone sempre conectado",
+        "audio_processing": {
+          "auto_gain_control": "Controle automático de ganho",
+          "channel_count": "Número de canais (1=mono)",
+          "echo_cancellation": "Cancelamento de eco",
+          "editor_label": "Processamento de áudio",
+          "modes": {
+            "auto": "Automático",
+            "false": "Desativado",
+            "true": "Ativado"
+          },
+          "noise_suppression": "Supressão de ruído"
+        },
+        "auto_mute": "Silenciar o microfone automaticamente",
+        "auto_unmute": "Reativar o microfone automaticamente",
+        "editor_label": "Microfone",
+        "mute_after_microphone_mute_seconds": "Segundos após silenciar o microfone antes de silenciar o áudio de entrada"
+      },
       "preload": "Pré-carregar a visualização ao vivo em segundo plano",
       "show_image_during_load": "Mostrar imagem estática enquanto a transmissão ao vivo está carregando",
-      "transition_effect": "Efeito de transição de câmera ao vivo"
+      "transition_effect": "Efeito de transição de câmera ao vivo",
+      "zoomable": "Com zoom e deslocamento"
     },
     "media_viewer": {
       "auto_mute": "Silenciar mídia automaticamente",
       "auto_pause": "Pausar mídia automaticamente",
       "auto_play": "Reproduzir mídia automaticamente",
-      "auto_unmute": "Ativar mídia automaticamente",
+      "auto_unmute": "Reativar o som da mídia automaticamente",
       "controls": {
         "editor_label": "Controles do visualizador de mídia"
       },
-      "draggable": "Visualizador de eventos pode ser arrastado/deslizado",
-      "lazy_load": "A mídia do Visualizador de eventos é carregada lentamente no carrossel",
+      "draggable": "O visualizador de mídia pode ser arrastado/deslizado",
+      "lazy_load": "A mídia do visualizador é carregada sob demanda no carrossel",
       "snapshot_click_plays_clip": "Clicar em um instantâneo reproduz um clipe relacionado",
-      "transition_effect": "Efeito de transição do Visualizador de eventos"
+      "transition_effect": "Efeito de transição do visualizador de mídia",
+      "zoomable": "Com zoom e deslocamento"
     },
     "menu": {
       "alignment": "Alinhamento do menu",
@@ -213,29 +547,56 @@
         "right": "Alinhado à direita",
         "top": "Alinhado ao topo"
       },
-      "button_size": "Tamanho do botão de menu (e.g. '40px')",
+      "auto_hide": "Condições de ocultação automática",
+      "button_size": "Tamanho do botão em pixels",
       "buttons": {
         "alignment": "Alinhamento do botão",
         "alignments": {
           "matching": "Mesmo alinhamento do menu",
-          "opposing": "Opor-se ao alinhamento do menu"
+          "opposing": "Oposto ao alinhamento do menu"
         },
+        "call": "Chamada / Áudio bidirecional",
         "camera_ui": "Interface de usuário da câmera",
         "cameras": "Selecionar câmera",
         "clips": "Clipes",
-        "download": "Baixe a mídia do evento",
+        "display_mode": "Modo de exibição",
+        "download": "Baixar mídia",
+        "editor_label": "Botões do menu",
         "enabled": "Botão ativado",
         "expand": "Expandir",
+        "folders": "Pastas",
         "fullscreen": "Tela cheia",
+        "gallery": "Galeria",
         "icon": "Ícone",
         "image": "Imagem",
+        "inert": "Não interativo",
+        "info": "Informações",
+        "iris": "Íris / Visualização padrão / Reexibir menu",
         "live": "Ao vivo",
+        "media": "Mídia",
         "media_player": "Enviar para o reprodutor de mídia",
+        "microphone": "Microfone",
+        "mute": "Silenciar / Reativar som",
+        "permanent": "Mostrar quando o menu estiver oculto",
+        "pip": "Picture in Picture (PiP)",
+        "play": "Reproduzir / Pausar",
         "priority": "Prioridade",
+        "ptz_controls": "Mostrar controles PTZ",
+        "ptz_home": "Posição inicial PTZ",
         "recordings": "Gravações",
+        "reviews": "Revisões",
+        "screenshot": "Captura de tela",
+        "set_review": "Definir status de revisão",
         "snapshots": "Instantâneos",
+        "state_color": "Colorir conforme o estado da entidade",
+        "style": "Estilo CSS",
         "substreams": "Substream(s)",
-        "timeline": "Linha do tempo"
+        "timeline": "Linha do tempo",
+        "type": "Tipo de botão",
+        "types": {
+          "momentary": "Momentâneo",
+          "toggle": "Alternância"
+        }
       },
       "position": "Posição do menu",
       "positions": {
@@ -247,125 +608,341 @@
       "style": "Estilo do menu",
       "styles": {
         "hidden": "Menu oculto",
-        "hover": "Menu suspenso",
-        "hover-card": "Menu suspenso (em todo o cartão)",
+        "hover": "Menu ao passar o mouse",
+        "hover-card": "Menu ao passar o mouse (em todo o cartão)",
         "none": "Sem menu",
         "outside": "Menu externo",
         "overlay": "Menu sobreposto"
       }
     },
     "overrides": {
-      "info": "Esta configuração do cartão especificou manualmente as substituições configuradas que podem substituir os valores mostrados no editor visual, consulte o editor de código para visualizar/modificar essas substituições"
+      "info": "Substituições condicionais estão ativas e podem prevalecer sobre os valores mostrados aqui. Edite-as no editor de código"
     },
     "performance": {
       "features": {
-        "animated_progress_indicator": "Indicador de Carregamento Animado",
+        "animated_progress_indicator": "Progresso animado",
+        "card_loading_effects": "Efeitos de carregamento",
+        "card_loading_indicator": "Indicador de carregamento",
         "editor_label": "Opções de recursos",
+        "max_simultaneous_engine_requests": "Requisições paralelas ao motor",
         "media_chunk_size": "Tamanho do bloco de mídia"
       },
       "style": {
+        "backdrop_filter": "Efeitos de desfoque",
         "border_radius": "Curvas",
         "box_shadow": "Sombras",
         "editor_label": "Opções de estilo"
       },
-      "warning": "Este cartão está no modo de baixo desempenho, então os padrões foram alterados para otimizar o desempenho"
+      "warning": "O perfil de baixo desempenho está ativo: os padrões foram otimizados para reduzir a carga"
+    },
+    "profiles": {
+      "casting": "Transmissão (Cast)",
+      "doorbell": "Campainha",
+      "editor_label": "Perfis de configuração",
+      "low-performance": "Baixo desempenho",
+      "scrubbing": "Navegação rápida no vídeo (scrubbing)"
+    },
+    "remote_control": {
+      "entities": {
+        "camera": "Entidade Input Select para controlar a câmera",
+        "camera_priorities": {
+          "card": "Cartão",
+          "entity": "Entidade"
+        },
+        "camera_priority": "Qual seleção de câmera tem prioridade",
+        "editor_label": "Entidades de controle remoto"
+      }
+    },
+    "status_bar": {
+      "auto_hide": "Condições de ocultação automática",
+      "height": "Altura em pixels",
+      "items": {
+        "enabled": "Ativado",
+        "engine": "Motor da câmera",
+        "issues": "Problemas",
+        "permanent": "Manter a barra visível",
+        "priority": "Prioridade",
+        "resolution": "Resolução",
+        "severity": "Severidade",
+        "technology": "Tecnologia",
+        "title": "Título"
+      },
+      "popup_seconds": "Segundos do pop-up",
+      "position": "Posição",
+      "positions": {
+        "bottom": "Inferior",
+        "top": "Superior"
+      },
+      "style": "Estilo",
+      "styles": {
+        "hover": "Ao passar o mouse",
+        "hover-card": "Ao passar o mouse (em todo o cartão)",
+        "none": "Nenhum",
+        "outside": "Externo",
+        "overlay": "Sobreposto",
+        "popup": "Pop-up"
+      }
     },
     "view": {
-      "camera_select": "Visualização de câmeras recém-selecionadas",
+      "camera_select": "Visualização ao selecionar uma câmera",
       "default": "Visualização padrão",
       "default_cycle_camera": "Percorrer as câmeras quando a visualização padrão for atualizada",
       "default_reset": {
-        "every_seconds": "Atualize a visualização padrão a cada X segundos (0 = nunca)"
+        "after_interaction": "Voltar à visualização padrão quando a interação do usuário terminar",
+        "editor_label": "Comportamento de retorno à visualização padrão",
+        "entities": "Voltar à visualização padrão quando o estado de uma entidade mudar",
+        "every_seconds": "Voltar à visualização padrão a cada X segundos (0=nunca)",
+        "interaction_mode": "Como o retorno ao padrão se comporta quando há interação humana com o cartão"
+      },
+      "dim": "Escurecer quando não houver interação",
+      "interaction_seconds": "Segundos de inatividade antes de encerrar o estado de interação (0=nunca)",
+      "issues": {
+        "editor_label": "Problemas/Erros",
+        "interaction_mode": "Como as novas tentativas automáticas se comportam quando há interação humana com o cartão",
+        "retry_seconds": "Segundos entre novas tentativas automáticas [padrão=adaptativo, 0=desativado]"
+      },
+      "keyboard_shortcuts": {
+        "editor_label": "Atalhos de teclado",
+        "enabled": "Atalhos de teclado ativados",
+        "ptz_down": "PTZ para baixo",
+        "ptz_home": "PTZ posição inicial",
+        "ptz_left": "PTZ para a esquerda",
+        "ptz_right": "PTZ para a direita",
+        "ptz_up": "PTZ para cima",
+        "ptz_zoom_in": "PTZ aumentar zoom",
+        "ptz_zoom_out": "PTZ diminuir zoom"
+      },
+      "theme": {
+        "themes": {
+          "dark": "Escuro",
+          "editor_label": "Temas",
+          "ha": "Home Assistant",
+          "light": "Claro",
+          "traditional": "Tradicional"
+        }
       },
       "triggers": {
-        "show_trigger_status": "Pulsar borda quando acionado",
-        "untrigger_delay_seconds": "Segundos após a mudar para o estado inativo para desacionar"
+        "actions": {
+          "editor_label": "Ações de acionamento",
+          "interaction_mode": "Como tratar as ações quando há interação humana com o cartão",
+          "trigger": "Acionamento",
+          "triggers": {
+            "call": "Iniciar chamada",
+            "default": "Visualização padrão",
+            "live": "Visualização ao vivo",
+            "media": "Visualização de mídia",
+            "none": "Nenhum",
+            "update": "Atualizar visualização"
+          },
+          "untrigger": "Desacionamento",
+          "untriggers": {
+            "call": "Encerrar chamada",
+            "default": "Visualização padrão",
+            "none": "Nenhum"
+          }
+        },
+        "editor_label": "Comportamento de acionamento",
+        "event_hold_seconds": "Segundos para manter visível um acionamento momentâneo (ex.: toque de campainha, evento do barramento do HA) antes do atraso de desacionamento pós-término",
+        "filter_selected_camera": "Acionar somente na câmera selecionada",
+        "show_trigger_status": "Mostrar borda pulsante quando acionado",
+        "untrigger_delay_seconds": "Segundos de espera após a mudança de estado do acionamento antes de desacionar",
+        "untrigger_force_seconds": "Segundos antes do desacionamento forçado"
       },
       "views": {
+        "auto": "Automático",
         "clip": "Clipe mais recente",
         "clips": "Galeria de clipes",
         "current": "Visualização atual",
+        "diagnostics": "Diagnóstico",
+        "folder": "Mídia da pasta",
+        "folders": "Galeria de pastas",
+        "gallery": "Galeria de mídia padrão",
         "image": "Imagem estática",
         "live": "Visualização ao vivo",
+        "media": "Item de mídia padrão mais recente",
         "recording": "Gravação mais recente",
         "recordings": "Galeria de gravações",
-        "snapshot": "Snapshot mais recente",
-        "snapshots": "Galeria de Snapshots",
+        "review": "Mídia mais recente para revisar",
+        "reviews": "Galeria de revisões",
+        "snapshot": "Instantâneo mais recente",
+        "snapshots": "Galeria de instantâneos",
         "timeline": "Visualização da linha do tempo"
       }
     }
   },
+  "display_modes": {
+    "grid": "Mostrar o visualizador de mídia de cada câmera em uma grade",
+    "single": "Mostrar um único visualizador de mídia"
+  },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",
+    "add_new_folder": "Adicionar pasta",
+    "back": "Voltar",
     "camera": "Câmera",
     "cameras": "Câmeras",
     "cameras_secondary": "Quais câmeras renderizar neste cartão",
     "delete": "Excluir",
+    "dimensions": "Dimensões",
+    "dimensions_secondary": "Opções de dimensões e formato do cartão",
+    "docs": "Documentação",
+    "edit": "Editar",
+    "folders": "Pastas",
+    "folders_secondary": "Quais pastas exibir neste cartão",
     "image": "Imagem",
     "image_secondary": "Opções de visualização de imagem estática",
     "live": "Ao vivo",
     "live_secondary": "Opções de visualização da câmera ao vivo",
     "media_gallery": "Galeria de mídia",
     "media_gallery_secondary": "Opções da galeria de mídia",
-    "media_viewer": "Visualizador de eventos",
-    "media_viewer_secondary": "Opções do visualizador de Snapshots e clipes",
+    "media_viewer": "Visualizador de mídia",
+    "media_viewer_secondary": "Visualizador de mídia estática",
     "menu": "Menu",
     "menu_secondary": "Opções de aparência do menu",
-    "overrides": "As substituições estão ativas",
-    "overrides_secondary": "Substituições de configuração dinâmica detectadas",
     "performance": "Desempenho",
     "performance_secondary": "Opções de desempenho do cartão",
+    "profiles": "Perfis",
+    "profiles_secondary": "Escolha conjuntos de padrões pré-configurados",
+    "remote_control": "Controle remoto",
+    "remote_control_secondary": "Opções para controlar o cartão remotamente",
+    "simple_coverage": "Este cartão tem configurações que o editor simples não mostra. Ative o editor completo para vê-las",
+    "status_bar": "Barra de status",
+    "status_bar_secondary": "Opções de aparência e comportamento da barra de status",
     "timeline": "Linha do tempo",
-    "timeline_secondary": "Opções do evento da linha do tempo",
-    "upgrade": "Upgrade",
-    "upgrade_available": "Um upgrade automático da configuração de cartão está disponível",
+    "timeline_secondary": "Opções da linha do tempo de eventos",
+    "toggle_diagnostics": "Alternar diagnóstico",
+    "upgrade": "Atualizar",
+    "upgrade_available": "Uma atualização automática da configuração do cartão está disponível",
     "view": "Visualizar",
     "view_secondary": "O que o cartão deve mostrar e como mostrá-lo"
   },
   "elements": {
     "ptz": {
       "down": "Baixo",
-      "home": "Casa",
+      "home": "Posição inicial",
       "left": "Esquerda",
+      "presets": "Predefinições",
       "right": "Direita",
+      "type": "Tipo de PTZ",
       "up": "Cima",
-      "zoom_in": "Aumentar Zoom",
-      "zoom_out": "Reduzir Zoom"
+      "zoom_in": "Aumentar zoom",
+      "zoom_out": "Diminuir zoom"
     }
   },
   "error": {
+    "awaiting_live": "Aguardando o carregamento da transmissão ao vivo",
+    "awaiting_media": "Aguardando o carregamento da mídia",
+    "call_camera_unreachable": "Não foi possível alcançar a câmera para o áudio bidirecional.",
+    "call_invalid_target": "A câmera ou stream solicitado não está disponível para chamada.",
+    "call_microphone_failed": "Não foi possível conectar o seu microfone.",
+    "call_microphone_forbidden": "O acesso ao microfone foi negado para esta página. Atualize as permissões do navegador e tente novamente.",
+    "call_microphone_unsupported": "O acesso ao microfone não está disponível neste navegador (ex.: requer HTTPS).",
+    "call_no_two_way_audio": "Esta câmera não oferece suporte a áudio bidirecional.",
+    "call_unavailable_heading": "Áudio bidirecional indisponível",
+    "camera_initialization": "Falha na inicialização da câmera",
+    "camera_initialization_reolink": "Não foi possível inicializar a câmera Reolink",
+    "configuration_error": "Erro de configuração",
     "could_not_create_elements": "Não foi possível renderizar os elementos da imagem",
-    "diagnostics": "Diagnósticos do cartão. Revise as informações confidenciais antes de compartilhar",
+    "diagnostics": "Diagnóstico do cartão. Verifique se há informações confidenciais antes de compartilhar",
+    "download_failed": "Falha no download",
     "download_no_media": "Nenhuma mídia para download",
     "download_sign_failed": "Não foi possível assinar o URL de mídia para download",
-    "duplicate_camera_id": "Duplique o ID da câmera Frigate para a câmera a seguir, use o parâmetro 'id' para identificar exclusivamente as câmeras",
-    "empty_response": "Sem resposta do Home Assistant para a solicitação",
+    "duplicate_camera_id": "ID de câmera duplicado para a câmera a seguir; use o parâmetro 'id' para identificar as câmeras de forma exclusiva",
+    "duplicate_folder_id": "ID de pasta duplicado para a pasta a seguir; use o parâmetro 'id' para identificar as pastas de forma exclusiva",
+    "empty_response": "Resposta vazia do Home Assistant para a solicitação",
+    "failed_fetch": "Não foi possível obter a URL",
+    "failed_proxy": "Não foi possível fazer o proxy via Home Assistant",
     "failed_response": "Falha ao receber resposta do Home Assistant para solicitação",
     "failed_retain": "Não foi possível reter o evento",
     "failed_sign": "Não foi possível assinar a URL do Home Assistant",
+    "fetching_diagnostics": "Obtendo diagnóstico",
+    "home_assistant_elements_load_failed": "Não foi possível carregar os elementos necessários do Home Assistant",
     "image_load_error": "A imagem não pôde ser carregada",
     "invalid_configuration": "Configuração inválida",
     "invalid_configuration_no_hint": "Nenhuma dica de local disponível (tipo incorreto ou ausente?)",
+    "invalid_configuration_override": "Configuração de substituição inválida",
     "invalid_elements_config": "Configuração de elementos de imagem inválida",
     "invalid_response": "Resposta inválida recebida do Home Assistant para a solicitação",
     "jsmpeg_no_player": "Não foi possível iniciar o player JSMPEG",
     "live_camera_no_endpoint": "Não foi possível obter o endereço da câmera para este provedor ao vivo (configuração incompleta?)",
     "live_camera_not_found": "A entidade de câmera configurada não foi encontrada",
+    "microphone_not_supported": "O microfone não é compatível com este navegador",
     "no_camera_engine": "Não foi possível determinar o motor adequado para a câmera",
     "no_camera_entity": "Não foi possível encontrar a entidade da câmera",
+    "no_camera_for_image": "Nenhuma câmera configurada para o modo de imagem da câmera",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
-    "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
-    "troubleshooting": "Verifique a solução de problemas",
+    "no_camera_or_media_for_timeline": "Nenhuma câmera ou mídia disponível para a linha do tempo",
+    "no_live_camera": "O parâmetro camera_entity deve estar definido e válido para este provedor ao vivo",
+    "too_many_automations": "Muitas chamadas de automação aninhadas; verifique se há laços na sua configuração",
+    "troubleshooting": "Consulte a solução de problemas",
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
-    "webrtc_card_waiting": "Aguardando o cartão WebRTC carregar ..."
+    "webrtc_card_waiting": "Aguardando o cartão WebRTC carregar..."
   },
   "issues": {
-    "media_unavailable": {
-      "reasons": {
-        "entity_unavailable": "Câmera indisponível"
+    "config_error": {
+      "heading": "Erro de configuração"
+    },
+    "config_upgrade": {
+      "heading": "Atualização de configuração disponível",
+      "text": "Há uma atualização de configuração disponível. Para atualizar, edite este cartão (ícone de lápis do painel → menu de três pontos → Editar) e clique no botão 'Atualização automática' no editor do cartão"
+    },
+    "config_upgrade_failure": {
+      "heading": "A configuração não pôde ser totalmente atualizada",
+      "text": "Uma atualização automática da configuração não foi concluída com sucesso. A configuração não atualizada foi separada em '__UPGRADE_FAILURE__' na sua configuração. Examine, atualize e remova essas entradas manualmente."
+    },
+    "connection": {
+      "lost": {
+        "heading": "Conexão perdida",
+        "text": "Conexão com o Home Assistant perdida"
+      },
+      "starting": {
+        "heading": "O Home Assistant está iniciando",
+        "text": "Aguardando a conclusão da inicialização do Home Assistant"
       }
+    },
+    "event_subscription": {
+      "heading": "Assinaturas de eventos do Home Assistant",
+      "text": "O cartão não conseguiu assinar um ou mais tipos de evento do Home Assistant e continuará tentando"
+    },
+    "initialization": {
+      "heading": "Falha na inicialização"
+    },
+    "legacy_resource": {
+      "heading": "Recurso legado do painel detectado",
+      "remove": "Remover recurso legado",
+      "text_both": "O recurso legado 'frigate-hass-card.js' ainda está registrado; remova-o manualmente ou clique no ícone de exclusão para removê-lo automaticamente. Ele será removido em uma versão futura",
+      "text_only_legacy": "O recurso legado 'frigate-hass-card.js' deve ser substituído por 'advanced-camera-card.js'. Ele será removido em uma versão futura"
+    },
+    "media_query": {
+      "heading": "Falha na consulta de mídia"
+    },
+    "media_unavailable": {
+      "heading": "Mídia indisponível",
+      "reasons": {
+        "entity_unavailable": "Entidade da câmera indisponível",
+        "not_loading": "A mídia não está carregando",
+        "playback_error": "Erro de reprodução",
+        "server_error": "Erro do servidor de mídia",
+        "stalled": "Stream travado",
+        "unsupported": "Stream não compatível"
+      },
+      "text": "A mídia não está disponível no momento. Isso pode acontecer por vários motivos, por exemplo: câmera indisponível, stream travado ou com falha, ou mídia que ainda não terminou de carregar. O cartão continua tentando automaticamente. Nas visualizações ao vivo, uma imagem estática pode ser exibida enquanto o stream carrega (se configurado, e por padrão)"
+    },
+    "troubleshooting_guide": "Guia de solução de problemas",
+    "view_incompatible": {
+      "heading": "Visualização não compatível",
+      "text": "A câmera ou mídia selecionada não é compatível com esta visualização"
     }
+  },
+  "key_assigner": {
+    "assign": "Atribuir",
+    "modifiers": {
+      "alt": "Alt",
+      "ctrl": "Ctrl",
+      "meta": "Meta",
+      "shift": "Shift"
+    },
+    "unassign": "Remover atribuição"
   },
   "media_filter": {
     "camera": "Câmera",
@@ -374,12 +951,17 @@
     "media_types": {
       "clips": "Clipes",
       "recordings": "Gravações",
+      "reviews": "Revisões",
       "snapshots": "Instantâneos"
     },
     "not_favorite": "Não favorito",
+    "not_reviewed": "Não revisado",
+    "reviewed": "Revisado",
     "select_camera": "Selecione a câmera...",
     "select_favorite": "Selecione favorito...",
     "select_media_type": "Selecione o tipo de mídia...",
+    "select_reviewed": "Selecione revisados...",
+    "select_severity": "Selecione a severidade...",
     "select_tag": "Selecione a etiqueta...",
     "select_what": "Selecione o que...",
     "select_when": "Selecione quando...",
@@ -388,6 +970,7 @@
     "what": "O que",
     "when": "Quando",
     "whens": {
+      "custom": "Personalizado",
       "past_month": "Mês passado",
       "past_week": "Semana passada",
       "today": "Hoje",
@@ -395,16 +978,21 @@
     },
     "where": "Onde"
   },
+  "media_viewer": {
+    "unseekable": "Posição de busca não encontrada na mídia"
+  },
   "thumbnail": {
     "camera": "Câmera",
     "download": "Baixar mídia",
     "duration": "Duração",
+    "in_progress": "REC",
+    "more_details": "+{count} detalhes",
     "no_thumbnail": "Nenhuma miniatura disponível",
-    "retain_indefinitely": "Evento será retido por tempo indeterminado",
-    "seek": "Procurar",
+    "retain_indefinitely": "Reter mídia por tempo indeterminado",
+    "seek": "Ir para este ponto",
     "start": "Início",
     "tag": "Etiqueta",
-    "timeline": "Ver evento na linha do tempo",
+    "timeline": "Ver mídia na linha do tempo",
     "where": "Onde"
   },
   "timeline": {

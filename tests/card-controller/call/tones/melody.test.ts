@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { MelodyTone } from '../../../../src/card-controller/call/tones/melody';
-import { useAudioMocks } from './test-utils';
+import { createTone, useAudioMocks } from './test-utils';
 
 const audio = useAudioMocks();
 
@@ -12,7 +12,7 @@ const audio = useAudioMocks();
 // Three chords × 5 notes = 15 oscillators per iteration.
 describe('MelodyTone', () => {
   it('should play a I-V-I cadence in C major over 3 seconds', () => {
-    new MelodyTone(0).start();
+    createTone(MelodyTone, 0).start();
 
     expect(audio.oscillators).toHaveLength(15);
 
@@ -45,7 +45,7 @@ describe('MelodyTone', () => {
   });
 
   it('should give the resolving chord a longer tail than the I and V chords', () => {
-    new MelodyTone(0).start();
+    createTone(MelodyTone, 0).start();
 
     // I and V chords use default fundDecay=0.6, humDecay=1.1.
     expect(audio.gainParams[1].setTargetAtTime).toHaveBeenCalledWith(0, 0.005, 0.6);

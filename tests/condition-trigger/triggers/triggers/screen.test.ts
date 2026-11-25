@@ -36,6 +36,7 @@ describe('ScreenTrigger', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     matches = false;
     addEventListener.mockClear();
     removeEventListener.mockClear();

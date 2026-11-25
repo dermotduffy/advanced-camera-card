@@ -15,6 +15,7 @@ import type { ViewManagerEpoch } from '../../../card-controller/view/types';
 import { getMediaSeverity, isMediaReviewed } from '../../../components-lib/media/format';
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
 import type { ResolvedThumbnailStyle } from '../../../components-lib/thumbnail/resolve-style';
+import type { ThumbnailTier } from '../../../components-lib/thumbnail/tier';
 import type { HomeAssistant } from '../../../ha/types';
 import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss?inline';
 import { setOrRemoveAttribute } from '../../../utils/basic';
@@ -45,7 +46,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
   public thumbnailStyle?: ResolvedThumbnailStyle;
 
   @property({ attribute: false })
-  public size?: number;
+  public tier?: ThumbnailTier;
 
   @property({ attribute: true, type: Boolean })
   public show_favorite_control = false;
@@ -136,7 +137,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
         .viewItemManager=${this.viewItemManager}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .item=${this.item}
-        .size=${this.size}
+        .tier=${this.tier}
         .thumbnailStyle=${this.thumbnailStyle}
         .filterReviewed=${this.filterReviewed}
         .filterFavorite=${this.filterFavorite}

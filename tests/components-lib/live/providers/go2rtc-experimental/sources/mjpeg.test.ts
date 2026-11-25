@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { MJPEGStreamSource } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/sources/mjpeg';
 import type {
@@ -22,6 +22,9 @@ describe('MJPEGStreamSource', () => {
       callbacks: { loadedCallback, failedCallback },
     };
     const source = new MJPEGStreamSource(context);
+
+    // The source's timer awaiting the first frame outlives this test file.
+    onTestFinished(() => source.stop());
 
     return { channel, failedCallback, loadedCallback, showFrame, source };
   };

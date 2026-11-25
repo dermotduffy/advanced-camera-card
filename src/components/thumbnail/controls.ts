@@ -9,6 +9,7 @@ import {
   type ThumbnailControl,
 } from '../../components-lib/thumbnail/controls/controller';
 import type { ResolvedThumbnailStyle } from '../../components-lib/thumbnail/resolve-style';
+import type { ThumbnailTier } from '../../components-lib/thumbnail/tier';
 import type { HomeAssistant } from '../../ha/types';
 import thumbnailControlsStyle from '../../scss/thumbnail-controls.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action';
@@ -40,7 +41,7 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
   public item?: ViewItem;
 
   @property({ attribute: false })
-  public size?: number;
+  public tier?: ThumbnailTier;
 
   @property({ attribute: false })
   public thumbnailStyle?: ResolvedThumbnailStyle;
@@ -65,7 +66,7 @@ export class AdvancedCameraCardThumbnailControls extends LitElement {
   protected willUpdate(): void {
     this._controller.calculate({
       item: this.item,
-      size: this.size,
+      tier: this.tier,
       capabilities: this.item
         ? (this.viewItemManager?.getCapabilities(this.item) ?? undefined)
         : undefined,

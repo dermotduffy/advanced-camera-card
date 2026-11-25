@@ -18,10 +18,11 @@ You can interact with the timeline in a number of ways:
 | ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clustering_threshold` | `3`     | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
 | `controls`             |         | Configuration for the timeline controls. See [`controls`](#controls).                                                                                                                                                                                                                                                                                                                                                           |
-| `format`               |         | Configuration for the timeline time & date format. See [`format`](#format).                                                                                                                                                                                                                                                                                                                                                     |
 | `show_recordings`      | `true`  | Whether to show recordings on the timeline (specifically: which hours have any recorded content).                                                                                                                                                                                                                                                                                                                               |
 | `style`                | `stack` | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold`.                                                                                                                                                                                                                                                                                   |
 | `window_seconds`       | `3600`  | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline.                                                                                                                                                                                                                                                                                                                    |
+
+[](common/timeline-format-info.md ':include')
 
 ## `controls`
 
@@ -37,20 +38,6 @@ timeline:
 | ------------ | ------- | -------------------------------------------------------------------------------------------- |
 | `thumbnails` |         | Configures how thumbnails are shown on the `timeline` view. See [`thumbnails`](#thumbnails). |
 
-## `format`
-
-Configure the date and time format for the `timeline` view.
-
-```yaml
-timeline:
-  format:
-    # [...]
-```
-
-| Option | Default | Description                                                                     |
-| ------ | ------- | ------------------------------------------------------------------------------- |
-| `24h`  | `true`  | If `true` shows time in 24-hour clock. If `false` otherwise uses 12-hour clock. |
-
 ### `thumbnails`
 
 Configures how thumbnails are shown on the timeline.
@@ -64,6 +51,7 @@ timeline:
 
 | Option                  | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aspect_ratio`          | `1:1`   | The aspect ratio of the thumbnails, e.g. `16:9`. A thumbnail image of a different aspect ratio is cropped to fill the thumbnail. Thumbnails that show the whole camera frame (e.g. Frigate review thumbnails) suit the camera's aspect ratio. Thumbnails cropped around a detected object (e.g. Frigate event thumbnails) suit `1:1`.                                                                            |
 | `style`                 | `auto`  | How details are presented for each thumbnail. `auto` chooses from the configuration and the available width. `plain` shows just the thumbnail without details. `overlay` shows the details over the thumbnail, `hover` shows those same details only while the pointer is over the thumbnail, and `panel` shows a details panel beside the thumbnail. `hover` is rendered as `overlay` when there is no pointer. |
 | `mode`                  | `right` | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`). With `style: auto`, a `left` or `right` drawer shows a details panel beside each thumbnail, while `above` and `below` show the details on hover instead, or as a permanent overlay on touch devices without a pointer.                           |
 | `show_download_control` | `false` | Whether to show the download control on each thumbnail.                                                                                                                                                                                                                                                                                                                                                          |
@@ -71,7 +59,7 @@ timeline:
 | `show_info_control`     | `true`  | Whether to show the info ('i') control on each thumbnail. Ignored when `style` is `panel` as the panel shows the information.                                                                                                                                                                                                                                                                                    |
 | `show_review_control`   | `true`  | Whether to show the review ('check') control on each thumbnail.                                                                                                                                                                                                                                                                                                                                                  |
 | `show_timeline_control` | `false` | Whether to show the timeline ('target') control on each thumbnail.                                                                                                                                                                                                                                                                                                                                               |
-| `size`                  | `100`   | The size of the thumbnails in the thumbnail carousel in pixels. Must be &gt;= `75` and &lt;= `300`.                                                                                                                                                                                                                                                                                                              |
+| `size`                  | `100`   | The size of the longer side of the thumbnails in the thumbnail carousel in pixels. Must be &gt;= `75` and &lt;= `300`.                                                                                                                                                                                                                                                                                           |
 
 > [!NOTE]
 > The `show_*_control` options are advisory. A `false` always hides that control,
@@ -91,11 +79,10 @@ timeline:
   clustering_threshold: 3
   show_recordings: true
   window_seconds: 3600
-  format:
-    24h: true
   controls:
     thumbnails:
       mode: right
+      aspect_ratio: '1:1'
       size: 100
       style: auto
       show_download_control: false

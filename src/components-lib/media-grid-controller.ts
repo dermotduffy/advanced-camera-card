@@ -5,6 +5,7 @@ import type { ViewDisplayConfig } from '../config/schema/common/display';
 import {
   forceReflow,
   getChildrenFromElement,
+  getLayoutSize,
   setOrRemoveStyleProperty,
 } from '../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
@@ -73,7 +74,7 @@ export class MediaGridController {
     this._selected = options?.selected ?? null;
     this._idAttribute = options?.idAttribute ?? 'grid-id';
     this._widthFactorAttribute = options?.widthFactorAttribute ?? 'grid-width-factor';
-    this._hostWidth = this._host.getBoundingClientRect().width;
+    this._hostWidth = getLayoutSize(this._host).width;
     this._hostResizeObserver.observe(host);
     this._displayConfig = options?.displayConfig ?? null;
 
@@ -304,12 +305,12 @@ export class MediaGridController {
   }
 
   private _hostResizeHandler(): void {
-    const dimensions = this._host.getBoundingClientRect();
+    const width = getLayoutSize(this._host).width;
 
     // Only resize things if the width has changed. It is expected that the
     // height may change during the layout.
-    if (dimensions.width !== this._hostWidth) {
-      this._hostWidth = dimensions.width;
+    if (width !== this._hostWidth) {
+      this._hostWidth = width;
       this._applyCellSize();
     }
   }

@@ -56,6 +56,9 @@ export class AdvancedCameraCardLive extends LitElement {
   public call?: CallSession;
 
   @property({ attribute: false })
+  public callConnecting?: boolean;
+
+  @property({ attribute: false })
   public locked?: boolean;
 
   @property({ attribute: false, hasChanged: contentsChanged })
@@ -101,6 +104,7 @@ export class AdvancedCameraCardLive extends LitElement {
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}
         .call=${this.call}
+        .callConnecting=${this.callConnecting}
         .locked=${this.locked}
         .triggeredCameraIDs=${this.triggeredCameraIDs}
       >

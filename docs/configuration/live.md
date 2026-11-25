@@ -18,12 +18,12 @@ live:
 | `display`                |                                          | Controls whether to show a single or grid `live` view. See [`display`](#display).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `draggable`              | `true`                                   | Whether or not the live carousel can be dragged left or right, via touch/swipe and mouse dragging.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `lazy_load`              | `true`                                   | Whether or not to lazily load cameras in the camera carousel. Setting this to `false` will cause all cameras to load simultaneously when the `live` carousel is opened (or cause all cameras to load continually if `preload` is also `true`). This will result in a smoother carousel experience at a cost of (potentially) a substantial amount of continually streamed data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `lazy_unload`            | `[]`                                     | A list of conditions in which live camera feeds are unloaded. `unselected` will unload a camera when it is not visible in the carousel/grid and `hidden` will unload a camera when the browser itself is minimized or the browser tab changes. An empty list (`[]`, the default) will never automatically unload a stream once loaded unless the user navigates away entirely, so that it's always instantly visible on carousel scroll. Once unloaded, subsequently revisiting the camera will cause a reloading delay. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.                                                                                                                                                                                                                                                       |
+| `lazy_unload`            | `[]`                                     | A list of conditions in which live camera feeds are unloaded. `unselected` will unload a camera when it is not visible in the carousel/grid and `hidden` will unload a camera when the browser itself is minimized or the browser tab changes. An empty list (`[]`, the default) will never automatically unload a stream once loaded unless the user navigates away entirely, so that it's always instantly visible on carousel scroll. A loaded stream therefore keeps downloading while the browser tab is hidden or the Home Assistant app is in the background; add `hidden` to save network data and battery (e.g. on a phone using mobile data). Once unloaded, subsequently revisiting the camera will cause a reloading delay. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.                                        |
 | `microphone`             |                                          | See [`microphone`](#microphone).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `preload`                | `false`                                  | Whether or not to preload the live view. Preloading causes the live view to render in the background regardless of what view is actually shown, so it's instantly available when requested. The currently-selected camera's media is loaded in the background; other cameras follow the `lazy_load` setting (set `lazy_load: false` to preload them all). This consumes additional network/CPU resources continually.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `show_image_during_load` | `true`                                   | If `true`, during the initial stream load, the `image` live provider will be shown instead of the loading video stream. This still image will auto-refresh and is replaced with the live stream once loaded.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `transition_effect`      | `slide`                                  | Effect to apply as a transition between live cameras. Accepted values: `slide` or `none`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `zoomable`               | `true`                                   | Whether or not the live carousel can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `zoomable`               | `true`                                   | Whether or not the live carousel can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held. While zoomed in, a double tap (or double click) returns to the default zoom and pan (this only resets the digital zoom).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 ## `controls`
 
@@ -58,6 +58,7 @@ live:
 | Option                       | Default | Description                                                                                                                                                                                                                                                                                                                                                                                         |
 | ---------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `button_size`                | `40`    | The size of the call control buttons in pixels. Must be &gt;= `20`.                                                                                                                                                                                                                                                                                                                                 |
+| `buttons`                    |         | The icon and style of each call control button. See [`buttons`](#buttons).                                                                                                                                                                                                                                                                                                                          |
 | `enabled`                    | `true`  | Whether the on-screen call controls are shown during a call. Set to `false` to hide them and drive calls from the [`menu`](./menu.md) instead. When hiding the controls, be sure to also remove `call` from `menu.auto_hide` so the menu stays visible allowing the call to be controlled. See [Driving calls from the menu](../examples.md?id=driving-calls-from-the-menu) for a complete example. |
 | `lock`                       | `true`  | Whether to lock the rest of the card controls/actions while a call is in progress. Prevents an accidental tap, swipe or action mid-call. Set to `false` to allow interactions regardless of call state.                                                                                                                                                                                             |
 | `ringtone`                   |         | The audible chime played while an inbound call (e.g. one started by [`view.triggers.actions.trigger: call`](./view.md?id=trigger-action-configuration)) is ringing. Stops as soon as the call is answered or ended. Manual calls never ring. See [`ringtone`](#ringtone).                                                                                                                           |
@@ -68,6 +69,40 @@ live:
 > happens no sound is produced and no error is shown. The underlying behavior is
 > documented in [MDN's Autoplay
 > guide](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay).
+
+#### `buttons`
+
+The icon and style of each call control button. As with [menu buttons](./menu.md), a configured `icon` replaces the button's own, and a configured `style` is merged over its own (a `color` also colors the icon). Use [`overrides`](./overrides.md) to change them under [conditions](./conditions-triggers.md).
+
+```yaml
+live:
+  controls:
+    call:
+      buttons:
+        answer:
+          icon: mdi:phone-in-talk
+        end:
+          style:
+            color: orange
+```
+
+The microphone and mute buttons show whether they are muted through their icon (and the microphone also through its color). A configured `icon` or `color` hides that, unless an override sets it for one state only (e.g. with the [`microphone` condition](./conditions-triggers.md)).
+
+| Button       | Shown            |
+| ------------ | ---------------- |
+| `answer`     | before answering |
+| `reject`     | before answering |
+| `end`        | after answering  |
+| `microphone` | after answering  |
+| `mute`       | after answering  |
+
+Each takes:
+
+| Option        | Default | Description                                                                                                                                                                           |
+| ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `icon`        |         | An icon in place of the button's own (e.g. `mdi:phone-in-talk`).                                                                                                                      |
+| `in_progress` | `false` | Whether an "in progress ring" is shown around the button (e.g. while something it depends on is loading/waiting). See [example](../examples.md?id=show-a-call-button-as-in-progress). |
+| `style`       |         | CSS properties for the button (e.g. `color: green`).                                                                                                                                  |
 
 #### `ringtone`
 
@@ -145,6 +180,7 @@ live:
 
 | Option                  | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aspect_ratio`          | `1:1`   | The aspect ratio of the thumbnails, e.g. `16:9`. A thumbnail image of a different aspect ratio is cropped to fill the thumbnail. Thumbnails that show the whole camera frame (e.g. Frigate review thumbnails) suit the camera's aspect ratio. Thumbnails cropped around a detected object (e.g. Frigate event thumbnails) suit `1:1`.                                                                            |
 | `style`                 | `auto`  | How details are presented for each thumbnail. `auto` chooses from the configuration and the available width. `plain` shows just the thumbnail without details. `overlay` shows the details over the thumbnail, `hover` shows those same details only while the pointer is over the thumbnail, and `panel` shows a details panel beside the thumbnail. `hover` is rendered as `overlay` when there is no pointer. |
 | `mode`                  | `right` | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`). With `style: auto`, a `left` or `right` drawer shows a details panel beside each thumbnail, while `above` and `below` show the details on hover instead, or as a permanent overlay on touch devices without a pointer.                           |
 | `show_download_control` | `false` | Whether to show the download control on each thumbnail.                                                                                                                                                                                                                                                                                                                                                          |
@@ -152,7 +188,7 @@ live:
 | `show_info_control`     | `true`  | Whether to show the info ('i') control on each thumbnail. Ignored when `style` is `panel` as the panel shows the information.                                                                                                                                                                                                                                                                                    |
 | `show_review_control`   | `true`  | Whether to show the review ('check') control on each thumbnail.                                                                                                                                                                                                                                                                                                                                                  |
 | `show_timeline_control` | `false` | Whether to show the timeline ('target') control on each thumbnail.                                                                                                                                                                                                                                                                                                                                               |
-| `size`                  | `100`   | The size of the thumbnails in the thumbnail carousel in pixels. Must be &gt;= `75` and &lt;= `300`.                                                                                                                                                                                                                                                                                                              |
+| `size`                  | `100`   | The size of the longer side of the thumbnails in the thumbnail carousel in pixels. Must be &gt;= `75` and &lt;= `300`.                                                                                                                                                                                                                                                                                           |
 
 > [!NOTE]
 > The `show_*_control` options are advisory. A `false` always hides that control,
@@ -176,30 +212,15 @@ live:
 | Option                 | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clustering_threshold` | `3`      | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
-| `format`               |          | Configuration for the timeline time & date format. See [`format`](#format).                                                                                                                                                                                                                                                                                                                                                     |
 | `mode`                 | `none`   | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).                                                                                                                                                                                                                                                                 |
 | `pan_mode`             | `pan`    | See [timeline pan mode](timeline-pan-mode.md).                                                                                                                                                                                                                                                                                                                                                                                  |
 | `show_recordings`      | `true`   | Whether to show recordings on the timeline (specifically: which hours have any recorded content).                                                                                                                                                                                                                                                                                                                               |
 | `style`                | `ribbon` | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold`.                                                                                                                                                                                                                                                                                   |
 | `window_seconds`       | `3600`   | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline.                                                                                                                                                                                                                                                                                                                    |
 
+[](common/timeline-format-info.md ':include')
+
 [](common/timeline-seek-info.md ':include')
-
-#### `format`
-
-Configure the date and time format for the `timeline` view.
-
-```yaml
-live:
-  controls:
-    timeline:
-      format:
-        # [...]
-```
-
-| Option | Default | Description                                                                     |
-| ------ | ------- | ------------------------------------------------------------------------------- |
-| `24h`  | `true`  | If `true` shows time in 24-hour clock. If `false` otherwise uses 12-hour clock. |
 
 ## `display`
 
@@ -287,6 +308,13 @@ live:
     builtin: true
     call:
       button_size: 40
+      buttons:
+        answer:
+          icon: mdi:phone
+          in_progress: false
+          style:
+            # Optionally override the default style.
+            color: green
       lock: true
       ringtone:
         type: chime
@@ -312,6 +340,7 @@ live:
         # Optionally override the default style.
         right: 5%
     thumbnails:
+      aspect_ratio: '1:1'
       size: 100
       style: auto
       show_download_control: false
@@ -327,8 +356,6 @@ live:
       clustering_threshold: 3
       show_recordings: true
       window_seconds: 3600
-      format:
-        24h: true
   microphone:
     always_connected: false
     audio_processing:

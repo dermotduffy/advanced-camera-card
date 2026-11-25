@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ArpeggioTone } from '../../../../src/card-controller/call/tones/arpeggio';
-import { useAudioMocks } from './test-utils';
+import { createTone, useAudioMocks } from './test-utils';
 
 // Each strike emits a 3-layer bell stack in order: sparkle (octave above
 // fundamental), fundamental, hum (octave below). Indices into
@@ -12,7 +12,7 @@ describe('ArpeggioTone', () => {
   const audio = useAudioMocks();
 
   it('should play G5-E5-C5 descending plucks 0.25s apart', () => {
-    new ArpeggioTone(0).start();
+    createTone(ArpeggioTone, 0).start();
 
     // 3 strikes × 3 layers = 9 oscillators.
     expect(audio.oscillators).toHaveLength(9);
@@ -31,7 +31,7 @@ describe('ArpeggioTone', () => {
   });
 
   it('should use the lighter PLUCK envelope for every strike', () => {
-    new ArpeggioTone(0).start();
+    createTone(ArpeggioTone, 0).start();
 
     // Sparkle / fundamental / hum peaks for every strike.
     for (let strike = 0; strike < 3; strike++) {

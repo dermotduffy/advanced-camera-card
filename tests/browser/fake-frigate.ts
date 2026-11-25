@@ -24,6 +24,7 @@ import {
   CAMERA_ENTITY,
   createCameraHASS,
   createStillImageCardConfig,
+  type CameraHASSOptions,
   type FakeCameraDescription,
 } from './test-utils';
 
@@ -106,8 +107,9 @@ export const mountCardWithFrigate = async (
   config?: PartialAdvancedCameraCardConfig,
   reviews?: FrigateReview[],
   options?: MountOptions,
+  hassOptions?: CameraHASSOptions,
 ): Promise<CardWithFrigate> => {
-  const hass = createCameraHASS([createFrigateCameraDescription()]);
+  const hass = createCameraHASS([createFrigateCameraDescription()], hassOptions);
   const frigate = new FakeFrigate(hass);
   frigate.setEvents(events);
   frigate.setReviews(reviews ?? []);
@@ -177,7 +179,7 @@ const getSubLabels = (event: FrigateEvent): string[] =>
   event.sub_label?.split(',').map((subLabel) => subLabel.trim()) ?? [];
 
 // The day an event falls on. Always UTC, the only time zone a `FakeHASS` reports,
-// so `formatDate` cannot be used: it renders in local time.
+// so `formatISODate` cannot be used: it renders in local time.
 const getEventDay = (event: FrigateEvent): string =>
   fromUnixTime(event.start_time).toISOString().slice(0, 'YYYY-MM-DD'.length);
 

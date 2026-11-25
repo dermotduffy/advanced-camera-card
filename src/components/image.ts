@@ -16,7 +16,10 @@ import type { ViewManagerEpoch } from '../card-controller/view/types';
 import { MediaLoadWatchdogController } from '../components-lib/media-load-watchdog-controller';
 import { triggerMediaUnavailableIssue } from '../components-lib/media-unavailable-issue';
 import type { ZoomSettingsObserved } from '../components-lib/zoom/types';
-import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
+import {
+  handleDigitalZoomHomeEvent,
+  handleZoomSettingsObservedEvent,
+} from '../components-lib/zoom/zoom-view-context';
 import type { CameraConfig } from '../config/schema/cameras';
 import {
   resolveProxyConfig,
@@ -108,40 +111,41 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       imageConfig: this.imageConfig,
       cameraConfig: this.cameraConfig,
     });
+    const dimensionsConfig =
+      mode === 'camera' ? this.cameraConfig?.dimensions : undefined;
 
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
-      .dimensionsConfig=${mode === 'camera' ? this.cameraConfig?.dimensions : undefined}
+      .dimensionsConfig=${dimensionsConfig}
     >
       ${template}
     </advanced-camera-card-media-dimensions-container>`;
 
-    return html` ${
-      this.imageConfig?.zoomable
-        ? html`<advanced-camera-card-zoomer
-            .defaultSettings=${guard(
-              [this.imageConfig, this.cameraConfig?.dimensions?.layout],
-              () =>
-                mode === 'camera' && this.cameraConfig?.dimensions?.layout
-                  ? {
-                      pan: this.cameraConfig.dimensions.layout.pan,
-                      zoom: this.cameraConfig.dimensions.layout.zoom,
-                    }
-                  : undefined,
+    return html` ${this.imageConfig?.zoomable
+      ? html`<advanced-camera-card-zoomer
+          .defaultSettings=${guard(
+            [this.imageConfig, this.cameraConfig?.dimensions?.layout],
+            () =>
+              mode === 'camera' && this.cameraConfig?.dimensions?.layout
+                ? {
+                    pan: this.cameraConfig.dimensions.layout.pan,
+                    zoom: this.cameraConfig.dimensions.layout.zoom,
+                  }
+                : undefined,
+          )}
+          .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
+          .dimensionsConfig=${dimensionsConfig}
+          @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
+            handleZoomSettingsObservedEvent(
+              ev,
+              this.viewManagerEpoch?.manager,
+              zoomTarget,
             )}
-            .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
-            @advanced-camera-card:zoom:change=${(
-              ev: CustomEvent<ZoomSettingsObserved>,
-            ) =>
-              handleZoomSettingsObservedEvent(
-                ev,
-                this.viewManagerEpoch?.manager,
-                zoomTarget,
-              )}
-          >
-            ${intermediateTemplate}
-          </advanced-camera-card-zoomer>`
-        : intermediateTemplate
-    }`;
+          @advanced-camera-card:zoom:home=${() =>
+            handleDigitalZoomHomeEvent(this, zoomTarget)}
+        >
+          ${intermediateTemplate}
+        </advanced-camera-card-zoomer>`
+      : intermediateTemplate}`;
   }
 
   private _resolveProxyConfig(proxy?: ImageViewProxyConfig): EnabledProxyConfig | null {
@@ -179,9 +183,8 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
             .imageConfig=${this.imageConfig}
             .cameraConfig=${this.cameraConfig}
             .targetID=${IMAGE_VIEW_TARGET_ID_SENTINEL}
-            .proxyConfig=${
-              this._resolveProxyConfig(this.imageConfig?.proxy) ?? undefined
-            }
+            .proxyConfig=${this._resolveProxyConfig(this.imageConfig?.proxy) ??
+            undefined}
             @advanced-camera-card:image-updating-player:error=${(
               ev: CustomEvent<MediaUnavailableIssueReason>,
             ) =>

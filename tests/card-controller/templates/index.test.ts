@@ -1,13 +1,9 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { TemplateManager } from '../../../src/card-controller/templates/index';
 import type { ObjectConstructorWithHasOwn } from '../../../src/utils/object-has-own';
 import { createConfig } from '../../config/test-utils';
-import {
-  createHASS,
-  createStateEntity,
-  stubConnectedHomeAssistant,
-} from '../../test-utils';
+import { createHASS, createStateEntity } from '../../test-utils';
 
 const objectConstructor: ObjectConstructorWithHasOwn = Object;
 
@@ -15,8 +11,6 @@ const objectConstructor: ObjectConstructorWithHasOwn = Object;
 // `window.haNunjucks` global, so the renderer needs a DOM environment.
 // @vitest-environment jsdom
 describe('TemplateManager', () => {
-  beforeAll(() => stubConnectedHomeAssistant());
-
   describe('loadRenderer', () => {
     it('should render a template raw before the engine is loaded', () => {
       const manager = new TemplateManager();

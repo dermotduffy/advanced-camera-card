@@ -3,6 +3,7 @@ import { STATE_RUNNING, type HassConfig } from 'home-assistant-js-websocket';
 import type { HASSListener } from '../../ha/source';
 import type { HomeAssistant } from '../../ha/types';
 import type { UnsubscribeCallback } from '../../types';
+import { setDateTimeLocale } from '../../utils/date/localized';
 import { log } from '../../utils/debug';
 import { InitializationAspect } from '../initialization/initialization-manager';
 import type { CardHASSAPI } from '../types';
@@ -120,6 +121,10 @@ export class HASSManager implements HASSManagerReadonlyInterface {
 
       void this._api.getCameraManager().destroy();
     }
+
+    // Before the listeners, so that whatever they render shows the new
+    // settings.
+    setDateTimeLocale(hass.locale);
 
     const oldHass = this._hass;
     this._hass = hass;

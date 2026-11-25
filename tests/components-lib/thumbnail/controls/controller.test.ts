@@ -1,10 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ThumbnailControlsController } from '../../../../src/components-lib/thumbnail/controls/controller';
-import {
-  THUMBNAIL_SIZE_MAX,
-  THUMBNAIL_SIZE_MIN,
-} from '../../../../src/config/schema/common/controls/thumbnails';
+import type { ThumbnailTier } from '../../../../src/components-lib/thumbnail/tier';
 import { ViewFolder, ViewMediaType } from '../../../../src/view/item';
 import { createFolder, stubMatchMedia } from '../../../test-utils';
 import { TestViewMedia } from '../../../view/test-utils';
@@ -35,6 +32,10 @@ const getControlNames = (controller: ThumbnailControlsController): string[] =>
 
 // @vitest-environment jsdom
 describe('ThumbnailControlsController', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('should show no controls without an item', () => {
     expect(createController(ALL_CONTROLS).getControls()).toEqual([]);
   });
@@ -44,8 +45,8 @@ describe('ThumbnailControlsController', () => {
       ...ALL_CONTROLS,
       capabilities: CAPABILITIES,
 
-      // The largest thumbnail (the only one with space for all controls).
-      size: THUMBNAIL_SIZE_MAX,
+      // The largest tier (the only one with space for all controls).
+      tier: 'poster',
       item: new TestViewMedia({
         id: 'id',
         mediaType: ViewMediaType.Review,
@@ -77,7 +78,7 @@ describe('ThumbnailControlsController', () => {
       const controller = createController({
         ...ALL_CONTROLS,
         capabilities: CAPABILITIES,
-        size: THUMBNAIL_SIZE_MAX,
+        tier: 'poster',
         item: new TestViewMedia({
           mediaType: ViewMediaType.Review,
           reviewed: false,
@@ -209,28 +210,25 @@ describe('ThumbnailControlsController', () => {
     expect(getControlNames(controller)).toContain('info');
   });
 
-  describe('should say which tier the thumbnail is in', () => {
-    it.each([
-      ['compact', THUMBNAIL_SIZE_MIN],
-      ['standard', 100],
-      ['comfortable', 175],
-      ['poster', THUMBNAIL_SIZE_MAX],
-    ])('should be in the %s tier at size %s', (tier, size) => {
-      expect(createController({ size }).getTier()).toBe(tier);
-    });
+  it('should use the tier it is given', () => {
+    expect(createController({ tier: 'comfortable' }).getTier()).toBe('comfortable');
+  });
+
+  it('should use the standard tier by default', () => {
+    expect(createController().getTier()).toBe('standard');
   });
 
   describe('should fit the number of controls to the thumbnail', () => {
     const createEveryControl = (
       isHoverable: boolean,
-      size = THUMBNAIL_SIZE_MAX,
+      tier: ThumbnailTier = 'poster',
       showInfoControl = true,
     ): ThumbnailControlsController =>
       createController(
         {
           ...ALL_CONTROLS,
           showInfoControl,
-          size,
+          tier,
           capabilities: CAPABILITIES,
           item: new TestViewMedia({
             id: 'id',
@@ -253,7 +251,7 @@ describe('ThumbnailControlsController', () => {
     });
 
     it('should keep only the controls that fit a small thumbnail with a pointer', () => {
-      const controller = createEveryControl(true, THUMBNAIL_SIZE_MIN);
+      const controller = createEveryControl(true, 'compact');
 
       expect(getControlNames(controller)).toEqual(['favorite', 'info']);
     });
@@ -261,21 +259,19 @@ describe('ThumbnailControlsController', () => {
     it.each([
       // The compact tier keeps none: a finger-sized target reaches the middle of
       // a picture that small, so it would compete with opening the media.
-      [THUMBNAIL_SIZE_MIN, []],
-      [99, []],
-      [100, ['info']],
-      [174, ['info']],
-      [175, ['favorite', 'info', 'timeline']],
-      [THUMBNAIL_SIZE_MAX, ['favorite', 'info', 'timeline', 'download']],
-    ])('should keep the controls that fit at size %s', (size, expected) => {
-      const controller = createEveryControl(false, size);
+      ['compact' as const, []],
+      ['standard' as const, ['info']],
+      ['comfortable' as const, ['favorite', 'info', 'timeline']],
+      ['poster' as const, ['favorite', 'info', 'timeline', 'download']],
+    ])('should keep the controls that fit in the %s tier', (tier, expected) => {
+      const controller = createEveryControl(false, tier);
 
       expect(controller.isTouch()).toBe(true);
       expect(getControlNames(controller)).toEqual(expected);
     });
 
     it('should keep the controls that fit when there is no info control', () => {
-      const controller = createEveryControl(false, 100, false);
+      const controller = createEveryControl(false, 'standard', false);
 
       expect(getControlNames(controller)).toEqual(['favorite']);
     });

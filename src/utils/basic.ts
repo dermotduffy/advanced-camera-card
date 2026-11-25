@@ -1,9 +1,3 @@
-import {
-  differenceInHours,
-  differenceInMinutes,
-  differenceInSeconds,
-  format,
-} from 'date-fns';
 import type { StyleInfo } from 'lit/directives/style-map.js';
 import { isEqual, isEqualWith, mergeWith, round, uniq, uniqWith } from 'lodash-es';
 
@@ -134,11 +128,19 @@ export interface Point {
   y: number;
 }
 
+export const getDistance = (a: Point, b: Point): number =>
+  Math.hypot(a.x - b.x, a.y - b.y);
+
 interface Box {
   left: number;
   right: number;
   top: number;
   bottom: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
 }
 
 /**
@@ -160,24 +162,6 @@ export const isHoverableDevice = (): boolean =>
   window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 /**
- * Format a date object to RFC3339.
- * @param date A Date object.
- * @returns A date and time.
- */
-export const formatDateAndTime = (date: Date, includeSeconds?: boolean): string => {
-  return format(date, `yyyy-MM-dd HH:mm${includeSeconds ? ':ss' : ''}`);
-};
-
-/**
- * Format a date object to RFC3339.
- * @param date A Date object.
- * @returns A date.
- */
-export const formatDate = (date: Date): string => {
-  return format(date, 'yyyy-MM-dd');
-};
-
-/**
  * Run a function in idle periods. If idle callbacks are not supported (e.g.
  * Safari) the callback is run immediately.
  * @param func The function to call.
@@ -193,31 +177,6 @@ export const runWhenIdleIfSupported = (func: () => void, timeout?: number): void
   }
 };
 
-/**
- * Convenience function to return a string representing the difference in hours,
- * minutes and seconds between two dates. Heavily inspired by, and returning the
- * same format as, the Frigate UI:
- * https://github.com/blakeblackshear/frigate/blob/master/web/src/components/RecordingPlaylist.jsx#L97
- * @param start The start date.
- * @param end The end date.
- * @returns A duration string.
- */
-export function getDurationString(start: Date, end: Date): string {
-  const hours = differenceInHours(end, start);
-  const minutes = differenceInMinutes(end, start) - hours * 60;
-  const seconds = differenceInSeconds(end, start) - hours * 60 * 60 - minutes * 60;
-  let duration = '';
-
-  if (hours) {
-    duration += `${hours}h `;
-  }
-  if (minutes) {
-    duration += `${minutes}m `;
-  }
-  duration += `${seconds}s`;
-  return duration;
-}
-
 export const allPromises = async <T, R>(
   items: Iterable<T>,
   func: (arg: T) => R,
@@ -232,22 +191,6 @@ export const isSuperset = (superset: Set<unknown>, subset: Set<unknown>) => {
     }
   }
   return true;
-};
-
-export const isValidDate = (date: Date): boolean => {
-  return !isNaN(date.getTime());
-};
-
-/**
- * Determine whether a 'YYYY-MM-DD' string names a day that exists.
- */
-export const isValidDay = (day: string): boolean => {
-  const date = new Date(`${day}T00:00:00Z`);
-
-  // Javascript quirk: A day past the end of its month (e.g. '2023-02-31') rolls
-  // over into the next month instead of being rejected, so check the day
-  // survives a round trip rather than only that it parsed.
-  return isValidDate(date) && date.toISOString().startsWith(day);
 };
 
 /**
@@ -412,3 +355,10 @@ export const forceReflow = (element: HTMLElement): void => {
   // Force reflow by measuring the height.
   void element.offsetHeight;
 };
+
+// The element's size ignoring any transform on it or its ancestors, which makes
+// it safe to write back to a CSS length such as `max-height`.
+export const getLayoutSize = (element: HTMLElement): Size => ({
+  width: element.offsetWidth,
+  height: element.offsetHeight,
+});

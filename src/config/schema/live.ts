@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { actionsSchema } from './actions/types';
+import { buttonBaseSchema } from './common/button';
 import { BUTTON_SIZE_MIN } from './common/const';
 import { nextPreviousControlConfigSchema } from './common/controls/next-previous';
 import { ptzControlsConfigSchema, ptzControlsDefaults } from './common/controls/ptz';
@@ -71,8 +72,18 @@ const ringtoneConfigSchema = z.object({
 });
 export type RingtoneConfig = z.infer<typeof ringtoneConfigSchema>;
 
+const callButtonsSchema = z.object({
+  answer: buttonBaseSchema.optional(),
+  reject: buttonBaseSchema.optional(),
+  end: buttonBaseSchema.optional(),
+  microphone: buttonBaseSchema.optional(),
+  mute: buttonBaseSchema.optional(),
+});
+export type CallButtonsConfig = z.infer<typeof callButtonsSchema>;
+
 const callConfigDefault = {
   button_size: 40,
+  buttons: {},
   enabled: true,
   lock: true,
   ringtone: { ...ringtoneConfigDefault },
@@ -81,6 +92,7 @@ const callConfigDefault = {
 
 const callConfigSchema = z.object({
   button_size: z.number().min(BUTTON_SIZE_MIN).default(callConfigDefault.button_size),
+  buttons: callButtonsSchema.default(callConfigDefault.buttons),
   enabled: z.boolean().default(callConfigDefault.enabled),
   lock: z.boolean().default(callConfigDefault.lock),
   ringtone: ringtoneConfigSchema.default(callConfigDefault.ringtone),

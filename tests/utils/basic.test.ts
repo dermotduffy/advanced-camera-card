@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AdvancedCameraCardError } from '../../src/types.js';
 import {
@@ -12,11 +12,9 @@ import {
   desparsifyArrays,
   errorToConsole,
   forceReflow,
-  formatDate,
-  formatDateAndTime,
   generateFloatApproximatelyEqualsCustomizer,
   getChildrenFromElement,
-  getDurationString,
+  getDistance,
   getErrorDescription,
   getUnanimousValue,
   ignoreFunctionIdentity,
@@ -25,8 +23,6 @@ import {
   isPointInBox,
   isSuperset,
   isTruthy,
-  isValidDate,
-  isValidDay,
   prettifyTitle,
   recursivelyMergeObjectsConcatenatingArraysUniquely,
   recursivelyMergeObjectsNotArrays,
@@ -181,6 +177,12 @@ describe('errorToConsole', () => {
   });
 });
 
+describe('getDistance', () => {
+  it('should measure the straight-line distance between two points', () => {
+    expect(getDistance({ x: 1, y: 2 }, { x: 4, y: 6 })).toBe(5);
+  });
+});
+
 describe('isPointInBox', () => {
   const box = { left: 10, right: 110, top: 20, bottom: 70 };
 
@@ -201,6 +203,7 @@ describe('isPointInBox', () => {
 describe('isHoverableDevice', () => {
   afterAll(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('should return hoverable', () => {
@@ -213,34 +216,14 @@ describe('isHoverableDevice', () => {
   });
 });
 
-describe('formatDateAndTime', () => {
-  it('should format date and time', () => {
-    const date = new Date(2023, 3, 14, 13, 35, 0);
-    expect(formatDateAndTime(date)).toBe('2023-04-14 13:35');
-  });
-  it('should format date and time with seconds', () => {
-    const date = new Date(2023, 3, 14, 13, 35, 1);
-    expect(formatDateAndTime(date, true)).toBe('2023-04-14 13:35:01');
-  });
-});
-
-describe('formatDate', () => {
-  it('should format date', () => {
-    const date = new Date(2023, 3, 14, 13, 35, 0);
-    expect(formatDate(date)).toBe('2023-04-14');
-  });
-});
-
 // @vitest-environment jsdom
 describe('runWhenIdleIfSupported', () => {
-  const originalRequestIdleCallback = window.requestIdleCallback;
-  afterAll(() => {
-    window.requestIdleCallback = originalRequestIdleCallback;
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('should run directly when not supported', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).requestIdleCallback = undefined;
+    vi.stubGlobal('requestIdleCallback', undefined);
     const func = vi.fn();
     runWhenIdleIfSupported(func);
     expect(func).toHaveBeenCalled();
@@ -248,7 +231,7 @@ describe('runWhenIdleIfSupported', () => {
 
   it('should run idle when supported', () => {
     const requestIdle = vi.fn();
-    window.requestIdleCallback = requestIdle;
+    vi.stubGlobal('requestIdleCallback', requestIdle);
     const func = vi.fn();
     runWhenIdleIfSupported(func);
     expect(requestIdle).toHaveBeenCalledWith(func, {});
@@ -256,27 +239,10 @@ describe('runWhenIdleIfSupported', () => {
 
   it('should run idle with timeout when supported', () => {
     const requestIdle = vi.fn();
-    window.requestIdleCallback = requestIdle;
+    vi.stubGlobal('requestIdleCallback', requestIdle);
     const func = vi.fn();
     runWhenIdleIfSupported(func, 10);
     expect(requestIdle).toHaveBeenCalledWith(func, { timeout: 10 });
-  });
-});
-
-describe('getDurationString', () => {
-  it('should return duration', () => {
-    const start = new Date(2023, 3, 14, 13, 35, 0);
-    const end = new Date(2023, 3, 14, 15, 37, 20);
-    expect(getDurationString(start, end)).toBe('2h 2m 20s');
-  });
-  it('should return very short duration', () => {
-    const start = new Date(2023, 3, 14, 13, 35, 10);
-    const end = new Date(2023, 3, 14, 13, 35, 12);
-    expect(getDurationString(start, end)).toBe('2s');
-  });
-  it('should return 0s for no delta', () => {
-    const start = new Date(2023, 3, 14, 13, 35, 10);
-    expect(getDurationString(start, start)).toBe('0s');
   });
 });
 
@@ -293,29 +259,6 @@ describe('isSuperset', () => {
   });
   it('should return is not a superset', () => {
     expect(isSuperset(new Set([1, 2, 3, 4]), new Set([2, 3, 5]))).toBeFalsy();
-  });
-});
-
-describe('isValidDate', () => {
-  it('should be valid date', () => {
-    expect(isValidDate(new Date(2023, 3, 28))).toBeTruthy();
-  });
-  it('should be invalid date', () => {
-    expect(isValidDate(new Date('moo'))).toBeFalsy();
-  });
-});
-
-describe('isValidDay', () => {
-  it('should accept a day that exists', () => {
-    expect(isValidDay('2023-05-06')).toBeTruthy();
-  });
-
-  it('should reject a day past the end of its month', () => {
-    expect(isValidDay('2023-02-31')).toBeFalsy();
-  });
-
-  it('should reject a month that does not exist', () => {
-    expect(isValidDay('2023-13-01')).toBeFalsy();
   });
 });
 

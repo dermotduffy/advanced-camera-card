@@ -1,4 +1,14 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { LitElement } from 'lit';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { Camera } from '../../../../src/camera-manager/camera';
@@ -20,16 +30,29 @@ import {
   createMediaLoadedInfoEvent,
   createStateEntity,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../../../test-utils';
 
 const ISSUE_TRIGGER_EVENT = 'advanced-camera-card:issue:trigger';
 const ISSUE_RESOLVE_EVENT = 'advanced-camera-card:issue:resolve';
 
-const setup = (options?: { targetID?: string | null }) => {
+const createController = (
+  config: ConstructorParameters<typeof StreamLivenessController>[1],
+): { host: LitElement; controller: StreamLivenessController } => {
   const host = createLitElement();
   document.body.append(host);
+  const controller = new StreamLivenessController(host, config);
 
-  const controller = new StreamLivenessController(host, {
+  // The controller's document visibility subscription and host outlive this test file.
+  onTestFinished(() => {
+    controller.hostDisconnected();
+    host.remove();
+  });
+  return { host, controller };
+};
+
+const setup = (options?: { targetID?: string | null }) => {
+  const { host, controller } = createController({
     getTargetID: () =>
       options?.targetID === undefined ? 'camera.office' : options.targetID,
     getHASS: () => null,
@@ -81,11 +104,7 @@ describe('StreamLivenessController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   it('should register itself as a controller on the host', () => {
@@ -241,8 +260,6 @@ describe('StreamLivenessController', () => {
   });
 
   it('should surface an always_error unavailable entity as a placeholder', () => {
-    const host = createLitElement();
-    document.body.append(host);
     const stateWatcher = mock<StateWatcherSubscriptionInterface>();
     stateWatcher.subscribe.mockReturnValue(true);
     const camera = mock<Camera>();
@@ -257,7 +274,7 @@ describe('StreamLivenessController', () => {
       'camera.office': createStateEntity({ state: 'unavailable' }),
     });
 
-    const controller = new StreamLivenessController(host, {
+    const { host, controller } = createController({
       getTargetID: () => 'camera.office',
       getHASS: () => hass,
       getCamera: () => currentCamera,
@@ -297,9 +314,6 @@ describe('StreamLivenessController', () => {
 
   it('should keep a frame-confirmed stream live despite an unavailable entity', async () => {
     vi.useFakeTimers();
-    const host = createLitElement();
-    document.body.append(host);
-
     const stateWatcher = mock<StateWatcherSubscriptionInterface>();
     stateWatcher.subscribe.mockReturnValue(true);
 
@@ -312,7 +326,7 @@ describe('StreamLivenessController', () => {
       'camera.office': createStateEntity({ state: 'unavailable' }),
     });
 
-    const controller = new StreamLivenessController(host, {
+    const { host, controller } = createController({
       getTargetID: () => 'camera.office',
       getHASS: () => hass,
       getCamera: () => camera,
@@ -492,9 +506,6 @@ describe('StreamLivenessController', () => {
   });
 
   it('should report not live despite confirmed frames when always_error overrides', async () => {
-    const host = createLitElement();
-    document.body.append(host);
-
     const stateWatcher = mock<StateWatcherSubscriptionInterface>();
     stateWatcher.subscribe.mockReturnValue(true);
 
@@ -510,7 +521,7 @@ describe('StreamLivenessController', () => {
       'camera.office': createStateEntity({ state: 'unavailable' }),
     });
 
-    const controller = new StreamLivenessController(host, {
+    const { host, controller } = createController({
       getTargetID: () => 'camera.office',
       getHASS: () => hass,
       getCamera: () => camera,

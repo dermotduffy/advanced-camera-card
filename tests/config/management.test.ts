@@ -6663,4 +6663,43 @@ describe('should handle version specific upgrades', () => {
       });
     });
   });
+
+  describe('v8.3.0+', () => {
+    describe('should delete the timeline format', () => {
+      it('should delete it in every section', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { controls: { timeline: { format: { '24h': false } } } },
+          media_viewer: { controls: { timeline: { format: { '24h': true } } } },
+          timeline: { format: { '24h': false }, window_seconds: 60 },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: { controls: { timeline: {} } },
+          media_viewer: { controls: { timeline: {} } },
+          timeline: { window_seconds: 60 },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should delete it in overrides', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          overrides: [
+            {
+              conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+              merge: { timeline: { format: { '24h': false } } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides[0].merge).toEqual({ timeline: {} });
+        postUpgradeChecks(config);
+      });
+    });
+  });
 });

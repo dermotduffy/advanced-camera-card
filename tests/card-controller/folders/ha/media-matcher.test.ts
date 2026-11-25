@@ -8,11 +8,7 @@ import type {
   BrowseMediaMetadata,
   RichBrowseMedia,
 } from '../../../../src/ha/browse-media/types';
-import {
-  createHASS,
-  createMockTemplateRenderer,
-  stubConnectedHomeAssistant,
-} from '../../../test-utils';
+import { createHASS, createMockTemplateRenderer } from '../../../test-utils';
 
 // The `with template matcher` test loads the real ha-nunjucks engine, which
 // reads `window`/`document` at import, so this suite needs a DOM environment.
@@ -160,7 +156,6 @@ describe('MediaMatcher', () => {
       // renderer (rather than the shared mock).
       const templateManager = new TemplateManager();
       beforeAll(async () => {
-        stubConnectedHomeAssistant();
         await templateManager.loadRenderer();
       });
 

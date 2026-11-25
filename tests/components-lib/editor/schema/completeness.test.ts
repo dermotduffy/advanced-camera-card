@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash-es';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
@@ -48,8 +49,9 @@ import type { HAFormSelectorSchema } from '../../../../src/ha/types';
 //
 // Two directions:
 // - Direction 1 (editor -> config): every editor field path is a real config
-//   key, its selector kind matches the zod type (number/boolean/enum), and its
-//   dropdown offers every enum value.
+//   key, its selector kind matches the zod type (number/boolean/enum), its
+//   dropdown offers every enum value, and an aspect ratio field shows a stored
+//   pair of numbers as text it accepts back.
 // - Direction 2 (config -> editor): every configurable zod leaf appears in an
 //   editor form, unless explicitly excepted. Catches config fields forgotten in
 //   the editor.
@@ -98,6 +100,11 @@ const EDITOR_EXCLUDED = [
 
   // Advanced folder path parsers/matchers/templating: text-editor only.
   'folders.ha.path',
+
+  // A button's 'in_progress' field is only useful when an override toggles it
+  // (which is only manual).
+  'menu.buttons.*.in_progress',
+  'live.controls.call.buttons.*.in_progress',
 ];
 
 // Every section's forms, keyed by section, so the harness walks the full
@@ -210,6 +217,14 @@ const resolvePath = (path: ConfigPath): z.core.$ZodType | null => {
   return unwrap(current);
 };
 
+// Whether a configuration value is an aspect ratio: it stores the text `16:9`
+// as the pair `[16, 9]`. Judged by behavior because not every path resolves to
+// the shared `aspectRatioSchema` object itself.
+const isAspectRatio = (schema: z.core.$ZodType): boolean => {
+  const parsed = z.safeParse(schema, '16:9');
+  return parsed.success && isEqual(parsed.data, [16, 9]);
+};
+
 // A selector object has exactly one key naming its kind (`{ number: {} }` ->
 // 'number', `{ select: {} }` -> 'select'), so its single key is the kind.
 const selectorKind = (field: HAFormSelectorSchema): string =>
@@ -238,12 +253,18 @@ const enumValues = (schema: z.core.$ZodType): unknown[] | null => {
 
 // True if a config path lies inside a subtree the editor forms do not own
 // (YAML-only, or rendered by a custom widget), so the completeness walk skips
-// it.
+// it. A `*` prefix segment matches any single path segment.
 const isPruned = (path: ConfigPath): boolean => {
-  const key = path.join('.');
-  return [...EDITOR_CUSTOM_WIDGETS, ...EDITOR_EXCLUDED].some(
-    (prefix) => key === prefix || key.startsWith(`${prefix}.`),
-  );
+  const segments = path.map(String);
+  return [...EDITOR_CUSTOM_WIDGETS, ...EDITOR_EXCLUDED].some((prefix) => {
+    const prefixSegments = prefix.split('.');
+    return (
+      prefixSegments.length <= segments.length &&
+      prefixSegments.every(
+        (segment, index) => segment === '*' || segment === segments[index],
+      )
+    );
+  });
 };
 
 // Enumerate the configuration schema's leaf field paths (a leaf is anything
@@ -371,6 +392,15 @@ describe('editor schema completeness', () => {
               }
             }
           }
+        }
+
+        // Direction 1d: an aspect ratio, which may be stored as a pair of
+        // numbers, is shown as the text its field accepts back.
+        if (resolved && isAspectRatio(resolved)) {
+          expect(
+            field.formatDisplayed?.([16, 9]),
+            `${key} should show a pair of numbers as a ratio`,
+          ).toBe('16:9');
         }
       });
     }

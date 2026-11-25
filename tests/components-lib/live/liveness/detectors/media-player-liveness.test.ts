@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { MediaPlayerLivenessDetector } from '../../../../../src/components-lib/live/liveness/detectors/media-player-liveness';
@@ -8,6 +17,7 @@ import {
   createMediaLoadedInfo,
   createMediaLoadedInfoEvent,
   IntersectionObserverMock,
+  setVisibilityState,
 } from '../../../../test-utils';
 
 const createPlayer = (): {
@@ -35,6 +45,12 @@ const setup = () => {
   const onChange = vi.fn();
   const detector = new MediaPlayerLivenessDetector(host, onChange);
 
+  // The detector's document visibility subscription and host outlive this test file.
+  onTestFinished(() => {
+    detector.unsubscribe();
+    host.remove();
+  });
+
   const loadMedia = (player?: MediaPlayerController, signal?: AbortSignal): void => {
     host.dispatchEvent(
       createMediaLoadedInfoEvent({
@@ -61,11 +77,7 @@ describe('MediaPlayerLivenessDetector', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-      configurable: true,
-    });
+    setVisibilityState('visible');
   });
 
   it('should start unknown', () => {

@@ -269,6 +269,20 @@ describe('AdvancedCameraCardThumbnailDetailsOverlay', () => {
     });
   });
 
+  it('should show the seconds smaller than the hours and minutes on the largest overlay', async () => {
+    const card = await mountGallery('overlay', 300);
+
+    const overlay = getOverlay(card);
+    assert(overlay);
+    const hour = deepQuery(overlay, '.time .hour');
+    const second = deepQuery(overlay, '.time .second');
+    assert(hour && second);
+
+    expect(parseFloat(getComputedStyle(second).fontSize)).toBeLessThan(
+      parseFloat(getComputedStyle(hour).fontSize),
+    );
+  });
+
   it('should keep the details above the picture', async () => {
     const card = await mountGallery('overlay', 300);
 

@@ -1,5 +1,7 @@
-import { afterEach, beforeEach, vi, type Mock } from 'vitest';
+import { afterEach, beforeEach, onTestFinished, vi, type Mock } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
+
+import type { GeneratedTone } from '../../../../src/card-controller/call/tones/base';
 
 // Type-safe Web Audio API mocks for tone tests. The real `GeneratedTone`
 // constructs an AudioContext directly; here we stub the global `AudioContext`
@@ -86,4 +88,13 @@ export const useAudioMocks = (): AudioMocks => {
   });
 
   return audio;
+};
+
+export const createTone = <Tone extends GeneratedTone, Args extends unknown[]>(
+  toneClass: new (...args: Args) => Tone,
+  ...args: Args
+): Tone => {
+  const tone = new toneClass(...args);
+  onTestFinished(() => tone.stop());
+  return tone;
 };

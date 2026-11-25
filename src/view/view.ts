@@ -34,7 +34,7 @@ export interface ViewParameters extends ViewEvolveParameters {
   view: AdvancedCameraCardView;
 }
 
-export const mergeViewContext = (
+const mergeViewContext = (
   a?: ViewContext | null,
   b?: ViewContext | null,
 ): ViewContext => {

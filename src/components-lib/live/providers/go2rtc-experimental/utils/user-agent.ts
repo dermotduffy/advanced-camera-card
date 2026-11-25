@@ -6,8 +6,12 @@ export const isWebKitUserAgent = (userAgent: string): boolean =>
   userAgent.includes('AppleWebKit') && !/Chrome\/|Chromium|Android/.test(userAgent);
 
 // The Safari major version (from the `Version/<n>` token), or null when the user
-// agent is not Safari.
+// agent is not Safari. Android WebViews also carry a `Version/4.0` token, so the
+// token alone does not identify Safari and the engine check runs first.
 export const getSafariMajorVersion = (userAgent: string): number | null => {
+  if (!isWebKitUserAgent(userAgent)) {
+    return null;
+  }
   const match = userAgent.match(/Version\/(\d+).+Safari/);
   return match ? Number(match[1]) : null;
 };

@@ -20,7 +20,9 @@ import type { EntityRegistryManager } from '../../ha/registry/entity/types';
 import type { ResolvedMediaCache } from '../../ha/resolved-media';
 import type { HomeAssistant } from '../../ha/types';
 import { hasUnsupportedFilters } from '../../query-source.js';
-import { allPromises, formatDate, isValidDate } from '../../utils/basic';
+import { allPromises } from '../../utils/basic';
+import { formatISODate } from '../../utils/date/iso';
+import { isValidDate } from '../../utils/date/validity';
 import type { ViewMedia } from '../../view/item';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
 import type { Camera } from '../camera';
@@ -380,7 +382,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
         /* v8 ignore next: This situation cannot happen as the directory
         will not match without metadata -- @preserve */
         if (dayDirectory._metadata?.startDate) {
-          days.add(formatDate(dayDirectory._metadata.startDate));
+          days.add(formatISODate(dayDirectory._metadata.startDate));
         }
       }
     };

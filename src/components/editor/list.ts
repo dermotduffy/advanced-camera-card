@@ -21,10 +21,11 @@ export interface EditorListItem {
   description?: string;
 }
 
-// A list of configuration items, rendered as the rows Home Assistant uses for
-// the editable lists in its own editors. An item is opened with the row's edit
-// control, which reports `item-edit` for the owner to show that item's editor
-// in place of the list. Reordering is done by dragging a row's handle.
+// A list of configuration items, rendered as rows styled to match how Home
+// Assistant styles the editable lists in its own editors. An item is opened
+// with the row's edit control, which reports `item-edit` for the owner to show
+// that item's editor in place of the list. Reordering is done by dragging a
+// row's handle.
 //
 // The events do not bubble beyond the owner: they are composed only as far as
 // the list's own host, since the editor above interprets nothing between here
@@ -52,9 +53,9 @@ export class AdvancedCameraCardEditorList extends LitElement {
           this._fire('item-move', { from: ev.detail.oldIndex, to: ev.detail.newIndex });
         }}
       >
-        <ha-md-list>
+        <div class="items" role="list">
           ${this.items.map((item, index) => this._renderItem(item, index))}
-        </ha-md-list>
+        </div>
       </ha-sortable>
       ${this._renderAdd()}
     `;
@@ -62,31 +63,27 @@ export class AdvancedCameraCardEditorList extends LitElement {
 
   private _renderItem(item: EditorListItem, index: number): TemplateResult {
     return html`
-      <ha-md-list-item class="item">
+      <div class="item" role="listitem">
         <advanced-camera-card-icon
-          slot="start"
           class="handle"
           .icon=${{ icon: 'mdi:drag-horizontal-variant' }}
         ></advanced-camera-card-icon>
         <advanced-camera-card-icon
-          slot="start"
           .icon=${{ icon: this.itemIcon }}
         ></advanced-camera-card-icon>
-        <div slot="headline" class="title">${item.title}</div>
-        ${
-          item.description
-            ? html`<div slot="supporting-text" class="description">
-                ${item.description}
-              </div>`
-            : nothing
-        }
+        <div class="text">
+          <div class="title">${item.title}</div>
+          ${item.description
+            ? html`<div class="description">${item.description}</div>`
+            : nothing}
+        </div>
         ${this._renderControl('mdi:pencil', localize('editor.edit'), () =>
           this._fire('item-edit', { index }),
         )}
         ${this._renderControl('mdi:delete', localize('editor.delete'), () =>
           this._fire('item-delete', { index }),
         )}
-      </ha-md-list-item>
+      </div>
     `;
   }
 
@@ -113,7 +110,7 @@ export class AdvancedCameraCardEditorList extends LitElement {
     action: () => void,
   ): TemplateResult {
     return html`
-      <ha-icon-button slot="end" .label=${label} title=${label} @click=${action}>
+      <ha-icon-button .label=${label} title=${label} @click=${action}>
         <advanced-camera-card-icon .icon=${{ icon }}></advanced-camera-card-icon>
       </ha-icon-button>
     `;
