@@ -143,7 +143,7 @@ export interface CameraProxyConfig extends ResolvedProxyConfig {
 }
 
 export interface EngineOptions {
-  useCache?: boolean;
+  allowCached?: boolean;
 }
 
 export interface CameraEvent {

@@ -284,7 +284,7 @@ export class AdvancedCameraCardGallery extends LitElement {
   private async _extendGallery(
     ev: CustomEvent<GalleryExtendEvent>,
     direction: 'earlier' | 'later',
-    useCache = true,
+    allowCached = true,
   ): Promise<void> {
     if (
       !this.cameraManager ||
@@ -302,7 +302,7 @@ export class AdvancedCameraCardGallery extends LitElement {
       this.conditionStateManager,
     );
 
-    await this._controller.extend(runner, this.viewManagerEpoch, direction, useCache);
+    await this._controller.extend(runner, this.viewManagerEpoch, direction, allowCached);
     ev.detail.resolve();
   }
 

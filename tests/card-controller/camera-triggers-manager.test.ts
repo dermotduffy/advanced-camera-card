@@ -158,7 +158,7 @@ describe('CameraTriggersManager', () => {
 
       expect(manager.isTriggered()).toBeTruthy();
       expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
-        queryExecutorOptions: { useCache: false },
+        queryExecutorOptions: { allowCached: false },
       });
     });
 

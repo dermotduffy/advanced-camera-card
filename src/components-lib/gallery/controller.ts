@@ -153,7 +153,7 @@ export class GalleryController implements ReactiveController {
     runner: UnifiedQueryRunner,
     viewManagerEpoch: ViewManagerEpoch,
     direction: 'earlier' | 'later',
-    useCache = true,
+    allowCached = true,
   ): Promise<void> {
     const view = viewManagerEpoch.manager.getView();
     if (!view?.query || !view?.queryResults) {
@@ -168,7 +168,7 @@ export class GalleryController implements ReactiveController {
     let extended: { query: UnifiedQuery; results: ViewItem[] } | null;
     try {
       extended = await runner.extend(view.query, existingResults, direction, {
-        useCache,
+        allowCached,
       });
     } catch (e) {
       errorToConsole(e);

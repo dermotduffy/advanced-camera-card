@@ -326,6 +326,15 @@ describe('ReolinkCameraManagerEngine', () => {
   });
 
   describe('should get events', () => {
+    beforeAll(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-11-24T22:45:13'));
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
     afterEach(() => {
       vi.clearAllMocks();
     });
@@ -370,7 +379,7 @@ describe('ReolinkCameraManagerEngine', () => {
           end: new Date('2024-11-04T22:00:00'),
         },
         {
-          useCache: false,
+          allowCached: false,
         },
       );
 
@@ -457,6 +466,7 @@ describe('ReolinkCameraManagerEngine', () => {
                 },
               ],
               engine: 'reolink',
+              expiry: new Date('2026-11-24T22:46:13'),
               type: 'event-results',
             },
           ],
@@ -485,12 +495,63 @@ describe('ReolinkCameraManagerEngine', () => {
             end: new Date('2024-11-04T22:00:00'),
           },
           {
-            useCache: true,
+            allowCached: true,
           },
         );
       }
 
       expect(homeAssistantWSRequest).toHaveBeenCalledTimes(3);
+    });
+
+    it('should cache events fetched when allowCached is false', async () => {
+      const engine = createPopulatedEngine();
+      const store = await createStoreWithReolinkCamera(engine);
+
+      vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(TEST_CAMERAS)
+        .mockResolvedValueOnce(TEST_DIRECTORIES)
+        .mockResolvedValueOnce(TEST_FILES);
+
+      const query = {
+        source: QuerySource.Camera as const,
+        type: QueryType.Event as const,
+        cameraIDs: new Set(['office']),
+        start: new Date('2024-11-04T21:00:00'),
+        end: new Date('2024-11-04T22:00:00'),
+      };
+
+      await engine.getEvents(createHASS(), store, query, { allowCached: false });
+      await engine.getEvents(createHASS(), store, query);
+
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(3);
+    });
+
+    it('should fetch events again once the cached results expire', async () => {
+      const engine = createPopulatedEngine();
+      const store = await createStoreWithReolinkCamera(engine);
+
+      vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(TEST_CAMERAS)
+        .mockResolvedValueOnce(TEST_DIRECTORIES)
+        .mockResolvedValueOnce(TEST_FILES)
+        .mockResolvedValueOnce(TEST_CAMERAS)
+        .mockResolvedValueOnce(TEST_DIRECTORIES)
+        .mockResolvedValueOnce(TEST_FILES);
+
+      const query = {
+        source: QuerySource.Camera as const,
+        type: QueryType.Event as const,
+        cameraIDs: new Set(['office']),
+        start: new Date('2024-11-04T21:00:00'),
+        end: new Date('2024-11-04T22:00:00'),
+      };
+
+      await engine.getEvents(createHASS(), store, query);
+      vi.setSystemTime(new Date('2026-11-24T22:46:14'));
+      await engine.getEvents(createHASS(), store, query);
+      vi.setSystemTime(new Date('2026-11-24T22:45:13'));
+
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(6);
     });
 
     it('should request high resolution if configured', async () => {
@@ -587,6 +648,7 @@ describe('ReolinkCameraManagerEngine', () => {
               {
                 browseMedia: [],
                 engine: 'reolink',
+                expiry: new Date('2026-11-24T22:46:13'),
                 type: 'event-results',
               },
             ],
@@ -631,6 +693,7 @@ describe('ReolinkCameraManagerEngine', () => {
               {
                 browseMedia: [],
                 engine: 'reolink',
+                expiry: new Date('2026-11-24T22:46:13'),
                 type: 'event-results',
               },
             ],
@@ -664,6 +727,7 @@ describe('ReolinkCameraManagerEngine', () => {
               {
                 browseMedia: [],
                 engine: 'reolink',
+                expiry: new Date('2026-11-24T22:46:13'),
                 type: 'event-results',
               },
             ],
@@ -710,6 +774,7 @@ describe('ReolinkCameraManagerEngine', () => {
               {
                 browseMedia: [],
                 engine: 'reolink',
+                expiry: new Date('2026-11-24T22:46:13'),
                 type: 'event-results',
               },
             ],
@@ -765,6 +830,7 @@ describe('ReolinkCameraManagerEngine', () => {
               {
                 browseMedia: [],
                 engine: 'reolink',
+                expiry: new Date('2026-11-24T22:46:13'),
                 type: 'event-results',
               },
             ],
@@ -828,6 +894,7 @@ describe('ReolinkCameraManagerEngine', () => {
               {
                 browseMedia: [],
                 engine: 'reolink',
+                expiry: new Date('2026-11-24T22:46:13'),
                 type: 'event-results',
               },
             ],
@@ -889,6 +956,7 @@ describe('ReolinkCameraManagerEngine', () => {
               {
                 browseMedia: [],
                 engine: 'reolink',
+                expiry: new Date('2026-11-24T22:46:13'),
                 type: 'event-results',
               },
             ],
@@ -968,6 +1036,7 @@ describe('ReolinkCameraManagerEngine', () => {
                   },
                 ],
                 engine: 'reolink',
+                expiry: new Date('2026-11-24T22:46:13'),
                 type: 'event-results',
               },
             ],
@@ -1076,7 +1145,7 @@ describe('ReolinkCameraManagerEngine', () => {
           type: QueryType.MediaMetadata,
           cameraIDs: new Set(['office']),
         },
-        { useCache: false },
+        { allowCached: false },
       );
 
       expect(metadata).toEqual(
@@ -1116,9 +1185,28 @@ describe('ReolinkCameraManagerEngine', () => {
             type: QueryType.MediaMetadata,
             cameraIDs: new Set(['office']),
           },
-          { useCache: true },
+          { allowCached: true },
         );
       }
+
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(2);
+    });
+
+    it('should cache media metadata fetched when allowCached is false', async () => {
+      const engine = createPopulatedEngine();
+      const store = await createStoreWithReolinkCamera(engine);
+
+      vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(TEST_CAMERAS)
+        .mockResolvedValueOnce(TEST_DIRECTORIES);
+
+      const query = {
+        type: QueryType.MediaMetadata as const,
+        cameraIDs: new Set(['office']),
+      };
+
+      await engine.getMediaMetadata(createHASS(), store, query, { allowCached: false });
+      await engine.getMediaMetadata(createHASS(), store, query);
 
       expect(homeAssistantWSRequest).toHaveBeenCalledTimes(2);
     });

@@ -555,7 +555,7 @@ describe('TimelineDataSource', () => {
           expect(foldersManager.expandFolder).toHaveBeenCalledWith(
             { ...folderQueryNode, ...convertRangeToCacheFriendlyTimes(window) },
             undefined,
-            { useCache: undefined },
+            { allowCached: undefined },
           );
 
           expect(source.dataset.length).toBe(1);

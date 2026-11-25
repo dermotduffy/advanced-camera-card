@@ -218,7 +218,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
         },
       ],
       {
-        ...(engineOptions?.useCache !== false && { cache: this._camerasCache }),
+        cache: this._camerasCache,
+        allowCached: engineOptions?.allowCached,
       },
     );
 
@@ -247,7 +248,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
         },
       ],
       {
-        ...(engineOptions?.useCache !== false && { cache: this._cache }),
+        cache: this._cache,
+        allowCached: engineOptions?.allowCached,
       },
     );
   }
@@ -266,7 +268,9 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     const getEventsForCamera = async (cameraID: string): Promise<void> => {
       const perCameraQuery = { ...query, cameraIDs: new Set([cameraID]) };
       const cachedResult =
-        engineOptions?.useCache ?? true ? this._requestCache.get(perCameraQuery) : null;
+        engineOptions?.allowCached ?? true
+          ? this._requestCache.get(perCameraQuery)
+          : null;
       if (cachedResult) {
         output.set(perCameraQuery, cachedResult as EventQueryResults);
         return;
@@ -305,7 +309,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
             },
           ],
           {
-            ...(engineOptions?.useCache !== false && { cache: this._cache }),
+            cache: this._cache,
+            allowCached: engineOptions?.allowCached,
           },
         );
       }
@@ -321,15 +326,10 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
         type: QueryResultsType.Event,
         engine: Engine.Reolink,
         browseMedia: sortedMedia,
+        expiry: add(new Date(), { seconds: BROWSE_MEDIA_CACHE_SECONDS }),
       };
 
-      if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(
-          perCameraQuery,
-          { ...result, cached: true },
-          result.expiry,
-        );
-      }
+      this._requestCache.set(perCameraQuery, { ...result, cached: true }, result.expiry);
       output.set(perCameraQuery, result);
     };
 
@@ -357,7 +357,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
   ): Promise<MediaMetadataQueryResultsMap | null> {
     const output: MediaMetadataQueryResultsMap = new Map();
     const cachedResult =
-      engineOptions?.useCache ?? true ? this._requestCache.get(query) : null;
+      engineOptions?.allowCached ?? true ? this._requestCache.get(query) : null;
 
     if (cachedResult) {
       output.set(query, cachedResult as MediaMetadataQueryResults);
@@ -397,9 +397,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       cached: false,
     };
 
-    if (engineOptions?.useCache ?? true) {
-      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
-    }
+    this._requestCache.set(query, { ...result, cached: true }, result.expiry);
     output.set(query, result);
     return output;
   }

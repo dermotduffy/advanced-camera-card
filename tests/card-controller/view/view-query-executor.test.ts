@@ -39,7 +39,7 @@ describe('ViewQueryExecutor', () => {
         query: query,
       });
 
-      const options = { useCache: true };
+      const options = { allowCached: true };
       const modifiers = await viewQueryExecutor.getExistingQueryModifiers(view, options);
 
       applyViewModifiers(view, modifiers);
@@ -194,6 +194,24 @@ describe('ViewQueryExecutor', () => {
     it('should return null without config', async () => {
       const factory = new ViewQueryExecutor(createCardAPI());
       expect(await factory.getNewQueryModifiers(createView())).toBeNull();
+    });
+
+    it('should not allow cached results for a new query', async () => {
+      const api = createPopulatedAPI();
+      const cameraManager = api.getCameraManager();
+      assert(cameraManager);
+      vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue([]);
+      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
+        new Capabilities({ recordings: true }),
+      );
+
+      await new ViewQueryExecutor(api).getNewQueryModifiers(
+        new View({ view: 'recordings', camera: 'camera.office' }),
+      );
+
+      expect(cameraManager.executeMediaQueries).toHaveBeenCalledWith(expect.anything(), {
+        allowCached: false,
+      });
     });
 
     describe('with a live view', () => {

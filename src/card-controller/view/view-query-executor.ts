@@ -41,7 +41,7 @@ export class ViewQueryExecutor {
     );
 
     const items = await runner.execute(view.query, {
-      useCache: queryExecutorOptions?.useCache,
+      allowCached: queryExecutorOptions?.allowCached,
     });
 
     const queryResults = this._applyResultSelection(
@@ -63,7 +63,7 @@ export class ViewQueryExecutor {
     queryExecutorOptions?: QueryExecutorOptions,
   ): Promise<ViewModifier[] | null> {
     return await this._executeNewQuery(view, {
-      useCache: false,
+      allowCached: false,
       ...queryExecutorOptions,
     });
   }
@@ -94,7 +94,7 @@ export class ViewQueryExecutor {
       }
 
       const items = await runner.execute(query, {
-        useCache: queryExecutorOptions?.useCache,
+        allowCached: queryExecutorOptions?.allowCached,
       });
 
       return [

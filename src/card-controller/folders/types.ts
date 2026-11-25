@@ -18,7 +18,7 @@ import type { ViewItemCapabilities } from '../../view/types';
 // ====
 
 export interface EngineOptions {
-  useCache?: boolean;
+  allowCached?: boolean;
 }
 
 export class FolderInitializationError extends AdvancedCameraCardError {}

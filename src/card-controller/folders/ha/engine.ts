@@ -328,7 +328,8 @@ export class HAFoldersEngine implements FoldersEngine {
       hass,
       generateStep([start]),
       {
-        ...((engineOptions?.useCache ?? true) && { cache: this._cache }),
+        cache: this._cache,
+        allowCached: engineOptions?.allowCached,
       },
     );
 

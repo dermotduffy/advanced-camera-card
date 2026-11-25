@@ -464,7 +464,9 @@ export class FrigateCameraManagerEngine
       }
       const instanceQuery = { ...query, cameraIDs: cameraIDs };
       const cachedResult =
-        engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
+        engineOptions?.allowCached ?? true
+          ? this._requestCache.get(instanceQuery)
+          : null;
       if (cachedResult) {
         output.set(instanceQuery, cachedResult as EventQueryResults);
         return;
@@ -494,13 +496,7 @@ export class FrigateCameraManagerEngine
         cached: false,
       };
 
-      if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(
-          instanceQuery,
-          { ...result, cached: true },
-          result.expiry,
-        );
-      }
+      this._requestCache.set(instanceQuery, { ...result, cached: true }, result.expiry);
       output.set(instanceQuery, result);
     };
 
@@ -547,7 +543,9 @@ export class FrigateCameraManagerEngine
       }
       const instanceQuery = { ...query, cameraIDs: cameraIDs };
       const cachedResult =
-        engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
+        engineOptions?.allowCached ?? true
+          ? this._requestCache.get(instanceQuery)
+          : null;
       if (cachedResult) {
         output.set(instanceQuery, cachedResult as FrigateReviewQueryResults);
         return;
@@ -596,13 +594,7 @@ export class FrigateCameraManagerEngine
         cached: false,
       };
 
-      if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(
-          instanceQuery,
-          { ...result, cached: true },
-          result.expiry,
-        );
-      }
+      this._requestCache.set(instanceQuery, { ...result, cached: true }, result.expiry);
       output.set(instanceQuery, result);
     };
 
@@ -634,7 +626,7 @@ export class FrigateCameraManagerEngine
     ): Promise<void> => {
       const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
       const cachedResult =
-        engineOptions?.useCache ?? true ? this._requestCache.get(query) : null;
+        engineOptions?.allowCached ?? true ? this._requestCache.get(query) : null;
       if (cachedResult) {
         output.set(query, cachedResult as RecordingQueryResults);
         return;
@@ -704,9 +696,7 @@ export class FrigateCameraManagerEngine
         }),
         cached: false,
       };
-      if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(query, { ...result, cached: true }, result.expiry);
-      }
+      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
       output.set(query, result);
     };
 
@@ -750,7 +740,7 @@ export class FrigateCameraManagerEngine
       //   volume of data in segment transfers can be high, and the segments can
       //   be used in high frequency situations (e.g. video seeking).
       const cachedSegments =
-        engineOptions?.useCache ?? true
+        engineOptions?.allowCached ?? true
           ? this._recordingSegmentsCache.get(cameraID, range)
           : null;
       if (cachedSegments) {
@@ -773,9 +763,7 @@ export class FrigateCameraManagerEngine
 
       const segments = await getRecordingSegments(hass, request);
 
-      if (engineOptions?.useCache ?? true) {
-        this._recordingSegmentsCache.add(cameraID, range, segments);
-      }
+      this._recordingSegmentsCache.add(cameraID, range, segments);
 
       output.set(query, <FrigateRecordingSegmentsQueryResults>{
         type: QueryResultsType.RecordingSegments,
@@ -1032,7 +1020,7 @@ export class FrigateCameraManagerEngine
     engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null> {
     const output: MediaMetadataQueryResultsMap = new Map();
-    if ((engineOptions?.useCache ?? true) && this._requestCache.has(query)) {
+    if ((engineOptions?.allowCached ?? true) && this._requestCache.has(query)) {
       const cachedResult = <MediaMetadataQueryResults | null>(
         this._requestCache.get(query)
       );
@@ -1130,9 +1118,7 @@ export class FrigateCameraManagerEngine
       cached: false,
     };
 
-    if (engineOptions?.useCache ?? true) {
-      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
-    }
+    this._requestCache.set(query, { ...result, cached: true }, result.expiry);
     output.set(query, result);
     return output;
   }

@@ -232,48 +232,48 @@ describe('HAFoldersEngine', () => {
       expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
     });
 
-    it('should expand folder without cache when requested', async () => {
+    it('should expand folder without reading the cache, but still cache the results, when requested', async () => {
       const engine = new HAFoldersEngine(templateManager);
       const query = createDefaultQuery(
         engine,
         createFolder({ ha: { path: [{ id: 'media-source://id' }] } }),
       );
 
-      vi.mocked(homeAssistantWSRequest)
-        .mockResolvedValueOnce(
+      const browseMedia = createBrowseMedia({
+        media_content_id: 'media-source://id',
+        can_expand: true,
+        children: [
           createBrowseMedia({
-            media_content_id: 'media-source://id',
-            can_expand: true,
-            children: [
-              createBrowseMedia({
-                media_content_id: 'media-source://media-item',
-                title: 'Media Item',
-              }),
-              createBrowseMedia({
-                media_content_id: 'media-source://frigate',
-                title: 'Frigate',
-                can_expand: true,
-              }),
-            ],
+            media_content_id: 'media-source://media-item',
+            title: 'Media Item',
           }),
-        )
-        .mockResolvedValueOnce([]);
+          createBrowseMedia({
+            media_content_id: 'media-source://frigate',
+            title: 'Frigate',
+            can_expand: true,
+          }),
+        ],
+      });
+      vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(browseMedia)
+        .mockResolvedValueOnce(browseMedia);
+
+      await engine.expandFolder(createHASS(), query);
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
 
       const results = await engine.expandFolder(
         createHASS(),
         query,
         {},
         {
-          useCache: false,
+          allowCached: false,
         },
       );
       expect(results?.length).toBe(2);
       expect(results?.[0]).toBeInstanceOf(ViewMedia);
       expect(results?.[1]).toBeInstanceOf(ViewFolder);
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(2);
 
-      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
-
-      // Expanding the folder again should use the cache.
       await engine.expandFolder(createHASS(), query);
       expect(homeAssistantWSRequest).toHaveBeenCalledTimes(2);
     });
