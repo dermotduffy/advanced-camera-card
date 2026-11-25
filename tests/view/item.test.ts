@@ -1,11 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ViewFolder, ViewMedia, ViewMediaType } from '../../src/view/item';
 import { createFolder } from '../test-utils';
 import { TestViewMedia } from './test-utils';
 
 describe('ViewMedia', () => {
-  beforeEach(() => {
+  afterEach(() => {
     vi.useRealTimers();
   });
 

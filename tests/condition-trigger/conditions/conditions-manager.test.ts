@@ -7,7 +7,6 @@ import {
   createHASS,
   createMockTemplateRenderer,
   createStateEntity,
-  stubConnectedHomeAssistant,
   stubMatchMedia,
 } from '../../test-utils';
 
@@ -23,6 +22,7 @@ const templateManager = createMockTemplateRenderer();
 describe('ConditionsManager', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('should not call listeners for HA state changes without a relevant condition', () => {
@@ -200,7 +200,6 @@ describe('ConditionsManager', () => {
     // loaded for the synchronous renderer (rather than the shared mock).
     const templateManager = new TemplateManager();
     beforeAll(async () => {
-      stubConnectedHomeAssistant();
       await templateManager.loadRenderer();
     });
 

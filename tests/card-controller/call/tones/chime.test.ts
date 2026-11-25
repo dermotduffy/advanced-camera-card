@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ChimeTone } from '../../../../src/card-controller/call/tones/chime';
-import { useAudioMocks } from './test-utils';
+import { createTone, useAudioMocks } from './test-utils';
 
 const audio = useAudioMocks();
 
@@ -12,7 +12,7 @@ const audio = useAudioMocks();
 // here are the per-layer values derived from each strike's fundamental.
 describe('ChimeTone', () => {
   it('should play DING (Eb5) then DOOOOONG (B4) 0.5s later', () => {
-    new ChimeTone(0).start();
+    createTone(ChimeTone, 0).start();
 
     // 2 strikes × 3 layers = 6 oscillators.
     expect(audio.oscillators).toHaveLength(6);
@@ -35,7 +35,7 @@ describe('ChimeTone', () => {
   });
 
   it('should give DING a brighter, shorter bell envelope', () => {
-    new ChimeTone(0).start();
+    createTone(ChimeTone, 0).start();
 
     // Sparkle / fundamental / hum peaks for DING.
     expect(audio.gainParams[0].linearRampToValueAtTime).toHaveBeenCalledWith(0.1, 0.005);
@@ -54,7 +54,7 @@ describe('ChimeTone', () => {
   });
 
   it('should give DOOOOONG a fuller, longer bell envelope', () => {
-    new ChimeTone(0).start();
+    createTone(ChimeTone, 0).start();
 
     expect(audio.gainParams[3].linearRampToValueAtTime).toHaveBeenCalledWith(
       0.11,
@@ -79,7 +79,7 @@ describe('ChimeTone', () => {
     });
 
     it('should schedule the next iteration 5 seconds after a strike pair', () => {
-      new ChimeTone(0).start();
+      createTone(ChimeTone, 0).start();
       expect(audio.oscillators).toHaveLength(6);
 
       vi.advanceTimersByTime(5_000);

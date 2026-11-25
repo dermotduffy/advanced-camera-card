@@ -9,7 +9,6 @@ import {
   createHASSManager,
   createMockTemplateRenderer,
   createStateEntity,
-  stubConnectedHomeAssistant,
 } from '../../test-utils';
 
 const templateManager = createMockTemplateRenderer();
@@ -127,7 +126,6 @@ describe('TriggersManager', () => {
     // loaded for the synchronous renderer (rather than the shared mock).
     const templateManager = new TemplateManager();
     beforeAll(async () => {
-      stubConnectedHomeAssistant();
       await templateManager.loadRenderer();
     });
 

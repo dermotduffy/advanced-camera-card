@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ThumbnailControlsController } from '../../../../src/components-lib/thumbnail/controls/controller';
 import {
@@ -35,6 +35,10 @@ const getControlNames = (controller: ThumbnailControlsController): string[] =>
 
 // @vitest-environment jsdom
 describe('ThumbnailControlsController', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('should show no controls without an item', () => {
     expect(createController(ALL_CONTROLS).getControls()).toEqual([]);
   });

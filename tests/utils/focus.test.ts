@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it, onTestFinished } from 'vitest';
 
 import { isFocusWithin } from '../../src/utils/focus';
 
@@ -8,12 +8,9 @@ describe('isFocusWithin', () => {
     const element = document.createElement('div');
     element.setAttribute('tabindex', '0');
     parent.appendChild(element);
+    onTestFinished(() => element.remove());
     return element;
   };
-
-  afterEach(() => {
-    document.body.replaceChildren();
-  });
 
   it('should return false without focus', () => {
     const element = createFocusableElement(document.body);

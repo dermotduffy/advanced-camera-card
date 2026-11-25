@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ImageSurfaceController } from '../../../../../src/components-lib/live/providers/go2rtc-experimental/image-surface-controller';
-import { createLitElement, flushPromises } from '../../../../test-utils';
+import { appendToBody, createLitElement, flushPromises } from '../../../../test-utils';
 
 const createFrame = (): Blob => new Blob(['frame'], { type: 'image/jpeg' });
 
@@ -11,9 +11,12 @@ describe('ImageSurfaceController', () => {
 
   beforeEach(() => {
     nextId = 0;
-    URL.createObjectURL = vi.fn(() => `blob:mock-${nextId++}`);
-    URL.revokeObjectURL = vi.fn();
-    document.body.replaceChildren();
+    vi.spyOn(URL, 'createObjectURL').mockImplementation(() => `blob:mock-${nextId++}`);
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   const createdURLs = (): string[] =>
@@ -28,7 +31,7 @@ describe('ImageSurfaceController', () => {
   }) => {
     const image = document.createElement('img');
     if (options?.connected !== false) {
-      document.body.appendChild(image);
+      appendToBody(image);
     }
     const decoder = document.createElement('img');
     decoder.decode = vi.fn(options?.decode ?? (() => Promise.resolve()));

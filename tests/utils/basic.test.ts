@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AdvancedCameraCardError } from '../../src/types.js';
 import {
@@ -208,6 +208,7 @@ describe('isPointInBox', () => {
 describe('isHoverableDevice', () => {
   afterAll(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('should return hoverable', () => {
@@ -240,14 +241,12 @@ describe('formatDate', () => {
 
 // @vitest-environment jsdom
 describe('runWhenIdleIfSupported', () => {
-  const originalRequestIdleCallback = window.requestIdleCallback;
-  afterAll(() => {
-    window.requestIdleCallback = originalRequestIdleCallback;
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('should run directly when not supported', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).requestIdleCallback = undefined;
+    vi.stubGlobal('requestIdleCallback', undefined);
     const func = vi.fn();
     runWhenIdleIfSupported(func);
     expect(func).toHaveBeenCalled();
@@ -255,7 +254,7 @@ describe('runWhenIdleIfSupported', () => {
 
   it('should run idle when supported', () => {
     const requestIdle = vi.fn();
-    window.requestIdleCallback = requestIdle;
+    vi.stubGlobal('requestIdleCallback', requestIdle);
     const func = vi.fn();
     runWhenIdleIfSupported(func);
     expect(requestIdle).toHaveBeenCalledWith(func, {});
@@ -263,7 +262,7 @@ describe('runWhenIdleIfSupported', () => {
 
   it('should run idle with timeout when supported', () => {
     const requestIdle = vi.fn();
-    window.requestIdleCallback = requestIdle;
+    vi.stubGlobal('requestIdleCallback', requestIdle);
     const func = vi.fn();
     runWhenIdleIfSupported(func, 10);
     expect(requestIdle).toHaveBeenCalledWith(func, { timeout: 10 });

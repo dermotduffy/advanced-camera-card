@@ -6,6 +6,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi,
 } from 'vitest';
 
@@ -21,6 +22,16 @@ import {
   IntersectionObserverMock,
   setVisibilityState,
 } from '../test-utils';
+
+const createController = (
+  ...args: ConstructorParameters<typeof LazyLoadController>
+): LazyLoadController => {
+  const controller = new LazyLoadController(...args);
+
+  // The controller's document visibility subscription outlives this test file.
+  onTestFinished(() => controller.destroy());
+  return controller;
+};
 
 // @vitest-environment jsdom
 describe('LazyLoadController', () => {
@@ -43,25 +54,25 @@ describe('LazyLoadController', () => {
   });
 
   it('should be unloaded by default', () => {
-    const controller = new LazyLoadController(createLitElement());
+    const controller = createController(createLitElement());
     expect(controller.isLoaded()).toBe(false);
   });
 
   it('should not be loaded by default when lazy load is set to true', () => {
-    const controller = new LazyLoadController(createLitElement());
+    const controller = createController(createLitElement());
     controller.setConfiguration({ lazyLoad: true });
     expect(controller.isLoaded()).toBe(false);
   });
 
   it('should add controller to host', () => {
     const host = createLitElement();
-    const controller = new LazyLoadController(host);
+    const controller = createController(host);
     expect(host.addController).toHaveBeenCalledWith(controller);
   });
 
   it('should remove controller from host', () => {
     const host = createLitElement();
-    const controller = new LazyLoadController(host);
+    const controller = createController(host);
     controller.removeController();
     expect(host.removeController).toHaveBeenCalledWith(controller);
   });
@@ -70,7 +81,7 @@ describe('LazyLoadController', () => {
     const documentVisibility = createDocumentVisibility();
     const unsubscribe = vi.fn();
     documentVisibility.subscribe.mockReturnValue(unsubscribe);
-    const controller = new LazyLoadController(createLitElement(), documentVisibility);
+    const controller = createController(createLitElement(), documentVisibility);
     controller.setConfiguration({
       lazyLoad: true,
       lazyUnloadConditions: ['unselected', 'hidden'],
@@ -86,7 +97,7 @@ describe('LazyLoadController', () => {
 
   describe('should set configuration', () => {
     it('should set loaded if lazy loading set to false', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
 
       expect(controller.isLoaded()).toBe(false);
 
@@ -96,7 +107,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should re-evaluate unload when conditions change while loaded', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({ lazyLoad: true });
       controller.hostConnected();
 
@@ -115,7 +126,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should unload via `hidden` immediately when toggled on a hidden tab', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({ lazyLoad: false });
       controller.hostConnected();
       expect(controller.isLoaded()).toBe(true);
@@ -131,7 +142,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should reset omitted fields to their defaults', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({
         lazyLoad: true,
         lazyUnloadConditions: ['unselected'],
@@ -164,7 +175,7 @@ describe('LazyLoadController', () => {
 
   describe('should lazy load', () => {
     it('should load when both visible and intersecting', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({ lazyLoad: true });
       controller.hostConnected();
 
@@ -183,7 +194,7 @@ describe('LazyLoadController', () => {
       const documentVisibility = createDocumentVisibility();
       const unsubscribe = vi.fn();
       documentVisibility.subscribe.mockReturnValue(unsubscribe);
-      const controller = new LazyLoadController(createLitElement(), documentVisibility);
+      const controller = createController(createLitElement(), documentVisibility);
 
       // No lazy loading.
       controller.setConfiguration({ lazyLoad: false });
@@ -209,7 +220,7 @@ describe('LazyLoadController', () => {
       ])(
         'when unload conditions are: %s',
         (unloadConditions: LazyUnloadCondition[], shouldBeLoaded: boolean) => {
-          const controller = new LazyLoadController(createLitElement());
+          const controller = createController(createLitElement());
           controller.setConfiguration({
             lazyLoad: true,
             lazyUnloadConditions: unloadConditions,
@@ -228,10 +239,7 @@ describe('LazyLoadController', () => {
       it('should respect the document visibility source over the raw document state', async () => {
         setVisibilityState('hidden');
         const documentVisibility = createDocumentVisibility(true);
-        const controller = new LazyLoadController(
-          createLitElement(),
-          documentVisibility,
-        );
+        const controller = createController(createLitElement(), documentVisibility);
         controller.setConfiguration({
           lazyLoad: true,
           lazyUnloadConditions: ['hidden'],
@@ -255,7 +263,7 @@ describe('LazyLoadController', () => {
       ])(
         'when unload conditions are: %s',
         (unloadConditions: LazyUnloadCondition[], shouldBeLoaded: boolean) => {
-          const controller = new LazyLoadController(createLitElement());
+          const controller = createController(createLitElement());
           controller.setConfiguration({
             lazyLoad: true,
             lazyUnloadConditions: unloadConditions,
@@ -275,7 +283,7 @@ describe('LazyLoadController', () => {
 
   describe('should force selected', () => {
     it('should load when forced selected even if not intersecting', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({ lazyLoad: true });
       controller.hostConnected();
 
@@ -289,7 +297,7 @@ describe('LazyLoadController', () => {
     it('should not load while document is already hidden on connect', () => {
       setVisibilityState('hidden');
 
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({
         lazyLoad: true,
         lazyUnloadConditions: ['hidden'],
@@ -304,7 +312,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should stay loaded with `unselected` unload condition while forced selected', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({
         lazyLoad: true,
         lazyUnloadConditions: ['unselected'],
@@ -320,7 +328,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should still unload via `hidden` while forced selected', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({
         lazyLoad: true,
         lazyUnloadConditions: ['hidden'],
@@ -336,7 +344,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should unload after force-selected is released and `unselected` applies', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({
         lazyLoad: true,
         lazyUnloadConditions: ['unselected'],
@@ -357,7 +365,7 @@ describe('LazyLoadController', () => {
     });
 
     it('should keep selected stream loaded with default `unload: []`', () => {
-      const controller = new LazyLoadController(createLitElement());
+      const controller = createController(createLitElement());
       controller.setConfiguration({ lazyLoad: true });
       controller.hostConnected();
 
@@ -373,7 +381,7 @@ describe('LazyLoadController', () => {
 
   it('should request a host update whenever loadedness changes', () => {
     const host = createLitElement();
-    const controller = new LazyLoadController(host);
+    const controller = createController(host);
     controller.setConfiguration({
       lazyLoad: true,
       lazyUnloadConditions: ['unselected', 'hidden'],

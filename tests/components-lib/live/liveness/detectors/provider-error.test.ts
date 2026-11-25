@@ -2,14 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ProviderErrorDetector } from '../../../../../src/components-lib/live/liveness/detectors/provider-error';
 import { dispatchLiveErrorEvent } from '../../../../../src/components-lib/live/utils/dispatch-live-error';
+import { appendToBody } from '../../../../test-utils';
 
 const LIVE_ERROR_EVENT = 'advanced-camera-card:live:error';
 
-const createHostInDocument = (): HTMLElement => {
-  const host = document.createElement('div');
-  document.body.append(host);
-  return host;
-};
+const createHostInDocument = (): HTMLElement =>
+  appendToBody(document.createElement('div'));
 
 // @vitest-environment jsdom
 describe('ProviderErrorDetector', () => {

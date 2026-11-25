@@ -6,7 +6,6 @@ import {
   createHASS,
   createMockTemplateRenderer,
   createStateEntity,
-  stubConnectedHomeAssistant,
 } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
@@ -132,7 +131,6 @@ describe('numeric state condition', () => {
     // This case renders a real value_template, so load the lazily-imported
     // engine for the synchronous renderer.
     const templateManager = new TemplateManager();
-    stubConnectedHomeAssistant();
     await templateManager.loadRenderer();
 
     const evaluator = createConditionEvaluator(

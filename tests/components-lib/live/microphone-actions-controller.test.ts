@@ -1,11 +1,11 @@
 import {
   afterAll,
-  afterEach,
   beforeAll,
   beforeEach,
   describe,
   expect,
   it,
+  onTestFinished,
   vi,
 } from 'vitest';
 import { mock } from 'vitest-mock-extended';
@@ -29,15 +29,11 @@ const createMicrophoneManager = (): MicrophoneManager => {
   return microphoneManager;
 };
 
-// Each controller subscribes to the shared document visibility. Files in the
-// shared jsdom project share one copy of that module, so a controller left
-// alive here would act on a later file's `visibilitychange` events, calling a
-// mock that a `vi.resetAllMocks()` in between has left returning `undefined`.
-const controllers: MicrophoneActionsController[] = [];
-
 const createController = (): MicrophoneActionsController => {
   const controller = new MicrophoneActionsController();
-  controllers.push(controller);
+
+  // The controller's document visibility subscription outlives this test file.
+  onTestFinished(() => controller.destroy());
   return controller;
 };
 
@@ -68,10 +64,6 @@ describe('MicrophoneActionsController', () => {
     // visible and is not affected by leftover state from a prior
     // `callVisibilityHandler(false)`.
     setVisibilityState('visible');
-  });
-
-  afterEach(() => {
-    controllers.splice(0).forEach((controller) => controller.destroy());
   });
 
   describe('on document visibility change', () => {

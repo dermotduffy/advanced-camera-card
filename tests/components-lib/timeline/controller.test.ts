@@ -1,7 +1,7 @@
 import { add } from 'date-fns';
 import { LitElement } from 'lit';
 import type { TimelineEventPropertiesResult, TimelineWindow } from 'vis-timeline';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
@@ -182,6 +182,10 @@ const dragTimeline = (harness: TestHarness, pointerTime: Date): void => {
 describe('TimelineController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('should render the item severity as a data attribute', async () => {

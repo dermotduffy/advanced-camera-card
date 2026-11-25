@@ -23,6 +23,8 @@ describe('RetryTimer', () => {
   });
 
   it('should advance the counter on schedule by default', () => {
+    // Fake timers discard the scheduled callbacks once the test finishes.
+    vi.useFakeTimers();
     const timer = new RetryTimer({ baseSeconds: 1, maxSeconds: 60 });
     timer.schedule(() => {});
     expect(timer.getAttempts()).toBe(1);
@@ -31,6 +33,8 @@ describe('RetryTimer', () => {
   });
 
   it('should not advance the counter when schedule is called with advance: false', () => {
+    // Fake timers discard the scheduled callbacks once the test finishes.
+    vi.useFakeTimers();
     const timer = new RetryTimer({ baseSeconds: 1, maxSeconds: 60 });
     timer.schedule(() => {}, { advance: false });
     expect(timer.getAttempts()).toBe(0);
