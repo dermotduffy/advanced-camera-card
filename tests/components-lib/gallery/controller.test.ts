@@ -442,7 +442,7 @@ describe('GalleryController', () => {
       await controller.extend(runner, epoch, 'earlier');
 
       expect(runner.extend).toHaveBeenCalledWith(query, results, 'earlier', {
-        useCache: true,
+        allowCached: true,
       });
       expect(manager.setViewByParameters).toHaveBeenCalled();
 

@@ -6,7 +6,7 @@ import type { ViewItem } from '../view/item';
 import { UnifiedQuery } from '../view/unified-query';
 
 interface QueryRunnerOptions {
-  useCache?: boolean;
+  allowCached?: boolean;
 }
 
 /**
@@ -37,7 +37,7 @@ export class UnifiedQueryRunner {
     const mediaQueries = query.getMediaQueries();
     if (mediaQueries.length > 0) {
       const items = await this._cameraManager.executeMediaQueries(mediaQueries, {
-        useCache: options?.useCache,
+        allowCached: options?.allowCached,
       });
       allItems.push(...(items ?? []));
     }
@@ -48,7 +48,7 @@ export class UnifiedQueryRunner {
       const items = await this._foldersManager.expandFolder(
         folderQuery,
         this._conditionStateManager.getState(),
-        { useCache: options?.useCache },
+        { allowCached: options?.allowCached },
       );
       allItems.push(...(items ?? []));
     }
@@ -95,7 +95,7 @@ export class UnifiedQueryRunner {
       mediaQueries,
       existingResults,
       direction,
-      { useCache: options?.useCache },
+      { allowCached: options?.allowCached },
     );
 
     if (!extension) {

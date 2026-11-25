@@ -215,7 +215,8 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
           : []),
       ],
       {
-        ...(engineOptions?.useCache !== false && { cache: this._directoryCache }),
+        cache: this._directoryCache,
+        allowCached: engineOptions?.allowCached,
       },
     );
   }
@@ -234,7 +235,9 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     const getEventsForCamera = async (cameraID: string): Promise<void> => {
       const perCameraQuery = { ...query, cameraIDs: new Set([cameraID]) };
       const cachedResult =
-        engineOptions?.useCache ?? true ? this._requestCache.get(perCameraQuery) : null;
+        engineOptions?.allowCached ?? true
+          ? this._requestCache.get(perCameraQuery)
+          : null;
       if (cachedResult) {
         output.set(perCameraQuery, cachedResult as EventQueryResults);
         return;
@@ -295,7 +298,8 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
           },
         ],
         {
-          ...(engineOptions?.useCache !== false && { cache: this._fileCache }),
+          cache: this._fileCache,
+          allowCached: engineOptions?.allowCached,
         },
       );
 
@@ -310,15 +314,10 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
         type: QueryResultsType.Event,
         engine: Engine.MotionEye,
         browseMedia: sortedMedia,
+        expiry: add(new Date(), { seconds: BROWSE_MEDIA_CACHE_SECONDS }),
       };
 
-      if (engineOptions?.useCache ?? true) {
-        this._requestCache.set(
-          perCameraQuery,
-          { ...result, cached: true },
-          result.expiry,
-        );
-      }
+      this._requestCache.set(perCameraQuery, { ...result, cached: true }, result.expiry);
       output.set(perCameraQuery, result);
     };
 
@@ -345,7 +344,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null> {
     const output: MediaMetadataQueryResultsMap = new Map();
-    if ((engineOptions?.useCache ?? true) && this._requestCache.has(query)) {
+    if ((engineOptions?.allowCached ?? true) && this._requestCache.has(query)) {
       const cachedResult = <MediaMetadataQueryResults | null>(
         this._requestCache.get(query)
       );
@@ -383,9 +382,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
       cached: false,
     };
 
-    if (engineOptions?.useCache ?? true) {
-      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
-    }
+    this._requestCache.set(query, { ...result, cached: true }, result.expiry);
     output.set(query, result);
     return output;
   }

@@ -54,14 +54,24 @@ export interface BrowseMediaStep<M = undefined> {
 
 type BrowseMediaStepAdvancer<M> = (media: RichBrowseMedia<M>[]) => BrowseMediaStep<M>[];
 
+interface BrowseMediaWalkOptions<M> {
+  cache?: BrowseMediaCache<M>;
+
+  // Whether to allow reading from the cache.
+  allowCached?: boolean;
+}
+
+interface BrowseMediaWalkStepOptions<M> extends BrowseMediaWalkOptions<M> {
+  metadataGenerator?: RichMetadataGenerator<M>;
+  childrenMetadataUpdater?: ChildrenMetadataUpdater<M>;
+}
+
 export class BrowseMediaWalker {
   // Walk down a browse media tree according to instructions included in `steps`.
   public async walk<M = undefined>(
     hass: HomeAssistant,
     steps: BrowseMediaStep<M>[] | null,
-    options?: {
-      cache?: BrowseMediaCache<M>;
-    },
+    options?: BrowseMediaWalkOptions<M>,
   ): Promise<RichBrowseMedia<M>[]> {
     if (!steps || !steps.length) {
       return [];
@@ -78,9 +88,7 @@ export class BrowseMediaWalker {
   private async _walkBrowseMedia<M>(
     hass: HomeAssistant,
     step: BrowseMediaStep<M>,
-    options?: {
-      cache?: BrowseMediaCache<M>;
-    },
+    options?: BrowseMediaWalkOptions<M>,
   ): Promise<RichBrowseMedia<M>[]> {
     let output: RichBrowseMedia<M>[] = [];
 
@@ -90,6 +98,7 @@ export class BrowseMediaWalker {
         async (target) =>
           await this._browseMedia(hass, target, {
             cache: options?.cache,
+            allowCached: options?.allowCached,
             metadataGenerator: step.metadataGenerator,
             childrenMetadataUpdater: step.childrenMetadataUpdater,
           }),
@@ -122,14 +131,13 @@ export class BrowseMediaWalker {
   private async _browseMedia<M>(
     hass: HomeAssistant,
     target: string | RichBrowseMedia<M>,
-    options?: {
-      cache?: BrowseMediaCache<M>;
-      metadataGenerator?: RichMetadataGenerator<M>;
-      childrenMetadataUpdater?: ChildrenMetadataUpdater<M>;
-    },
+    options?: BrowseMediaWalkStepOptions<M>,
   ): Promise<RichBrowseMedia<M>> {
     const mediaContentID = typeof target === 'object' ? target.media_content_id : target;
-    const cachedResponse = options?.cache ? options.cache.get(mediaContentID) : null;
+    const cachedResponse =
+      options?.cache && options.allowCached !== false
+        ? options.cache.get(mediaContentID)
+        : null;
 
     const request = {
       type: 'media_source/browse_media',

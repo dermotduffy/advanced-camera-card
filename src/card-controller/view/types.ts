@@ -24,7 +24,7 @@ export interface QueryExecutorOptions {
   };
   folder?: string;
   rejectResults?: (results: QueryResults) => boolean;
-  useCache?: boolean;
+  allowCached?: boolean;
 }
 
 export type ViewParametersUserSpecified = Partial<Omit<ViewParameters, 'view'>> & {

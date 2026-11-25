@@ -428,6 +428,30 @@ describe('BrowseMediaWalker', () => {
     expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
   });
 
+  it('should fetch rather than read the cache, but still cache the response, when allowCached is false', async () => {
+    const stale = createBrowseMedia({
+      media_content_id: 'media/parent',
+      title: 'Stale',
+    });
+    const fresh = createBrowseMedia({
+      media_content_id: 'media/parent',
+      title: 'Fresh',
+    });
+
+    vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(fresh);
+
+    const cache = new BrowseMediaCache();
+    cache.set('media/parent', stale);
+
+    await new BrowseMediaWalker().walk(createHASS(), [{ targets: ['media/parent'] }], {
+      cache,
+      allowCached: false,
+    });
+
+    expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
+    expect(cache.get('media/parent')).toEqual(fresh);
+  });
+
   it('should process multiple targets and combine their children', async () => {
     const child_1 = createBrowseMedia({
       media_content_id: 'media/child-1',

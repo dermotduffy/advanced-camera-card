@@ -282,7 +282,7 @@ describe('MotionEyeCameraManagerEngine', () => {
       expect(walker.walk).toHaveBeenCalledTimes(2);
     });
 
-    it('should skip cache when useCache is false', async () => {
+    it('should skip cache when allowCached is false', async () => {
       const walker = mock<BrowseMediaWalker>();
       const requestCache = new CameraManagerRequestCache();
       walker.walk.mockResolvedValue([createDirectoryResult()]);
@@ -291,24 +291,65 @@ describe('MotionEyeCameraManagerEngine', () => {
       const store = await createMotionEyeStore(engine);
       const query = createDefaultEventQuery();
 
-      await engine.getEvents(createHASS(), store, query, { useCache: false });
-      await engine.getEvents(createHASS(), store, query, { useCache: false });
+      await engine.getEvents(createHASS(), store, query, { allowCached: false });
+      await engine.getEvents(createHASS(), store, query, { allowCached: false });
 
       // Both requests hit the walker: 2 calls (dir + file) per request.
       expect(walker.walk).toHaveBeenCalledTimes(4);
     });
 
-    it('should not pass directory cache when useCache is false', async () => {
+    it('should cache events fetched when allowCached is false', async () => {
+      const walker = mock<BrowseMediaWalker>();
+      const requestCache = new CameraManagerRequestCache();
+      walker.walk.mockResolvedValue([createDirectoryResult()]);
+
+      const engine = createEngine({ walker, requestCache });
+      const store = await createMotionEyeStore(engine);
+      const query = createDefaultEventQuery();
+
+      await engine.getEvents(createHASS(), store, query, { allowCached: false });
+      await engine.getEvents(createHASS(), store, query);
+
+      // Only the first request hits the walker: 2 calls (dir + file).
+      expect(walker.walk).toHaveBeenCalledTimes(2);
+    });
+
+    it('should fetch events again once the cached results expire', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-11-24T22:45:13'));
+
+      const walker = mock<BrowseMediaWalker>();
+      const requestCache = new CameraManagerRequestCache();
+      walker.walk.mockResolvedValue([createDirectoryResult()]);
+
+      const engine = createEngine({ walker, requestCache });
+      const store = await createMotionEyeStore(engine);
+      const query = createDefaultEventQuery();
+
+      await engine.getEvents(createHASS(), store, query);
+      vi.setSystemTime(new Date('2026-11-24T22:46:14'));
+      await engine.getEvents(createHASS(), store, query);
+
+      vi.useRealTimers();
+
+      // Both requests hit the walker: 2 calls (dir + file) per request.
+      expect(walker.walk).toHaveBeenCalledTimes(4);
+    });
+
+    it('should tell the walker not to read its cache when allowCached is false', async () => {
       const walker = mock<BrowseMediaWalker>();
       walker.walk.mockResolvedValue([]);
       const engine = createEngine({ walker });
       const store = await createMotionEyeStore(engine);
 
       await engine.getEvents(createHASS(), store, createDefaultEventQuery(), {
-        useCache: false,
+        allowCached: false,
       });
 
-      expect(walker.walk).toHaveBeenCalledWith(expect.anything(), expect.anything(), {});
+      expect(walker.walk).toHaveBeenCalledWith(expect.anything(), expect.anything(), {
+        cache: expect.anything(),
+        allowCached: false,
+      });
     });
 
     it('should sort results descending and apply limit', async () => {
@@ -884,7 +925,7 @@ describe('MotionEyeCameraManagerEngine', () => {
       expect(walker.walk).toHaveBeenCalledTimes(1);
     });
 
-    it('should skip cache when useCache is false', async () => {
+    it('should skip cache when allowCached is false', async () => {
       const walker = mock<BrowseMediaWalker>();
       const requestCache = new CameraManagerRequestCache();
       walker.walk.mockResolvedValue([]);
@@ -899,10 +940,31 @@ describe('MotionEyeCameraManagerEngine', () => {
 
       await engine.getMediaMetadata(createHASS(), store, query);
       await engine.getMediaMetadata(createHASS(), store, query, {
-        useCache: false,
+        allowCached: false,
       });
 
       expect(walker.walk).toHaveBeenCalledTimes(2);
+    });
+
+    it('should cache metadata fetched when allowCached is false', async () => {
+      const walker = mock<BrowseMediaWalker>();
+      const requestCache = new CameraManagerRequestCache();
+      walker.walk.mockResolvedValue([]);
+
+      const engine = createEngine({ walker, requestCache });
+      const store = await createMotionEyeStore(engine);
+
+      const query = {
+        type: QueryType.MediaMetadata as const,
+        cameraIDs: new Set(['camera-1']),
+      };
+
+      await engine.getMediaMetadata(createHASS(), store, query, {
+        allowCached: false,
+      });
+      await engine.getMediaMetadata(createHASS(), store, query);
+
+      expect(walker.walk).toHaveBeenCalledTimes(1);
     });
 
     it('should handle directories without startDate metadata', async () => {
