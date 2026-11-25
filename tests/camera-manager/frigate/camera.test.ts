@@ -104,7 +104,7 @@ describe('FrigateCamera', () => {
         );
         const entityRegistryManager = new EntityRegistryManagerMock();
 
-        await expect(
+        expect(
           async () =>
             await camera.initialize({
               hassManager: createHASSManager(),

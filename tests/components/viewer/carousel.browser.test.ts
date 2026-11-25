@@ -21,6 +21,7 @@ import {
   getThumbnails,
   waitForMediaViewerMedia,
   waitForThumbnails,
+  wheelNextPreviousMedia,
 } from '../../browser/test-utils';
 
 const EVENTS = [
@@ -94,6 +95,31 @@ describe('AdvancedCameraCardViewerCarousel', () => {
 
     await waitForMediaViewerMedia(card, 'clip.webm?event=newer');
     expect(getSelectedThumbnail(card.card)).toBe(getThumbnails(card.card)[1]);
+  });
+
+  it('should move between media with the mouse wheel', async () => {
+    // Opened on the older event, so there is a newer one to move on to. The
+    // status bar names the selected media by its label.
+    const card = await mountViewer(
+      [
+        createTestFrigateEvent('older', EVENT_TIME_OLDER, { label: 'car' }),
+        createTestFrigateEvent('newer', EVENT_TIME_NEWER, { label: 'person' }),
+      ],
+      { thumbnail: 1, config: { status_bar: { style: 'outside' } } },
+    );
+    const waitForStatusBar = async (label: string): Promise<void> => {
+      await card.waitForRender(
+        () => getStatusBarStrings(card.card).join(' ').includes(label) || null,
+        `the status bar naming ${label}`,
+      );
+    };
+    await waitForStatusBar('Car');
+
+    wheelNextPreviousMedia(card.card, 'next');
+    await waitForStatusBar('Person');
+
+    wheelNextPreviousMedia(card.card, 'previous');
+    await waitForStatusBar('Car');
   });
 
   it('should resolve each media item only once', async () => {

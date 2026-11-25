@@ -100,7 +100,7 @@ describe('ReolinkCamera', () => {
         const config = createCameraConfig();
         const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
 
-        await expect(
+        expect(
           async () =>
             await camera.initialize({
               hassManager: createHASSManager(),
@@ -123,7 +123,7 @@ describe('ReolinkCamera', () => {
           }),
         ]);
 
-        await expect(
+        expect(
           async () =>
             await camera.initialize({
               hassManager: createHASSManager(),
@@ -146,7 +146,7 @@ describe('ReolinkCamera', () => {
           }),
         ]);
 
-        await expect(
+        expect(
           async () =>
             await camera.initialize({
               hassManager: createHASSManager(),

@@ -136,7 +136,8 @@ export interface FrigateRecordingQueryResults extends RecordingQueryResults {
   recordings: FrigateRecording[];
 }
 
-export interface FrigateRecordingSegmentsQueryResults extends RecordingSegmentsQueryResults {
+export interface FrigateRecordingSegmentsQueryResults
+  extends RecordingSegmentsQueryResults {
   engine: Engine.Frigate;
   instanceID: string;
 }

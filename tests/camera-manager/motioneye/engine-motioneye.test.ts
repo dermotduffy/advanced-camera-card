@@ -807,8 +807,9 @@ describe('MotionEyeCameraManagerEngine', () => {
     });
 
     it('should generate media from motioneye event results', async () => {
-      const { getViewMediaFromBrowseMediaArray } =
-        await import('../../../src/ha/browse-media/browse-media-to-view-media');
+      const { getViewMediaFromBrowseMediaArray } = await import(
+        '../../../src/ha/browse-media/browse-media-to-view-media'
+      );
       vi.mocked(getViewMediaFromBrowseMediaArray).mockReturnValue([]);
 
       const browseMedia = [createRichBrowseMedia()];

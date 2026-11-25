@@ -33,15 +33,13 @@ export function renderDetail(
   };
   return html`
     <div id=${role === 'heading' ? HEADING_ID : nothing} class="${classMap(classes)}">
-      ${
-        iconOverride ??
-        (detail.icon
-          ? html`<advanced-camera-card-icon
-              title=${detail.tooltip ?? ''}
-              .icon=${{ icon: detail.icon }}
-            ></advanced-camera-card-icon>`
-          : '')
-      }
+      ${iconOverride ??
+      (detail.icon
+        ? html`<advanced-camera-card-icon
+            title=${detail.tooltip ?? ''}
+            .icon=${{ icon: detail.icon }}
+          ></advanced-camera-card-icon>`
+        : '')}
       <span title=${detail.text}>${detail.text}</span>
     </div>
   `;
@@ -71,13 +69,11 @@ export function renderControl(
       })}
       @action=${(ev: CustomEvent) => onAction(ev, control)}
     >
-      ${
-        control.icon
-          ? html`<advanced-camera-card-icon
-              .icon=${{ icon: control.icon }}
-            ></advanced-camera-card-icon>`
-          : ''
-      }
+      ${control.icon
+        ? html`<advanced-camera-card-icon
+            .icon=${{ icon: control.icon }}
+          ></advanced-camera-card-icon>`
+        : ''}
     </div>
   `;
 }
@@ -92,25 +88,21 @@ export function renderNotificationBody(
   return html`
     ${metadata.map((detail) => renderDetail(detail, 'metadata'))}
     ${body ? renderDetail(body, 'body', bodyIconOverride) : ''}
-    ${
-      link
-        ? html`<div class="url">
-            <a
-              href=${link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              @click=${stopEventFromActivatingCardWideActions}
-              >${link.title}</a
-            >
-          </div>`
-        : ''
-    }
-    ${
-      context.length
-        ? html`<div class="context">
-            ${context.map((item) => html`<pre>${item}</pre>`)}
-          </div>`
-        : ''
-    }
+    ${link
+      ? html`<div class="url">
+          <a
+            href=${link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            @click=${stopEventFromActivatingCardWideActions}
+            >${link.title}</a
+          >
+        </div>`
+      : ''}
+    ${context.length
+      ? html`<div class="context">
+          ${context.map((item) => html`<pre>${item}</pre>`)}
+        </div>`
+      : ''}
   `;
 }

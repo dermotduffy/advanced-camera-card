@@ -464,7 +464,7 @@ export class FrigateCameraManagerEngine
       }
       const instanceQuery = { ...query, cameraIDs: cameraIDs };
       const cachedResult =
-        (engineOptions?.useCache ?? true) ? this._requestCache.get(instanceQuery) : null;
+        engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
         output.set(instanceQuery, cachedResult as EventQueryResults);
         return;
@@ -547,7 +547,7 @@ export class FrigateCameraManagerEngine
       }
       const instanceQuery = { ...query, cameraIDs: cameraIDs };
       const cachedResult =
-        (engineOptions?.useCache ?? true) ? this._requestCache.get(instanceQuery) : null;
+        engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
         output.set(instanceQuery, cachedResult as FrigateReviewQueryResults);
         return;
@@ -634,7 +634,7 @@ export class FrigateCameraManagerEngine
     ): Promise<void> => {
       const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
       const cachedResult =
-        (engineOptions?.useCache ?? true) ? this._requestCache.get(query) : null;
+        engineOptions?.useCache ?? true ? this._requestCache.get(query) : null;
       if (cachedResult) {
         output.set(query, cachedResult as RecordingQueryResults);
         return;
@@ -750,7 +750,7 @@ export class FrigateCameraManagerEngine
       //   volume of data in segment transfers can be high, and the segments can
       //   be used in high frequency situations (e.g. video seeking).
       const cachedSegments =
-        (engineOptions?.useCache ?? true)
+        engineOptions?.useCache ?? true
           ? this._recordingSegmentsCache.get(cameraID, range)
           : null;
       if (cachedSegments) {

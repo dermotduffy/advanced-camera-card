@@ -1295,10 +1295,9 @@ describe('Go2RTCSessionController', () => {
         },
       );
 
-      const createBinarySource = vi.fn((): BinarySource => ({
-        source: mock<StreamSource>(),
-        surface: 'video',
-      }));
+      const createBinarySource = vi.fn(
+        (): BinarySource => ({ source: mock<StreamSource>(), surface: 'video' }),
+      );
       const { surfaces, video } = createSurfaces();
 
       const session = new Go2RTCSessionController(

@@ -16,7 +16,7 @@ export const getMediaCameraTitle = (
   item?: ViewItem,
 ): string | null => {
   const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
-  return cameraID ? (cameraManager?.getCameraMetadata(cameraID)?.title ?? null) : null;
+  return cameraID ? cameraManager?.getCameraMetadata(cameraID)?.title ?? null : null;
 };
 
 export const isMediaReviewed = (item?: ViewItem): boolean | null =>
@@ -56,7 +56,7 @@ export const getMediaDuration = (
       ? localize('common.in_progress')
       : null;
 
-  return duration && inProgress ? `${duration} ${inProgress}` : (duration ?? inProgress);
+  return duration && inProgress ? `${duration} ${inProgress}` : duration ?? inProgress;
 };
 
 /**

@@ -15,7 +15,7 @@ export class TPLinkCameraManagerEngine extends GenericCameraManagerEngine {
   // TPLink cameras require a registry manager to resolve their PTZ entities,
   // which the constructor below guarantees; the base engine only optionally
   // has one.
-  declare protected _entityRegistryManager: EntityRegistryManager;
+  protected declare _entityRegistryManager: EntityRegistryManager;
 
   constructor(
     entityRegistryManager: EntityRegistryManager,

@@ -149,7 +149,8 @@ export class TimelineController {
   // Need a way to separate when a user clicks (to pan the timeline) vs when a
   // user clicks (to choose a recording (non-event) to play).
   private _pointerHeld:
-    (TimelineEventPropertiesResult & { window?: TimelineWindow }) | null = null;
+    | (TimelineEventPropertiesResult & { window?: TimelineWindow })
+    | null = null;
   private _ignoreClick = false;
 
   constructor(host: LitElement) {
@@ -254,7 +255,7 @@ export class TimelineController {
     const itemID = request.detail.item;
     const media = this._source?.dataset.get(itemID)?.media;
     const cameraConfig = media
-      ? (this._cameraManager?.getStore().getCameraConfigForMedia(media) ?? undefined)
+      ? this._cameraManager?.getStore().getCameraConfigForMedia(media) ?? undefined
       : undefined;
 
     request.detail.hass = this._hass ?? undefined;
@@ -531,7 +532,7 @@ export class TimelineController {
 
     const view = this._viewManagerEpoch?.manager.getView();
     const id = properties.item ? String(properties.item) : null;
-    const item = id ? (this._source?.dataset.get(id) ?? null) : null;
+    const item = id ? this._source?.dataset.get(id) ?? null : null;
 
     if (
       this._ignoreClick ||

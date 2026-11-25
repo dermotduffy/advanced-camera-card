@@ -76,9 +76,7 @@ describe('should handle base action', () => {
 
     vi.mocked(confirm).mockReturnValue(false);
 
-    await expect(async () => await action.execute(api)).rejects.toThrow(
-      /Aborted action/,
-    );
+    expect(async () => await action.execute(api)).rejects.toThrow(/Aborted action/);
   });
 
   it('should not confirm when exempted', async () => {

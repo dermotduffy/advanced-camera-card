@@ -423,7 +423,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
     return mode === 'camera'
       ? getCameraEntityFromConfig(this.cameraConfig)
       : mode === 'entity'
-        ? (this.imageConfig?.entity ?? null)
+        ? this.imageConfig?.entity ?? null
         : null;
   }
 
@@ -482,9 +482,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
       // Avoid restoring the raw configured URL when proxying is enabled, since
       // that would bypass the proxied/signed URL path on visibility changes.
       const configuredURL =
-        !stockOnly && !this.proxyConfig?.enabled
-          ? (this.imageConfig?.url ?? null)
-          : null;
+        !stockOnly && !this.proxyConfig?.enabled ? this.imageConfig?.url ?? null : null;
       this._refImage.value.src = configuredURL ?? defaultImage;
     }
   }

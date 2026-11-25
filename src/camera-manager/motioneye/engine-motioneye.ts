@@ -234,9 +234,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     const getEventsForCamera = async (cameraID: string): Promise<void> => {
       const perCameraQuery = { ...query, cameraIDs: new Set([cameraID]) };
       const cachedResult =
-        (engineOptions?.useCache ?? true)
-          ? this._requestCache.get(perCameraQuery)
-          : null;
+        engineOptions?.useCache ?? true ? this._requestCache.get(perCameraQuery) : null;
       if (cachedResult) {
         output.set(perCameraQuery, cachedResult as EventQueryResults);
         return;
