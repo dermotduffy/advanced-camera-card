@@ -24,6 +24,7 @@ import {
   type BrowseMediaStep,
   type BrowseMediaTarget,
 } from '../../../ha/browse-media/walker';
+import { isMediaWithinDates } from '../../../ha/browse-media/within-dates';
 import { getMediaDownloadPath } from '../../../ha/download';
 import { HA_MEDIA_SOURCE_ROOT } from '../../../ha/media-source';
 import type { HomeAssistant } from '../../../ha/types';
@@ -337,7 +338,15 @@ export class HAFoldersEngine implements FoldersEngine {
     const results =
       this._thumbnailMetadataGenerator.removeThumbnailsOfOtherMedia(browseMedia);
 
-    return getViewItemsFromBrowseMediaArray(results, {
+    // Folders and undated media cannot be placed within a time range, so are
+    // not returned when one is given.
+    const resultsInTimeRange = results.filter(
+      (media) =>
+        (!query.start && !query.end) ||
+        (!media.can_expand && isMediaWithinDates(media, query.start, query.end)),
+    );
+
+    return getViewItemsFromBrowseMediaArray(resultsInTimeRange, {
       folder: query.folder,
       path: query.path,
     });

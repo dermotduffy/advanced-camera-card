@@ -33,8 +33,6 @@ export interface FolderPathLevel {
   folder?: ViewFolder;
 }
 
-// A time range restricts which dated folders are opened to find media. It does
-// not restrict the media found within them.
 export interface FolderQuery
   extends BaseQuery,
     QueryFilters,

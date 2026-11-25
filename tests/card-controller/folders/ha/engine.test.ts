@@ -837,7 +837,7 @@ describe('HAFoldersEngine', () => {
       ]);
     });
 
-    it('should not filter the folders being displayed', async () => {
+    it('should not return folders for a time range', async () => {
       mockDays(days);
       const engine = new HAFoldersEngine(templateManager);
 
@@ -857,7 +857,43 @@ describe('HAFoldersEngine', () => {
         end: new Date('2026-10-10T23:59:59.999'),
       });
 
-      expect(results).toHaveLength(62);
+      expect(results).toEqual([]);
+    });
+
+    it('should return only the media within the time range', async () => {
+      const day = `${DEVICE}/2026-11-12`;
+      const undated = `${DEVICE}/Favorites`;
+      const createClip = (parent: string, title: string): BrowseMedia =>
+        createBrowseMedia({ media_content_id: `${parent}/${title}`, title });
+
+      const directories: Record<string, BrowseMedia[]> = {
+        [ROOT]: [createDirectory(DEVICE)],
+        [DEVICE]: [createDirectory(day), createDirectory(undated)],
+        [day]: [
+          createClip(day, '08:00:00 - 08:10:00'),
+          createClip(day, '10:55:00 - 11:05:00'),
+          createClip(day, '11:30:00.mp4'),
+          createClip(day, '12:30:00 - 12:40:00'),
+        ],
+        [undated]: [createClip(undated, 'Doorbell')],
+      };
+      vi.mocked(homeAssistantWSRequest).mockImplementation(
+        async (_hass, _schema, request) => {
+          const id = String(request.media_content_id);
+          return createDirectory(id, directories[id]);
+        },
+      );
+      const engine = new HAFoldersEngine(templateManager);
+
+      const results = await engine.expandFolder(createHASS(), {
+        ...createDefaultQuery(engine, createRecorderFolder()),
+        start: new Date('2026-11-12T11:00:00'),
+        end: new Date('2026-11-12T12:00:00'),
+      });
+
+      expect(
+        results?.map((item) => ViewItemClassifier.isMedia(item) && item.getContentID()),
+      ).toEqual([`${day}/10:55:00 - 11:05:00`, `${day}/11:30:00.mp4`]);
     });
   });
 

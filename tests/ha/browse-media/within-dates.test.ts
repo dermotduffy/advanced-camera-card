@@ -31,6 +31,17 @@ describe('isMediaWithinDates', () => {
     expect(isMediaWithinDates(createRichBrowseMedia(), rangeStart, rangeEnd)).toBe(true);
   });
 
+  it('should match media without an end date as a single point in time', () => {
+    const media = createRichBrowseMedia({
+      _metadata: { startDate: new Date('2024-11-19T07:30:00') },
+    });
+
+    expect(isMediaWithinDates(media, rangeStart, rangeEnd)).toBe(true);
+    expect(isMediaWithinDates(media, sub(rangeStart, { days: 1 }), rangeStart)).toBe(
+      false,
+    );
+  });
+
   it('should not match when ranges do not overlap', () => {
     expect(
       isMediaWithinDates(
