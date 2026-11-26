@@ -95,9 +95,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public locked?: boolean;
 
-  // When true, suppress the loading snapshot (show_image_during_load). Set on a
-  // media reload after a failure so the snapshot doesn't flash back in on every
-  // retry; a first load still shows it.
+  // When true, suppress the loading image (show_image_during_load). Set while
+  // the camera's failed media is being retried, so the loading image doesn't
+  // flash back in on every retry.
   @property({ attribute: false })
   public suppressLoadingImage = false;
 

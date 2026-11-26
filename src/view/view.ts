@@ -9,12 +9,6 @@ import type { UnifiedQuery } from './unified-query';
 
 declare module 'view' {
   interface ViewContext {
-    // Per-target media retry epoch. Keyed by the universal target ID returned
-    // by `getViewTargetID` (camera ID / media ID / image sentinel). When bumped
-    // for a target, consumers rendering that target tear down and recreate
-    // their media element to retry loading.
-    mediaEpoch?: Record<string, number>;
-
     loading?: {
       query?: unknown;
     };

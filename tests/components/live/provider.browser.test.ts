@@ -1,7 +1,10 @@
 import type { LitElement } from 'lit';
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 
+import { MEDIA_UNAVAILABLE_REASONS } from '../../../src/card-controller/issues/issues/media-unavailable';
 import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../src/components-lib/live/liveness/detectors/entity-availability';
+import { MEDIA_LOADING_TIMEOUT_SECONDS } from '../../../src/components-lib/media-load-watchdog-controller';
+import { resolveMediaUnavailableIssue } from '../../../src/components-lib/media-unavailable-issue';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import type { DataURL } from '../../../src/types';
 import { aspectRatioToString } from '../../../src/utils/basic';
@@ -16,6 +19,7 @@ import {
   CAMERA_ENTITY,
   createGenericCameraHASS,
   createStillImageCardConfig,
+  getBlockNotificationText,
   getStatusBarStrings,
 } from '../../browser/test-utils';
 
@@ -234,6 +238,69 @@ describe('AdvancedCameraCardLiveProvider', () => {
       expect(card.events.getEntries('advanced-camera-card:media:loaded')).toEqual([]);
     },
   );
+
+  describe('should hide the loading image only while a failed camera is retried', () => {
+    const RETRY_SECONDS = 1;
+
+    // The `ha` provider's player never loads in the harness, so its load times
+    // out and the card retries it by rebuilding the provider.
+    const mountAndRetry = async (): Promise<{
+      card: MountedCard;
+      provider: LitElement;
+    }> => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const card = await MountedCardFactory.createFromSource(
+        createStillImageCardConfig({
+          cameras: [
+            {
+              camera_entity: CAMERA_ENTITY,
+              live_provider: 'ha',
+              image: { mode: 'url', url: IMAGE_URL, refresh_seconds: 0 },
+            },
+          ],
+          live: { show_image_during_load: true },
+          view: { issues: { retry_seconds: RETRY_SECONDS } },
+        }),
+        createGenericCameraHASS(),
+      );
+      await card.waitForRender(() => getImage(card), 'the loading image');
+      const original = await getProvider(card);
+
+      await card.advanceSeconds(MEDIA_LOADING_TIMEOUT_SECONDS);
+      await card.advanceSeconds(
+        MEDIA_UNAVAILABLE_REASONS.not_loading.rebuildGraceSeconds + RETRY_SECONDS,
+      );
+
+      const provider = await card.waitForRender(() => {
+        const current = deepQuery<LitElement>(
+          card.card,
+          'advanced-camera-card-live-provider',
+        );
+        return current && current !== original ? current : null;
+      }, 'the provider being rebuilt to retry');
+      await provider.updateComplete;
+
+      return { card, provider };
+    };
+
+    it('should hide the loading image while the camera is retried', async () => {
+      const { provider } = await mountAndRetry();
+
+      expect(getBlockNotificationText(provider)).toContain(
+        'Waiting for live stream to load',
+      );
+      expect(deepQuery(provider, 'advanced-camera-card-live-image')).toBeNull();
+    });
+
+    it('should show the loading image again after recovering from a previous error', async () => {
+      const { card, provider } = await mountAndRetry();
+
+      resolveMediaUnavailableIssue(provider, { targetID: CAMERA_ENTITY });
+
+      await card.waitForRender(() => getImage(card), 'the loading image showing again');
+    });
+  });
 
   describe('should show the date of a preserved frame in the status bar', () => {
     it('should show the date while the frame is the loading image of another provider', async () => {

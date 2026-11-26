@@ -4,6 +4,7 @@ import type { CardController } from '../../../../src/card-controller/controller'
 import {
   MEDIA_UNAVAILABLE_REASONS,
   MediaUnavailableIssue,
+  type MediaRetryState,
 } from '../../../../src/card-controller/issues/issues/media-unavailable';
 import type { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../../src/view/target-id';
@@ -179,7 +180,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-1': 1 },
+        mediaRetry: { 'camera-1': { epoch: 1, retrying: true } },
       });
     });
   });
@@ -261,6 +262,76 @@ describe('MediaUnavailableIssue', () => {
 
         expect(issue.hasIssue()).toBe(!cleared);
       });
+    });
+  });
+
+  describe('ending a retry', () => {
+    const createAPIWithRetry = (
+      mediaRetry: Record<string, MediaRetryState>,
+    ): CardController =>
+      createAPIWithView(
+        createView({ view: 'live', camera: 'camera-1', context: { mediaRetry } }),
+      );
+
+    it('should stop marking a target as retrying once its failure is resolved', () => {
+      const api = createAPIWithRetry({ 'camera-1': { epoch: 2, retrying: true } });
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.resolve({ targetID: 'camera-1' });
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaRetry: { 'camera-1': { epoch: 2, retrying: false } },
+      });
+    });
+
+    it('should keep marking a target as retrying while its failure remains', () => {
+      const api = createAPIWithRetry({ 'camera-1': { epoch: 1, retrying: true } });
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.resolve({ targetID: 'camera-1', reason: 'not_loading' });
+
+      expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
+    });
+
+    it('should not change the view for a resolved target that is not being retried', () => {
+      const api = createAPIWithRetry({ 'camera-1': { epoch: 1, retrying: false } });
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.resolve({ targetID: 'camera-1' });
+
+      expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
+    });
+
+    it('should stop marking every failed target as retrying on reset', () => {
+      const api = createAPIWithRetry({
+        'camera-1': { epoch: 1, retrying: true },
+        'camera-2': { epoch: 1, retrying: true },
+      });
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.trigger({ targetID: 'camera-2', reason: 'stalled' });
+      issue.reset();
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaRetry: {
+          'camera-1': { epoch: 1, retrying: false },
+          'camera-2': { epoch: 1, retrying: false },
+        },
+      });
+    });
+
+    it('should not change the view on reset without a view', () => {
+      const api = createAPIWithView(null);
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.reset();
+
+      expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
     });
   });
 
@@ -434,7 +505,10 @@ describe('MediaUnavailableIssue', () => {
 
       expect(issue.retry()).toBe(false);
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-1': 1, 'camera-2': 1 },
+        mediaRetry: {
+          'camera-1': { epoch: 1, retrying: true },
+          'camera-2': { epoch: 1, retrying: true },
+        },
       });
     });
 
@@ -447,7 +521,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { [IMAGE_VIEW_TARGET_ID_SENTINEL]: 1 },
+        mediaRetry: { [IMAGE_VIEW_TARGET_ID_SENTINEL]: { epoch: 1, retrying: true } },
       });
     });
 
@@ -456,7 +530,12 @@ describe('MediaUnavailableIssue', () => {
         createView({
           view: 'live',
           camera: 'camera-1',
-          context: { mediaEpoch: { 'camera-1': 5, 'camera-2': 3 } },
+          context: {
+            mediaRetry: {
+              'camera-1': { epoch: 5, retrying: false },
+              'camera-2': { epoch: 3, retrying: false },
+            },
+          },
         }),
       );
       const issue = new MediaUnavailableIssue(api);
@@ -466,7 +545,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-1': 6, 'camera-2': 3 },
+        mediaRetry: { 'camera-1': { epoch: 6, retrying: true } },
       });
     });
 
@@ -523,7 +602,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-1': 1 },
+        mediaRetry: { 'camera-1': { epoch: 1, retrying: true } },
       });
     });
 
@@ -536,7 +615,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-1': 1 },
+        mediaRetry: { 'camera-1': { epoch: 1, retrying: true } },
       });
     });
 
@@ -549,7 +628,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry(true);
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-1': 1 },
+        mediaRetry: { 'camera-1': { epoch: 1, retrying: true } },
       });
     });
 
@@ -563,7 +642,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-2': 1 },
+        mediaRetry: { 'camera-2': { epoch: 1, retrying: true } },
       });
     });
 
@@ -580,7 +659,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-1': 1 },
+        mediaRetry: { 'camera-1': { epoch: 1, retrying: true } },
       });
     });
 
@@ -594,7 +673,7 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-        mediaEpoch: { 'camera-1': 1 },
+        mediaRetry: { 'camera-1': { epoch: 1, retrying: true } },
       });
     });
 

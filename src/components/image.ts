@@ -84,7 +84,7 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
 
   private _getMediaEpoch(): number {
     const view = this.viewManagerEpoch?.manager.getView();
-    return view?.context?.mediaEpoch?.[IMAGE_VIEW_TARGET_ID_SENTINEL] ?? 0;
+    return view?.context?.mediaRetry?.[IMAGE_VIEW_TARGET_ID_SENTINEL]?.epoch ?? 0;
   }
 
   // Returns the reason no image can be shown at all, or null when one can.
