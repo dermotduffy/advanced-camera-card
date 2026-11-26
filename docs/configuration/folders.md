@@ -312,29 +312,31 @@ matchers:
 
 ### Timeline and dated folders
 
-The [timeline](./timeline.md) only needs media from around the time it is
-showing. Folders with a date parsed from their own title (see the [`date`
+The [timeline](./timeline.md) only needs media surrounding the time it is
+showing. Folders whose titles are parsed as dates (see the [`date`
 parser](#parser-date-startdate)) are only opened when they may contain that
-media, with others opened as the timeline is panned. This may substantially
-reduce loading times when there are many folders (e.g. one per day).
+media, with others opened as the timeline is panned through time. A title may
+hold only part of a date, in which case the rest is taken from the folders above
+it (e.g. a folder `25` inside `2026/11` is opened when the timeline is panned
+through `2026/11/25`).
 
 A dated folder is assumed to contain media that starts between its own date and
-the date of the next folder alongside it. The folder before that is also opened,
-since its last media may run into the time being shown (e.g. a recording that
-crosses midnight).
+the date of the next folder alongside it. Media is also assumed to last at most
+24 hours, so a folder is opened if its media _may_ have started up to 24 hours
+before the time being shown (e.g. a recording that crosses midnight).
 
-Folders without a date of their own are always opened. [Matchers](#matchers)
-still apply, so a `date` matcher with `since` limits how far back the timeline
-can show.
+Folders whose titles have no date are always opened, even inside a dated folder,
+since they may still hold dated media to show on the timeline.
+[Matchers](#matchers) still apply, so a `date` matcher with `since` limits how
+far back the timeline can show.
 
-Folders, and media without a date, cannot be placed on the timeline, so the
-timeline does not show them.
+Folders themselves (as distinct from the media within them), and media without
+any date, cannot be placed on the timeline, and are omitted.
 
 > [!IMPORTANT]
-> If the date parsed from a folder does not represent when its media starts, that
-> media may be missing from the timeline. If a title has only part of a date
-> (e.g. `11-12` in a folder named `2026`), parse the rest from the folders above
-> it.
+> For media to be shown on the timeline, ensure each folder's title (together
+> with the titles of the folders above it) give the date its media starts from,
+> and that no single media item lasts longer than 24 hours.
 
 ### Understanding Media Source IDs and "parent folders"
 

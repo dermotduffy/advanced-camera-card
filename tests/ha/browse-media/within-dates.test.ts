@@ -31,7 +31,7 @@ describe('isMediaWithinDates', () => {
     expect(isMediaWithinDates(createRichBrowseMedia(), rangeStart, rangeEnd)).toBe(true);
   });
 
-  it('should match media without an end date as a single point in time', () => {
+  it('should match media without an end date only when it starts within the time range', () => {
     const media = createRichBrowseMedia({
       _metadata: { startDate: new Date('2024-11-19T07:30:00') },
     });

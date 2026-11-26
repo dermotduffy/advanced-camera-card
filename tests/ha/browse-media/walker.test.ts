@@ -256,7 +256,7 @@ describe('BrowseMediaWalker', () => {
     });
   });
 
-  it('should filter the matching children of each parent separately', async () => {
+  it("should apply the children filter to each folder's contents separately", async () => {
     const createParent = (id: string): BrowseMedia =>
       createBrowseMedia({
         media_content_id: id,
@@ -273,6 +273,7 @@ describe('BrowseMediaWalker', () => {
       {
         targets: ['a', 'b'],
         matcher: (media) => !media.media_content_id.endsWith('unmatched'),
+
         // Keep only the last child.
         childrenFilter: (children) => children.slice(-1),
       },

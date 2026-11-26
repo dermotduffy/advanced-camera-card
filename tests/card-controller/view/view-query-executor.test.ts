@@ -633,7 +633,7 @@ describe('ViewQueryExecutor', () => {
         return api;
       };
 
-      it('should search for folder media from the start of the timeline window', async () => {
+      it("should first look for folder media within the timeline's window", async () => {
         const api = createFolderTimelineAPI();
         const media = new TestViewMedia({ startTime: new Date('2026-11-12T11:30:00') });
         vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue([media]);
@@ -657,7 +657,7 @@ describe('ViewQueryExecutor', () => {
         expect(view.queryResults?.getResults()).toEqual([media]);
       });
 
-      it('should not set a query without media to show', async () => {
+      it('should not set a query when there is no media to query', async () => {
         const api = createPopulatedAPI();
         vi.mocked(api.getCameraManager).mockReturnValue(
           createCameraManager(createStore([{ cameraID: 'camera.office' }])),

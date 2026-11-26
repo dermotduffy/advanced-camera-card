@@ -294,7 +294,7 @@ export class HAFoldersEngine implements FoldersEngine {
         {
           targets,
           metadataGenerator: (media, parent) =>
-            this._metadataGenerator.generate(media, parent, nextLevel?.parsers),
+            this._metadataGenerator.generate(media, nextLevel?.parsers, parent),
           childrenMetadataUpdater: (children) =>
             this._thumbnailMetadataGenerator.generate(
               hass,
@@ -311,12 +311,18 @@ export class HAFoldersEngine implements FoldersEngine {
                 foldersOnly: !isLastLevel,
                 conditionState,
               }),
-            // The last level is what is displayed and is not opened, so there
-            // is nothing to be saved by filtering it.
+            // Skip opening folders that cannot hold media in the desired time
+            // range. The last level is never walked, so is filtered below
+            // instead.
             ...(!isLastLevel && {
               childrenFilter: (folders) =>
                 filterFoldersByTimeRange(folders, query, (folder) =>
-                  this._getOwnStartDate(folder, nextLevel.parsers),
+                  // A date inherited from the parent is when the parent starts,
+                  // not necessarily when this folder's contents start, so a
+                  // folder with only the date from a parent counts as undated
+                  // and is always opened to fetch contents and directly check
+                  // their dates.
+                  this._getUninheritedStartDate(folder, nextLevel.parsers),
                 ),
             }),
             advance: (targets) => (isLastLevel ? [] : generateStep(targets)),
@@ -339,7 +345,7 @@ export class HAFoldersEngine implements FoldersEngine {
       this._thumbnailMetadataGenerator.removeThumbnailsOfOtherMedia(browseMedia);
 
     // Folders and undated media cannot be placed within a time range, so are
-    // not returned when one is given.
+    // not returned when one is specified.
     const resultsInTimeRange = results.filter(
       (media) =>
         (!query.start && !query.end) ||
@@ -352,18 +358,22 @@ export class HAFoldersEngine implements FoldersEngine {
     });
   }
 
-  // Get the date parsed from a folder's own title, since a date inherited from
-  // its parent does not indicate when its contents start.
-  private _getOwnStartDate(
+  // Get the start date the parsers find in the folder, without inheriting
+  // anything from the parent. A title may hold only part of a date (e.g. a day
+  // folder titled `31`), so the rest of the date comes from the start date
+  // already in the folder's metadata, which the walk built using the parent. A
+  // title with no date at all still inherits nothing.
+  private _getUninheritedStartDate(
     folder: RichBrowseMedia<BrowseMediaMetadata>,
     parsers?: Parser[],
   ): Date | null {
-    const hasOwnStartDate = !!this._metadataGenerator.generate(
-      folder,
-      undefined,
-      parsers,
-    )?.startDate;
-    return (hasOwnStartDate && folder._metadata?.startDate) || null;
+    return (
+      this._metadataGenerator.generateUninherited(
+        folder,
+        parsers,
+        folder._metadata?.startDate,
+      )?.startDate ?? null
+    );
   }
 
   public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {

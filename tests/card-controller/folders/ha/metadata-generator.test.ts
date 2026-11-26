@@ -24,7 +24,7 @@ describe('MetadataGenerator', () => {
       ]);
 
       expect(
-        generator.generate(browseMedia, undefined, [formatlessDateParser])?.startDate,
+        generator.generate(browseMedia, [formatlessDateParser])?.startDate,
       ).toBeUndefined();
     });
 
@@ -32,15 +32,15 @@ describe('MetadataGenerator', () => {
       const generator = new MetadataGenerator();
 
       await generator.prepare([formatlessDateParser]);
-      expect(
-        generator.generate(browseMedia, undefined, [formatlessDateParser])?.startDate,
-      ).toEqual(expectedDate);
+      expect(generator.generate(browseMedia, [formatlessDateParser])?.startDate).toEqual(
+        expectedDate,
+      );
 
       // Re-preparing should nothing.
       await generator.prepare([formatlessDateParser]);
-      expect(
-        generator.generate(browseMedia, undefined, [formatlessDateParser])?.startDate,
-      ).toEqual(expectedDate);
+      expect(generator.generate(browseMedia, [formatlessDateParser])?.startDate).toEqual(
+        expectedDate,
+      );
     });
   });
 
@@ -62,9 +62,7 @@ describe('MetadataGenerator', () => {
       const generator = new MetadataGenerator();
       await generator.prepare([goodParser, badParser]);
 
-      expect(
-        generator.generate(browseMedia, undefined, [goodParser, badParser]),
-      ).toEqual({
+      expect(generator.generate(browseMedia, [goodParser, badParser])).toEqual({
         startDate: expectedDate,
       });
     });
@@ -76,8 +74,7 @@ describe('MetadataGenerator', () => {
           await generator.prepare([formatlessDateParser]);
 
           expect(
-            generator.generate(browseMedia, undefined, [formatlessDateParser])
-              ?.startDate,
+            generator.generate(browseMedia, [formatlessDateParser])?.startDate,
           ).toEqual(expectedDate);
         });
 
@@ -88,9 +85,9 @@ describe('MetadataGenerator', () => {
           const generator = new MetadataGenerator();
           await generator.prepare([parser]);
 
-          expect(
-            generator.generate(browseMedia, undefined, [parser])?.startDate,
-          ).toEqual(expectedDate);
+          expect(generator.generate(browseMedia, [parser])?.startDate).toEqual(
+            expectedDate,
+          );
         });
 
         it('should not parse when regexp fails to match', async () => {
@@ -101,9 +98,7 @@ describe('MetadataGenerator', () => {
           const generator = new MetadataGenerator();
           await generator.prepare([parser]);
 
-          expect(
-            generator.generate(browseMedia, undefined, [parser])?.startDate,
-          ).toBeUndefined();
+          expect(generator.generate(browseMedia, [parser])?.startDate).toBeUndefined();
         });
 
         it('should fail to generate start date without a date format', async () => {
@@ -114,8 +109,7 @@ describe('MetadataGenerator', () => {
           await generator.prepare([formatlessDateParser]);
 
           expect(
-            generator.generate(badBrowseMedia, undefined, [formatlessDateParser])
-              ?.startDate,
+            generator.generate(badBrowseMedia, [formatlessDateParser])?.startDate,
           ).toBeUndefined();
         });
 
@@ -127,8 +121,7 @@ describe('MetadataGenerator', () => {
           await generator.prepare([formatlessDateParser]);
 
           expect(
-            generator.generate(badBrowseMedia, undefined, [formatlessDateParser])
-              ?.startDate,
+            generator.generate(badBrowseMedia, [formatlessDateParser])?.startDate,
           ).toBeUndefined();
         });
 
@@ -147,9 +140,11 @@ describe('MetadataGenerator', () => {
           await generator.prepare([formatlessDateParser]);
 
           expect(
-            generator.generate(childBrowseMedia, parentBrowseMedia, [
-              formatlessDateParser,
-            ])?.startDate,
+            generator.generate(
+              childBrowseMedia,
+              [formatlessDateParser],
+              parentBrowseMedia,
+            )?.startDate,
           ).toEqual(new Date(2025, 4, 26, 22, 42));
         });
 
@@ -167,9 +162,11 @@ describe('MetadataGenerator', () => {
           await generator.prepare([formatlessDateParser]);
 
           expect(
-            generator.generate(childBrowseMedia, parentBrowseMedia, [
-              formatlessDateParser,
-            ])?.thumbnailOverride,
+            generator.generate(
+              childBrowseMedia,
+              [formatlessDateParser],
+              parentBrowseMedia,
+            )?.thumbnailOverride,
           ).toBeUndefined();
         });
       });
@@ -184,9 +181,9 @@ describe('MetadataGenerator', () => {
           const generator = new MetadataGenerator();
           await generator.prepare([dateParser]);
 
-          expect(
-            generator.generate(browseMedia, undefined, [dateParser])?.startDate,
-          ).toEqual(expectedDate);
+          expect(generator.generate(browseMedia, [dateParser])?.startDate).toEqual(
+            expectedDate,
+          );
         });
 
         it('should fail to generate start date with a date formater without a regexp', async () => {
@@ -198,7 +195,7 @@ describe('MetadataGenerator', () => {
           await generator.prepare([dateParser]);
 
           expect(
-            generator.generate(browseMedia, undefined, [dateParser])?.startDate,
+            generator.generate(browseMedia, [dateParser])?.startDate,
           ).toBeUndefined();
         });
 
@@ -222,7 +219,7 @@ describe('MetadataGenerator', () => {
 
           // The parsed date combines 20250507 (May 7, 2025) and 171758 (17:17:58)
           // interpreted in local time
-          expect(generator.generate(browseMedia, undefined, parsers)?.startDate).toEqual(
+          expect(generator.generate(browseMedia, parsers)?.startDate).toEqual(
             new Date(2025, 4, 7, 17, 17, 58),
           );
         });
@@ -233,9 +230,7 @@ describe('MetadataGenerator', () => {
           await generator.prepare([parser]);
 
           expect(
-            generator.generate(createBrowseMedia({ title: '22:42' }), undefined, [
-              parser,
-            ]),
+            generator.generate(createBrowseMedia({ title: '22:42' }), [parser]),
           ).not.toHaveProperty('endDate');
         });
 
@@ -258,7 +253,7 @@ describe('MetadataGenerator', () => {
           await generator.prepare([parser]);
 
           expect(
-            generator.generate(childBrowseMedia, parentBrowseMedia, [parser])?.startDate,
+            generator.generate(childBrowseMedia, [parser], parentBrowseMedia)?.startDate,
           ).toEqual(new Date(2025, 4, 26, 22, 42));
         });
       });
@@ -286,8 +281,8 @@ describe('MetadataGenerator', () => {
         await generator.prepare(generatorParsers);
         return generator.generate(
           createBrowseMedia({ title }),
-          dayFolder,
           generatorParsers,
+          dayFolder,
         );
       };
 
@@ -328,15 +323,13 @@ describe('MetadataGenerator', () => {
         await generator.prepare([parser]);
 
         expect(
-          generator.generate(
-            createBrowseMedia({ title: '2026-11-09 08:26:53' }),
-            undefined,
-            [parser],
-          ),
+          generator.generate(createBrowseMedia({ title: '2026-11-09 08:26:53' }), [
+            parser,
+          ]),
         ).toEqual({ endDate: new Date(2026, 10, 9, 8, 26, 53) });
       });
 
-      it('should roll an end date before the start date over midnight', async () => {
+      it('should move an end time that is earlier than the start time to the next day', async () => {
         expect(await generate('22:18:51 - 00:00:00')).toEqual({
           startDate: new Date(2026, 10, 9, 22, 18, 51),
           endDate: new Date(2026, 10, 10, 0, 0, 0),
@@ -356,9 +349,120 @@ describe('MetadataGenerator', () => {
         await generator.prepare([parser]);
 
         expect(
-          generator.generate(createBrowseMedia({ title: '05:54:10' }), parent, [parser]),
+          generator.generate(createBrowseMedia({ title: '05:54:10' }), [parser], parent),
         ).toEqual({ startDate: new Date(2026, 10, 9, 5, 54, 10) });
       });
+
+      it("should move an end time that is earlier than the parent folder's start time to the next day", () => {
+        const parent = createRichBrowseMedia({
+          title: '22',
+          _metadata: { startDate: new Date(2026, 10, 9, 22) },
+        });
+        const parser: Parser = { type: 'enddate', format: 'HH:mm:ss' };
+
+        expect(
+          new MetadataGenerator().generate(
+            createBrowseMedia({ title: '00:30:00' }),
+            [parser],
+            parent,
+          ),
+        ).toEqual({
+          startDate: new Date(2026, 10, 9, 22),
+          endDate: new Date(2026, 10, 10, 0, 30),
+        });
+      });
+    });
+
+    it("should leave the start date empty, rather than use the parent's, when the media's start date cannot be read", () => {
+      const parent = createRichBrowseMedia({
+        title: '2026-11-09',
+        _metadata: { startDate: new Date(2026, 10, 9) },
+      });
+      const parser: Parser = { type: 'startdate', format: 'HH:mm:ss' };
+
+      expect(
+        new MetadataGenerator().generate(
+          createBrowseMedia({ title: 'not a time' }),
+          [parser],
+          parent,
+        )?.startDate,
+      ).toBeUndefined();
+    });
+  });
+
+  describe('generateUninherited', () => {
+    it('should generate a start date from the media', () => {
+      const parser: Parser = { type: 'date', format: 'yyyy-MM-dd' };
+
+      expect(
+        new MetadataGenerator().generateUninherited(
+          createBrowseMedia({ title: '2026-10-31' }),
+          [parser],
+        ),
+      ).toEqual({ startDate: new Date(2026, 9, 31) });
+    });
+
+    it('should fill in the parts of a date the parsers do not find from the base date', () => {
+      expect(
+        new MetadataGenerator().generateUninherited(
+          createBrowseMedia({ title: '31' }),
+          [{ type: 'date', format: 'dd' }],
+          new Date(2026, 9, 1),
+        ),
+      ).toEqual({ startDate: new Date(2026, 9, 31) });
+    });
+
+    it('should combine a date and a time found by separate parsers', () => {
+      const parsers: Parser[] = [
+        { type: 'date', regexp: '^\\d{4}-\\d{2}-\\d{2}', format: 'yyyy-MM-dd' },
+        { type: 'date', regexp: '(?<value>\\d{2}:\\d{2})$', format: 'HH:mm' },
+      ];
+
+      expect(
+        new MetadataGenerator().generateUninherited(
+          createBrowseMedia({ title: '2026-10-31 22:18' }),
+          parsers,
+        ),
+      ).toEqual({ startDate: new Date(2026, 9, 31, 22, 18) });
+    });
+
+    it('should move an end time that is earlier than the start time to the next day, with no parent', () => {
+      const parsers: Parser[] = [
+        { type: 'startdate', regexp: '^[0-9:]{8}', format: 'HH:mm:ss' },
+        { type: 'enddate', regexp: '[0-9:]{8}$', format: 'HH:mm:ss' },
+      ];
+
+      expect(
+        new MetadataGenerator().generateUninherited(
+          createBrowseMedia({ title: '22:18:51 - 00:50:06' }),
+          parsers,
+          new Date(2026, 9, 31),
+        ),
+      ).toEqual({
+        startDate: new Date(2026, 9, 31, 22, 18, 51),
+        endDate: new Date(2026, 10, 1, 0, 50, 6),
+      });
+    });
+
+    it('should generate nothing from media without a date', () => {
+      const parser: Parser = { type: 'date', regexp: '^\\d+$', format: 'dd' };
+
+      expect(
+        new MetadataGenerator().generateUninherited(
+          createBrowseMedia({ title: 'Favorites' }),
+          [parser],
+          new Date(2026, 9, 1),
+        ),
+      ).toBeNull();
+    });
+
+    it('should ignore parsers that are not for dates', () => {
+      expect(
+        new MetadataGenerator().generateUninherited(
+          createBrowseMedia({ title: '2026-10-31' }),
+          [{ type: 'thumbnail' }],
+        ),
+      ).toBeNull();
     });
   });
 });

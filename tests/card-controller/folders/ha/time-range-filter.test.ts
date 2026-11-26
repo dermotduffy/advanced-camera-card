@@ -70,7 +70,7 @@ describe('filterFoldersByTimeRange', () => {
     [
       'a range after every folder has started',
       { start: '2026-11-20T00:00:00', end: '2026-11-21T00:00:00' },
-      ['2026-11-11', '2026-11-12'],
+      ['2026-11-12'],
     ],
     [
       'a range without an end',
@@ -82,20 +82,36 @@ describe('filterFoldersByTimeRange', () => {
       { end: '2026-11-09T10:00:00' },
       ['2026-11-08', '2026-11-09'],
     ],
-  ])('should include the correct folders for %s', (_name, timeRange, expected) => {
-    expect(filter(days, timeRange)).toEqual(expected);
-  });
+  ])(
+    'should include the folders that may contain media for %s',
+    (_name, timeRange, expected) => {
+      expect(filter(days, timeRange)).toEqual(expected);
+    },
+  );
 
-  it('should include folders up to the next folder across a gap', () => {
+  it('should treat a folder as covering the days until the next folder, even across missing days', () => {
     expect(
       filter(['2026-11-01', '2026-11-03', '2026-11-12'], {
         start: '2026-11-08T00:00:00',
         end: '2026-11-09T00:00:00',
       }),
-    ).toEqual(['2026-11-01', '2026-11-03']);
+    ).toEqual(['2026-11-03']);
   });
 
-  it('should include every folder with the same date', () => {
+  it('should include an earlier folder only if its media may have started within 24 hours before the time range', () => {
+    const folders = ['2026-11-08', '2026-11-09'];
+
+    // Media from 2026-11-08 starts before 2026-11-09, so may run until
+    // 2026-11-10 00:00 at the latest.
+    expect(
+      filter(folders, { start: '2026-11-09T23:00:00', end: '2026-11-10T01:00:00' }),
+    ).toEqual(['2026-11-08', '2026-11-09']);
+    expect(
+      filter(folders, { start: '2026-11-10T00:00:00', end: '2026-11-10T01:00:00' }),
+    ).toEqual(['2026-11-09']);
+  });
+
+  it('should include every folder that shares an included date', () => {
     expect(
       filter(
         [

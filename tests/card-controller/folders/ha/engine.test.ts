@@ -1,4 +1,4 @@
-import { format, subDays } from 'date-fns';
+import { format, getDaysInMonth, subDays } from 'date-fns';
 import {
   afterAll,
   afterEach,
@@ -591,7 +591,7 @@ describe('HAFoldersEngine', () => {
     });
   });
 
-  describe('should expand folder within a time range', () => {
+  describe('with a time range', () => {
     const ROOT = 'media-source://recorder';
     const DEVICE = `${ROOT}/device`;
 
@@ -605,7 +605,8 @@ describe('HAFoldersEngine', () => {
 
     // Serve a media source from the directories given, with all other
     // directories containing a single recording that crosses midnight. Returns
-    // a function to get the IDs opened below the device.
+    // a function that lists, in sorted order, every folder opened inside
+    // `DEVICE`, as its path relative to `DEVICE` (e.g. `2026-11-01/11`).
     const mockMediaSource = (
       directories: Record<string, string[]>,
     ): (() => string[]) => {
@@ -696,14 +697,15 @@ describe('HAFoldersEngine', () => {
         end: new Date('2026-10-10T23:59:59.999'),
       });
 
-      // Includes the prior day, as its recording crosses midnight.
+      // Includes the prior day, as its media may start within 24 hours before
+      // the time range (its recording crosses midnight into it).
       expect(getOpened()).toEqual(['2026-10-09', '2026-10-10']);
       expect(
         results?.map((item) => ViewItemClassifier.isMedia(item) && item.getEndTime()),
       ).toEqual([new Date('2026-10-11T00:50:06'), new Date('2026-10-10T00:50:06')]);
     });
 
-    it('should open the most recent folders when they precede the time range', async () => {
+    it('should open only the most recent folder when every folder starts before the time range', async () => {
       const getOpened = mockDays(['2026-11-01', '2026-11-02', '2026-11-03']);
       const engine = new HAFoldersEngine(templateManager);
 
@@ -712,10 +714,10 @@ describe('HAFoldersEngine', () => {
         start: new Date('2026-11-12T11:00:00'),
       });
 
-      expect(getOpened()).toEqual(['2026-11-02', '2026-11-03']);
+      expect(getOpened()).toEqual(['2026-11-03']);
     });
 
-    it('should compare folders only to others with the same parent', async () => {
+    it('should decide which folders to open within each parent folder separately', async () => {
       const getOpened = mockMediaSource({
         [ROOT]: ['device'],
         [DEVICE]: ['a', 'b'],
@@ -743,7 +745,6 @@ describe('HAFoldersEngine', () => {
 
       expect(getOpened()).toEqual([
         'a',
-        'a/2026-11-02',
         'a/2026-11-03',
         'b',
         'b/2026-11-11',
@@ -764,7 +765,7 @@ describe('HAFoldersEngine', () => {
       expect(getOpened()).toEqual(['2026-11-01', 'Favorites']);
     });
 
-    it('should open folders that only inherit a date', async () => {
+    it('should open folders whose name has no date, even inside a dated folder', async () => {
       const getOpened = mockMediaSource({
         [DEVICE]: ['2026-11-01'],
         [`${DEVICE}/2026-11-01`]: ['10', '11', '12', 'Favorites'],
@@ -789,16 +790,106 @@ describe('HAFoldersEngine', () => {
         end: new Date('2026-11-01T12:45:00'),
       });
 
+      // '10' may hold media running for up to 24 hours, so into the time range.
       // 'Favorites' inherits 2026-11-01T00:00:00 from its parent.
       expect(getOpened()).toEqual([
         '2026-11-01',
+        '2026-11-01/10',
         '2026-11-01/11',
         '2026-11-01/12',
         '2026-11-01/Favorites',
       ]);
     });
 
-    it('should not open folders that do not match', async () => {
+    it("should treat a folder named only by its day as that day of the parent folder's month", async () => {
+      const getOpened = mockMediaSource({
+        [DEVICE]: ['10'],
+        [`${DEVICE}/10`]: ['29', '30', '31'],
+      });
+      const engine = new HAFoldersEngine(templateManager);
+
+      // The clock is in November, which has no 31st.
+      await engine.expandFolder(createHASS(), {
+        ...createDefaultQuery(
+          engine,
+          createFolder({
+            ha: {
+              path: [
+                { id: DEVICE },
+                { parsers: [{ type: 'date', format: 'MM' }] },
+                { parsers: [{ type: 'date', format: 'dd' }] },
+                {},
+              ],
+            },
+          }),
+        ),
+        start: new Date('2026-10-29T10:00:00'),
+        end: new Date('2026-10-29T11:00:00'),
+      });
+
+      expect(getOpened()).toEqual(['10', '10/29']);
+    });
+
+    it("should open the previous day's folder when it is in a different month and year", async () => {
+      const months: Record<string, string[]> = {
+        '2025': ['10', '11', '12'],
+        '2026': ['01', '02'],
+      };
+      const directories: Record<string, string[]> = {
+        [DEVICE]: Object.keys(months),
+      };
+      for (const [year, yearMonths] of Object.entries(months)) {
+        directories[`${DEVICE}/${year}`] = yearMonths;
+        for (const month of yearMonths) {
+          directories[`${DEVICE}/${year}/${month}`] = Array.from(
+            { length: getDaysInMonth(new Date(Number(year), Number(month) - 1)) },
+            (_, index) => String(index + 1).padStart(2, '0'),
+          );
+        }
+      }
+      const getOpened = mockMediaSource(directories);
+      const engine = new HAFoldersEngine(templateManager);
+
+      const results = await engine.expandFolder(createHASS(), {
+        ...createDefaultQuery(
+          engine,
+          createFolder({
+            ha: {
+              path: [
+                { id: DEVICE },
+                { parsers: [{ type: 'date', format: 'yyyy' }] },
+                { parsers: [{ type: 'date', format: 'MM' }] },
+                { parsers: [{ type: 'date', format: 'dd' }] },
+                {
+                  parsers: [
+                    { type: 'startdate', regexp: '^[0-9:]{8}', format: 'HH:mm:ss' },
+                    { type: 'enddate', regexp: '[0-9:]{8}$', format: 'HH:mm:ss' },
+                  ],
+                },
+              ],
+            },
+          }),
+        ),
+        start: new Date('2026-01-01T00:10:00'),
+        end: new Date('2026-01-01T00:40:00'),
+      });
+
+      // Only Dec 31 and Jan 1 may hold media starting within 24 hours before
+      // the time range, and Dec 31's recording crosses midnight into it.
+      expect(getOpened()).toEqual([
+        '2025',
+        '2025/12',
+        '2025/12/31',
+        '2026',
+        '2026/01',
+        '2026/01/01',
+      ]);
+      expect(
+        results?.map((item) => ViewItemClassifier.isMedia(item) && item.getEndTime()),
+      ).toEqual([new Date('2026-01-01T00:50:06')]);
+    });
+
+    it('should not open folders that the matchers exclude', async () => {
       const getOpened = mockDays(days);
       const engine = new HAFoldersEngine(templateManager);
 
@@ -837,7 +928,7 @@ describe('HAFoldersEngine', () => {
       ]);
     });
 
-    it('should not return folders for a time range', async () => {
+    it('should not return folders for a time range, even one dated within it', async () => {
       mockDays(days);
       const engine = new HAFoldersEngine(templateManager);
 
@@ -860,7 +951,7 @@ describe('HAFoldersEngine', () => {
       expect(results).toEqual([]);
     });
 
-    it('should return only the media within the time range', async () => {
+    it('should not return media outside the time range or without a date', async () => {
       const day = `${DEVICE}/2026-11-12`;
       const undated = `${DEVICE}/Favorites`;
       const createClip = (parent: string, title: string): BrowseMedia =>
@@ -999,7 +1090,7 @@ describe('HAFoldersEngine', () => {
         expect(engine.getUpQuery(downQuery)).toEqual(query);
       });
 
-      it('should remove a time range', () => {
+      it('should remove any time range when navigating up', () => {
         const engine = new HAFoldersEngine(templateManager);
         const query = createDefaultQuery(engine, createKitchenFolder('unrestricted'));
 

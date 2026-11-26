@@ -362,7 +362,7 @@ describe('UnifiedQuery', () => {
       expect(superset.isSupersetOf(nonSubset)).toBe(false);
     });
 
-    it('should compare the time ranges of folder nodes', () => {
+    it("should treat a folder query as included in another only if the other's time range spans it", () => {
       const unbounded = new UnifiedQuery([createFolderQuery('f1')]);
       const wider = new UnifiedQuery([
         {

@@ -48,7 +48,7 @@ describe('UnifiedQueryTransformer', () => {
       expect(node.limit).toBe(10); // Other props preserved
     });
 
-    it('should strip the time range from folder queries', () => {
+    it('should remove the time range from folder queries', () => {
       const folder = createFolder({ id: 'f1', title: 'Test' });
       const query = new UnifiedQuery([
         {
@@ -91,7 +91,7 @@ describe('UnifiedQueryTransformer', () => {
       expect(node.limit).toBe(100);
     });
 
-    it('should apply only a time range to folder queries', () => {
+    it('should apply a time range, but not a limit, to folder queries', () => {
       const folder = createFolder({ id: 'f1', title: 'Test' });
       const query = new UnifiedQuery([
         { source: QuerySource.Folder, folder, path: [{}] },

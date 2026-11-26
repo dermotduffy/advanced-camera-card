@@ -114,8 +114,9 @@ export class UnifiedQuery {
 
   /**
    * Check if this query is a superset of another query.
-   * A query is a superset if it covers at least all the queries of the other.
-   * This means an otherwise identical query whose time range encompasses.
+   * A query is a superset if each node of the other is covered by one of its
+   * own: a node that is identical apart from its time range, which spans at
+   * least the other node's time range.
    */
   public isSupersetOf(that: UnifiedQuery): boolean {
     const nodeCovers = (thisNode: QueryNode, thatNode: QueryNode): boolean => {
