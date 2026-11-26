@@ -4,7 +4,10 @@ import { mock } from 'vitest-mock-extended';
 
 import { FRAME_STALL_SECONDS } from '../../../src/components-lib/media-player/frame-stall-watchdog';
 import { JSMPEGMediaPlayerController } from '../../../src/components-lib/media-player/jsmpeg';
+import { getCanvasFrameDataURL } from '../../../src/utils/frame-data-url';
 import { createLitElement } from '../../test-utils';
+
+vi.mock('../../../src/utils/frame-data-url.js');
 
 // @vitest-environment jsdom
 describe('JSMPEGMediaPlayerController', () => {
@@ -191,11 +194,11 @@ describe('JSMPEGMediaPlayerController', () => {
     });
   });
 
-  describe('should get screenshot URL', async () => {
-    it('should return screenshot URL with canvas', async () => {
+  describe('should get frame URL', async () => {
+    it('should return frame URL with canvas', async () => {
       const url = 'data:image/png;base64,';
       const canvas = mock<HTMLCanvasElement>();
-      canvas.toDataURL.mockReturnValue(url);
+      vi.mocked(getCanvasFrameDataURL).mockResolvedValue(url);
 
       const controller = new JSMPEGMediaPlayerController(
         createLitElement(),
@@ -203,7 +206,7 @@ describe('JSMPEGMediaPlayerController', () => {
         () => canvas,
       );
 
-      expect(await controller.getScreenshotURL()).toBe(url);
+      expect(await controller.getFrameURL()).toBe(url);
     });
 
     it('should return null without canvas', async () => {
@@ -213,7 +216,7 @@ describe('JSMPEGMediaPlayerController', () => {
         () => null,
       );
 
-      expect(await controller.getScreenshotURL()).toBeNull();
+      expect(await controller.getFrameURL()).toBeNull();
     });
   });
 

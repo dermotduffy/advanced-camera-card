@@ -144,6 +144,7 @@
       "id": "Unique ID for this camera in this card",
       "image": {
         "editor_label": "Image",
+        "preserve_frame_seconds": "Seconds a preserved camera frame may act as the live image (0=never)",
         "refresh_seconds": "Seconds between live image refreshes (0=never)",
         "url": "Image URL to use instead of camera entity snapshot"
       },
@@ -675,6 +676,7 @@
         "engine": "Camera engine",
         "issues": "Issues",
         "permanent": "Keeps bar shown",
+        "preserved_frame": "Preserved frame",
         "priority": "Priority",
         "resolution": "Resolution",
         "severity": "Severity",

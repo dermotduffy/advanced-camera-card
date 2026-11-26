@@ -1,13 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { DocumentVisibility } from '../../src/utils/document-visibility';
-import { setVisibilityState } from '../test-utils';
+import { setVisibilityState, setVisibilityStateAndDispatch } from '../test-utils';
 import { createPromiseWithResolvers } from './test-utils';
-
-const changeVisibilityState = (state: DocumentVisibilityState): void => {
-  setVisibilityState(state);
-  document.dispatchEvent(new Event('visibilitychange'));
-};
 
 const subscribe = (
   visibility: DocumentVisibility,
@@ -54,7 +49,7 @@ describe('DocumentVisibility', () => {
       const callback = vi.fn();
       subscribe(visibility, callback);
 
-      changeVisibilityState('hidden');
+      setVisibilityStateAndDispatch('hidden');
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(false);
@@ -66,7 +61,7 @@ describe('DocumentVisibility', () => {
       const callback = vi.fn();
       subscribe(visibility, callback);
 
-      changeVisibilityState('visible');
+      setVisibilityStateAndDispatch('visible');
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(true);
@@ -77,7 +72,7 @@ describe('DocumentVisibility', () => {
       const callback = vi.fn();
       subscribe(visibility, callback);
 
-      changeVisibilityState('visible');
+      setVisibilityStateAndDispatch('visible');
 
       expect(callback).not.toHaveBeenCalled();
     });
@@ -90,7 +85,7 @@ describe('DocumentVisibility', () => {
       visibility.trackFullscreenRequest(request.promise);
 
       unsubscribe();
-      changeVisibilityState('hidden');
+      setVisibilityStateAndDispatch('hidden');
       request.resolve();
       await request.promise;
 
@@ -106,8 +101,8 @@ describe('DocumentVisibility', () => {
       const request = createPromiseWithResolvers();
 
       visibility.trackFullscreenRequest(request.promise);
-      changeVisibilityState('hidden');
-      changeVisibilityState('visible');
+      setVisibilityStateAndDispatch('hidden');
+      setVisibilityStateAndDispatch('visible');
       request.resolve();
       await request.promise;
 
@@ -121,7 +116,7 @@ describe('DocumentVisibility', () => {
       const request = createPromiseWithResolvers();
 
       visibility.trackFullscreenRequest(request.promise);
-      changeVisibilityState('hidden');
+      setVisibilityStateAndDispatch('hidden');
       expect(callback).not.toHaveBeenCalled();
 
       request.resolve();
@@ -138,7 +133,7 @@ describe('DocumentVisibility', () => {
       const request = createPromiseWithResolvers();
 
       visibility.trackFullscreenRequest(request.promise);
-      changeVisibilityState('hidden');
+      setVisibilityStateAndDispatch('hidden');
 
       request.reject(new Error('denied'));
       await expect(request.promise).rejects.toThrow();
@@ -156,7 +151,7 @@ describe('DocumentVisibility', () => {
 
       visibility.trackFullscreenRequest(first.promise);
       visibility.trackFullscreenRequest(second.promise);
-      changeVisibilityState('hidden');
+      setVisibilityStateAndDispatch('hidden');
 
       first.resolve();
       await first.promise;
@@ -177,7 +172,7 @@ describe('DocumentVisibility', () => {
       request.resolve();
       await request.promise;
 
-      changeVisibilityState('hidden');
+      setVisibilityStateAndDispatch('hidden');
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(false);

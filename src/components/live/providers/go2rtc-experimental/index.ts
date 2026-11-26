@@ -189,6 +189,9 @@ export class AdvancedCameraCardGo2RTCExperimental
   // Drop the session and everything it was playing on. The session reports the
   // loss of any media it announced through mediaUnloadedCallback.
   private _destroyMedia(): void {
+    // Retire the media before the session clears the surfaces (see
+    // `MediaLoadedInfoSourceController.clear()`).
+    this._mediaLoadedInfoSourceController.clear();
     this._session.reset();
     this._activeSurface = null;
   }

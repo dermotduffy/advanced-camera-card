@@ -9,6 +9,7 @@ import { createNumberSelector, createSelectSelector } from './common/selectors';
 const STATUS_BAR_ITEMS = [
   'engine',
   'issues',
+  'preserved_frame',
   'resolution',
   'severity',
   'technology',

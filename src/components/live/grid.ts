@@ -12,6 +12,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import type { CameraManager } from '../../camera-manager/manager.js';
 import type { CallSession } from '../../card-controller/call/types.js';
 import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
+import type { PreservedFrameManager } from '../../card-controller/preserved-frame-manager.js';
 import type { MicrophoneState } from '../../card-controller/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import type { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
@@ -43,6 +44,9 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public preservedFrameManager?: PreservedFrameManager;
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
@@ -81,6 +85,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         .liveConfig=${this.liveConfig}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
+        .preservedFrameManager=${this.preservedFrameManager}
         .microphoneState=${this.microphoneState}
         .call=${this.call}
         .callConnecting=${this.callConnecting}

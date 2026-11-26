@@ -21,10 +21,9 @@ const statusBarItemDefault = {
   permanent: false,
 };
 
-// Issues share a single status-bar item config so per-issue granularity
-// doesn't leak into the schema/editor surface. Defaults to permanent so the
-// status bar stays visible while any issue is active, even in popup mode.
-const statusBarIssuesItemDefault = {
+// A permanent item keeps the status bar visible for as long as it is
+// displayed, even in popup mode.
+const statusBarPermanentItemDefault = {
   ...statusBarItemDefault,
   permanent: true,
 };
@@ -33,7 +32,7 @@ const statusBarIssuesItemDefault = {
 // override that touches only one sibling field (e.g. `issues.enabled: true`).
 // With the item-level default alone, zod would reparse with the base schema's
 // field-level `permanent: false` and silently flip the behavior.
-const statusBarIssuesItemSchema = statusBarItemBaseSchema.extend({
+const statusBarPermanentItemSchema = statusBarItemBaseSchema.extend({
   permanent: z.boolean().default(true).optional(),
 });
 
@@ -42,7 +41,8 @@ export const statusBarConfigDefault = {
   height: 40,
   items: {
     engine: statusBarItemDefault,
-    issues: statusBarIssuesItemDefault,
+    issues: statusBarPermanentItemDefault,
+    preserved_frame: statusBarPermanentItemDefault,
     resolution: statusBarItemDefault,
     severity: statusBarItemDefault,
     technology: statusBarItemDefault,
@@ -70,7 +70,12 @@ export const statusBarConfigSchema = z
     items: z
       .object({
         engine: statusBarItemBaseSchema.default(statusBarConfigDefault.items.engine),
-        issues: statusBarIssuesItemSchema.default(statusBarConfigDefault.items.issues),
+        issues: statusBarPermanentItemSchema.default(
+          statusBarConfigDefault.items.issues,
+        ),
+        preserved_frame: statusBarPermanentItemSchema.default(
+          statusBarConfigDefault.items.preserved_frame,
+        ),
         resolution: statusBarItemBaseSchema.default(
           statusBarConfigDefault.items.resolution,
         ),

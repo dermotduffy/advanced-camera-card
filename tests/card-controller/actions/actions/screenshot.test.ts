@@ -13,7 +13,7 @@ describe('should handle screenshot action', async () => {
     vi.clearAllMocks();
   });
 
-  it('should handle screenshot action with screenshot URL', async () => {
+  it('should download the frame URL', async () => {
     const api = createCardAPI();
     const action = new ScreenshotAction(
       {},
@@ -24,7 +24,7 @@ describe('should handle screenshot action', async () => {
     );
 
     const mediaPlayerController = mock<MediaPlayerController>();
-    mediaPlayerController.getScreenshotURL.mockResolvedValue('screenshot-url');
+    mediaPlayerController.getFrameURL.mockResolvedValue('screenshot-url');
 
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({
@@ -37,7 +37,7 @@ describe('should handle screenshot action', async () => {
     expect(downloadURL).toHaveBeenCalledWith('screenshot-url', 'screenshot.jpg');
   });
 
-  it('should handle screenshot action without screenshot URL', async () => {
+  it('should not download without a frame URL', async () => {
     const api = createCardAPI();
     const action = new ScreenshotAction(
       {},
@@ -48,7 +48,7 @@ describe('should handle screenshot action', async () => {
     );
 
     const mediaPlayerController = mock<MediaPlayerController>();
-    mediaPlayerController.getScreenshotURL.mockResolvedValue(null);
+    mediaPlayerController.getFrameURL.mockResolvedValue(null);
 
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({

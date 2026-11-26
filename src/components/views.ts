@@ -15,6 +15,7 @@ import type { FoldersManager } from '../card-controller/folders/manager.js';
 import type { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher.js';
 import type { IssuePresence } from '../card-controller/issues/types.js';
 import type { MicrophoneManager } from '../card-controller/microphone-manager.js';
+import type { PreservedFrameManager } from '../card-controller/preserved-frame-manager.js';
 import type { MicrophoneState } from '../card-controller/types.js';
 import type { ViewItemManager } from '../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../card-controller/view/types.js';
@@ -48,6 +49,9 @@ export class AdvancedCameraCardViews extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public preservedFrameManager?: PreservedFrameManager;
 
   @property({ attribute: false })
   public foldersManager?: FoldersManager;
@@ -258,6 +262,7 @@ export class AdvancedCameraCardViews extends LitElement {
                 .viewManagerEpoch=${this.viewManagerEpoch}
                 .liveConfig=${this.config.live}
                 .cameraManager=${this.cameraManager}
+                .preservedFrameManager=${this.preservedFrameManager}
                 .cardWideConfig=${this.cardWideConfig}
                 .microphoneManager=${this.microphoneManager}
                 .microphoneState=${this.microphoneState}

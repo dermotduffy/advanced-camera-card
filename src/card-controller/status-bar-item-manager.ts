@@ -5,6 +5,8 @@ import type { StatusBarItem } from '../config/schema/actions/types';
 import type { StatusBarConfig } from '../config/schema/status-bar';
 import type { MediaLoadedInfo } from '../types';
 import { createNotificationAction } from '../utils/action';
+import { formatDateTime } from '../utils/date/localized';
+import type { PreservedFrame } from '../utils/preserved-frame-store';
 import type { View } from '../view/view';
 import type { KeyedIssueDescription } from './issues/types';
 import type { CardStatusBarAPI } from './types';
@@ -45,6 +47,9 @@ export class StatusBarItemManager {
     view?: View | null;
     mediaLoadedInfo?: MediaLoadedInfo | null;
     issues?: KeyedIssueDescription[] | null;
+
+    // The preserved frame the view's camera is showing, if any.
+    preservedFrame?: PreservedFrame | null;
   }): StatusBarItem[] {
     const cameraMetadata = options?.view?.camera
       ? options?.cameraManager?.getCameraMetadata(options.view.camera)
@@ -86,6 +91,21 @@ export class StatusBarItemManager {
               expand: true,
               sufficient: true,
               ...options?.statusConfig?.items.title,
+            },
+          ]
+        : []),
+
+      ...(options?.preservedFrame
+        ? [
+            {
+              type: 'custom:advanced-camera-card-status-bar-icon' as const,
+              icon: 'mdi:clock-alert',
+              ...options?.statusConfig?.items.preserved_frame,
+            },
+            {
+              type: 'custom:advanced-camera-card-status-bar-string' as const,
+              string: formatDateTime(options.preservedFrame.date),
+              ...options?.statusConfig?.items.preserved_frame,
             },
           ]
         : []),

@@ -12,7 +12,7 @@ import type {
 export const WEBRTC_CARD_ELEMENT_NAME = 'webrtc-camera';
 
 interface WebRTCCardControllerOptions {
-  // Called when an element that was handed out is discarded.
+  // Called when the current element is about to be discarded.
   destroyCallback: () => void;
 }
 
@@ -136,10 +136,10 @@ export class WebRTCCardController implements ReactiveController {
       return;
     }
 
+    this._options.destroyCallback();
+
     this._element = null;
     this._config = null;
-
-    this._options.destroyCallback();
   }
 }
 

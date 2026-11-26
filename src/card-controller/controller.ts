@@ -37,6 +37,7 @@ import { MediaPlayerManager } from './media-player-manager';
 import { MicrophoneManager } from './microphone-manager';
 import { NotificationManager } from './notification-manager';
 import { PIPManager } from './pip-manager';
+import { PreservedFrameManager } from './preserved-frame-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -65,6 +66,7 @@ import type {
   CardMicrophoneAPI,
   CardNotificationAPI,
   CardPIPAPI,
+  CardPreservedFrameAPI,
   CardQueryStringAPI,
   CardStyleAPI,
   CardViewAPI,
@@ -96,6 +98,7 @@ export class CardController
     CardMediaPlayerAPI,
     CardMicrophoneAPI,
     CardNotificationAPI,
+    CardPreservedFrameAPI,
     CardQueryStringAPI,
     CardStyleAPI,
     CardCameraTriggersAPI,
@@ -134,6 +137,7 @@ export class CardController
   private _microphoneManager = new MicrophoneManager(this);
   private _notificationManager = new NotificationManager(this);
   private _pipManager = new PIPManager(this);
+  private _preservedFrameManager = new PreservedFrameManager(this);
   private _issueManager: IssueManager;
   private _queryStringManager = new QueryStringManager(this);
   private _statusBarItemManager = new StatusBarItemManager(this);
@@ -288,6 +292,10 @@ export class CardController
 
   public getPIPManager(): PIPManager {
     return this._pipManager;
+  }
+
+  public getPreservedFrameManager(): PreservedFrameManager {
+    return this._preservedFrameManager;
   }
 
   public getIssueManager(): IssueManager {

@@ -253,6 +253,20 @@ describe('WebRTCCardController', () => {
     });
   });
 
+  it('should still have the element when the destroy callback runs', () => {
+    const request = createRequest();
+    const elements: (HTMLElement | null)[] = [];
+    const { controller } = createController({
+      destroyCallback: () => elements.push(controller.getElement(request)),
+    });
+    const element = controller.getElement(request);
+
+    controller.hostDisconnected();
+
+    expect(elements).toHaveLength(1);
+    expect(elements[0]).toBe(element);
+  });
+
   it('should not invoke the destroy callback when there is no element', () => {
     const { controller, destroyCallback } = createController();
 

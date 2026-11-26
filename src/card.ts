@@ -340,18 +340,23 @@ export class AdvancedCameraCard extends LitElement {
       return;
     }
 
+    const view = this._controller.getViewManager().getView();
+
     return html`
       <advanced-camera-card-status-bar
         slot=${ifDefined(slot)}
         .items=${this._controller.getStatusBarItemManager().calculateItems({
           statusConfig: this._config.status_bar,
           cameraManager: this._controller.getCameraManager(),
-          view: this._controller.getViewManager().getView(),
+          view,
           mediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
           issues: this._controller
             .getIssueManager()
             .getStateManager()
             .getIssueDescriptions(),
+          preservedFrame: view?.camera
+            ? this._controller.getPreservedFrameManager().getShowingFrame(view.camera)
+            : null,
         })}
         .config=${this._config.status_bar}
         .autoHideState=${this._getAutoHideState()}
@@ -480,6 +485,7 @@ export class AdvancedCameraCard extends LitElement {
               .cameraManager=${cameraManager}
               .foldersManager=${this._controller.getFoldersManager()}
               .viewItemManager=${this._controller.getViewItemManager()}
+              .preservedFrameManager=${this._controller.getPreservedFrameManager()}
               .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
               .config=${this._controller.getConfigManager().getConfig()}
               .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}

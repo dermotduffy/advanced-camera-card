@@ -47,6 +47,7 @@ import type { MediaPlayerManager } from '../src/card-controller/media-player-man
 import type { MicrophoneManager } from '../src/card-controller/microphone-manager';
 import type { NotificationManager } from '../src/card-controller/notification-manager';
 import type { PIPManager } from '../src/card-controller/pip-manager';
+import type { PreservedFrameManager } from '../src/card-controller/preserved-frame-manager';
 import type { QueryStringManager } from '../src/card-controller/query-string-manager';
 import type { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import type { StyleManager } from '../src/card-controller/style-manager';
@@ -422,6 +423,11 @@ export const setVisibilityState = (state: DocumentVisibilityState): void => {
   vi.spyOn(document, 'visibilityState', 'get').mockReturnValue(state);
 };
 
+export const setVisibilityStateAndDispatch = (state: DocumentVisibilityState): void => {
+  setVisibilityState(state);
+  document.dispatchEvent(new Event('visibilitychange'));
+};
+
 export const callVisibilityHandler = async (visible: boolean): Promise<void> => {
   setVisibilityState(visible ? 'visible' : 'hidden');
 
@@ -582,6 +588,7 @@ export const createCardAPI = (): CardController => {
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
   api.getNotificationManager.mockReturnValue(mock<NotificationManager>());
   api.getPIPManager.mockReturnValue(mock<PIPManager>());
+  api.getPreservedFrameManager.mockReturnValue(mock<PreservedFrameManager>());
 
   const issueManager = mock<IssueManager>();
   issueManager.getStateManager.mockReturnValue(mock<IssueStateManager>());

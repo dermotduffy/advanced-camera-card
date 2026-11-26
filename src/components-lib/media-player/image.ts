@@ -1,6 +1,7 @@
 import type { LitElement, ReactiveController } from 'lit';
 
 import type {
+  DataURL,
   FullscreenElement,
   LivenessCallback,
   MediaPlayerController,
@@ -8,7 +9,8 @@ import type {
   PlaybackControl,
   UnsubscribeCallback,
 } from '../../types';
-import { screenshotImage } from '../../utils/screenshot';
+import { isDataURL } from '../../utils/data-url';
+import { getImageFrameDataURL } from '../../utils/frame-data-url';
 import { FrameStallWatchdog } from './frame-stall-watchdog';
 
 // A pausable update loop the controller owns (e.g. an image refreshed on a
@@ -29,14 +31,15 @@ interface ImageLivenessOptions {
   getStallAfterSeconds?: () => number;
 }
 
-// Obtaining a screenshot. Defaults to drawing the current <img>; an image
-// refreshed on a timer can hand back its cached URL instead.
-type ImageScreenshotProvider = () => Promise<string | null>;
+// The URL the image was loaded from. Given out as the frame URL unless a
+// `data:` URL is required: it keeps the original image, and an image from
+// another origin cannot be drawn.
+type ImageSourceURLProvider = () => string | null;
 
 interface ImageMediaPlayerControllerOptions {
   updateControl?: ImageUpdateControl;
   livenessOptions?: ImageLivenessOptions;
-  screenshotProvider?: ImageScreenshotProvider;
+  getSourceURL?: ImageSourceURLProvider;
 }
 
 // Image player composed from opt-in capabilities.
@@ -45,7 +48,7 @@ export class ImageMediaPlayerController
 {
   private _host: LitElement;
   private _getImageCallback: () => HTMLImageElement | null;
-  private _screenshotProvider: ImageScreenshotProvider | null;
+  private _getSourceURL: ImageSourceURLProvider | null;
 
   private _stallWatchdog: FrameStallWatchdog | null = null;
 
@@ -66,7 +69,7 @@ export class ImageMediaPlayerController
   ) {
     this._host = host;
     this._getImageCallback = getImageCallback;
-    this._screenshotProvider = options?.screenshotProvider ?? null;
+    this._getSourceURL = options?.getSourceURL ?? null;
 
     const updateControl = options?.updateControl;
     if (updateControl) {
@@ -134,14 +137,20 @@ export class ImageMediaPlayerController
     // No playback controls to show.
   }
 
-  public async getScreenshotURL(): Promise<string | null> {
-    await this._host.updateComplete;
+  public getFrameURL(dataURLOnly: true): Promise<DataURL | null>;
+  public getFrameURL(dataURLOnly?: boolean): Promise<string | null>;
+  public async getFrameURL(dataURLOnly?: boolean): Promise<string | null> {
+    if (this._getSourceURL) {
+      const sourceURL = this._getSourceURL();
 
-    if (this._screenshotProvider) {
-      return this._screenshotProvider();
+      // A `data:` source is returned unchanged, as drawing it again would give
+      // a different URL for the same image.
+      if (!dataURLOnly || (sourceURL && isDataURL(sourceURL))) {
+        return sourceURL;
+      }
     }
     const image = this._getImageCallback();
-    return image ? screenshotImage(image) : null;
+    return image ? getImageFrameDataURL(image) : null;
   }
 
   public getFullscreenElement(): FullscreenElement | null {

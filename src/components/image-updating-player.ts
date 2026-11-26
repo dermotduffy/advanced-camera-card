@@ -13,11 +13,13 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import type { MediaUnavailableIssueReason } from '../card-controller/issues/issues/media-unavailable.js';
+import type { PreservedFrameManager } from '../card-controller/preserved-frame-manager.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { FRAME_STALL_SECONDS } from '../components-lib/media-player/frame-stall-watchdog.js';
 import { ImageMediaPlayerController } from '../components-lib/media-player/image.js';
 import { createMediaNotification } from '../components-lib/notification/media.js';
+import { PreservedFrameDisplayController } from '../components-lib/preserved-frame-display-controller.js';
 import {
   getSignedURLErrorText,
   SignedURLController,
@@ -112,6 +114,9 @@ export class AdvancedCameraCardImageUpdatingPlayer
   @property({ attribute: false })
   public cameraTitle?: string;
 
+  @property({ attribute: false })
+  public preservedFrameManager?: PreservedFrameManager;
+
   @property({ attribute: false, hasChanged: contentsChanged })
   public proxyConfig?: EnabledProxyConfig;
 
@@ -155,6 +160,11 @@ export class AdvancedCameraCardImageUpdatingPlayer
         imageConfig: this.imageConfig,
         cameraConfig: this.cameraConfig,
       });
+
+      // The default embedded image is never newer than a preserved frame.
+      if (mode !== 'default') {
+        this._preservedFrameDisplayController.dismiss();
+      }
       if (mode !== 'url') {
         this._imageLoadError = false;
       }
@@ -174,10 +184,22 @@ export class AdvancedCameraCardImageUpdatingPlayer
     },
   );
 
+  private _preservedFrameDisplayController = new PreservedFrameDisplayController(this, {
+    getCameraID: () => this.targetID ?? null,
+    getManager: () => this.preservedFrameManager ?? null,
+    getShownURL: () => this._cachedValueController.getValue(),
+
+    // The next update works the image source out again.
+    onShownFrameOutdated: () => {
+      this._cachedValueController.clearValue();
+      this.requestUpdate();
+    },
+  });
+
   private _unsubscribeDocumentVisibility: UnsubscribeCallback | null = null;
 
   // A poll-refreshed snapshot: the cached-value timer is the pausable update
-  // loop, and its cached URL is the screenshot.
+  // loop, and its cached URL is the source URL.
   private _mediaPlayerController = new ImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
@@ -187,12 +209,15 @@ export class AdvancedCameraCardImageUpdatingPlayer
         stop: () => this._cachedValueController.stopTimer(),
         isRunning: () => this._cachedValueController.hasTimer(),
       },
-      screenshotProvider: async () => this._cachedValueController.getValue(),
+      getSourceURL: () => this._cachedValueController.getValue(),
       livenessOptions: {
         // Frames are only due while the refresh timer runs. A snapshot with
-        // refreshing switched off shows one picture forever, which is the
-        // configured behavior and never a stall.
-        isFrameExpected: () => this._cachedValueController.hasTimer(),
+        // refreshing switched off shows one picture forever, as does a
+        // preserved frame until it is too old, which is the configured behavior
+        // and never a stall.
+        isFrameExpected: () =>
+          this._cachedValueController.hasTimer() &&
+          !this._preservedFrameDisplayController.isShowingPreservedFrame(),
 
         // Allow a whole refresh interval to pass, plus the standard window, so
         // one slow fetch is not mistaken for a stopped camera.
@@ -428,6 +453,11 @@ export class AdvancedCameraCardImageUpdatingPlayer
   }
 
   private _getImageSource(): string {
+    const preservedFrame = this._preservedFrameDisplayController.getPreservedFrame();
+    if (preservedFrame) {
+      return preservedFrame.url;
+    }
+
     const mode = resolveImageMode({
       imageConfig: this.imageConfig,
       cameraConfig: this.cameraConfig,

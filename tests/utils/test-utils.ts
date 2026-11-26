@@ -1,3 +1,5 @@
+import type { PreservedFrame } from '../../src/utils/preserved-frame-store';
+
 // Stand-in for the built-in `Promise.withResolvers()`, whose type needs the
 // `es2024` lib: the shared tsconfig stays on `es2021` to ensure `src` cannot
 // use it, as some supported browsers lack it.
@@ -16,3 +18,11 @@ export const createPromiseWithResolvers = <T = void>(): PromiseWithResolvers<T> 
   });
   return { promise, resolve, reject };
 };
+
+export const createPreservedFrame = (
+  options?: Partial<PreservedFrame>,
+): PreservedFrame => ({
+  url: 'data:image/jpeg;base64,frame',
+  date: new Date(),
+  ...options,
+});

@@ -137,10 +137,14 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
     this._dispatchLoad(validated);
   }
 
-  // The media this source announced is gone. Retires the registration through
-  // the same signal a disconnect uses, and forgets the load so nothing is
-  // replayed on a later reconnect: the host must `set` again when it has media
-  // to announce.
+  // The host is about to destroy the media this source announced. Retires the
+  // registration through the same signal a disconnect uses, and forgets the
+  // load so nothing is replayed on a later reconnect: the host must `set` again
+  // when it has loaded media.
+  //
+  // A host retires its media -- with this, or by disconnecting -- before it
+  // destroys the media, so listeners on the signal can still read its last
+  // frame (e.g. for `image.preserve_frame_seconds`).
   public clear(): void {
     this._unload();
     this._lastSet = null;

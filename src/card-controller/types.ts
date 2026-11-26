@@ -306,6 +306,12 @@ export interface CardMicrophoneAPI {
   getConfigManager(): ConfigManager;
 }
 
+export interface CardPreservedFrameAPI {
+  getCameraManager(): CameraManager;
+  getCardElementManager(): CardElementManager;
+  getConfigManager(): ConfigManager;
+}
+
 export interface CardQueryStringAPI {
   getActionsManager(): ActionsManager;
   getCardElementManager(): CardElementManager;

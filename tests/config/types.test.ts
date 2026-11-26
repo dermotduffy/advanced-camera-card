@@ -30,6 +30,7 @@ describe('config defaults', () => {
         },
         image: {
           mode: 'auto',
+          preserve_frame_seconds: 0,
           refresh_seconds: 'auto',
         },
         live_provider: 'auto',
@@ -460,6 +461,11 @@ describe('config defaults', () => {
             priority: 50,
           },
           issues: {
+            enabled: true,
+            permanent: true,
+            priority: 50,
+          },
+          preserved_frame: {
             enabled: true,
             permanent: true,
             priority: 50,

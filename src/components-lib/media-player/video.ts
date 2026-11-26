@@ -1,6 +1,7 @@
 import type { LitElement, ReactiveController } from 'lit';
 
 import type {
+  DataURL,
   FullscreenElement,
   LivenessCallback,
   MediaPlayerController,
@@ -9,7 +10,7 @@ import type {
   UnsubscribeCallback,
 } from '../../types';
 import { hideMediaControlsTemporarily, setControlsOnVideo } from '../../utils/controls';
-import { screenshotVideo } from '../../utils/screenshot';
+import { getVideoFrameDataURL } from '../../utils/frame-data-url';
 import { FrameStallWatchdog } from './frame-stall-watchdog';
 
 export class VideoMediaPlayerController
@@ -157,11 +158,9 @@ export class VideoMediaPlayerController
     }
   }
 
-  public async getScreenshotURL(): Promise<string | null> {
-    await this._host.updateComplete;
-
+  public async getFrameURL(): Promise<DataURL | null> {
     const video = this._getVideoCallback();
-    return video ? screenshotVideo(video) : null;
+    return video ? getVideoFrameDataURL(video) : null;
   }
 
   public getFullscreenElement(): FullscreenElement | null {
