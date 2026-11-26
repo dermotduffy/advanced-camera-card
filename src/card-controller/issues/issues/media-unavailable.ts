@@ -55,6 +55,24 @@ declare module 'issue' {
   }
 }
 
+export interface MediaRetryState {
+  // When bumped, consumers rendering the target tear down and recreate their
+  // media element to retry loading.
+  epoch: number;
+
+  // Set by the first retry of the target's failed media, and kept through the
+  // waits between retries until the failure is resolved.
+  retrying: boolean;
+}
+
+declare module 'view' {
+  interface ViewContext {
+    // Per-target media retry state. Keyed by the universal target ID returned
+    // by `getViewTargetID` (camera ID / media ID / image sentinel).
+    mediaRetry?: Record<string, MediaRetryState>;
+  }
+}
+
 // What is known about one target's failure.
 interface TargetError {
   reason: MediaUnavailableIssueReason;
@@ -189,6 +207,7 @@ export class MediaUnavailableIssue implements Issue {
     }
 
     this._erroredTargets.delete(context.targetID);
+    this._endRetries([context.targetID]);
   }
 
   // =========================================================================
@@ -296,12 +315,12 @@ export class MediaUnavailableIssue implements Issue {
       return false;
     }
 
-    // Bumping a target's mediaEpoch remounts its provider, which is the card's
+    // Bumping a target's retry epoch remounts its provider, which is the card's
     // only way to rebuild a stream from scratch.
-    const view = this._api.getViewManager().getView();
-    const mediaEpoch = { ...(view?.context?.mediaEpoch ?? {}) };
+    const current = this._api.getViewManager().getView()?.context?.mediaRetry;
+    const mediaRetry: Record<string, MediaRetryState> = {};
     for (const id of retryTargets.keys()) {
-      mediaEpoch[id] = (mediaEpoch[id] ?? 0) + 1;
+      mediaRetry[id] = { epoch: (current?.[id]?.epoch ?? 0) + 1, retrying: true };
     }
 
     for (const error of retryTargets.values()) {
@@ -313,7 +332,7 @@ export class MediaUnavailableIssue implements Issue {
     // the fresh load clears a not-loading error and the rebuilt provider's
     // liveness observation resolves a stream error. If it fails silently (e.g.
     // bogus stream name), the error stays visible immediately.
-    this._api.getViewManager().setViewWithMergedContext({ mediaEpoch });
+    this._api.getViewManager().setViewWithMergedContext({ mediaRetry });
     return false;
   }
 
@@ -322,12 +341,27 @@ export class MediaUnavailableIssue implements Issue {
   // =========================================================================
 
   public reset(): void {
+    this._endRetries([...this._erroredTargets.keys()]);
     this._erroredTargets.clear();
   }
 
   // =========================================================================
   // Private helpers.
   // =========================================================================
+
+  private _endRetries(targetIDs: string[]): void {
+    const current = this._api.getViewManager().getView()?.context?.mediaRetry;
+    const mediaRetry: Record<string, MediaRetryState> = {};
+    for (const targetID of targetIDs) {
+      const retry = current?.[targetID];
+      if (retry?.retrying) {
+        mediaRetry[targetID] = { ...retry, retrying: false };
+      }
+    }
+    if (Object.keys(mediaRetry).length) {
+      this._api.getViewManager().setViewWithMergedContext({ mediaRetry });
+    }
+  }
 
   // The errored targets the user can currently see. An error recorded for a
   // target that has since left the screen names something they cannot look at,

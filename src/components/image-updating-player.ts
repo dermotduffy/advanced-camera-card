@@ -154,7 +154,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
     // same static URL will fail the same way every time, so clearing the
     // error just causes a visible flicker (notification → blank <img> →
     // notification) every refresh_seconds. URL-mode retries are driven by
-    // mediaEpoch (user-initiated or auto-retry) instead.
+    // the `mediaRetry` epoch (user-initiated or auto-retry) instead.
     () => {
       const mode = resolveImageMode({
         imageConfig: this.imageConfig,

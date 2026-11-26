@@ -487,7 +487,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
 
     const mediaID = media.getID();
-    const mediaEpoch = mediaID ? view.context?.mediaEpoch?.[mediaID] ?? 0 : 0;
+    const mediaEpoch = mediaID ? view.context?.mediaRetry?.[mediaID]?.epoch ?? 0 : 0;
 
     return html` <div class="embla__slide">
       ${keyed(
