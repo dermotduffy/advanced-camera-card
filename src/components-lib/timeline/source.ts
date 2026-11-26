@@ -3,18 +3,18 @@ import { DataSet } from 'vis-data';
 import type { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
 
 import type { CameraManager } from '../../camera-manager/manager';
-import {
-  compressRanges,
-  ExpiringMemoryRangeSet,
-  MemoryRangeSet,
-} from '../../camera-manager/range';
 import type { RecordingSegment } from '../../camera-manager/types';
-import { capEndDate } from '../../camera-manager/utils/cap-end-date';
-import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
 import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import type { FolderConfig } from '../../config/schema/folders';
 import { errorToConsole } from '../../utils/basic.js';
+import { capEndDate } from '../../utils/date/cap-end-date';
+import {
+  compressRanges,
+  ExpiringMemoryRangeSet,
+  MemoryRangeSet,
+} from '../../utils/date/range';
+import { convertRangeToCacheFriendlyTimes } from '../../utils/date/range-to-cache-friendly';
 import type {
   EventViewMedia,
   ReviewViewMedia,

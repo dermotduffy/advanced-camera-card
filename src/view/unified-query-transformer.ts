@@ -1,3 +1,5 @@
+import { omit } from 'lodash-es';
+
 import { CameraQueryClassifier } from '../camera-manager/manager';
 import { QuerySource } from '../query-source';
 import { UnifiedQuery } from './unified-query';
@@ -14,12 +16,14 @@ interface RebuildOptions {
  * CameraManager).
  */
 export class UnifiedQueryTransformer {
-  static stripTimeRange(query: UnifiedQuery): UnifiedQuery {
-    const nodes = query.getNodes().map((node) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { start, end, ...rest } = node;
-      return rest;
-    });
+  static stripTimeRangeAndLimit(query: UnifiedQuery): UnifiedQuery {
+    const nodes = query
+      .getNodes()
+      .map((node) =>
+        node.source === QuerySource.Camera
+          ? omit(node, ['start', 'end', 'limit'])
+          : omit(node, ['start', 'end']),
+      );
     return new UnifiedQuery(nodes);
   }
 

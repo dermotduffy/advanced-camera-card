@@ -9,6 +9,7 @@ import type {
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
+import type { CameraManager } from '../../../src/camera-manager/manager';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import type {
   ViewManagerEpoch,
@@ -67,6 +68,7 @@ const createTimelineConfig = (
 
 interface TestHarness {
   controller: TimelineController;
+  cameraManager: CameraManager;
   timeline: ExtendedTimeline;
   manager: ViewManagerInterface;
   trigger: (event: string, ...args: unknown[]) => void;
@@ -77,6 +79,8 @@ const createHarness = async (options?: {
   media?: ViewMedia[];
   mini?: boolean;
   style?: 'ribbon' | 'stack';
+  limit?: number;
+  loading?: boolean;
 }): Promise<TestHarness> => {
   stubMatchMedia().mockReturnValue({ matches: true });
 
@@ -107,12 +111,14 @@ const createHarness = async (options?: {
   vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue([]);
 
   const query = new UnifiedQuery();
-  query.addNode(createReviewQuery(CAMERA_ID));
+  query.addNode(
+    createReviewQuery(CAMERA_ID, options?.limit ? { limit: options.limit } : undefined),
+  );
 
   const controller = new TimelineController(new TimelineControllerTestHost());
   controller.setHass(createHASS());
   controller.setOptions({
-    cameraManager: cameraManager,
+    cameraManager,
     foldersManager: mock<FoldersManager>(),
     conditionStateManager: mock<ConditionStateManagerReadonlyInterface>(),
     timelineConfig: createTimelineConfig(options?.panMode ?? 'pan', options?.style),
@@ -131,14 +137,16 @@ const createHarness = async (options?: {
         results: options?.media ?? [],
         selectedIndex: 0,
       }),
+      ...(options?.loading && { context: { loading: { query: 1 } } }),
     }),
   );
   await controller.setView(mock<ViewManagerEpoch>({ manager: manager }));
 
   return {
-    controller: controller,
-    timeline: timeline,
-    manager: manager,
+    controller,
+    cameraManager,
+    timeline,
+    manager,
     trigger: (event: string, ...args: unknown[]): void => {
       handlers.get(event)?.(...args);
     },
@@ -454,6 +462,34 @@ describe('TimelineController', () => {
       });
 
       expect(harness.timeline.setSelection).not.toHaveBeenCalled();
+    });
+  });
+
+  it("should fetch every item in the timeline window, even when the view's query has a limit", async () => {
+    const harness = await createHarness({ limit: 50 });
+
+    const queries = vi
+      .mocked(harness.cameraManager.executeMediaQueries)
+      .mock.calls.flatMap(([queries]) => queries);
+    expect(queries.length).toBeGreaterThan(0);
+    for (const query of queries) {
+      expect(query).not.toHaveProperty('limit');
+    }
+  });
+
+  describe("should fetch the window's media into the view", () => {
+    it('should fetch it once the view has loaded', async () => {
+      const harness = await createHarness({ mini: false });
+
+      expect(harness.manager.setViewByParametersWithExistingQuery).toHaveBeenCalled();
+    });
+
+    it('should not fetch it while the view is still loading a query', async () => {
+      const harness = await createHarness({ mini: false, loading: true });
+
+      expect(
+        harness.manager.setViewByParametersWithExistingQuery,
+      ).not.toHaveBeenCalled();
     });
   });
 

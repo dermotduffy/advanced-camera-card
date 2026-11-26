@@ -1,4 +1,4 @@
-import { rangesOverlap } from '../../camera-manager/range';
+import { rangesOverlap } from '../../utils/date/range';
 import type { BrowseMediaMetadata, RichBrowseMedia } from './types';
 
 /**

@@ -8,7 +8,7 @@ import {
   rangesOverlap,
   type DateRange,
   type ExpiringRange,
-} from '../../src/camera-manager/range.js';
+} from '../../../src/utils/date/range';
 
 describe('MemoryRangeSet', () => {
   const rangeSet = new MemoryRangeSet();

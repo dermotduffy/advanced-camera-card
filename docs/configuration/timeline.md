@@ -8,6 +8,10 @@ timeline:
   # [...]
 ```
 
+The `timeline` view opens on the most recent `window_seconds`. Pan or zoom the
+timeline, or use the "Choose date" control, to navigate. Opening the timeline
+from a thumbnail's timeline ('target') control shows that media instead.
+
 You can interact with the timeline in a number of ways:
 
 - Clicking on an event/review will take you to the media viewer for that event/review.

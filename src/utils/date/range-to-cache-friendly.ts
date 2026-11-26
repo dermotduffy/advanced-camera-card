@@ -1,7 +1,7 @@
 import { endOfDay, endOfHour, endOfMinute, startOfDay, startOfHour } from 'date-fns';
 
-import type { DateRange } from '../range';
 import { capEndDate } from './cap-end-date';
+import type { DateRange } from './range';
 
 export const convertRangeToCacheFriendlyTimes = (
   range: DateRange,

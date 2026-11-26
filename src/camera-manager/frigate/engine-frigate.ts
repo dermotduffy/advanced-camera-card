@@ -9,6 +9,7 @@ import type { HomeAssistant } from '../../ha/types';
 import { hasUnsupportedFilters, QuerySource } from '../../query-source.js';
 import type { Endpoint } from '../../types';
 import { allPromises, prettifyTitle, runWhenIdleIfSupported } from '../../utils/basic';
+import type { DateRange } from '../../utils/date/range';
 import {
   createDayHourResolver,
   endOfHourInTimeZone,
@@ -25,7 +26,6 @@ import {
   type CameraManagerEngine,
 } from '../engine';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
-import type { DateRange } from '../range';
 import type { CameraManagerReadOnlyConfigStore } from '../store';
 import {
   Engine,
