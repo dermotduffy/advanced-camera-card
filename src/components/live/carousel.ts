@@ -37,6 +37,7 @@ import { configDefaults, type CardWideConfig } from '../../config/schema/types.j
 import type { HomeAssistant } from '../../ha/types.js';
 import liveCarouselStyle from '../../scss/live-carousel.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
+import { encodeCardCameraKey } from '../../utils/card-camera-key.js';
 import type { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { getStreamCameraID } from '../../view/substream.js';
@@ -297,6 +298,11 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .cardWideConfig=${this.cardWideConfig}
             .preservedFrameManager=${this.preservedFrameManager}
             .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
+            .getZoomObserved=${this._getZoomObserved}
+            .zoomStoreKey=${encodeCardCameraKey({
+              cardID: this.cardWideConfig?.card_id,
+              cameraID,
+            })}
             .zoom=${!this._isGesturesPTZActive(view, cameraID)}
             .forceSelected=${isSelectedSlide}
             .locked=${this.locked}
@@ -317,6 +323,12 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       </div>
     `;
   }
+
+  // Read when a provider remounts, rather than passed as a value, which every
+  // zoom report would replace.
+  private _getZoomObserved = (cameraID: string): ZoomSettingsObserved | null =>
+    this.viewManagerEpoch?.manager.getView()?.context?.zoom?.[cameraID]?.observed ??
+    null;
 
   private _getSubstreamCameraID(cameraID: string, view?: View | null): string {
     return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;

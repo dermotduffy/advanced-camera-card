@@ -137,6 +137,7 @@ export class ConfigManager {
     this._cardWideConfig = {
       performance: config.performance,
       debug: config.debug,
+      card_id: config.card_id,
     };
 
     this._overridesManager.set(

@@ -8,7 +8,10 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
-import type { PartialZoomSettings } from '../components-lib/zoom/types.js';
+import type {
+  PartialZoomSettings,
+  ZoomSettingsObserved,
+} from '../components-lib/zoom/types.js';
 import { ZoomController } from '../components-lib/zoom/zoom-controller.js';
 import type { CameraDimensionsConfig } from '../config/schema/cameras.js';
 
@@ -19,6 +22,18 @@ export class AdvancedCameraCardZoomer extends LitElement {
 
   @property({ attribute: false })
   public settings?: PartialZoomSettings | null;
+
+  // Gets the zoom the target was last seen at (the view context's `observed`).
+  // A remount (a stream reload, the card shown again, a lazily unloaded camera
+  // loaded again) starts from it rather than from the default. A getter, read
+  // only on activation, so that every zoom report does not render this again.
+  @property({ attribute: false })
+  public getObservedSettings?: () => ZoomSettingsObserved | null;
+
+  // The key the target's zoom is kept under in the page-wide zoom store, so a
+  // card built again (e.g. on a return from another dashboard) starts from it.
+  @property({ attribute: false })
+  public storeKey?: string | null;
 
   @property({ attribute: false })
   public zoom = true;
@@ -62,6 +77,9 @@ export class AdvancedCameraCardZoomer extends LitElement {
     if (changedProps.has('dimensionsConfig')) {
       this._zoomController.setDimensionsConfig(this.dimensionsConfig ?? null);
     }
+    if (changedProps.has('storeKey')) {
+      this._zoomController.setStoreKey(this.storeKey ?? null);
+    }
     if (changedProps.has('defaultSettings')) {
       this._zoomController.setDefaultSettings(this.defaultSettings ?? null);
     }
@@ -71,6 +89,12 @@ export class AdvancedCameraCardZoomer extends LitElement {
     }
 
     if (!this._zoomController.isActivated()) {
+      // A request still pending at a remount (also an empty one, e.g. the
+      // double tap just before a stream reload) wins over where the target was.
+      this._zoomController.setStartSettings(
+        this.getObservedSettings?.() ?? null,
+        !!this.settings,
+      );
       this._zoomController.activate();
     }
   }

@@ -29,6 +29,7 @@ import { viewerConfigDefault, viewerConfigSchema } from './viewer';
 export interface CardWideConfig {
   performance?: PerformanceConfig;
   debug?: DebugConfig;
+  card_id?: string;
 }
 
 export const advancedCameraCardConfigSchema = z.object({

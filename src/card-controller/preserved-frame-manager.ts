@@ -1,10 +1,10 @@
 import type { MediaPlayerController, UnsubscribeCallback } from '../types';
 import { onAbort } from '../utils/abort-signal';
+import type { CardCameraKey } from '../utils/card-camera-key';
 import {
   sharedPreservedFrameStore,
   type PreservedFrame,
   type PreservedFrameCallback,
-  type PreservedFrameKey,
   type PreservedFrameStore,
 } from '../utils/preserved-frame-store';
 import type { CardPreservedFrameAPI } from './types';
@@ -90,7 +90,7 @@ export class PreservedFrameManager {
     );
   }
 
-  private _getKey(cameraID: string): PreservedFrameKey {
+  private _getKey(cameraID: string): CardCameraKey {
     return {
       cardID: this._api.getConfigManager().getConfig()?.card_id,
       cameraID,

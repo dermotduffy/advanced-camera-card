@@ -23,6 +23,7 @@ import {
 } from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { isMediaContainedAndCentered } from '../../utils/media-layout';
+import { zoomStore, type ZoomStore } from '../../utils/zoom-store';
 import {
   isZoomEmpty,
   ZOOM_DEFAULT_PAN_X,
@@ -30,6 +31,7 @@ import {
   ZOOM_DEFAULT_SCALE,
   ZOOM_PRECISION,
   type PartialZoomSettings,
+  type ZoomSettingsBase,
   type ZoomSettingsObserved,
 } from './types';
 
@@ -91,6 +93,25 @@ export class ZoomController {
 
   private _defaultSettings: PartialZoomSettings | null;
   private _settings: PartialZoomSettings | null;
+
+  // Where to start when nothing is requested: the zoom the target was last
+  // seen at before a remount (see `setStartSettings`). Ahead of the default,
+  // dropped by any request or a new default.
+  private _startSettings: ZoomSettingsBase | null = null;
+
+  // Whether that start still waits for a size to be applied at: what Panzoom
+  // reports meanwhile (e.g. its own scale 1 while hidden) is not where the user
+  // left the target, so it reaches neither the store nor the view context (a
+  // remount meanwhile still starts from the start).
+  private _startPending = false;
+
+  // The page-wide store of each camera's last zoom (see `setStoreKey`), and
+  // whether this instance put a zoom there or started from one (only then does
+  // a return to the default forget it, so that another card loading the same
+  // camera does not).
+  private _store: ZoomStore;
+  private _storeKey: string | null = null;
+  private _stored = false;
 
   // These values should be suitably less than the value of STEP_DELAY_SECONDS
   // in the ptz_digital action, in order to ensure smooth movements of the
@@ -199,9 +220,11 @@ export class ZoomController {
     options?: {
       config?: PartialZoomSettings | null;
       defaultConfig?: PartialZoomSettings | null;
+      store?: ZoomStore;
     },
   ) {
     this._element = element;
+    this._store = options?.store ?? zoomStore;
     this._settings = options?.config ?? null;
     this._defaultSettings = options?.defaultConfig ?? null;
   }
@@ -242,6 +265,9 @@ export class ZoomController {
       ...(config && converted && { startY: converted.y }),
       ...(config && converted && { startScale }),
     });
+    if (converted) {
+      this._startPending = false;
+    }
 
     const registerListeners = (
       events: string[],
@@ -297,12 +323,19 @@ export class ZoomController {
 
   public setDefaultSettings(config: PartialZoomSettings | null): void {
     this._defaultSettings = config;
+    this._startSettings = null;
+    this._startPending = false;
     this._clearUserAdjustment();
     this._debouncedUpdater();
   }
 
   public setSettings(config: PartialZoomSettings | null): void {
     this._settings = config;
+
+    // Any request supersedes the start: also an empty one, which returns to
+    // the default (a double tap, the `ptz_home` button or the `h` key).
+    this._startSettings = null;
+    this._startPending = false;
     this._clearUserAdjustment();
     this._debouncedUpdater();
   }
@@ -310,6 +343,45 @@ export class ZoomController {
   public setDimensionsConfig(dimensionsConfig: CameraDimensionsConfig | null): void {
     this._dimensionsConfig = dimensionsConfig;
     this._updatePictureAspectRatio();
+  }
+
+  /**
+   * Keep this target's zoom in the page-wide store under `key` (null: not at
+   * all), to start from when nothing else says where (see `setStartSettings`).
+   */
+  public setStoreKey(key: string | null): void {
+    this._storeKey = key;
+    this._stored = false;
+  }
+
+  /**
+   * Start from the zoom the target was last seen at in this card, unless that
+   * was its default; without one, from the store. Set before activation. A
+   * request pending at activation wins over it, but this instance still takes
+   * the stored zoom over, so that the request's return to the default forgets
+   * it.
+   */
+  public setStartSettings(
+    observed: ZoomSettingsObserved | null,
+    requestPending = false,
+  ): void {
+    const start = observed
+      ? observed.isDefault
+        ? null
+        : observed
+      : this._storeKey
+        ? this._store.get(this._storeKey)
+        : null;
+    this._startSettings =
+      start && !requestPending ? { zoom: start.zoom, pan: { ...start.pan } } : null;
+    this._startPending = !!this._startSettings;
+
+    // Starting from it, this instance shows the stored zoom: a return to the
+    // default here forgets it, even before this instance reports a zoom (the
+    // start may need no change to apply, and so report nothing).
+    if (start) {
+      this._stored = true;
+    }
   }
 
   public isActivated(): boolean {
@@ -343,6 +415,7 @@ export class ZoomController {
     // Panzoom sets originalEvent only for a change that a gesture drove.
     if (pz.originalEvent) {
       this._userAdjusted = true;
+      this._startPending = false;
 
       // A gesture cannot move the picture along an axis without room, so the
       // user's earlier pan on that axis is kept.
@@ -365,6 +438,15 @@ export class ZoomController {
       isDefault: this._isAtDefaultZoomAndPan(pan.x, pan.y, pz.scale),
       unzoomed: unzoomed,
     };
+
+    if (this._startPending) {
+      return;
+    }
+
+    if (this._storeKey && (!observed.isDefault || this._stored)) {
+      this._store.set(this._storeKey, observed.isDefault ? null : observed);
+      this._stored = !observed.isDefault;
+    }
 
     fireAdvancedCameraCardEvent(this._element, 'zoom:change', observed);
   }
@@ -393,8 +475,12 @@ export class ZoomController {
     );
   }
 
+  // A requested zoom, else the one to start from, else the default.
   private _getConfigToUse(): PartialZoomSettings | null {
-    return isZoomEmpty(this._settings) ? this._defaultSettings : this._settings;
+    if (!isZoomEmpty(this._settings)) {
+      return this._settings;
+    }
+    return this._startSettings ?? this._defaultSettings;
   }
 
   private _clearUserAdjustment(): void {
@@ -433,6 +519,7 @@ export class ZoomController {
     if (!this._hasSize()) {
       return;
     }
+    this._startPending = false;
 
     const config = this._getConfigToUse();
     const desiredScale = config?.zoom ?? ZOOM_DEFAULT_SCALE;
