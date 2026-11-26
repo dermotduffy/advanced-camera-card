@@ -15,8 +15,8 @@ export const isMediaWithinDates = (
   start?: Date,
   end?: Date,
 ): boolean => {
-  // If there's no metadata, nothing matches.
-  if (!media._metadata?.startDate || !media._metadata?.endDate) {
+  // If there's no start date, nothing matches.
+  if (!media._metadata?.startDate) {
     return false;
   }
 
@@ -28,7 +28,9 @@ export const isMediaWithinDates = (
     return rangesOverlap(
       {
         start: media._metadata.startDate,
-        end: media._metadata.endDate,
+
+        // Media without an end date is a single point in time.
+        end: media._metadata.endDate ?? media._metadata.startDate,
       },
       {
         start: start,

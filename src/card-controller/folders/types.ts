@@ -2,7 +2,12 @@ import type { ConditionState } from '../../condition-trigger/conditions/types';
 import type { FolderConfig } from '../../config/schema/folders';
 import type { ResolvedMediaCache } from '../../ha/resolved-media';
 import type { HomeAssistant } from '../../ha/types';
-import type { BaseQuery, QueryFilters, QuerySource } from '../../query-source';
+import type {
+  BaseQuery,
+  QueryFilters,
+  QuerySource,
+  TimeBasedDataQuery,
+} from '../../query-source';
 import type { Endpoint } from '../../types';
 import { AdvancedCameraCardError } from '../../types.js';
 import type { ViewFolder, ViewItem, ViewMedia } from '../../view/item';
@@ -28,7 +33,10 @@ export interface FolderPathLevel {
   folder?: ViewFolder;
 }
 
-export interface FolderQuery extends BaseQuery, QueryFilters {
+export interface FolderQuery
+  extends BaseQuery,
+    QueryFilters,
+    Partial<TimeBasedDataQuery> {
   source: QuerySource.Folder;
   folder: FolderConfig;
 

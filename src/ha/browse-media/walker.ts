@@ -41,6 +41,11 @@ export interface BrowseMediaStep<M = undefined> {
   // output.
   matcher?: RichBrowseMediaPredicate<M>;
 
+  // Called with the children of each target that passed the matcher, returns
+  // those that will be included in the output. Unlike the matcher, this may
+  // compare those children to one another.
+  childrenFilter?: (children: RichBrowseMedia<M>[]) => RichBrowseMedia<M>[];
+
   // Children (once past the matcher) will be sorted before the next step.
   sorter?: (media: RichBrowseMedia<M>[]) => RichBrowseMedia<M>[];
 
@@ -105,11 +110,10 @@ export class BrowseMediaWalker {
       );
 
       for (const parent of mediaChunk) {
-        for (const child of parent.children ?? []) {
-          if (!step.matcher || step.matcher(child)) {
-            output.push(child);
-          }
-        }
+        const children = (parent.children ?? []).filter(
+          (child) => !step.matcher || step.matcher(child),
+        );
+        output = output.concat(step.childrenFilter?.(children) ?? children);
       }
 
       if (step.sorter) {

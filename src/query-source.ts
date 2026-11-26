@@ -12,6 +12,11 @@ export interface BaseQuery {
   source: QuerySource;
 }
 
+export interface TimeBasedDataQuery {
+  start: Date;
+  end: Date;
+}
+
 /**
  * Filter properties that can be applied to queries.
  * Not all query types support all filters -- engines reject unsupported ones.

@@ -39,26 +39,39 @@ export class MetadataGenerator {
 
   public generate(
     media: BrowseMedia,
-    parent?: RichBrowseMedia<BrowseMediaMetadata>,
     parsers?: Parser[],
+    parent?: RichBrowseMedia<BrowseMediaMetadata>,
   ): BrowseMediaMetadata | null {
-    const metadata = this._getInheritedMetadata(parent?._metadata);
+    const metadata = this._wrapEndDateToNextDayIfNecessary({
+      ...this._generateInherited(parent?._metadata),
+      ...this.generateUninherited(media, parsers, parent?._metadata?.startDate),
+    });
+    return Object.keys(metadata).length > 0 ? metadata : null;
+  }
+
+  /**
+   * Generate metadata from what the parsers find in the media itself, or null if
+   * they find nothing. Unlike `generate`, nothing is inherited from a parent.
+   * `baseDate` supplies any parts of a date the parsers do not find.
+   */
+  public generateUninherited(
+    media: BrowseMedia,
+    parsers?: Parser[],
+    baseDate?: Date,
+  ): BrowseMediaMetadata | null {
+    const metadata: BrowseMediaMetadata = {};
 
     for (const parser of parsers ?? []) {
       if (!isDateValueParser(parser)) {
         continue;
       }
 
-      const valueToParse = parser.regexp
-        ? regexpExtract(parser.regexp, media.title, {
-            groupName: REGEXP_GROUP_VALUE_KEY,
-          })
-        : media.title;
+      const valueToParse = this._getValueToParse(parser, media);
       if (!valueToParse) {
         continue;
       }
 
-      const startDate = metadata.startDate ?? parent?._metadata?.startDate;
+      const startDate = metadata.startDate ?? baseDate;
       if (parser.type === 'enddate') {
         // An end date takes only its day from the start date, so parts the
         // title omits (e.g. seconds) are zero rather than the start's.
@@ -72,22 +85,32 @@ export class MetadataGenerator {
       }
     }
 
-    // An end time before the start time (e.g. `22:18:51 - 00:00:00`) crosses
-    // midnight.
-    if (
-      metadata.startDate &&
-      metadata.endDate &&
-      metadata.endDate < metadata.startDate
-    ) {
-      metadata.endDate = addDays(metadata.endDate, 1);
-    }
-
-    return Object.keys(metadata).length > 0 ? metadata : null;
+    return Object.keys(metadata).length > 0
+      ? this._wrapEndDateToNextDayIfNecessary(metadata)
+      : null;
   }
 
-  private _getInheritedMetadata(
-    parentMetadata?: BrowseMediaMetadata,
+  // An end time before the start time (e.g. `22:18:51 - 00:00:00`) crosses
+  // midnight.
+  private _wrapEndDateToNextDayIfNecessary(
+    metadata: BrowseMediaMetadata,
   ): BrowseMediaMetadata {
+    return metadata.startDate &&
+      metadata.endDate &&
+      metadata.endDate < metadata.startDate
+      ? { ...metadata, endDate: addDays(metadata.endDate, 1) }
+      : metadata;
+  }
+
+  private _getValueToParse(parser: DateValueParser, media: BrowseMedia): string | null {
+    return parser.regexp
+      ? regexpExtract(parser.regexp, media.title, {
+          groupName: REGEXP_GROUP_VALUE_KEY,
+        })
+      : media.title;
+  }
+
+  private _generateInherited(parentMetadata?: BrowseMediaMetadata): BrowseMediaMetadata {
     // Thumbnail and end date are not passed down: a picture of a folder is not
     // a picture of each file within it, and a file within a folder does not end
     // when the folder ends.
@@ -97,24 +120,24 @@ export class MetadataGenerator {
   private _parseDate(
     parser: DateValueParser,
     src: string,
-    base?: Date,
+    baseDate?: Date,
   ): Date | undefined {
     if (parser.format) {
-      return this._parseFormattedDate(parser.format, src, base);
+      return this._parseFormattedDate(parser.format, src, baseDate);
     }
-    return this._parseUnknownDate(src, base);
+    return this._parseUnknownDate(src, baseDate);
   }
 
   private _parseFormattedDate(
     format: string,
     src: string,
-    base?: Date,
+    baseDate?: Date,
   ): Date | undefined {
-    const result = parse(src, format, base ?? new Date());
+    const result = parse(src, format, baseDate ?? new Date());
     return isValidDate(result) ? result : undefined;
   }
 
-  private _parseUnknownDate(src: string, base?: Date): Date | undefined {
+  private _parseUnknownDate(src: string, baseDate?: Date): Date | undefined {
     if (!this._anyDateParser) {
       return undefined;
     }
@@ -123,14 +146,14 @@ export class MetadataGenerator {
       return undefined;
     }
     const candidate = this._anyDateParser.fromObject({
-      ...(base && {
-        year: base.getFullYear(),
-        month: base.getMonth() + 1,
-        day: base.getDate(),
-        hour: base.getHours(),
-        minute: base.getMinutes(),
-        second: base.getSeconds(),
-        millisecond: base.getMilliseconds(),
+      ...(baseDate && {
+        year: baseDate.getFullYear(),
+        month: baseDate.getMonth() + 1,
+        day: baseDate.getDate(),
+        hour: baseDate.getHours(),
+        minute: baseDate.getMinutes(),
+        second: baseDate.getSeconds(),
+        millisecond: baseDate.getMilliseconds(),
       }),
       ...result,
     });

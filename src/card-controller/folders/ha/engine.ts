@@ -1,4 +1,5 @@
 import { sub } from 'date-fns';
+import { omit } from 'lodash-es';
 
 import type { ConditionState } from '../../../condition-trigger/conditions/types';
 import {
@@ -16,12 +17,14 @@ import {
   BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMediaCache,
   type BrowseMediaMetadata,
+  type RichBrowseMedia,
 } from '../../../ha/browse-media/types';
 import {
   BrowseMediaWalker,
   type BrowseMediaStep,
   type BrowseMediaTarget,
 } from '../../../ha/browse-media/walker';
+import { isMediaWithinDates } from '../../../ha/browse-media/within-dates';
 import { getMediaDownloadPath } from '../../../ha/download';
 import { HA_MEDIA_SOURCE_ROOT } from '../../../ha/media-source';
 import type { HomeAssistant } from '../../../ha/types';
@@ -41,6 +44,7 @@ import type {
 import { MediaMatcher } from './media-matcher';
 import { MetadataGenerator } from './metadata-generator.js';
 import { ThumbnailMetadataGenerator } from './thumbnail-metadata-generator';
+import { filterFoldersByTimeRange } from './time-range-filter';
 
 // A folder hierarchy level combining the folder configuration and the user's
 // navigation.
@@ -179,7 +183,11 @@ export class HAFoldersEngine implements FoldersEngine {
     //   only-showing the parent folder, and rather showing its siblings too.
     //   That empty element is later merged with level-appropriate
     //   matchers/parsers from the config.
-    return { ...query, path: [...query.path.slice(0, -2), {}] };
+    // - Remove any time range, so that every folder is available to navigate.
+    return {
+      ...omit(query, ['start', 'end']),
+      path: [...query.path.slice(0, -2), {}],
+    };
   }
 
   public getDownQuery(item: ViewFolder): FolderQuery {
@@ -280,12 +288,13 @@ export class HAFoldersEngine implements FoldersEngine {
       targets: BrowseMediaTarget<BrowseMediaMetadata>[],
     ): BrowseMediaStep<BrowseMediaMetadata>[] => {
       const nextLevel = levels.shift();
+      const isLastLevel = !levels.length;
 
       return [
         {
           targets,
           metadataGenerator: (media, parent) =>
-            this._metadataGenerator.generate(media, parent, nextLevel?.parsers),
+            this._metadataGenerator.generate(media, nextLevel?.parsers, parent),
           childrenMetadataUpdater: (children) =>
             this._thumbnailMetadataGenerator.generate(
               hass,
@@ -299,10 +308,24 @@ export class HAFoldersEngine implements FoldersEngine {
                 matchers: nextLevel.matchers,
                 // Set foldersOnly to true if there are more levels to walk, as
                 // by definition only folders can be matched at this point.
-                foldersOnly: levels.length > 0,
+                foldersOnly: !isLastLevel,
                 conditionState,
               }),
-            advance: (targets) => (levels.length ? generateStep(targets) : []),
+            // Skip opening folders that cannot hold media in the desired time
+            // range. The last level is never walked, so is filtered below
+            // instead.
+            ...(!isLastLevel && {
+              childrenFilter: (folders) =>
+                filterFoldersByTimeRange(folders, query, (folder) =>
+                  // A date inherited from the parent is when the parent starts,
+                  // not necessarily when this folder's contents start, so a
+                  // folder with only the date from a parent counts as undated
+                  // and is always opened to fetch contents and directly check
+                  // their dates.
+                  this._getUninheritedStartDate(folder, nextLevel.parsers),
+                ),
+            }),
+            advance: (targets) => (isLastLevel ? [] : generateStep(targets)),
           }),
         },
       ];
@@ -321,10 +344,36 @@ export class HAFoldersEngine implements FoldersEngine {
     const results =
       this._thumbnailMetadataGenerator.removeThumbnailsOfOtherMedia(browseMedia);
 
-    return getViewItemsFromBrowseMediaArray(results, {
+    // Folders and undated media cannot be placed within a time range, so are
+    // not returned when one is specified.
+    const resultsInTimeRange = results.filter(
+      (media) =>
+        (!query.start && !query.end) ||
+        (!media.can_expand && isMediaWithinDates(media, query.start, query.end)),
+    );
+
+    return getViewItemsFromBrowseMediaArray(resultsInTimeRange, {
       folder: query.folder,
       path: query.path,
     });
+  }
+
+  // Get the start date the parsers find in the folder, without inheriting
+  // anything from the parent. A title may hold only part of a date (e.g. a day
+  // folder titled `31`), so the rest of the date comes from the start date
+  // already in the folder's metadata, which the walk built using the parent. A
+  // title with no date at all still inherits nothing.
+  private _getUninheritedStartDate(
+    folder: RichBrowseMedia<BrowseMediaMetadata>,
+    parsers?: Parser[],
+  ): Date | null {
+    return (
+      this._metadataGenerator.generateUninherited(
+        folder,
+        parsers,
+        folder._metadata?.startDate,
+      )?.startDate ?? null
+    );
   }
 
   public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {

@@ -24,6 +24,7 @@ import {
   type RecordingSegmentsQueryResults,
   type ReviewQuery,
 } from '../../../src/camera-manager/types';
+import { convertRangeToCacheFriendlyTimes } from '../../../src/camera-manager/utils/range-to-cache-friendly';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import type {
   FolderPathLevel,
@@ -550,6 +551,12 @@ describe('TimelineDataSource', () => {
           );
 
           await source.refresh(window);
+
+          expect(foldersManager.expandFolder).toHaveBeenCalledWith(
+            { ...folderQueryNode, ...convertRangeToCacheFriendlyTimes(window) },
+            undefined,
+            { allowCached: undefined },
+          );
 
           expect(source.dataset.length).toBe(1);
 
