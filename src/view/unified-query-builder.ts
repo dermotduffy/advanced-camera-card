@@ -320,11 +320,12 @@ export class UnifiedQueryBuilder {
   // =========================================================================
 
   public buildDefaultCameraQuery(
-    cameraID?: string,
-    options?: QueryFiltersOptions,
+    options?: QueryFiltersOptions & {
+      cameraID?: string;
+    },
   ): UnifiedQuery | null {
-    const cameraIDs = cameraID
-      ? this._cameraManager.getStore().getAllDependentCameras(cameraID)
+    const cameraIDs = options?.cameraID
+      ? this._cameraManager.getStore().getAllDependentCameras(options.cameraID)
       : this._cameraManager.getStore().getCameraIDs();
 
     const query = new UnifiedQuery();

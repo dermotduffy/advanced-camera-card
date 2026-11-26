@@ -173,9 +173,9 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     }
 
     const view = this.viewManagerEpoch?.manager.getView();
-    const isLoading = !!view?.context?.loading?.query;
+    const isAwaitingAnyQuery = !!view?.context?.loading?.query && !view.query;
 
-    if (isLoading) {
+    if (isAwaitingAnyQuery) {
       if (!this.mini) {
         return renderNotificationBlockFromText(localize('error.awaiting_media'), {
           icon: 'mdi:chart-gantt',

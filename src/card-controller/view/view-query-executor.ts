@@ -2,6 +2,7 @@ import { sub } from 'date-fns';
 
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
+import type { ViewItem } from '../../view/item';
 import { QueryResults } from '../../view/query-results';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder';
@@ -12,6 +13,7 @@ import type { CardViewAPI } from '../types';
 import { MergeContextViewModifier } from './modifiers/merge-context';
 import { RemoveContextPropertyViewModifier } from './modifiers/remove-context-property';
 import { SetQueryViewModifier } from './modifiers/set-query';
+import { searchTimelineQuery } from './timeline-query';
 import type { QueryExecutorOptions, ViewModifier } from './types';
 
 /**
@@ -88,6 +90,16 @@ export class ViewQueryExecutor {
       this._api.getConditionStateManager(),
     );
 
+    const getSetQueryModifiers = (
+      query: UnifiedQuery,
+      items: ViewItem[],
+    ): ViewModifier[] => [
+      new SetQueryViewModifier({
+        query,
+        queryResults: new QueryResults({ results: items }),
+      }),
+    ];
+
     const executeQuery = async (query: UnifiedQuery | null): Promise<ViewModifier[]> => {
       if (!query) {
         return [];
@@ -97,12 +109,7 @@ export class ViewQueryExecutor {
         allowCached: queryExecutorOptions?.allowCached,
       });
 
-      return [
-        new SetQueryViewModifier({
-          query,
-          queryResults: new QueryResults({ results: items }),
-        }),
-      ];
+      return getSetQueryModifiers(query, items);
     };
 
     // Don't query if the view is not supported (e.g. a camera-based view with
@@ -127,7 +134,8 @@ export class ViewQueryExecutor {
     const cameraForQuery = view.isGrid() ? undefined : view.camera ?? undefined;
 
     const getDefaultQueryModifiers = async () => {
-      const query = builder.buildDefaultCameraQuery(cameraForQuery, {
+      const query = builder.buildDefaultCameraQuery({
+        cameraID: cameraForQuery,
         limit: this._getLimit(),
       });
       return await executeQuery(query);
@@ -139,21 +147,20 @@ export class ViewQueryExecutor {
           viewModifiers.push(...(await getDefaultQueryModifiers()));
         }
         break;
-      case 'timeline':
-        // Timeline view always queries all cameras with media capabilities.
-        viewModifiers.push(
-          ...(await executeQuery(
-            builder.buildDefaultCameraQuery(undefined, {
-              // Opening every folder is expensive, and only the most recent
-              // media is needed to position the timeline. The timeline itself
-              // will fetch other time ranges as they come into view.
-              folderTimeRange: {
-                start: sub(new Date(), { seconds: config.timeline.window_seconds }),
-              },
-            }),
-          )),
+      case 'timeline': {
+        const timelineQuery = await searchTimelineQuery(
+          builder,
+          runner,
+          config.timeline.window_seconds,
+          queryExecutorOptions?.allowCached,
         );
+        if (timelineQuery) {
+          viewModifiers.push(
+            ...getSetQueryModifiers(timelineQuery.query, timelineQuery.items),
+          );
+        }
         break;
+      }
       case 'gallery':
       case 'media':
         // If the user is looking at media in the `media` view and then changes

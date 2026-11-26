@@ -2,6 +2,7 @@ import { afterAll, assert, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { Capabilities } from '../../../src/camera-manager/capabilities';
 import { QueryType, type EventQuery } from '../../../src/camera-manager/types';
+import type { CardController } from '../../../src/card-controller/controller';
 import { applyViewModifiers } from '../../../src/card-controller/view/modifiers';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
 import type { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
@@ -610,7 +611,10 @@ describe('ViewQueryExecutor', () => {
         vi.useRealTimers();
       });
 
-      it('should only query folders from the start of the default window', async () => {
+      const params = createFolderQuery('folder');
+
+      // Create an API with a camera that shows folder media.
+      const createFolderTimelineAPI = (): CardController => {
         const api = createPopulatedAPI({ timeline: { window_seconds: 7200 } });
         vi.mocked(api.getCameraManager).mockReturnValue(
           createCameraManager(
@@ -622,20 +626,51 @@ describe('ViewQueryExecutor', () => {
             ]),
           ),
         );
-        const params = createFolderQuery('folder');
-        vi.mocked(api.getFoldersManager().hasFolders).mockReturnValue(true);
-        vi.mocked(api.getFoldersManager().getFolder).mockReturnValue(params.folder);
-        vi.mocked(api.getFoldersManager().getDefaultQueryParameters).mockReturnValue(
-          params,
+        const foldersManager = api.getFoldersManager();
+        vi.mocked(foldersManager.hasFolders).mockReturnValue(true);
+        vi.mocked(foldersManager.getFolder).mockReturnValue(params.folder);
+        vi.mocked(foldersManager.getDefaultQueryParameters).mockReturnValue(params);
+        return api;
+      };
+
+      it('should search for folder media from the start of the timeline window', async () => {
+        const api = createFolderTimelineAPI();
+        const media = new TestViewMedia({ startTime: new Date('2026-11-12T11:30:00') });
+        vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue([media]);
+        const view = createView({ view: 'timeline', camera: 'camera.office' });
+
+        applyViewModifiers(
+          view,
+          await new ViewQueryExecutor(api).getNewQueryModifiers(view),
         );
 
-        const view = createView({ view: 'timeline', camera: 'camera.office' });
-        const modifiers = await new ViewQueryExecutor(api).getNewQueryModifiers(view);
-        applyViewModifiers(view, modifiers);
-
+        const calls = vi.mocked(api.getFoldersManager().expandFolder).mock.calls;
+        expect(calls.map(([query, , engineOptions]) => [query, engineOptions])).toEqual([
+          [
+            { ...params, start: new Date('2026-11-12T10:00:00') },
+            { allowCached: false },
+          ],
+        ]);
         expect(view.query?.getNodes()).toEqual([
           { ...params, start: new Date('2026-11-12T10:00:00') },
         ]);
+        expect(view.queryResults?.getResults()).toEqual([media]);
+      });
+
+      it('should not set a query without media to show', async () => {
+        const api = createPopulatedAPI();
+        vi.mocked(api.getCameraManager).mockReturnValue(
+          createCameraManager(createStore([{ cameraID: 'camera.office' }])),
+        );
+        vi.mocked(api.getFoldersManager().hasFolders).mockReturnValue(true);
+        const view = createView({ view: 'timeline', camera: 'camera.office' });
+
+        applyViewModifiers(
+          view,
+          await new ViewQueryExecutor(api).getNewQueryModifiers(view),
+        );
+
+        expect(view.query).toBeNull();
       });
 
       it('should query all cameras for timeline view', async () => {

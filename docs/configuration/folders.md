@@ -327,6 +327,9 @@ Folders without a date of their own are always opened. [Matchers](#matchers)
 still apply, so a `date` matcher with `since` limits how far back the timeline
 can show.
 
+Folders, and media without a date, cannot be placed on the timeline, so the
+timeline does not show them.
+
 > [!IMPORTANT]
 > If the date parsed from a folder does not represent when its media starts, that
 > media may be missing from the timeline. If a title has only part of a date

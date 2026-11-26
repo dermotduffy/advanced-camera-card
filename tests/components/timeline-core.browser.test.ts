@@ -1,3 +1,4 @@
+import { format, subDays, subMinutes } from 'date-fns';
 import { assert, describe, expect, it } from 'vitest';
 
 // The card imports the timeline component lazily, and `card.waitForSelector`
@@ -7,6 +8,13 @@ import '../../src/components/timeline';
 import type { FrigateReview } from '../../src/camera-manager/frigate/types';
 import type { AdvancedCameraCardDrawer } from '../../src/components/drawer';
 import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
+import { formatDateTime } from '../../src/utils/date/localized';
+import { View } from '../../src/view/view';
+import {
+  createFrontDoorFolderMedia,
+  FRONT_DOOR_FOLDER_CONTENT_ID,
+  registerFrontDoorFolder,
+} from '../browser/browse-media';
 import {
   deepQuery,
   deepQueryAll,
@@ -25,6 +33,8 @@ import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
   clickThumbnail,
   createCameraHASS,
+  createGenericCameraHASS,
+  createStillImageCameraConfig,
   createStillImageCardConfig,
   RESIZE_LOOP_CONSOLE_ERROR,
   waitForThumbnails,
@@ -341,6 +351,111 @@ describe('AdvancedCameraCardTimelineCore', () => {
       ).toBeLessThanOrEqual(1);
       expect(panel.getAttribute('tier')).toBe('standard');
       expect(controls.getAttribute('tier')).toBe('compact');
+    });
+  });
+
+  describe('moving to another time', () => {
+    const getClipFileName = (time: Date): string =>
+      `${format(time, 'yyyy-MM-dd HH:mm:ss')}.mp4`;
+
+    const waitForClipThumbnail = async (
+      card: MountedCard,
+      time: Date,
+    ): Promise<void> => {
+      await card.waitForRender(
+        () =>
+          deepQuery(
+            card.card,
+            `advanced-camera-card-thumbnail[aria-label="${formatDateTime(time)}"]`,
+          ),
+        `the thumbnail of the clip at ${formatDateTime(time)}`,
+      );
+    };
+
+    // The card logs every view it sets. A logged view with a timeline window
+    // that is not marked as loading, means the timeline's first query has
+    // loaded.
+    const waitForTimelineFirstQuery = async (card: MountedCard): Promise<void> => {
+      await card.waitForRender(
+        () =>
+          card.console.getEntries('debug').some(({ args }) => {
+            const view = args[1];
+            return (
+              view instanceof View &&
+              !!view.context?.timeline?.window &&
+              !view.context.loading?.query
+            );
+          }) || null,
+        "the timeline's first query to load",
+      );
+    };
+
+    // The timeline queries a folder only for the timeline window, so moving the
+    // timeline days away makes it re-query.
+    const mountCardWithFolderClips = async (times: Date[]): Promise<MountedCard> => {
+      const hass = createGenericCameraHASS();
+      registerFrontDoorFolder(
+        hass,
+        times.map((time) => createFrontDoorFolderMedia(getClipFileName(time), 'video')),
+      );
+
+      return await MountedCardFactory.createFromSource(
+        createStillImageCardConfig({
+          cameras: [{ ...createStillImageCameraConfig(), media: { type: 'folder' } }],
+          folders: [
+            {
+              type: 'ha',
+              ha: {
+                path: [
+                  { id: FRONT_DOOR_FOLDER_CONTENT_ID },
+                  {
+                    parsers: [
+                      {
+                        type: 'startdate',
+                        regexp: '^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}',
+                        format: 'yyyy-MM-dd HH:mm:ss',
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
+          view: { default: 'timeline' },
+          debug: { logging: true },
+        }),
+        hass,
+        { toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR] },
+      );
+    };
+
+    it('should keep drawing the same timeline while new media is being fetched', async () => {
+      const now = new Date();
+      const recentTime = subMinutes(now, 20);
+      const olderTime = subDays(now, 3);
+      const card = await mountCardWithFolderClips([recentTime, olderTime]);
+
+      await waitForClipThumbnail(card, recentTime);
+
+      // When the timeline's first query loads, the timeline moves back to the
+      // time that query was for, undoing any earlier move.
+      await waitForTimelineFirstQuery(card);
+      const timeline = deepQuery(card.card, '.vis-timeline');
+      assert(timeline);
+
+      const datePicker = deepQuery<HTMLInputElement>(
+        card.card,
+        'input[type="datetime-local"]',
+      );
+      assert(datePicker);
+
+      // The date input is hidden behind the calendar icon, which opens the
+      // browser's own picker that a test cannot use, so set the value directly.
+      datePicker.value = format(olderTime, "yyyy-MM-dd'T'HH:mm");
+      datePicker.dispatchEvent(new Event('change'));
+
+      await waitForClipThumbnail(card, olderTime);
+      expect(deepQuery(card.card, '.vis-timeline')).toBe(timeline);
     });
   });
 });

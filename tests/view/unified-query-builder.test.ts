@@ -572,7 +572,7 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(null);
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      builder.buildDefaultCameraQuery('camera.office');
+      builder.buildDefaultCameraQuery({ cameraID: 'camera.office' });
 
       expect(store.getAllDependentCameras).toHaveBeenCalledWith('camera.office');
     });
@@ -893,7 +893,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery(undefined, { limit: 15 });
+      const query = builder.buildDefaultCameraQuery({ limit: 15 });
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -944,7 +944,7 @@ describe('UnifiedQueryBuilder', () => {
 
       const start = new Date('2026-11-12T00:00:00');
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery(undefined, {
+      const query = builder.buildDefaultCameraQuery({
         folderTimeRange: { start },
       });
 
@@ -1003,7 +1003,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery(undefined, { limit: 50 });
+      const query = builder.buildDefaultCameraQuery({ limit: 50 });
 
       assert(query);
       expect(query.getNodes()[0]).not.toHaveProperty('limit');
