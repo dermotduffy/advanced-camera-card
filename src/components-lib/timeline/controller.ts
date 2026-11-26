@@ -1,4 +1,4 @@
-import { add, differenceInSeconds, sub } from 'date-fns';
+import { add, sub } from 'date-fns';
 import type { LitElement } from 'lit';
 import { isEqual, throttle } from 'lodash-es';
 import type { ViewContext } from 'view';
@@ -14,8 +14,6 @@ import {
 } from 'vis-timeline';
 
 import type { CameraManager } from '../../camera-manager/manager';
-import { rangesOverlap } from '../../camera-manager/range';
-import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
 import type { FoldersManager } from '../../card-controller/folders/manager';
 import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
@@ -38,10 +36,15 @@ import {
   formatShortDate,
   formatTime,
 } from '../../utils/date/localized';
+import { rangesOverlap } from '../../utils/date/range';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
+import {
+  getTimelinePrefetchWindow,
+  getTimelineQueryRange,
+} from '../../view/timeline-window';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 import { setThumbnailDimensionsStyle } from '../thumbnail/dimensions';
@@ -169,11 +172,15 @@ export class TimelineController {
   }
 
   /**
-   * Extract the "shape" of a query - a clone without time ranges.
-   * Shape determines timeline structure (groups).
+   * Get the "shape" of a query: what it asks for (which cameras, folders and
+   * kinds of media), without when (its time range) or how much (its limit). The
+   * timeline draws one group per camera or folder in the shape, and fetches
+   * media for whatever time it shows by adding that time to the shape. The
+   * limit is omitted to ensure that the fetch gets all the media in that time,
+   * not just one page worth.
    */
   private _getQueryShape(query: UnifiedQuery): UnifiedQuery {
-    return UnifiedQueryTransformer.stripTimeRange(query);
+    return UnifiedQueryTransformer.stripTimeRangeAndLimit(query);
   }
 
   private _hasSameShape(a?: UnifiedQuery | null, b?: UnifiedQuery | null): boolean {
@@ -554,9 +561,7 @@ export class TimelineController {
       this._timeline
     ) {
       const query = this._source.buildRecordingsWindowedQuery(
-        convertRangeToCacheFriendlyTimes(
-          this._getPrefetchWindow(this._timeline.getWindow()),
-        ),
+        getTimelineQueryRange(this._timeline.getWindow()),
       );
       if (query) {
         await this._viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
@@ -663,31 +668,13 @@ export class TimelineController {
   }
 
   /**
-   * Get a broader prefetch window from a start and end basis.
-   * @param window The window to broaden.
-   * @returns A broader timeline.
-   */
-  private _getPrefetchWindow(window: TimelineWindow): TimelineWindow {
-    const delta = differenceInSeconds(window.end, window.start);
-    return {
-      start: sub(window.start, { seconds: delta }),
-      end: add(window.end, { seconds: delta }),
-    };
-  }
-
-  /**
    * Apply a cache-friendly prefetch window to all media queries.
    */
   private _applyWindowToQuery(
     query: UnifiedQuery,
     window: TimelineWindow,
   ): UnifiedQuery {
-    const prefetchWindow = this._getPrefetchWindow(window);
-    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(prefetchWindow);
-    return UnifiedQueryTransformer.rebuildQuery(query, {
-      start: cacheFriendlyWindow.start,
-      end: cacheFriendlyWindow.end,
-    });
+    return UnifiedQueryTransformer.rebuildQuery(query, getTimelineQueryRange(window));
   }
 
   private _timelineRangeChangedHandler = async (properties: {
@@ -710,7 +697,7 @@ export class TimelineController {
       return;
     }
 
-    await this._source?.refresh(this._getPrefetchWindow(properties));
+    await this._source?.refresh(getTimelinePrefetchWindow(properties));
 
     if (!view.query) {
       return;
@@ -798,7 +785,7 @@ export class TimelineController {
         desiredWindow = perfectMediaWindow;
       }
     }
-    const prefetchedWindow = this._getPrefetchWindow(desiredWindow);
+    const prefetchedWindow = getTimelinePrefetchWindow(desiredWindow);
 
     if (!this._pointerHeld && view.query) {
       // Don't fetch any data or touch the timeline in any way if the user is
@@ -864,6 +851,7 @@ export class TimelineController {
 
     if (
       !this._mini &&
+      !view.context?.loading?.query &&
       freshMediaQuery &&
       !this._alreadyHasAcceptableMediaQuery(freshMediaQuery)
     ) {

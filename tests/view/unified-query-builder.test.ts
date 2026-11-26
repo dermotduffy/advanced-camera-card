@@ -928,7 +928,7 @@ describe('UnifiedQueryBuilder', () => {
       expect(query).toBeNull();
     });
 
-    it('should apply a folder time range only to folder queries', () => {
+    it('should apply a time range to camera and folder queries alike', () => {
       const { cameraManager, foldersManager, store } = createMocks();
       store.getCameraIDs.mockReturnValue(new Set(['camera.folder', 'camera.clips']));
       store.getCameraConfig.mockImplementation((cameraID) =>
@@ -943,17 +943,18 @@ describe('UnifiedQueryBuilder', () => {
       foldersManager.getDefaultQueryParameters.mockReturnValue(params);
 
       const start = new Date('2026-11-12T00:00:00');
+      const end = new Date('2026-11-12T23:59:59.999');
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery({
-        folderTimeRange: { start },
-      });
+      const query = builder.buildDefaultCameraQuery({ start, end });
 
-      expect(query?.getFolderQueries()).toEqual([{ ...params, start }]);
+      expect(query?.getFolderQueries()).toEqual([{ ...params, start, end }]);
       expect(query?.getMediaQueries()).toEqual([
         {
           source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['camera.clips']),
+          start,
+          end,
         },
       ]);
     });

@@ -24,7 +24,6 @@ import {
   type RecordingSegmentsQueryResults,
   type ReviewQuery,
 } from '../../../src/camera-manager/types';
-import { convertRangeToCacheFriendlyTimes } from '../../../src/camera-manager/utils/range-to-cache-friendly';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import type {
   FolderPathLevel,
@@ -36,6 +35,7 @@ import {
 } from '../../../src/components-lib/timeline/source';
 import type { ConditionStateManagerReadonlyInterface } from '../../../src/condition-trigger/conditions/types';
 import { QuerySource } from '../../../src/query-source';
+import { convertRangeToCacheFriendlyTimes } from '../../../src/utils/date/range-to-cache-friendly';
 import { ViewMediaType } from '../../../src/view/item';
 import { UnifiedQuery, type QueryNode } from '../../../src/view/unified-query';
 import { createCameraManager, createStore } from '../../camera-manager/test-utils';

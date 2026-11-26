@@ -1,6 +1,6 @@
 import { orderBy, sortedUniqBy } from 'lodash-es';
 
-import { MemoryRangeSet, type DateRange } from './range';
+import { MemoryRangeSet, type DateRange } from '../utils/date/range';
 import type { RecordingSegment } from './types';
 
 class MemoryRangedCache<Data> {

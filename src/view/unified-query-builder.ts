@@ -25,13 +25,6 @@ interface MediaQueryBuildOptions extends QueryFilters {
   limit?: number;
 }
 
-interface QueryFiltersOptions extends QueryFilters {
-  limit?: number;
-
-  // A time range for folder queries only.
-  folderTimeRange?: Partial<TimeBasedDataQuery>;
-}
-
 type MediaType = 'events' | 'recordings' | 'reviews' | 'folder';
 
 export interface MediaTypeSpec {
@@ -283,7 +276,7 @@ export class UnifiedQueryBuilder {
 
   private _buildFolderQueryNodesForCameras(
     cameraIDs: Set<string>,
-    options?: QueryFiltersOptions,
+    options?: MediaQueryBuildOptions,
   ): QueryNode[] {
     const nodes: QueryNode[] = [];
     for (const cameraID of cameraIDs) {
@@ -302,7 +295,7 @@ export class UnifiedQueryBuilder {
 
   private _buildFolderQueryNode(
     folderID?: string,
-    options?: QueryFiltersOptions,
+    options?: MediaQueryBuildOptions,
   ): QueryNode | null {
     const folder = this._foldersManager.getFolder(folderID);
     const params = folder && this._foldersManager.getDefaultQueryParameters(folder);
@@ -310,7 +303,7 @@ export class UnifiedQueryBuilder {
       ? {
           ...params,
           ...this._extractFilterOptions(options),
-          ...options?.folderTimeRange,
+          ...this._extractTimeRange(options),
         }
       : null;
   }
@@ -320,7 +313,7 @@ export class UnifiedQueryBuilder {
   // =========================================================================
 
   public buildDefaultCameraQuery(
-    options?: QueryFiltersOptions & {
+    options?: MediaQueryBuildOptions & {
       cameraID?: string;
     },
   ): UnifiedQuery | null {
@@ -337,7 +330,7 @@ export class UnifiedQueryBuilder {
 
   private _buildDefaultCameraQueryNodes(
     cameraID: string,
-    options?: QueryFiltersOptions,
+    options?: MediaQueryBuildOptions,
   ): QueryNode | QueryNode[] | null {
     const mediaConfig = this._cameraManager.getStore().getCameraConfig(cameraID)?.media;
     const spec = this._resolveMediaTypeSpec(
@@ -362,7 +355,7 @@ export class UnifiedQueryBuilder {
 
   public buildCameraMediaQuery(
     mediaType: MediaType,
-    options?: QueryFiltersOptions & {
+    options?: MediaQueryBuildOptions & {
       cameraID?: string;
       eventsSubtype?: 'clips' | 'snapshots';
     },
@@ -479,7 +472,7 @@ export class UnifiedQueryBuilder {
   private _buildQueryNodesCapabilityUnchecked(
     spec: MediaTypeSpec,
     cameraID: string,
-    options?: QueryFiltersOptions,
+    options?: MediaQueryBuildOptions,
   ): QueryNode | QueryNode[] | null {
     const cameraIDs = new Set([cameraID]);
     switch (spec.mediaType) {
@@ -512,17 +505,25 @@ export class UnifiedQueryBuilder {
     limit?: number;
   } {
     return {
+      ...this._extractTimeRange(options),
+      ...(options?.limit !== undefined && { limit: options.limit }),
+    };
+  }
+
+  private _extractTimeRange(
+    options?: MediaQueryBuildOptions,
+  ): Partial<TimeBasedDataQuery> {
+    return {
       ...(options?.start && { start: options.start }),
       ...(options?.end && { end: options.end }),
-      ...(options?.limit !== undefined && { limit: options.limit }),
     };
   }
 
   private _resolveReviewedFilter(
     spec: MediaTypeSpec,
     cameraID: string,
-    options?: QueryFiltersOptions,
-  ): QueryFiltersOptions | undefined {
+    options?: MediaQueryBuildOptions,
+  ): MediaQueryBuildOptions | undefined {
     if (spec.mediaType !== 'reviews' || options?.reviewed !== undefined) {
       return options;
     }

@@ -525,7 +525,7 @@ describe('ViewQueryExecutor', () => {
           });
         });
 
-        it('should unset timeline for non-live views', async () => {
+        it('should unset the timeline window for views without a timeline', async () => {
           const viewQueryExecutor = new ViewQueryExecutor(createPopulatedAPI());
           const view = createView({
             view: 'clips',
@@ -633,7 +633,30 @@ describe('ViewQueryExecutor', () => {
         return api;
       };
 
-      it("should first look for folder media within the timeline's window", async () => {
+      // The timeline opens on 10:00 to 12:00 (its 2 hour window, ending now).
+      // Its query covers that window widened by 2 hours on each side, 08:00 to
+      // 14:00, rounded out to the whole day.
+      const queryRange = {
+        start: new Date('2026-11-12T00:00:00'),
+        end: new Date('2026-11-12T23:59:59.999'),
+      };
+
+      it('should open on now, whether or not there is media then', async () => {
+        const api = createFolderTimelineAPI();
+        const view = createView({ view: 'timeline', camera: 'camera.office' });
+
+        applyViewModifiers(
+          view,
+          await new ViewQueryExecutor(api).getNewQueryModifiers(view),
+        );
+
+        expect(view.context?.timeline?.window).toEqual({
+          start: new Date('2026-11-12T10:00:00'),
+          end: new Date('2026-11-12T12:00:00'),
+        });
+      });
+
+      it('should query folders for the range the timeline fetches', async () => {
         const api = createFolderTimelineAPI();
         const media = new TestViewMedia({ startTime: new Date('2026-11-12T11:30:00') });
         vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue([media]);
@@ -646,15 +669,26 @@ describe('ViewQueryExecutor', () => {
 
         const calls = vi.mocked(api.getFoldersManager().expandFolder).mock.calls;
         expect(calls.map(([query, , engineOptions]) => [query, engineOptions])).toEqual([
-          [
-            { ...params, start: new Date('2026-11-12T10:00:00') },
-            { allowCached: false },
-          ],
+          [{ ...params, ...queryRange }, { allowCached: false }],
         ]);
-        expect(view.query?.getNodes()).toEqual([
-          { ...params, start: new Date('2026-11-12T10:00:00') },
-        ]);
+        expect(view.query?.getNodes()).toEqual([{ ...params, ...queryRange }]);
         expect(view.queryResults?.getResults()).toEqual([media]);
+      });
+
+      it('should query cameras for the range the timeline fetches', async () => {
+        const api = createPopulatedAPI({ timeline: { window_seconds: 7200 } });
+        const view = createView({ view: 'timeline', camera: 'camera.office' });
+
+        applyViewModifiers(
+          view,
+          await new ViewQueryExecutor(api).getNewQueryModifiers(view),
+        );
+
+        const queries = view.query?.getMediaQueries();
+        expect(queries?.length).toBeGreaterThan(0);
+        for (const query of queries ?? []) {
+          expect(query).toEqual(expect.objectContaining(queryRange));
+        }
       });
 
       it('should not set a query when there is no media to query', async () => {

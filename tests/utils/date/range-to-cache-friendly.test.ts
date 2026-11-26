@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { convertRangeToCacheFriendlyTimes } from '../../../src/camera-manager/utils/range-to-cache-friendly';
+import { convertRangeToCacheFriendlyTimes } from '../../../src/utils/date/range-to-cache-friendly';
 
 describe('convertRangeToCacheFriendlyTimes', () => {
   it('should return cache friendly within hour range', () => {

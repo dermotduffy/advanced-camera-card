@@ -13,7 +13,6 @@ import type { LitElement } from 'lit';
 import { orderBy } from 'lodash-es';
 
 import { CameraQueryClassifier, type CameraManager } from '../camera-manager/manager';
-import type { DateRange, PartialDateRange } from '../camera-manager/range';
 import {
   QueryType,
   type EventQuery,
@@ -30,6 +29,7 @@ import type { ViewMediaType } from '../types';
 import { errorToConsole, getUnanimousValue, prettifyTitle } from '../utils/basic';
 import { formatISODate } from '../utils/date/iso';
 import { formatMonth } from '../utils/date/localized';
+import type { DateRange, PartialDateRange } from '../utils/date/range';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder';
 
 export interface MediaFilterCoreDefaults {

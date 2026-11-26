@@ -1,9 +1,10 @@
 import { sub } from 'date-fns';
 
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
+import type { DateRange } from '../../utils/date/range';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
-import type { ViewItem } from '../../view/item';
 import { QueryResults } from '../../view/query-results';
+import { getTimelineQueryRange } from '../../view/timeline-window';
 import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner';
@@ -13,7 +14,6 @@ import type { CardViewAPI } from '../types';
 import { MergeContextViewModifier } from './modifiers/merge-context';
 import { RemoveContextPropertyViewModifier } from './modifiers/remove-context-property';
 import { SetQueryViewModifier } from './modifiers/set-query';
-import { searchTimelineQuery } from './timeline-query';
 import type { QueryExecutorOptions, ViewModifier } from './types';
 
 /**
@@ -90,16 +90,6 @@ export class ViewQueryExecutor {
       this._api.getConditionStateManager(),
     );
 
-    const getSetQueryModifiers = (
-      query: UnifiedQuery,
-      items: ViewItem[],
-    ): ViewModifier[] => [
-      new SetQueryViewModifier({
-        query,
-        queryResults: new QueryResults({ results: items }),
-      }),
-    ];
-
     const executeQuery = async (query: UnifiedQuery | null): Promise<ViewModifier[]> => {
       if (!query) {
         return [];
@@ -109,7 +99,12 @@ export class ViewQueryExecutor {
         allowCached: queryExecutorOptions?.allowCached,
       });
 
-      return getSetQueryModifiers(query, items);
+      return [
+        new SetQueryViewModifier({
+          query,
+          queryResults: new QueryResults({ results: items }),
+        }),
+      ];
     };
 
     // Don't query if the view is not supported (e.g. a camera-based view with
@@ -141,26 +136,32 @@ export class ViewQueryExecutor {
       return await executeQuery(query);
     };
 
+    // Timeline opens on "now".
+    //  - See: https://github.com/dermotduffy/advanced-camera-card/issues/1301
+    const now = new Date();
+    const getWindowEndingNow = (windowSeconds: number): DateRange => ({
+      start: sub(now, { seconds: windowSeconds }),
+      end: now,
+    });
+    let timelineWindow: DateRange | null = null;
+
     switch (view.view) {
       case 'live':
+        timelineWindow = getWindowEndingNow(
+          config.live.controls.timeline.window_seconds,
+        );
         if (config.live.controls.thumbnails.mode !== 'none') {
           viewModifiers.push(...(await getDefaultQueryModifiers()));
         }
         break;
-      case 'timeline': {
-        const timelineQuery = await searchTimelineQuery(
-          builder,
-          runner,
-          config.timeline.window_seconds,
-          queryExecutorOptions?.allowCached,
+      case 'timeline':
+        timelineWindow = getWindowEndingNow(config.timeline.window_seconds);
+        viewModifiers.push(
+          ...(await executeQuery(
+            builder.buildDefaultCameraQuery(getTimelineQueryRange(timelineWindow)),
+          )),
         );
-        if (timelineQuery) {
-          viewModifiers.push(
-            ...getSetQueryModifiers(timelineQuery.query, timelineQuery.items),
-          );
-        }
         break;
-      }
       case 'gallery':
       case 'media':
         // If the user is looking at media in the `media` view and then changes
@@ -229,46 +230,18 @@ export class ViewQueryExecutor {
         break;
     }
 
-    viewModifiers.push(...this._getTimelineWindowViewModifier(view));
+    viewModifiers.push(...this._getTimelineWindowViewModifier(timelineWindow));
     viewModifiers.push(
       ...this._getSeekTimeModifier(queryExecutorOptions?.selectResult?.time?.time),
     );
     return viewModifiers;
   }
 
-  private _getTimelineWindowViewModifier(view: View): ViewModifier[] {
-    if (view.is('live')) {
-      // For live views, always force the timeline to now, regardless of
-      // presence or not of events.
-      const now = new Date();
-      const liveConfig = this._api.getConfigManager().getConfig()?.live;
-
-      /* v8 ignore if: this if branch cannot be reached as if the config is
-         empty this function is never called -- @preserve */
-      if (!liveConfig) {
-        return [];
-      }
-
-      return [
-        new MergeContextViewModifier({
-          // Force the window to start at the most recent time, not
-          // necessarily when the most recent event/recording was:
-          // https://github.com/dermotduffy/advanced-camera-card/issues/1301
-          timeline: {
-            window: {
-              start: sub(now, {
-                seconds: liveConfig.controls.timeline.window_seconds,
-              }),
-              end: now,
-            },
-          },
-        }),
-      ];
-    } else {
-      // For non-live views stick to default timeline behavior (will select and
-      // scroll to event).
-      return [new RemoveContextPropertyViewModifier('timeline', 'window')];
-    }
+  private _getTimelineWindowViewModifier(window: DateRange | null): ViewModifier[] {
+    return window
+      ? [new MergeContextViewModifier({ timeline: { window } })]
+      : // Without a window, the timeline itself uses the selected media's time.
+        [new RemoveContextPropertyViewModifier('timeline', 'window')];
   }
 
   private _getSeekTimeModifier(time?: Date): ViewModifier[] {

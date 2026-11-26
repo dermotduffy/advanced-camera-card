@@ -28,8 +28,8 @@ const createMocks = () => {
 };
 
 describe('UnifiedQueryTransformer', () => {
-  describe('stripTimeRange', () => {
-    it('should remove start and end from camera queries', () => {
+  describe('stripTimeRangeAndLimit', () => {
+    it('should remove the time range and the limit from camera queries', () => {
       const { cameraManager, foldersManager } = createMocks();
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
       const query = builder.buildClipsQuery(new Set(['camera.office']), {
@@ -39,13 +39,14 @@ describe('UnifiedQueryTransformer', () => {
       });
       assert(query);
 
-      const stripped = UnifiedQueryTransformer.stripTimeRange(query);
+      const stripped = UnifiedQueryTransformer.stripTimeRangeAndLimit(query);
       const node = stripped.getNodes()[0];
       assert(isEventQuery(node));
 
       expect(node).not.toHaveProperty('start');
       expect(node).not.toHaveProperty('end');
-      expect(node.limit).toBe(10); // Other props preserved
+      expect(node).not.toHaveProperty('limit');
+      expect(node.cameraIDs).toEqual(new Set(['camera.office']));
     });
 
     it('should remove the time range from folder queries', () => {
@@ -60,7 +61,7 @@ describe('UnifiedQueryTransformer', () => {
         },
       ]);
 
-      const stripped = UnifiedQueryTransformer.stripTimeRange(query);
+      const stripped = UnifiedQueryTransformer.stripTimeRangeAndLimit(query);
 
       expect(stripped.getNodes()).toEqual([
         { source: QuerySource.Folder, folder, path: [{}] },

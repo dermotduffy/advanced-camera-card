@@ -354,6 +354,32 @@ describe('AdvancedCameraCardTimelineCore', () => {
     });
   });
 
+  describe('opening the timeline view', () => {
+    it('should not run a second query', async () => {
+      const card = await mountCardWithReviews(
+        [createTestFrigateReview('review', getRecentTime(600))],
+        { debug: { logging: true } },
+      );
+
+      // The timeline selects the newest media only after deciding whether it
+      // needs a query of its own.
+      await card.waitForSelector('.vis-item.vis-selected');
+
+      // The card logs every view it sets.
+      const views = card.console
+        .getEntries('debug')
+        .map(({ args }) => args[1])
+        .filter((view): view is View => view instanceof View);
+      const openedIndex = views.findIndex(
+        (view) => !view.context?.loading?.query && !!view.queryResults,
+      );
+      expect(openedIndex).toBeGreaterThanOrEqual(0);
+      expect(
+        views.slice(openedIndex).some((view) => !!view.context?.loading?.query),
+      ).toBe(false);
+    });
+  });
+
   describe('moving to another time', () => {
     const getClipFileName = (time: Date): string =>
       `${format(time, 'yyyy-MM-dd HH:mm:ss')}.mp4`;
@@ -369,24 +395,6 @@ describe('AdvancedCameraCardTimelineCore', () => {
             `advanced-camera-card-thumbnail[aria-label="${formatDateTime(time)}"]`,
           ),
         `the thumbnail of the clip at ${formatDateTime(time)}`,
-      );
-    };
-
-    // The card logs every view it sets. A logged view with a timeline window
-    // that is not marked as loading, means the timeline's first query has
-    // loaded.
-    const waitForTimelineFirstQuery = async (card: MountedCard): Promise<void> => {
-      await card.waitForRender(
-        () =>
-          card.console.getEntries('debug').some(({ args }) => {
-            const view = args[1];
-            return (
-              view instanceof View &&
-              !!view.context?.timeline?.window &&
-              !view.context.loading?.query
-            );
-          }) || null,
-        "the timeline's first query to load",
       );
     };
 
@@ -429,7 +437,7 @@ describe('AdvancedCameraCardTimelineCore', () => {
       );
     };
 
-    it('should keep drawing the same timeline while new media is being fetched', async () => {
+    it('should pan to a chosen time on open without redrawing the timeline', async () => {
       const now = new Date();
       const recentTime = subMinutes(now, 20);
       const olderTime = subDays(now, 3);
@@ -437,9 +445,8 @@ describe('AdvancedCameraCardTimelineCore', () => {
 
       await waitForClipThumbnail(card, recentTime);
 
-      // When the timeline's first query loads, the timeline moves back to the
-      // time that query was for, undoing any earlier move.
-      await waitForTimelineFirstQuery(card);
+      // The timeline has opened once it selects the newest media.
+      await card.waitForSelector('.vis-item.vis-selected');
       const timeline = deepQuery(card.card, '.vis-timeline');
       assert(timeline);
 
