@@ -286,7 +286,7 @@ describe('MediaMatcher', () => {
         const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Test Media');
         media._metadata = {
-          startDate: sub(new Date(), { days: 1 }),
+          startTime: sub(new Date(), { days: 1 }),
         };
         expect(mediaMatcher.match(createHASS(), media, { matchers: [matcher] })).toBe(
           true,
@@ -297,7 +297,7 @@ describe('MediaMatcher', () => {
         const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Test Media');
         media._metadata = {
-          startDate: sub(new Date(), { days: 2 }),
+          startTime: sub(new Date(), { days: 2 }),
         };
         const matcher: Matcher = {
           type: 'date',

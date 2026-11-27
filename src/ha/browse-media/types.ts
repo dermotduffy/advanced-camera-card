@@ -4,8 +4,8 @@ import { ExpiringEqualityCache } from '../../cache/expiring-cache';
 
 export interface BrowseMediaMetadata {
   cameraID?: string;
-  startDate?: Date;
-  endDate?: Date;
+  startTime?: Date;
+  endTime?: Date;
   what?: string[];
   thumbnailOverride?: string;
 }

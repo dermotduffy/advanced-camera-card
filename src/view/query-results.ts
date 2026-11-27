@@ -1,14 +1,14 @@
+import { findLastIndex } from 'lodash-es';
+
 import { isSuperset } from '../utils/basic.js';
 import { ViewItemClassifier } from './item-classifier.js';
 import type { ViewItem } from './item.js';
 
 type CameraResultSlices = Map<string, ResultSlice>;
-type SelectApproach = 'first' | 'last';
 
 interface ResultSliceOptions {
   results?: ViewItem[];
   selectedIndex?: number | null;
-  selectApproach?: SelectApproach;
 }
 
 class ResultSlice {
@@ -24,14 +24,12 @@ class ResultSlice {
     if (options?.selectedIndex !== undefined && options?.selectedIndex !== null) {
       return options.selectedIndex;
     }
-    if (options?.results && options.results.length) {
-      if (!options?.selectApproach || options?.selectApproach === 'last') {
-        return options.results.length - 1;
-      } else {
-        return 0;
-      }
-    }
-    return null;
+
+    // The results are oldest first, so the last media item is the newest.
+    const index = findLastIndex(options?.results, (item) =>
+      ViewItemClassifier.isMedia(item),
+    );
+    return index >= 0 ? index : null;
   }
 
   public clone(): ResultSlice {
@@ -153,10 +151,10 @@ export class QueryResults {
   constructor(options?: ResultSliceOptions) {
     this._resultsTimestamp = new Date();
     this._main = new ResultSlice(options);
-    this._buildByCameraSlices(options?.selectApproach);
+    this._buildByCameraSlices();
   }
 
-  private _buildByCameraSlices(selectApproach?: SelectApproach): void {
+  private _buildByCameraSlices(): void {
     const cameraMap: Map<string, ViewItem[]> = new Map();
     for (const result of this._main.getResults()) {
       const cameraID = ViewItemClassifier.isMedia(result) ? result.getCameraID() : null;
@@ -172,7 +170,6 @@ export class QueryResults {
         cameraID,
         new ResultSlice({
           results: items,
-          selectApproach: selectApproach,
         }),
       );
     }

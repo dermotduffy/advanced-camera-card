@@ -11,8 +11,8 @@ const createMetadata = (
   metadata: Partial<BrowseMediaMetadata>,
 ): BrowseMediaMetadata => ({
   cameraID: 'camera.office',
-  startDate: new Date('2025-05-10T20:22:00Z'),
-  endDate: new Date('2025-05-10T20:22:10Z'),
+  startTime: new Date('2025-05-10T20:22:00Z'),
+  endTime: new Date('2025-05-10T20:22:10Z'),
   ...metadata,
 });
 
@@ -22,50 +22,50 @@ describe('sortMostRecentFirst', () => {
     expect(sortMostRecentFirst(media)).toEqual([]);
   });
 
-  it('should sort media by startDate in descending order', () => {
+  it('should sort media by startTime in descending order', () => {
     const media: RichBrowseMedia<BrowseMediaMetadata>[] = [
       createRichBrowseMedia({
         title: 'Media 1',
-        _metadata: createMetadata({ startDate: new Date('2025-05-10T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-10T20:29:00.000Z') }),
       }),
       createRichBrowseMedia({
         title: 'Media 2',
-        _metadata: createMetadata({ startDate: new Date('2025-05-12T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-12T20:29:00.000Z') }),
       }),
       createRichBrowseMedia({
         title: 'Media 3',
-        _metadata: createMetadata({ startDate: new Date('2025-05-11T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-11T20:29:00.000Z') }),
       }),
     ];
     const expected: RichBrowseMedia<BrowseMediaMetadata>[] = [
       createRichBrowseMedia({
         title: 'Media 2',
-        _metadata: createMetadata({ startDate: new Date('2025-05-12T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-12T20:29:00.000Z') }),
       }),
       createRichBrowseMedia({
         title: 'Media 3',
-        _metadata: createMetadata({ startDate: new Date('2025-05-11T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-11T20:29:00.000Z') }),
       }),
       createRichBrowseMedia({
         title: 'Media 1',
-        _metadata: createMetadata({ startDate: new Date('2025-05-10T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-10T20:29:00.000Z') }),
       }),
     ];
     expect(sortMostRecentFirst(media)).toEqual(expected);
   });
 
-  it('should handle items with undefined startDate by placing them at the end', () => {
+  it('should handle items with undefined startTime by placing them at the end', () => {
     const media: RichBrowseMedia<BrowseMediaMetadata>[] = [
       createRichBrowseMedia({
         title: 'Media 1',
-        _metadata: createMetadata({ startDate: new Date('2025-05-10T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-10T20:29:00.000Z') }),
       }),
       createBrowseMedia({
         title: 'Media 2',
       }),
       createRichBrowseMedia({
         title: 'Media 3',
-        _metadata: createMetadata({ startDate: new Date('2025-05-12T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-12T20:29:00.000Z') }),
       }),
       createBrowseMedia({
         title: 'Media 4',
@@ -80,11 +80,11 @@ describe('sortMostRecentFirst', () => {
       }),
       createRichBrowseMedia({
         title: 'Media 3',
-        _metadata: createMetadata({ startDate: new Date('2025-05-12T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-12T20:29:00.000Z') }),
       }),
       createRichBrowseMedia({
         title: 'Media 1',
-        _metadata: createMetadata({ startDate: new Date('2025-05-10T20:29:00.000Z') }),
+        _metadata: createMetadata({ startTime: new Date('2025-05-10T20:29:00.000Z') }),
       }),
     ];
 

@@ -13,7 +13,7 @@ describe('isMediaWithinDates', () => {
     expect(isMediaWithinDates(media, rangeStart, rangeEnd)).toBe(false);
   });
 
-  it('should always match media without start or end date', () => {
+  it('should always match media without a start or end time', () => {
     expect(isMediaWithinDates(createRichBrowseMedia(), undefined, undefined)).toBe(true);
   });
 
@@ -31,9 +31,9 @@ describe('isMediaWithinDates', () => {
     expect(isMediaWithinDates(createRichBrowseMedia(), rangeStart, rangeEnd)).toBe(true);
   });
 
-  it('should match media without an end date only when it starts within the time range', () => {
+  it('should match media without an end time only when it starts within the time range', () => {
     const media = createRichBrowseMedia({
-      _metadata: { startDate: new Date('2024-11-19T07:30:00') },
+      _metadata: { startTime: new Date('2024-11-19T07:30:00') },
     });
 
     expect(isMediaWithinDates(media, rangeStart, rangeEnd)).toBe(true);

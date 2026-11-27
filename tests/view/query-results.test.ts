@@ -113,17 +113,22 @@ describe('dispatchViewContextChangeEvent', () => {
     expect(slice.getSelectedResult()?.getID()).toBe('id-office-43');
   });
 
-  describe('should respect select approach during construction', () => {
-    it.each([
-      ['first' as const, 0],
-      ['last' as const, 199],
-    ])('%s', async (selectApproach, expectedIndex) => {
-      const results = new QueryResults({
-        results: generateViewMediaArray(),
-        selectApproach: selectApproach,
-      });
-      expect(results.getSelectedIndex()).toBe(expectedIndex);
+  it('should select the newest media rather than a newer folder', () => {
+    const media = generateViewMediaArray({ count: 2 });
+    const results = new QueryResults({
+      results: [...media, new ViewFolder(createFolder(), [])],
     });
+
+    expect(results.getSelectedResult()).toBe(media[media.length - 1]);
+  });
+
+  it('should select nothing when there is no media', () => {
+    const results = new QueryResults({
+      results: [new ViewFolder(createFolder(), []), new ViewFolder(createFolder(), [])],
+    });
+
+    expect(results.hasResults()).toBeTruthy();
+    expect(results.hasSelectedResult()).toBeFalsy();
   });
 
   it('should respect selectIndex during construction', () => {

@@ -31,7 +31,7 @@ describe('findBestMediaTimeIndex', () => {
     ): BrowseMediaEventViewMedia =>
       new BrowseMediaEventViewMedia(
         ViewMediaType.Clip,
-        createRichBrowseMedia({ _metadata: { startDate: startTime, endDate: endTime } }),
+        createRichBrowseMedia({ _metadata: { startTime, endTime } }),
         { folder: createFolder() },
       );
 

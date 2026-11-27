@@ -93,9 +93,9 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
   ): BrowseMediaMetadata | null {
     /* v8 ignore next: This situation cannot happen as the directory would
-    be rejected by _reolinkDirectoryMetadataGenerator if there was no start date
+    be rejected by _reolinkDirectoryMetadataGenerator if there was no start time
     -- @preserve */
-    if (!parent?._metadata?.startDate || media.media_class !== MEDIA_CLASS_VIDEO) {
+    if (!parent?._metadata?.startTime || media.media_class !== MEDIA_CLASS_VIDEO) {
       return null;
     }
 
@@ -105,8 +105,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     //  - "21:47:03 0:00:44 Vehicle Person" (https://github.com/dermotduffy/advanced-camera-card/issues/1870)
     const parts = media.title.split(/ +/);
 
-    const startDate = parse(parts[0], 'HH:mm:ss', parent._metadata.startDate);
-    if (!isValidDate(startDate)) {
+    const startTime = parse(parts[0], 'HH:mm:ss', parent._metadata.startTime);
+    if (!isValidDate(startTime)) {
       return null;
     }
 
@@ -133,8 +133,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
 
     return {
       cameraID: cameraID,
-      startDate: startDate,
-      endDate: duration ? add(startDate, duration) : startDate,
+      startTime: startTime,
+      endTime: duration ? add(startTime, duration) : startTime,
       ...(what && { what: what }),
     };
   }
@@ -149,8 +149,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     return isValidDate(parsedDate)
       ? {
           cameraID: cameraID,
-          startDate: startOfDay(parsedDate),
-          endDate: endOfDay(parsedDate),
+          startTime: startOfDay(parsedDate),
+          endTime: endOfDay(parsedDate),
         }
       : null;
   }
@@ -318,7 +318,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       // Sort by most recent then slice at the query limit.
       const sortedMedia = orderBy(
         media,
-        (media: RichBrowseMedia<BrowseMediaMetadata>) => media._metadata?.startDate,
+        (media: RichBrowseMedia<BrowseMediaMetadata>) => media._metadata?.startTime,
         'desc',
       ).slice(0, limit);
 
@@ -379,8 +379,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       for (const dayDirectory of directories ?? []) {
         /* v8 ignore next: This situation cannot happen as the directory
         will not match without metadata -- @preserve */
-        if (dayDirectory._metadata?.startDate) {
-          days.add(formatISODate(dayDirectory._metadata.startDate));
+        if (dayDirectory._metadata?.startTime) {
+          days.add(formatISODate(dayDirectory._metadata.startTime));
         }
       }
     };

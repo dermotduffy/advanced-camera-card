@@ -24,11 +24,11 @@ describe('getMediaSeekTarget', () => {
     ).toEqual({ time: seek, inMedia: true });
   });
 
-  it('should target a requested seek within folder media with an end date', () => {
+  it('should target a requested seek within folder media with an end time', () => {
     const seek = new Date('2024-01-01T10:30:00');
     const media = new BrowseMediaEventViewMedia(
       ViewMediaType.Clip,
-      createRichBrowseMedia({ _metadata: { startDate: START, endDate: END } }),
+      createRichBrowseMedia({ _metadata: { startTime: START, endTime: END } }),
       { folder: createFolder() },
     );
 

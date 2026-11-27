@@ -12,5 +12,5 @@ import type { BrowseMediaMetadata, RichBrowseMedia } from './types';
 export const sortMostRecentFirst = (
   media: RichBrowseMedia<BrowseMediaMetadata>[],
 ): RichBrowseMedia<BrowseMediaMetadata>[] => {
-  return orderBy(media, (media) => media._metadata?.startDate, 'desc');
+  return orderBy(media, (media) => media._metadata?.startTime, 'desc');
 };
