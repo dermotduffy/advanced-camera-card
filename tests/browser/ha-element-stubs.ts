@@ -32,6 +32,24 @@ class HAPlayerStandIn extends LitElement {
     return this.renderRoot?.querySelector('video') ?? null;
   }
 
+  // Home Assistant's players react to the page being hidden or shown through
+  // this handler, listening from connect to disconnect. Tests set it.
+  protected _handleVisibilityChange?: () => void;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    if (this._handleVisibilityChange) {
+      document.addEventListener('visibilitychange', this._handleVisibilityChange);
+    }
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this._handleVisibilityChange) {
+      document.removeEventListener('visibilitychange', this._handleVisibilityChange);
+    }
+  }
+
   protected _loadedData(): void {
     // The patches call through to this on the <video>'s `loadeddata`.
   }
