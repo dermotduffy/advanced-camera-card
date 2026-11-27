@@ -23,7 +23,11 @@ import { VideoMediaPlayerController } from '../components-lib/media-player/video
 import { renderMediaNotification } from '../components/notification/media.js';
 import { localize } from '../localize/localize.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss?inline';
-import type { MediaPlayer, MediaPlayerController } from '../types.js';
+import type {
+  MediaPlayer,
+  MediaPlayerController,
+  UnsubscribeCallback,
+} from '../types.js';
 import {
   addAudioTracksMuteStateListener,
   hasAudio,
@@ -39,6 +43,7 @@ import {
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../utils/media-info.js';
+import { drivePlayerVisibilityFromCard } from './ha-player-visibility.js';
 import type {
   AdvancedCameraCardHaWebRtcPlayerElement,
   ConstructableHaWebRtcPlayer,
@@ -69,6 +74,19 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
     protected _audioTracksMuteStateCleanup: AudioTracksMuteStateCleanup = null;
 
     private _lastErrored = false;
+
+    private _unsubscribeVisibility: UnsubscribeCallback | null = null;
+
+    public connectedCallback(): void {
+      super.connectedCallback();
+      this._unsubscribeVisibility = drivePlayerVisibilityFromCard(this);
+    }
+
+    public disconnectedCallback(): void {
+      this._unsubscribeVisibility?.();
+      this._unsubscribeVisibility = null;
+      super.disconnectedCallback();
+    }
 
     public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
       return this._mediaPlayerController;
@@ -205,6 +223,11 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
     }
 
     protected _cleanUp(): void {
+      // The frontend also cleans up to restart the stream on the same element
+      // (e.g. when the page is shown again), which reloads media equal to what
+      // was announced. Retire it first, so that load is announced again (and
+      // auto-plays), and so a preserved frame can still be taken from it.
+      this._mediaLoadedInfoSourceController.clear();
       super._cleanUp();
       this._audioTracksMuteStateCleanup?.();
       this._audioTracksMuteStateCleanup = null;

@@ -56,6 +56,11 @@ declare class HaHlsPlayerElement extends LitElement {
   protected _errorIsFatal: boolean;
 
   protected _loadedData(): void;
+  protected _cleanUp(): void;
+
+  // Reacts to the page being hidden or shown; an own arrow-function field in
+  // the frontends that have it (not known for every version).
+  protected _handleVisibilityChange?: () => void;
 
   // Plays the stream with hls.js, constructing the given hls.js class.
   protected _renderHLSPolyfill(
@@ -86,6 +91,10 @@ declare class HaWebRtcPlayerElement extends LitElement {
   protected _addTrack: (event: RTCTrackEvent) => Promise<void>;
   protected _cleanUp(): void;
   protected _loadedData(): void;
+
+  // Reacts to the page being hidden or shown; an own arrow-function field in
+  // the frontends that have it (not known for every version).
+  protected _handleVisibilityChange?: () => void;
 }
 
 // https://github.com/home-assistant/frontend/blob/dev/src/components/ha-camera-stream.ts

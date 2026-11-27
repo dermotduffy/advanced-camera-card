@@ -35,8 +35,7 @@ type TargetedMediaLoadedInfo = MediaLoadedInfo & { targetID: string };
  *
  * Reconnect path: Lit may reuse the host across disconnect/reconnect. We
  * re-dispatch from `_lastSet` on `hostConnected` so the registration survives
- * without needing the underlying media to re-fire a load (e.g., HaHlsPlayer
- * keeps the same `<video>`).
+ * without needing the underlying media to re-fire a load.
  *
  * That replay assumes the media outlived the detach. A host that instead
  * destroys its media -- whenever it does so, on disconnect or otherwise -- must
