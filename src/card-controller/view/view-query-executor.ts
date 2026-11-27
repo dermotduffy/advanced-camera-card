@@ -129,11 +129,12 @@ export class ViewQueryExecutor {
     const cameraForQuery = view.isGrid() ? undefined : view.camera ?? undefined;
 
     const getDefaultQueryModifiers = async () => {
-      const query = builder.buildDefaultCameraQuery({
-        cameraID: cameraForQuery,
-        limit: this._getLimit(),
-      });
-      return await executeQuery(query);
+      const options = { limit: this._getLimit() };
+      return await executeQuery(
+        cameraForQuery
+          ? builder.buildDefaultCameraQuery(cameraForQuery, options)
+          : builder.buildDefaultQuery(options),
+      );
     };
 
     // Timeline opens on "now".
@@ -158,7 +159,7 @@ export class ViewQueryExecutor {
         timelineWindow = getWindowEndingNow(config.timeline.window_seconds);
         viewModifiers.push(
           ...(await executeQuery(
-            builder.buildDefaultCameraQuery(getTimelineQueryRange(timelineWindow)),
+            builder.buildDefaultQuery(getTimelineQueryRange(timelineWindow)),
           )),
         );
         break;
@@ -221,13 +222,15 @@ export class ViewQueryExecutor {
         break;
 
       case 'folder':
-      case 'folders':
+      case 'folders': {
+        const folder = this._api
+          .getFoldersManager()
+          .getFolder(queryExecutorOptions?.folder);
         viewModifiers.push(
-          ...(await executeQuery(
-            builder.buildDefaultFolderQuery(queryExecutorOptions?.folder),
-          )),
+          ...(await executeQuery(folder && builder.buildDefaultFolderQuery(folder.id))),
         );
         break;
+      }
     }
 
     viewModifiers.push(...this._getTimelineWindowViewModifier(timelineWindow));

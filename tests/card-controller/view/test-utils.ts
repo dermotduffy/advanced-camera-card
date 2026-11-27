@@ -3,6 +3,7 @@ import { expect, vi } from 'vitest';
 import type { CardController } from '../../../src/card-controller/controller';
 import { applyViewModifiers } from '../../../src/card-controller/view/modifiers';
 import type { ViewManagerInterface } from '../../../src/card-controller/view/types';
+import type { FolderConfig } from '../../../src/config/schema/folders';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import type { View } from '../../../src/view/view';
 import {
@@ -42,6 +43,9 @@ export const createPopulatedAPI = (
     },
   ]);
   vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+  vi.mocked(api.getFoldersManager().getFolders).mockImplementation(() =>
+    new Map<string, FolderConfig>().entries(),
+  );
   vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig(config));
   return api;
 };

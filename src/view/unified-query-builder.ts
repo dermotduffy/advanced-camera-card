@@ -9,6 +9,7 @@ import {
 import type { FoldersManager } from '../card-controller/folders/manager';
 import type { FolderQuery } from '../card-controller/folders/types';
 import type { CameraMediaType } from '../config/schema/cameras';
+import type { FolderConfig } from '../config/schema/folders';
 import {
   QuerySource,
   type QueryFilters,
@@ -103,8 +104,16 @@ export class UnifiedQueryBuilder {
     query: UnifiedQuery,
     nodes?: QueryNode | QueryNode[] | null,
   ): UnifiedQuery {
-    if (nodes) {
-      arrayify(nodes).forEach((node) => query.addNode(node));
+    for (const node of nodes ? arrayify(nodes) : []) {
+      // Multiple cameras may refer to the same folder -- it's added once.
+      const isFolderAlreadyQueried =
+        node.source === QuerySource.Folder &&
+        query
+          .getFolderQueries()
+          .some((folderQuery) => folderQuery.folder.id === node.folder.id);
+      if (!isFolderAlreadyQueried) {
+        query.addNode(node);
+      }
     }
     return query;
   }
@@ -262,11 +271,12 @@ export class UnifiedQueryBuilder {
   // =========================================================================
 
   public buildDefaultFolderQuery(
-    folderID?: string,
+    folderID: string,
     options?: QueryFilters,
   ): UnifiedQuery | null {
+    const folder = this._foldersManager.getFolder(folderID);
     const query = new UnifiedQuery();
-    this._addNode(query, this._buildFolderQueryNode(folderID, options));
+    this._addNode(query, folder && this._buildDefaultFolderQueryNode(folder, options));
     return query.hasNodes() ? query : null;
   }
 
@@ -280,11 +290,17 @@ export class UnifiedQueryBuilder {
   ): QueryNode[] {
     const nodes: QueryNode[] = [];
     for (const cameraID of cameraIDs) {
-      const mediaConfig = this._cameraManager
-        .getStore()
-        .getCameraConfig(cameraID)?.media;
-      for (const folderID of mediaConfig?.folders ?? [undefined]) {
-        const node = this._buildFolderQueryNode(folderID, options);
+      const folderIDs = this._cameraManager.getStore().getCameraConfig(cameraID)
+        ?.media?.folders;
+
+      // A camera set to show folders (`media.type: folder`) that names none in
+      // `media.folders` shows the first folder.
+      const folders = folderIDs
+        ? folderIDs.map((folderID) => this._foldersManager.getFolder(folderID))
+        : [this._foldersManager.getFolder()];
+
+      for (const folder of folders) {
+        const node = folder && this._buildDefaultFolderQueryNode(folder, options);
         if (node) {
           nodes.push(node);
         }
@@ -293,12 +309,11 @@ export class UnifiedQueryBuilder {
     return nodes;
   }
 
-  private _buildFolderQueryNode(
-    folderID?: string,
+  private _buildDefaultFolderQueryNode(
+    folder: FolderConfig,
     options?: MediaQueryBuildOptions,
   ): QueryNode | null {
-    const folder = this._foldersManager.getFolder(folderID);
-    const params = folder && this._foldersManager.getDefaultQueryParameters(folder);
+    const params = this._foldersManager.getDefaultQueryParameters(folder);
     return params
       ? {
           ...params,
@@ -312,18 +327,37 @@ export class UnifiedQueryBuilder {
   // Default Query Builders
   // =========================================================================
 
-  public buildDefaultCameraQuery(
-    options?: MediaQueryBuildOptions & {
-      cameraID?: string;
-    },
-  ): UnifiedQuery | null {
-    const cameraIDs = options?.cameraID
-      ? this._cameraManager.getStore().getAllDependentCameras(options.cameraID)
-      : this._cameraManager.getStore().getCameraIDs();
-
+  /**
+   * Build the default query with "everything" (i.e. every camera's default
+   * media, and every folder).
+   */
+  public buildDefaultQuery(options?: MediaQueryBuildOptions): UnifiedQuery | null {
     const query = new UnifiedQuery();
-    for (const cameraID of cameraIDs) {
+    for (const cameraID of this._cameraManager.getStore().getCameraIDs()) {
       this._addNode(query, this._buildDefaultCameraQueryNodes(cameraID, options));
+    }
+    for (const [, folder] of this._foldersManager.getFolders()) {
+      this._addNode(query, this._buildDefaultFolderQueryNode(folder, options));
+    }
+    return query.hasNodes() ? query : null;
+  }
+
+  /**
+   * Build the default query for one camera: its default media, and that of the
+   * cameras it depends on.
+   */
+  public buildDefaultCameraQuery(
+    cameraID: string,
+    options?: MediaQueryBuildOptions,
+  ): UnifiedQuery | null {
+    const query = new UnifiedQuery();
+    for (const dependentCameraID of this._cameraManager
+      .getStore()
+      .getAllDependentCameras(cameraID)) {
+      this._addNode(
+        query,
+        this._buildDefaultCameraQueryNodes(dependentCameraID, options),
+      );
     }
     return query.hasNodes() ? query : null;
   }

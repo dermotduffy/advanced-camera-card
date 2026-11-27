@@ -447,6 +447,22 @@ describe('AdvancedCameraCardGallery with a folder', () => {
     );
   };
 
+  it('should show folder media on a card without cameras', async () => {
+    const hass = createCameraHASS([createFrigateCameraDescription()]);
+    registerFrontDoorFolder(hass, [createFrontDoorFolderMedia('clip.mp4', 'video')]);
+
+    const card = await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        cameras: [],
+        view: { default: 'gallery' },
+        folders: [{ type: 'ha', ha: { path: [{ id: FRONT_DOOR_FOLDER_CONTENT_ID }] } }],
+      }),
+      hass,
+    );
+
+    await waitForThumbnails(card, 1);
+  });
+
   it('should not use media that is not an image as a thumbnail', async () => {
     const card = await mountCardThumbnailedWithItsOwnClip();
 
