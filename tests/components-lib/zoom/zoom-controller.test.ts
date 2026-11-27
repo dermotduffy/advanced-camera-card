@@ -2,6 +2,7 @@ import Panzoom, {
   type PanzoomEventDetail,
   type PanzoomObject,
 } from '@dermotduffy/panzoom';
+import { round } from 'lodash-es';
 import {
   afterAll,
   afterEach,
@@ -82,6 +83,14 @@ describe('ZoomController', () => {
     panzoom.getScale.mockReturnValue(1.0);
     panzoom.getPan.mockReturnValue({ x: 0, y: 0 });
     return panzoom;
+  };
+
+  // Panzoom's pan() updates what getPan() returns, as the real one does.
+  const followPan = (panzoom: PanzoomObject): void => {
+    vi.mocked(panzoom.pan).mockImplementation((x, y) => {
+      vi.mocked(panzoom.getPan).mockReturnValue({ x: Number(x), y: Number(y) });
+      return { x: Number(x), y: Number(y), scale: panzoom.getScale(), isSVG: false };
+    });
   };
 
   const createAndRegisterZoom = (element: HTMLElement): ZoomController => {
@@ -749,6 +758,36 @@ describe('ZoomController', () => {
 
       vi.mocked(panzoom.getScale).mockReturnValue(2);
       vi.mocked(panzoom.getPan).mockReturnValue({ x: 3, y: 4 });
+      followPan(panzoom);
+
+      setElementToDefaultCardSize(element, 2);
+      triggerResizeObserver();
+
+      // At an unchanged scale the pan moves at once, in this frame, rather
+      // than sliding from the old pan.
+      expect(panzoom.zoom).toHaveBeenCalledTimes(1);
+      expect(panzoom.pan).toHaveBeenNthCalledWith(2, 231.24, 127.305, {
+        animate: false,
+      });
+      expect(panzoom.setStyle).toHaveBeenCalledWith('transition', 'none');
+      expect(panzoom.setStyle).toHaveBeenCalledWith(
+        'transform',
+        'scale(2) translate(231.24px, 127.305px)',
+      );
+    });
+
+    it('should zoom then pan as before when a resize finds a different scale', () => {
+      const panzoom = createMockPanZoom();
+      vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+      const element = createAttachedElement();
+      setElementToDefaultCardSize(element);
+
+      const controller = createAndRegisterZoom(element);
+      controller.setSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+
+      // Panzoom has not reached the configured scale (e.g. it was reset).
+      vi.mocked(panzoom.getScale).mockReturnValue(1);
 
       setElementToDefaultCardSize(element, 2);
       triggerResizeObserver();
@@ -758,6 +797,65 @@ describe('ZoomController', () => {
         animate: true,
         duration: 100,
       });
+      expect(panzoom.setStyle).not.toHaveBeenCalled();
+    });
+
+    it('should zoom on a resize when the scale differs by less than 1', async () => {
+      const { round: actualRound } = await vi.importActual<{
+        round: typeof round;
+      }>('lodash-es');
+      vi.mocked(round).mockImplementation(actualRound);
+      try {
+        const panzoom = createMockPanZoom();
+        vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+        const element = createAttachedElement();
+        setElementToDefaultCardSize(element);
+
+        const controller = createAndRegisterZoom(element);
+        controller.setSettings({ zoom: 1.4 });
+
+        // Panzoom is still at 1 (e.g. the zoom was deferred until a size).
+        vi.mocked(panzoom.getScale).mockReturnValue(1);
+        vi.mocked(panzoom.zoom).mockClear();
+        setElementToDefaultCardSize(element, 2);
+        triggerResizeObserver();
+
+        expect(panzoom.zoom).toHaveBeenCalledWith(1.4, { animate: false });
+      } finally {
+        vi.mocked(round).mockImplementation((value) => value);
+      }
+    });
+
+    it('should not let a pan queued for the old size undo a resize', () => {
+      const frames: FrameRequestCallback[] = [];
+      window.requestAnimationFrame = (callback) => frames.push(callback);
+      try {
+        const panzoom = createMockPanZoom();
+        vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+        const element = createAttachedElement();
+        setElementToDefaultCardSize(element);
+
+        const controller = createAndRegisterZoom(element);
+        controller.setSettings({ zoom: 2, pan: { x: 3, y: 4 } });
+        expect(frames).toHaveLength(1);
+
+        // The element resizes before the queued pan's frame.
+        vi.mocked(panzoom.getScale).mockReturnValue(2);
+        setElementToDefaultCardSize(element, 2);
+        triggerResizeObserver();
+        expect(panzoom.pan).toHaveBeenLastCalledWith(231.24, 127.305, {
+          animate: false,
+        });
+
+        frames.forEach((frame) => frame(0));
+        expect(panzoom.pan).toHaveBeenLastCalledWith(231.24, 127.305, {
+          animate: false,
+        });
+      } finally {
+        window.requestAnimationFrame = requestAnimationFrameMock;
+      }
     });
 
     it('should not undo the user zoom when resized', () => {
@@ -789,10 +887,17 @@ describe('ZoomController', () => {
 
       // A resize must leave that zoom alone rather than springing back to the
       // configured scale, and must carry the user's pan over to the new size.
+      followPan(panzoom);
       setElementToDefaultCardSize(element, 2);
       triggerResizeObserver();
       expect(panzoom.zoom).toHaveBeenCalledTimes(1);
       expect(panzoom.pan).toHaveBeenNthCalledWith(2, 20, 40, { animate: false });
+
+      // Written at once too, so the new size never shows at the old pan.
+      expect(panzoom.setStyle).toHaveBeenCalledWith(
+        'transform',
+        'scale(4) translate(20px, 40px)',
+      );
 
       // A newly supplied configuration takes precedence again.
       controller.setSettings({ zoom: 3, pan: { x: 5, y: 6 } });
@@ -886,7 +991,11 @@ describe('ZoomController', () => {
       setElementToDefaultCardSize(element, 2);
       triggerResizeObserver();
 
-      expect(panzoom.zoom).toHaveBeenCalledTimes(2);
+      // The configured pan is re-derived for the new size (at the scale it is
+      // already at, so without a new zoom).
+      expect(panzoom.pan).toHaveBeenLastCalledWith(231.24, 127.305, {
+        animate: false,
+      });
     });
 
     it('should apply new default settings after a user zoom', () => {
@@ -1737,6 +1846,20 @@ describe('ZoomController', () => {
       // The same shape again changes nothing.
       dispatchMediaLoaded(element, { width: 1600, height: 900 });
       expect(panzoom.pan).toHaveBeenCalledTimes(calls);
+    });
+
+    it("should leave the user's pan to Panzoom when the picture's shape changes", () => {
+      const { element, panzoom } = createPictureZoom({ mediaSize: null });
+
+      gesture(element, 50, 0, 2);
+      vi.mocked(panzoom.getScale).mockReturnValue(2);
+      const pans = vi.mocked(panzoom.pan).mock.calls.length;
+
+      // Not a resize: the pan is re-derived for the new shape, but written on
+      // Panzoom's own frame as before.
+      dispatchMediaLoaded(element, { width: 1600, height: 900 });
+      expect(vi.mocked(panzoom.pan).mock.calls.length).toBeGreaterThan(pans);
+      expect(panzoom.setStyle).not.toHaveBeenCalled();
     });
 
     it('should return to the element limits when the media unloads', () => {
