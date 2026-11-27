@@ -27,6 +27,11 @@ class HAPlayerStandIn extends LitElement {
   protected _error?: string;
   protected _errorIsFatal = false;
 
+  // Home Assistant's players query their rendered <video> (`#remote-stream`).
+  protected get _videoEl(): HTMLVideoElement | null {
+    return this.renderRoot?.querySelector('video') ?? null;
+  }
+
   protected _loadedData(): void {
     // The patches call through to this on the <video>'s `loadeddata`.
   }

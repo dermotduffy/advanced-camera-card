@@ -182,6 +182,12 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
       onAbort(ev.detail.signal, () => {
         if (this._mediaLoadedInfoPerStream[stream] === ev.detail.info) {
           delete this._mediaLoadedInfoPerStream[stream];
+
+          // The visible stream's media is gone, so this aggregator's is too:
+          // otherwise an equal reload of it would not be announced again.
+          if (stream === this._visibleStreamType) {
+            this._mediaLoadedInfoSourceController.clear();
+          }
         }
       });
       this.requestUpdate();
