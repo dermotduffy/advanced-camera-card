@@ -205,6 +205,11 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
     }
 
     protected _cleanUp(): void {
+      // The frontend also cleans up to restart the stream on the same element
+      // (e.g. when the page is shown again), which reloads media equal to what
+      // was announced. Retire it first, so that load is announced again (and
+      // auto-plays), and so a preserved frame can still be taken from it.
+      this._mediaLoadedInfoSourceController.clear();
       super._cleanUp();
       this._audioTracksMuteStateCleanup?.();
       this._audioTracksMuteStateCleanup = null;

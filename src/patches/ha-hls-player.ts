@@ -176,6 +176,15 @@ void customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
+    protected _cleanUp(): void {
+      // The frontend also cleans up to restart the stream on the same element
+      // (e.g. when the page is shown again), which reloads media equal to what
+      // was announced. Retire it first, so that load is announced again (and
+      // auto-plays).
+      this._mediaLoadedInfoSourceController.clear();
+      super._cleanUp();
+    }
+
     static get styles(): CSSResultGroup {
       return [
         super.styles,

@@ -56,6 +56,7 @@ declare class HaHlsPlayerElement extends LitElement {
   protected _errorIsFatal: boolean;
 
   protected _loadedData(): void;
+  protected _cleanUp(): void;
 
   // Plays the stream with hls.js, constructing the given hls.js class.
   protected _renderHLSPolyfill(
