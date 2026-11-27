@@ -19,8 +19,8 @@ describe('BrowseMediaEventViewMedia', () => {
       const browseMedia = createRichBrowseMedia({
         media_content_id: 'media_content_id',
         _metadata: {
-          startDate: new Date('2025-05-05T07:46:00Z'),
-          endDate: new Date('2025-05-05T07:48:00Z'),
+          startTime: new Date('2025-05-05T07:46:00Z'),
+          endTime: new Date('2025-05-05T07:48:00Z'),
           cameraID: 'camera.office',
         },
       });
@@ -33,8 +33,8 @@ describe('BrowseMediaEventViewMedia', () => {
       const browseMedia = createRichBrowseMedia({
         media_content_id: 'media_content_id',
         _metadata: {
-          startDate: new Date('2025-05-05T07:46:00Z'),
-          endDate: new Date('2025-05-05T07:48:00Z'),
+          startTime: new Date('2025-05-05T07:46:00Z'),
+          endTime: new Date('2025-05-05T07:48:00Z'),
           cameraID: 'camera.office',
         },
       });
@@ -48,12 +48,12 @@ describe('BrowseMediaEventViewMedia', () => {
 
   describe('should set ID', () => {
     it('should set id from metadata', () => {
-      const startDate = new Date('2025-05-05T07:46:00Z');
+      const startTime = new Date('2025-05-05T07:46:00Z');
       const browseMedia = createRichBrowseMedia({
         media_content_id: 'media_content_id',
         _metadata: {
-          startDate,
-          endDate: new Date('2025-05-05T07:48:00Z'),
+          startTime,
+          endTime: new Date('2025-05-05T07:48:00Z'),
           cameraID: 'camera.office',
         },
       });
@@ -61,7 +61,7 @@ describe('BrowseMediaEventViewMedia', () => {
       const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
 
       // The ID is formatted using local time, so we use format() to generate expected value
-      const expectedId = `camera.office/${format(startDate, 'yyyy-MM-dd HH:mm:ss')}`;
+      const expectedId = `camera.office/${format(startTime, 'yyyy-MM-dd HH:mm:ss')}`;
       expect(viewMedia.getID()).toBe(expectedId);
     });
 
@@ -82,8 +82,8 @@ describe('BrowseMediaEventViewMedia', () => {
       const browseMedia = createRichBrowseMedia({
         media_content_id: 'media_content_id',
         _metadata: {
-          startDate: new Date('2025-05-05T07:46:00Z'),
-          endDate: new Date('2025-05-05T07:48:00Z'),
+          startTime: new Date('2025-05-05T07:46:00Z'),
+          endTime: new Date('2025-05-05T07:48:00Z'),
           cameraID: 'camera.office',
         },
       });
@@ -119,8 +119,8 @@ describe('BrowseMediaEventViewMedia', () => {
       const browseMedia = createRichBrowseMedia({
         _metadata: {
           // In the browser's time zone.
-          startDate: new Date('2025-05-05T07:46:00'),
-          endDate: new Date('2025-05-05T07:48:00'),
+          startTime: new Date('2025-05-05T07:46:00'),
+          endTime: new Date('2025-05-05T07:48:00'),
           cameraID: 'camera.office',
         },
       });
@@ -167,8 +167,8 @@ describe('BrowseMediaEventViewMedia', () => {
     it('should get what from metadata', () => {
       const browseMedia = createRichBrowseMedia({
         _metadata: {
-          startDate: new Date('2025-05-05T07:46:00Z'),
-          endDate: new Date('2025-05-05T07:48:00Z'),
+          startTime: new Date('2025-05-05T07:46:00Z'),
+          endTime: new Date('2025-05-05T07:48:00Z'),
           cameraID: 'camera.office',
           what: ['car'],
         },
@@ -267,6 +267,23 @@ describe('BrowseMediaViewFolder', () => {
 
     const viewMedia = new BrowseMediaViewFolder(folder, [], browseMedia);
     expect(viewMedia.getFolder()).toEqual(folder);
+  });
+
+  it('should start when its metadata says its contents start', () => {
+    const startTime = new Date('2026-11-24T00:00:00');
+    const browseMedia = createRichBrowseMedia({ _metadata: { startTime } });
+
+    const viewFolder = new BrowseMediaViewFolder(createFolder(), [], browseMedia);
+    expect(viewFolder.getStartTime()).toEqual(startTime);
+  });
+
+  it('should have no start without a date in its metadata', () => {
+    const viewFolder = new BrowseMediaViewFolder(
+      createFolder(),
+      [],
+      createBrowseMedia(),
+    );
+    expect(viewFolder.getStartTime()).toBeNull();
   });
 
   describe('should set icon', () => {

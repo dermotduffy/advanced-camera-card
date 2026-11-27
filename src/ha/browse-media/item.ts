@@ -60,22 +60,22 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
     this._browseMedia = browseMedia;
     this._icon = getIcon(browseMedia.media_class);
 
-    // Generate a custom ID that uses the start date (to allow multiple
+    // Generate a custom ID that uses the start time (to allow multiple
     // BrowseMedia objects (e.g. images and movies) to be de-duplicated).
     this._id =
-      browseMedia._metadata?.startDate && this._cameraID
+      browseMedia._metadata?.startTime && this._cameraID
         ? `${this._cameraID}/${format(
-            browseMedia._metadata.startDate,
+            browseMedia._metadata.startTime,
             'yyyy-MM-dd HH:mm:ss',
           )}`
         : browseMedia.media_content_id;
   }
 
   public getStartTime(): Date | null {
-    return this._browseMedia._metadata?.startDate ?? null;
+    return this._browseMedia._metadata?.startTime ?? null;
   }
   public getEndTime(): Date | null {
-    return this._browseMedia._metadata?.endDate ?? null;
+    return this._browseMedia._metadata?.endTime ?? null;
   }
   public getID(): string {
     return this._id;
@@ -118,6 +118,7 @@ export class BrowseMediaViewFolder extends ViewFolder {
       title: browseMedia.title,
       thumbnail: browseMedia._metadata?.thumbnailOverride ?? browseMedia.thumbnail,
       isThumbnailConfigured: !!browseMedia._metadata?.thumbnailOverride,
+      startTime: browseMedia._metadata?.startTime,
     });
     this._browseMedia = browseMedia;
   }

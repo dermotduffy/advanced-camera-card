@@ -82,10 +82,10 @@ export class MediaMatcher {
     matcher: DateMatcher | StartDateMatcher,
     media: RichBrowseMedia<BrowseMediaMetadata>,
   ): boolean {
-    const startDate = media._metadata?.startDate;
+    const startTime = media._metadata?.startTime;
     return (
-      !!startDate &&
-      startDate >=
+      !!startTime &&
+      startTime >=
         sub(new Date(), {
           years: matcher.since.years ?? 0,
           months: matcher.since.months ?? 0,

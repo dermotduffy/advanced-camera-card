@@ -42,9 +42,9 @@ export class MetadataGenerator {
     parsers?: Parser[],
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
   ): BrowseMediaMetadata | null {
-    const metadata = this._wrapEndDateToNextDayIfNecessary({
+    const metadata = this._wrapEndTimeToNextDayIfNecessary({
       ...this._generateInherited(parent?._metadata),
-      ...this.generateUninherited(media, parsers, parent?._metadata?.startDate),
+      ...this.generateUninherited(media, parsers, parent?._metadata?.startTime),
     });
     return Object.keys(metadata).length > 0 ? metadata : null;
   }
@@ -71,34 +71,42 @@ export class MetadataGenerator {
         continue;
       }
 
-      const startDate = metadata.startDate ?? baseDate;
+      // A value the parser can't read leaves the dates untouched (so they
+      // either have no date, or an inherited one).
+      const startTime = metadata.startTime ?? baseDate;
       if (parser.type === 'enddate') {
-        // An end date takes only its day from the start date, so parts the
+        // An end time takes only its day from the start time, so parts the
         // title omits (e.g. seconds) are zero rather than the start's.
-        metadata.endDate = this._parseDate(
+        const parsedEndTime = this._parseDate(
           parser,
           valueToParse,
-          startDate ? startOfDay(startDate) : undefined,
+          startTime ? startOfDay(startTime) : undefined,
         );
+        if (parsedEndTime) {
+          metadata.endTime = parsedEndTime;
+        }
       } else {
-        metadata.startDate = this._parseDate(parser, valueToParse, startDate);
+        const parsedStartTime = this._parseDate(parser, valueToParse, startTime);
+        if (parsedStartTime) {
+          metadata.startTime = parsedStartTime;
+        }
       }
     }
 
     return Object.keys(metadata).length > 0
-      ? this._wrapEndDateToNextDayIfNecessary(metadata)
+      ? this._wrapEndTimeToNextDayIfNecessary(metadata)
       : null;
   }
 
   // An end time before the start time (e.g. `22:18:51 - 00:00:00`) crosses
   // midnight.
-  private _wrapEndDateToNextDayIfNecessary(
+  private _wrapEndTimeToNextDayIfNecessary(
     metadata: BrowseMediaMetadata,
   ): BrowseMediaMetadata {
-    return metadata.startDate &&
-      metadata.endDate &&
-      metadata.endDate < metadata.startDate
-      ? { ...metadata, endDate: addDays(metadata.endDate, 1) }
+    return metadata.startTime &&
+      metadata.endTime &&
+      metadata.endTime < metadata.startTime
+      ? { ...metadata, endTime: addDays(metadata.endTime, 1) }
       : metadata;
   }
 
@@ -111,10 +119,10 @@ export class MetadataGenerator {
   }
 
   private _generateInherited(parentMetadata?: BrowseMediaMetadata): BrowseMediaMetadata {
-    // Thumbnail and end date are not passed down: a picture of a folder is not
+    // Thumbnail and end time are not passed down: a picture of a folder is not
     // a picture of each file within it, and a file within a folder does not end
     // when the folder ends.
-    return omit(parentMetadata, ['endDate', 'thumbnailOverride']);
+    return omit(parentMetadata, ['endTime', 'thumbnailOverride']);
   }
 
   private _parseDate(

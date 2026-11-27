@@ -141,6 +141,9 @@ interface ViewFolderParameters {
   // Whether the folder configuration chose the thumbnail (rather than Home
   // Assistant reporting it).
   isThumbnailConfigured?: boolean;
+
+  // When the folder's contents start, if known.
+  startTime?: Date | null;
 }
 
 export class ViewFolder {
@@ -152,6 +155,7 @@ export class ViewFolder {
   private _title: string | null;
   private _thumbnail: string | null;
   private _isThumbnailConfigured: boolean;
+  private _startTime: Date | null;
 
   constructor(
     folder: FolderConfig,
@@ -166,6 +170,7 @@ export class ViewFolder {
     this._title = params?.title ?? null;
     this._thumbnail = params?.thumbnail ?? null;
     this._isThumbnailConfigured = params?.isThumbnailConfigured ?? false;
+    this._startTime = params?.startTime ?? null;
   }
 
   public getFolder(): FolderConfig {
@@ -191,6 +196,9 @@ export class ViewFolder {
   }
   public getIcon(): string | null {
     return this._icon;
+  }
+  public getStartTime(): Date | null {
+    return this._startTime;
   }
   public getSeverity(): Severity | null {
     return null;

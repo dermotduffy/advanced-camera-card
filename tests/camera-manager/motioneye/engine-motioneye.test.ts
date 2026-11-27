@@ -105,8 +105,8 @@ const createDirectoryResult = () =>
     can_expand: true,
     _metadata: {
       cameraID: 'camera-1',
-      startDate: startOfDay(new Date('2026-03-14')),
-      endDate: endOfDay(new Date('2026-03-14')),
+      startTime: startOfDay(new Date('2026-03-14')),
+      endTime: endOfDay(new Date('2026-03-14')),
     },
   });
 
@@ -243,8 +243,8 @@ describe('MotionEyeCameraManagerEngine', () => {
           can_expand: false,
           _metadata: {
             cameraID: 'camera-1',
-            startDate: new Date('2026-03-14T20:15:00'),
-            endDate: new Date('2026-03-14T20:15:00'),
+            startTime: new Date('2026-03-14T20:15:00'),
+            endTime: new Date('2026-03-14T20:15:00'),
           },
         }),
       ]);
@@ -359,16 +359,16 @@ describe('MotionEyeCameraManagerEngine', () => {
         title: 'early.mp4',
         _metadata: {
           cameraID: 'camera-1',
-          startDate: new Date('2026-03-14T10:00:00'),
-          endDate: new Date('2026-03-14T10:00:00'),
+          startTime: new Date('2026-03-14T10:00:00'),
+          endTime: new Date('2026-03-14T10:00:00'),
         },
       });
       const lateMedia = createRichBrowseMedia({
         title: 'late.mp4',
         _metadata: {
           cameraID: 'camera-1',
-          startDate: new Date('2026-03-14T20:00:00'),
-          endDate: new Date('2026-03-14T20:00:00'),
+          startTime: new Date('2026-03-14T20:00:00'),
+          endTime: new Date('2026-03-14T20:00:00'),
         },
       });
       walker.walk.mockResolvedValueOnce([earlyMedia, lateMedia]);
@@ -451,7 +451,7 @@ describe('MotionEyeCameraManagerEngine', () => {
 
         assert(metadata);
         expect(metadata.cameraID).toBe('camera-1');
-        expect(metadata.startDate).toEqual(startOfDay(new Date(2026, 2, 14)));
+        expect(metadata.startTime).toEqual(startOfDay(new Date(2026, 2, 14)));
       });
 
       it('should return null metadata for invalid date directories', async () => {
@@ -486,8 +486,8 @@ describe('MotionEyeCameraManagerEngine', () => {
         const expandable = createRichBrowseMedia({
           can_expand: true,
           _metadata: {
-            startDate: new Date('2026-03-14'),
-            endDate: new Date('2026-03-14'),
+            startTime: new Date('2026-03-14'),
+            endTime: new Date('2026-03-14'),
           },
         });
         expect(step.matcher(expandable)).toBe(true);
@@ -495,8 +495,8 @@ describe('MotionEyeCameraManagerEngine', () => {
         const nonExpandable = createRichBrowseMedia({
           can_expand: false,
           _metadata: {
-            startDate: new Date('2026-03-14'),
-            endDate: new Date('2026-03-14'),
+            startTime: new Date('2026-03-14'),
+            endTime: new Date('2026-03-14'),
           },
         });
         expect(step.matcher(nonExpandable)).toBe(false);
@@ -552,8 +552,8 @@ describe('MotionEyeCameraManagerEngine', () => {
 
         const parentMedia = createRichBrowseMedia({
           _metadata: {
-            startDate: new Date('2026-03-14'),
-            endDate: new Date('2026-03-15'),
+            startTime: new Date('2026-03-14'),
+            endTime: new Date('2026-03-15'),
           },
         });
         const metadata = fixedStep.metadataGenerator(
@@ -562,7 +562,7 @@ describe('MotionEyeCameraManagerEngine', () => {
         );
 
         assert(metadata);
-        expect(metadata.endDate).toEqual(new Date('2026-03-15'));
+        expect(metadata.endTime).toEqual(new Date('2026-03-15'));
       });
 
       it('should match literal directory parts by title', async () => {
@@ -601,8 +601,8 @@ describe('MotionEyeCameraManagerEngine', () => {
           title: 'fixed',
           can_expand: true,
           _metadata: {
-            startDate: new Date('2026-03-14'),
-            endDate: new Date('2026-03-14'),
+            startTime: new Date('2026-03-14'),
+            endTime: new Date('2026-03-14'),
           },
         });
         expect(fixedStep.matcher(matching)).toBe(true);
@@ -611,8 +611,8 @@ describe('MotionEyeCameraManagerEngine', () => {
           title: 'other',
           can_expand: true,
           _metadata: {
-            startDate: new Date('2026-03-14'),
-            endDate: new Date('2026-03-14'),
+            startTime: new Date('2026-03-14'),
+            endTime: new Date('2026-03-14'),
           },
         });
         expect(fixedStep.matcher(nonMatching)).toBe(false);
@@ -748,7 +748,7 @@ describe('MotionEyeCameraManagerEngine', () => {
         expect(metadata).toBeNull();
       });
 
-      it('should parse time relative to parent startDate', async () => {
+      it('should parse time relative to parent startTime', async () => {
         const walker = mock<BrowseMediaWalker>();
         walker.walk.mockResolvedValueOnce([createDirectoryResult()]);
         walker.walk.mockResolvedValueOnce([]);
@@ -763,8 +763,8 @@ describe('MotionEyeCameraManagerEngine', () => {
         const parent = createRichBrowseMedia({
           _metadata: {
             cameraID: 'camera-1',
-            startDate: new Date('2026-03-14T00:00:00'),
-            endDate: endOfDay(new Date('2026-03-14')),
+            startTime: new Date('2026-03-14T00:00:00'),
+            endTime: endOfDay(new Date('2026-03-14')),
           },
         });
         const metadata = fileStep.metadataGenerator(
@@ -776,9 +776,9 @@ describe('MotionEyeCameraManagerEngine', () => {
         );
 
         assert(metadata);
-        assert(metadata.startDate);
-        expect(metadata.startDate.getHours()).toBe(20);
-        expect(metadata.startDate.getMinutes()).toBe(15);
+        assert(metadata.startTime);
+        expect(metadata.startTime.getHours()).toBe(20);
+        expect(metadata.startTime.getMinutes()).toBe(15);
       });
 
       it('should match only non-expandable files', async () => {
@@ -796,8 +796,8 @@ describe('MotionEyeCameraManagerEngine', () => {
         const file = createRichBrowseMedia({
           can_expand: false,
           _metadata: {
-            startDate: new Date('2026-03-14T20:15:00'),
-            endDate: new Date('2026-03-14T20:15:00'),
+            startTime: new Date('2026-03-14T20:15:00'),
+            endTime: new Date('2026-03-14T20:15:00'),
           },
         });
         expect(fileStep.matcher(file)).toBe(true);
@@ -805,8 +805,8 @@ describe('MotionEyeCameraManagerEngine', () => {
         const directory = createRichBrowseMedia({
           can_expand: true,
           _metadata: {
-            startDate: new Date('2026-03-14T20:15:00'),
-            endDate: new Date('2026-03-14T20:15:00'),
+            startTime: new Date('2026-03-14T20:15:00'),
+            endTime: new Date('2026-03-14T20:15:00'),
           },
         });
         expect(fileStep.matcher(directory)).toBe(false);
@@ -878,16 +878,16 @@ describe('MotionEyeCameraManagerEngine', () => {
           can_expand: true,
           _metadata: {
             cameraID: 'camera-1',
-            startDate: new Date('2026-03-14'),
-            endDate: endOfDay(new Date('2026-03-14')),
+            startTime: new Date('2026-03-14'),
+            endTime: endOfDay(new Date('2026-03-14')),
           },
         }),
         createRichBrowseMedia({
           can_expand: true,
           _metadata: {
             cameraID: 'camera-1',
-            startDate: new Date('2026-03-15'),
-            endDate: endOfDay(new Date('2026-03-15')),
+            startTime: new Date('2026-03-15'),
+            endTime: endOfDay(new Date('2026-03-15')),
           },
         }),
       ]);
@@ -967,7 +967,7 @@ describe('MotionEyeCameraManagerEngine', () => {
       expect(walker.walk).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle directories without startDate metadata', async () => {
+    it('should handle directories without startTime metadata', async () => {
       const walker = mock<BrowseMediaWalker>();
       walker.walk.mockResolvedValue([
         createRichBrowseMedia({

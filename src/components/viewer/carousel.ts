@@ -280,14 +280,17 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       // item or the media changes.
       if (oldSelectedItem !== newSelectedItem || resetMedia) {
         const newSelected =
-          this._media?.findIndex((item) => item === newSelectedItem) ?? null;
+          this._media?.findIndex((item) => item === newSelectedItem) ?? -1;
 
         // If there's no selected item, just choose the last (most recent one) to
         // avoid rendering a blank. This could happen if the selected item was a
         // folder.
         this._selected =
-          newSelected ??
-          (this._media && this._media.length ? this._media.length - 1 : null);
+          newSelected >= 0
+            ? newSelected
+            : this._media?.length
+              ? this._media.length - 1
+              : null;
       }
     }
   }

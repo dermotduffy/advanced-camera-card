@@ -322,7 +322,7 @@ export class HAFoldersEngine implements FoldersEngine {
                   // folder with only the date from a parent counts as undated
                   // and is always opened to fetch contents and directly check
                   // their dates.
-                  this._getUninheritedStartDate(folder, nextLevel.parsers),
+                  this._getUninheritedStartTime(folder, nextLevel.parsers),
                 ),
             }),
             advance: (targets) => (isLastLevel ? [] : generateStep(targets)),
@@ -358,12 +358,12 @@ export class HAFoldersEngine implements FoldersEngine {
     });
   }
 
-  // Get the start date the parsers find in the folder, without inheriting
+  // Get the start time the parsers find in the folder, without inheriting
   // anything from the parent. A title may hold only part of a date (e.g. a day
-  // folder titled `31`), so the rest of the date comes from the start date
+  // folder titled `31`), so the rest of the date comes from the start time
   // already in the folder's metadata, which the walk built using the parent. A
   // title with no date at all still inherits nothing.
-  private _getUninheritedStartDate(
+  private _getUninheritedStartTime(
     folder: RichBrowseMedia<BrowseMediaMetadata>,
     parsers?: Parser[],
   ): Date | null {
@@ -371,8 +371,8 @@ export class HAFoldersEngine implements FoldersEngine {
       this._metadataGenerator.generateUninherited(
         folder,
         parsers,
-        folder._metadata?.startDate,
-      )?.startDate ?? null
+        folder._metadata?.startTime,
+      )?.startTime ?? null
     );
   }
 

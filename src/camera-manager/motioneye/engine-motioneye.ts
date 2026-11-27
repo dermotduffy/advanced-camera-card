@@ -94,21 +94,21 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     media: BrowseMedia,
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
   ): BrowseMediaMetadata | null {
-    let startDate = parent?._metadata?.startDate ?? new Date();
+    let startTime = parent?._metadata?.startTime ?? new Date();
     /* v8 ignore next: dateFormat is always non-null for files because
        Zod requires file_pattern to contain % -- @preserve */
     if (dateFormat) {
       const extensionlessTitle = media.title.replace(/\.[^/.]+$/, '');
-      startDate = parse(extensionlessTitle, dateFormat, startDate);
-      if (!isValidDate(startDate)) {
+      startTime = parse(extensionlessTitle, dateFormat, startTime);
+      if (!isValidDate(startTime)) {
         return null;
       }
     }
     return {
       cameraID: cameraID,
-      startDate: startDate,
+      startTime,
       // MotionEye only has start times, the event is effectively a 'point'
-      endDate: startDate,
+      endTime: startTime,
     };
   }
 
@@ -119,18 +119,18 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     media: BrowseMedia,
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
   ): BrowseMediaMetadata | null {
-    let startDate = parent?._metadata?.startDate ?? new Date();
+    let startTime = parent?._metadata?.startTime ?? new Date();
     if (dateFormat) {
-      const parsedDate = parse(media.title, dateFormat, startDate);
+      const parsedDate = parse(media.title, dateFormat, startTime);
       if (!isValidDate(parsedDate)) {
         return null;
       }
-      startDate = startOfDay(parsedDate);
+      startTime = startOfDay(parsedDate);
     }
     return {
       cameraID: cameraID,
-      startDate,
-      endDate: parent?._metadata?.endDate ?? endOfDay(startDate),
+      startTime,
+      endTime: parent?._metadata?.endTime ?? endOfDay(startTime),
     };
   }
 
@@ -306,7 +306,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
       // Sort by most recent then slice at the query limit.
       const sortedMedia = orderBy(
         media,
-        (media: RichBrowseMedia<BrowseMediaMetadata>) => media._metadata?.startDate,
+        (media: RichBrowseMedia<BrowseMediaMetadata>) => media._metadata?.startTime,
         'desc',
       ).slice(0, perCameraQuery.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT);
 
@@ -364,8 +364,8 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
         engineOptions,
       );
       for (const dayDirectory of directories ?? []) {
-        if (dayDirectory._metadata?.startDate) {
-          days.add(formatISODate(dayDirectory._metadata.startDate));
+        if (dayDirectory._metadata?.startTime) {
+          days.add(formatISODate(dayDirectory._metadata.startTime));
         }
       }
     };

@@ -738,8 +738,8 @@ export const createRichBrowseMedia = (
     ...createBrowseMedia(media),
     _metadata: media?._metadata ?? {
       cameraID: 'camera.test',
-      startDate: new Date('2024-11-19T07:23:00'),
-      endDate: new Date('2025-11-19T07:24:00'),
+      startTime: new Date('2024-11-19T07:23:00'),
+      endTime: new Date('2025-11-19T07:24:00'),
     },
   };
 };
