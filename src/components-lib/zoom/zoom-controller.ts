@@ -79,6 +79,10 @@ export class ZoomController {
   // Unset at scale 1, where there is nothing to pan.
   private _userPan: Point | null = null;
 
+  // Counts the configured pans queued for the next frame, so that a later one,
+  // or a resize that pans at once, makes an earlier one stale.
+  private _configPanRequest = 0;
+
   // The width/height ratio of the loaded media, and the signal that retires it.
   private _mediaAspectRatio: number | null = null;
   private _mediaSignal: AbortSignal | null = null;
@@ -101,18 +105,24 @@ export class ZoomController {
   // A resize, or a new picture shape, changes the size that pan percentages
   // are measured against, so the pan is re-derived at the new size (from the
   // card's percentages or the user's depending on who moved last).
-  private _debouncedResizeUpdater = throttle(() => {
+  private _updateForNewSize(options?: { resize?: boolean }): void {
     const panzoom = this._panzoom;
     if (!panzoom) {
       return;
     }
 
     if (this._userAdjusted) {
-      this._updateBasedOnUserPan(panzoom);
+      this._updateBasedOnUserPan(panzoom, options);
     } else {
-      this._updateBasedOnConfig();
+      this._updateBasedOnConfig(options);
     }
-  }, 50);
+  }
+
+  private _debouncedResizeUpdater = throttle(
+    () => this._updateForNewSize({ resize: true }),
+    50,
+  );
+  private _debouncedPictureUpdater = throttle(() => this._updateForNewSize(), 50);
 
   private _resizeObserver = new ResizeObserver(this._debouncedResizeUpdater);
 
@@ -405,7 +415,10 @@ export class ZoomController {
   // Re-derives the user's pan for the current element size, at the scale they
   // chose (panzoom's scale does not depend on the element size, so that is left
   // untouched).
-  private _updateBasedOnUserPan(panzoom: PanzoomObject): void {
+  private _updateBasedOnUserPan(
+    panzoom: PanzoomObject,
+    options?: { resize?: boolean },
+  ): void {
     if (!this._userPan) {
       return;
     }
@@ -420,9 +433,25 @@ export class ZoomController {
     }
 
     panzoom.pan(converted.x, converted.y, { animate: false });
+    if (options?.resize) {
+      this._writeTransformNow(panzoom);
+    }
   }
 
-  private _updateBasedOnConfig(): void {
+  // Panzoom writes each change on the next animation frame. After a resize that
+  // frame would show the new size at the old pan (e.g. a zoomed picture jumps
+  // when leaving fullscreen), so the resize path also writes the transform at
+  // once, as Panzoom writes it.
+  private _writeTransformNow(panzoom: PanzoomObject): void {
+    const pan = panzoom.getPan();
+    panzoom.setStyle('transition', 'none');
+    panzoom.setStyle(
+      'transform',
+      `scale(${panzoom.getScale()}) translate(${pan.x}px, ${pan.y}px)`,
+    );
+  }
+
+  private _updateBasedOnConfig(options?: { resize?: boolean }): void {
     const panzoom = this._panzoom;
     if (!panzoom) {
       return;
@@ -462,6 +491,21 @@ export class ZoomController {
       return;
     }
 
+    // A resize at an unchanged scale only re-derives the pan for the new size:
+    // apply it in this frame and without animation, so the picture does not
+    // first show at the old pan and then slide into place.
+    if (
+      options?.resize &&
+      arefloatsApproximatelyEqual(panzoom.getScale(), desiredScale, ZOOM_PRECISION)
+    ) {
+      // A pan still queued for the old size would slide the picture back.
+      this._configPanRequest++;
+      panzoom.pan(x, y, { animate: false });
+      this._contain(panzoom);
+      this._writeTransformNow(panzoom);
+      return;
+    }
+
     panzoom.zoom(desiredScale, {
       // Zoom is stepped, not animated. If it is animated, there is interaction
       // between the zoom and the pan below, and the pan would need to be
@@ -474,9 +518,11 @@ export class ZoomController {
     // rather than animates: Panzoom writes each change on the next animation
     // frame, and the browser animates a zoom written in the same frame as an
     // animated pan.
+    const request = ++this._configPanRequest;
     window.requestAnimationFrame(() => {
-      // Protect against deactivation.
-      if (this._panzoom !== panzoom) {
+      // Protect against deactivation, and against a resize that has already
+      // panned for the new size.
+      if (this._panzoom !== panzoom || request !== this._configPanRequest) {
         return;
       }
 
@@ -531,7 +577,7 @@ export class ZoomController {
       return;
     }
     this._pictureAspectRatio = ratio;
-    this._debouncedResizeUpdater();
+    this._debouncedPictureUpdater();
   }
 
   // The picture's size at scale 1, contained within the element.
