@@ -756,6 +756,21 @@ describe('ViewQueryExecutor', () => {
       );
 
       it.each(['media' as const, 'gallery' as const])(
+        'should query only the selected camera and its dependencies in %s view',
+        async (viewName) => {
+          const api = createPopulatedAPI();
+          const view = createView({ view: viewName, camera: 'camera.office' });
+
+          applyViewModifiers(
+            view,
+            await new ViewQueryExecutor(api).getNewQueryModifiers(view),
+          );
+
+          expect(view.query?.getAllCameraIDs()).toEqual(new Set(['camera.office']));
+        },
+      );
+
+      it.each(['media' as const, 'gallery' as const])(
         'should query all cameras in %s view grid mode',
         async (viewName) => {
           const api = createPopulatedAPI();
@@ -769,9 +784,9 @@ describe('ViewQueryExecutor', () => {
           const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
           applyViewModifiers(view, modifiers);
 
-          expect(view.query).toBeInstanceOf(UnifiedQuery);
-          const allCameraIDs = view.query?.getAllCameraIDs();
-          expect(allCameraIDs?.size).toBeGreaterThan(0);
+          expect(view.query?.getAllCameraIDs()).toEqual(
+            new Set(['camera.office', 'camera.kitchen']),
+          );
         },
       );
     });
@@ -1006,6 +1021,29 @@ describe('ViewQueryExecutor', () => {
         applyViewModifiers(view, modifiers);
 
         expect(view.query).toBeNull();
+      });
+
+      it('should show the first folder when no folder is requested', async () => {
+        const api = createPopulatedAPI();
+        vi.mocked(api.getFoldersManager().hasFolders).mockReturnValue(true);
+
+        await new ViewQueryExecutor(api).getNewQueryModifiers(
+          createView({ view: 'folders' }),
+        );
+
+        expect(api.getFoldersManager().getFolder).toHaveBeenCalledWith(undefined);
+      });
+
+      it('should show the folder requested', async () => {
+        const api = createPopulatedAPI();
+        vi.mocked(api.getFoldersManager().hasFolders).mockReturnValue(true);
+
+        await new ViewQueryExecutor(api).getNewQueryModifiers(
+          createView({ view: 'folders' }),
+          { folder: 'office' },
+        );
+
+        expect(api.getFoldersManager().getFolder).toHaveBeenCalledWith('office');
       });
 
       it('should return empty when getDefaultQueryParameters returns null', async () => {

@@ -86,6 +86,54 @@ const mountCardWithReviews = async (
   );
 };
 
+const getClipFileName = (time: Date): string =>
+  `${format(time, 'yyyy-MM-dd HH:mm:ss')}.mp4`;
+
+// Mount a card that opens on the timeline, with a folder holding a clip that
+// starts at each of the given times. By default, one camera uses the folder as
+// its media.
+const mountCardWithFolderClips = async (
+  times: Date[],
+  cameras: PartialAdvancedCameraCardConfig['cameras'] = [
+    { ...createStillImageCameraConfig(), media: { type: 'folder' } },
+  ],
+): Promise<MountedCard> => {
+  const hass = createGenericCameraHASS({ cameras: ['camera.garden'] });
+  registerFrontDoorFolder(
+    hass,
+    times.map((time) => createFrontDoorFolderMedia(getClipFileName(time), 'video')),
+  );
+
+  return await MountedCardFactory.createFromSource(
+    createStillImageCardConfig({
+      cameras,
+      folders: [
+        {
+          type: 'ha',
+          ha: {
+            path: [
+              { id: FRONT_DOOR_FOLDER_CONTENT_ID },
+              {
+                parsers: [
+                  {
+                    type: 'startdate',
+                    regexp: '^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}',
+                    format: 'yyyy-MM-dd HH:mm:ss',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
+      view: { default: 'timeline' },
+      debug: { logging: true },
+    }),
+    hass,
+    { toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR] },
+  );
+};
+
 describe('AdvancedCameraCardTimelineCore', () => {
   it('should draw the timeline tools on a background of their own', async () => {
     const card = await mountCardWithTimeline({ view: { default: 'timeline' } });
@@ -380,10 +428,31 @@ describe('AdvancedCameraCardTimelineCore', () => {
     });
   });
 
-  describe('moving to another time', () => {
-    const getClipFileName = (time: Date): string =>
-      `${format(time, 'yyyy-MM-dd HH:mm:ss')}.mp4`;
+  describe('with folders', () => {
+    it('should draw the timeline when two cameras show the same folder', async () => {
+      const card = await mountCardWithFolderClips(
+        [subMinutes(new Date(), 20)],
+        [
+          { ...createStillImageCameraConfig(), media: { type: 'folder' } },
+          {
+            ...createStillImageCameraConfig('camera.garden'),
+            media: { type: 'folder' },
+          },
+        ],
+      );
 
+      await card.waitForSelector('.vis-item');
+      expect(deepQueryAll(card.card, '.vis-label')).toHaveLength(1);
+    });
+
+    it('should show folder media on a card without cameras', async () => {
+      const card = await mountCardWithFolderClips([subMinutes(new Date(), 20)], []);
+
+      await card.waitForSelector('.vis-item');
+    });
+  });
+
+  describe('moving to another time', () => {
     const waitForClipThumbnail = async (
       card: MountedCard,
       time: Date,
@@ -398,49 +467,13 @@ describe('AdvancedCameraCardTimelineCore', () => {
       );
     };
 
-    // The timeline queries a folder only for the timeline window, so moving the
-    // timeline days away makes it re-query.
-    const mountCardWithFolderClips = async (times: Date[]): Promise<MountedCard> => {
-      const hass = createGenericCameraHASS();
-      registerFrontDoorFolder(
-        hass,
-        times.map((time) => createFrontDoorFolderMedia(getClipFileName(time), 'video')),
-      );
-
-      return await MountedCardFactory.createFromSource(
-        createStillImageCardConfig({
-          cameras: [{ ...createStillImageCameraConfig(), media: { type: 'folder' } }],
-          folders: [
-            {
-              type: 'ha',
-              ha: {
-                path: [
-                  { id: FRONT_DOOR_FOLDER_CONTENT_ID },
-                  {
-                    parsers: [
-                      {
-                        type: 'startdate',
-                        regexp: '^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}',
-                        format: 'yyyy-MM-dd HH:mm:ss',
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ],
-          view: { default: 'timeline' },
-          debug: { logging: true },
-        }),
-        hass,
-        { toleratedConsoleErrors: [RESIZE_LOOP_CONSOLE_ERROR] },
-      );
-    };
-
     it('should pan to a chosen time on open without redrawing the timeline', async () => {
       const now = new Date();
       const recentTime = subMinutes(now, 20);
       const olderTime = subDays(now, 3);
+
+      // The timeline queries the folder only for the time it shows, so moving
+      // days away makes it query again.
       const card = await mountCardWithFolderClips([recentTime, olderTime]);
 
       await waitForClipThumbnail(card, recentTime);

@@ -42,6 +42,9 @@ const createMocks = () => {
   store.getCameraIDsWithCapability.mockReturnValue(new Set());
   store.getAllDependentCameras.mockReturnValue(new Set());
   store.getCameraConfig.mockReturnValue(createCameraConfig());
+  foldersManager.getFolders.mockImplementation(() =>
+    new Map<string, FolderConfig>().entries(),
+  );
 
   // By default, make getCameraCapabilities return a set of capabilities that
   // matches everything, unless the test mocks it otherwise.
@@ -519,16 +522,6 @@ describe('UnifiedQueryBuilder', () => {
       const query = builder.buildDefaultFolderQuery('folder1');
       expect(query).toBeNull();
     });
-
-    it('should use default folder when no ID provided', () => {
-      const { cameraManager, foldersManager } = createMocks();
-      foldersManager.getFolder.mockReturnValue(null);
-
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      builder.buildDefaultFolderQuery();
-
-      expect(foldersManager.getFolder).toHaveBeenCalledWith(undefined);
-    });
   });
 
   describe('buildFolderQuery', () => {
@@ -545,36 +538,58 @@ describe('UnifiedQueryBuilder', () => {
   });
 
   describe('buildDefaultCameraQuery', () => {
-    it('should return null when no cameras available', () => {
-      const { cameraManager, foldersManager, store } = createMocks();
-      store.getCameraIDs.mockReturnValue(new Set());
-
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
-
-      expect(query).toBeNull();
-    });
-
-    it('should use all cameras when no ID provided', () => {
-      const { cameraManager, foldersManager, store } = createMocks();
-      store.getCameraIDs.mockReturnValue(new Set(['camera.office', 'cam2']));
-      cameraManager.getCameraCapabilities.mockReturnValue(null);
-
-      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      builder.buildDefaultCameraQuery();
-
-      expect(store.getCameraIDs).toHaveBeenCalled();
-    });
-
-    it('should use dependent cameras when ID provided', () => {
+    it('should use the camera and the cameras it depends on', () => {
       const { cameraManager, foldersManager, store } = createMocks();
       store.getAllDependentCameras.mockReturnValue(new Set(['camera.office', 'dep1']));
       cameraManager.getCameraCapabilities.mockReturnValue(null);
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      builder.buildDefaultCameraQuery({ cameraID: 'camera.office' });
+      builder.buildDefaultCameraQuery('camera.office');
 
       expect(store.getAllDependentCameras).toHaveBeenCalledWith('camera.office');
+    });
+
+    it('should not include folders that the camera does not reference', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getAllDependentCameras.mockReturnValue(new Set(['camera.office']));
+      cameraManager.getCameraCapabilities.mockReturnValue(
+        createCapabilities({ clips: true }),
+      );
+      const folder = createFolder({ id: 'exports' });
+      foldersManager.getFolders.mockImplementation(() =>
+        new Map([['exports', folder]]).entries(),
+      );
+      foldersManager.getDefaultQueryParameters.mockReturnValue(
+        createFolderQueryParams(folder, [{}]),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery('camera.office');
+
+      expect(query?.getFolderQueries()).toEqual([]);
+    });
+  });
+
+  describe('buildDefaultQuery', () => {
+    it('should return null when no cameras available', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set());
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultQuery();
+
+      expect(query).toBeNull();
+    });
+
+    it('should use every camera', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office', 'cam2']));
+      cameraManager.getCameraCapabilities.mockReturnValue(null);
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      builder.buildDefaultQuery();
+
+      expect(store.getCameraIDs).toHaveBeenCalled();
     });
 
     it('should build reviews query for camera with reviews capability', () => {
@@ -589,7 +604,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       assert(isReviewQuery(query.getNodes()[0]));
@@ -607,7 +622,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -628,7 +643,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -649,7 +664,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       assert(isReviewQuery(query.getNodes()[0]));
@@ -670,7 +685,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -692,7 +707,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -713,7 +728,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -734,7 +749,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       assert(isRecordingQuery(query.getNodes()[0]));
@@ -752,7 +767,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       assert(isRecordingQuery(query.getNodes()[0]));
@@ -770,7 +785,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       assert(isReviewQuery(query.getNodes()[0]));
@@ -788,7 +803,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -809,7 +824,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -830,7 +845,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({ type: QueryType.Event });
@@ -851,7 +866,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -872,7 +887,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -893,7 +908,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery({ limit: 15 });
+      const query = builder.buildDefaultQuery({ limit: 15 });
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -908,7 +923,7 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(null);
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       expect(query).toBeNull();
     });
@@ -923,9 +938,44 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       expect(query).toBeNull();
+    });
+
+    it('should include folders that no camera references', () => {
+      const { cameraManager, foldersManager } = createMocks();
+      const folder = createFolder({ id: 'exports' });
+      const params = createFolderQueryParams(folder, [{}]);
+      foldersManager.getFolders.mockImplementation(() =>
+        new Map([['exports', folder]]).entries(),
+      );
+      foldersManager.getDefaultQueryParameters.mockReturnValue(params);
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultQuery();
+
+      expect(query?.getFolderQueries()).toEqual([params]);
+    });
+
+    it('should include each folder only once regardless of how many cameras reference it', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.front', 'camera.back']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({ media: { type: 'folder' } }),
+      );
+      const folder = createFolder({ id: 'recordings' });
+      const params = createFolderQueryParams(folder, [{}]);
+      foldersManager.getFolder.mockReturnValue(folder);
+      foldersManager.getFolders.mockImplementation(() =>
+        new Map([['recordings', folder]]).entries(),
+      );
+      foldersManager.getDefaultQueryParameters.mockReturnValue(params);
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultQuery();
+
+      expect(query?.getFolderQueries()).toEqual([params]);
     });
 
     it('should apply a time range to camera and folder queries alike', () => {
@@ -945,7 +995,7 @@ describe('UnifiedQueryBuilder', () => {
       const start = new Date('2026-11-12T00:00:00');
       const end = new Date('2026-11-12T23:59:59.999');
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery({ start, end });
+      const query = builder.buildDefaultQuery({ start, end });
 
       expect(query?.getFolderQueries()).toEqual([{ ...params, start, end }]);
       expect(query?.getMediaQueries()).toEqual([
@@ -977,7 +1027,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -1004,7 +1054,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery({ limit: 50 });
+      const query = builder.buildDefaultQuery({ limit: 50 });
 
       assert(query);
       expect(query.getNodes()[0]).not.toHaveProperty('limit');
@@ -1029,7 +1079,7 @@ describe('UnifiedQueryBuilder', () => {
       );
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -1048,7 +1098,7 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       expect(query).toBeNull();
     });
@@ -1063,7 +1113,7 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       expect(query).toBeNull();
     });
@@ -1078,7 +1128,7 @@ describe('UnifiedQueryBuilder', () => {
       cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       expect(query).toBeNull();
     });
@@ -1250,7 +1300,7 @@ describe('UnifiedQueryBuilder', () => {
       });
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildDefaultCameraQuery();
+      const query = builder.buildDefaultQuery();
 
       assert(query);
 
